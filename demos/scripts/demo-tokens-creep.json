@@ -562,8 +562,6 @@
     ],
     "first_fire_detector": "mSPRT_cost_req",
     "alpha_total_max": 0.0002,
-    "divergence_from_spec": "Cascade does not catch this regression class — no Family A shadow in cascade mode (template wiring, not topology), and per-tick cost_req ratio stays below cascade's 1.20 throughout.",
-    "q57_path_3_annotation": "Q57 Path-3 applyCellPatch class-fix (commit e635efb) propagates per-demo cell_patch_override symmetrically across all tier-segmented cells + aggregate_fallback structure. Demo-tokens-creep §A5 fire_tick shifts +1 (16 → 17) under both V4 and V7 substrates because both consume the patched aggregate_fallback at runtime. Class-fix applies regardless of CFG_PATH version (architecturally consistent symmetric reach per NS-ARCH §Demo substrate architectural carve-out post-Q57); +1 tick shift is Minor expected_outcome shift per Q57 spec § Step 4 oversight pattern. Verdict unchanged at trajectory end.",
-    "q72_slice_2_phase_3_b_annotation": "Q72 SLICE 2 Phase 3.B: first_fire_tick re-baselined 17 → 15 post-RFF architectural-fix; Q67 §Q67.4-ter v1 biased streaming-witness retired; v2 RFF unbiased-by-linearity. Family A mSPRT_cost_req detection 2 ticks earlier under corrected mixture-supermartingale + RFF MMD; verdict + family ordering preserved per HALT-CRITERION (a2). Per accuracy-first directive 2026-05-07; Q71 demo-retuning REJECTED-INDEFINITELY."
+    "divergence_from_spec": "Cascade does not catch this regression class — no Family A shadow in cascade mode (template wiring, not topology), and per-tick cost_req ratio stays below cascade's 1.20 throughout."
   }
 }
