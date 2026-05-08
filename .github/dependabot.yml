@@ -1,12 +1,23 @@
 version: 2
 updates:
+  # npm dependencies — all updates (security + minor + patch + major);
+  # major bumps reviewed manually per PR.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+
+  # GitHub Actions — patch + minor only (major bumps require manual
+  # review; reference-repo posture). Major bumps for actions like
+  # upload-artifact / download-artifact often introduce breaking
+  # workflow API changes; preserve stable + well-tested v4 baseline.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
