@@ -559,7 +559,6 @@
     ],
     "alpha_total_max": 0.001,
     "divergence_from_spec": "Both engines fire at t=5 via Family B slowbleed (no timing delta). Portfolio multi-family catch (B+A+C+E) by t=8 still distinguishable. Provenance/α-budget pitch beats unaffected.",
-    "q57_path_3_annotation": "Q57 Path-3 demo-github-2020 cascade + portfolio first_families update: Family D drops from first-firing attribution due to Q2.B.6.1 sliding-buffer recalibration (Phase-2 substrate-level effect; inherited via v7-demos.json substrate; NOT Path-3 mechanism). Family D fires LATER in trajectory and still corroborates verdict; first_families [A, B, C, D, E] → [A, B, C, E]. Verdict unchanged at trajectory end (rollback under cascade preserved). Classify Minor per Q57 spec § Step 4 oversight pattern (timing-attribution shift; not contribution change; not verdict change).",
     "min_compiler_version": "0.3.0",
     "per_variant": {
       "spectral_bootstrap_null": {
