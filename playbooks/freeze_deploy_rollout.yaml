@@ -1,0 +1,24 @@
+# playbooks/freeze_deploy_rollout.yaml
+# Entry #6 per ARCHITECT-REPLY-49 D2. Category: pause.
+# Reversibility: any — freezing the rollout doesn't commit to
+# a direction (rollback or proceed); operator decides later.
+
+id: freeze_deploy_rollout
+version: "1.0.0"
+applies_when:
+  firing_families: ["C", "D", "E"]
+  min_family_count: 1
+  verdict_class: extend
+reversibility_required: any
+confidence_threshold: 0.7
+orchestrator_command_template: "argo rollouts pause ${rollout_name} --namespace ${namespace} --reason 'DS agent freeze; novelty/drift detected'"
+human_description: >
+  Freeze the rollout at the current canary weight when
+  multivariate / spectral / conformal novelty fires — these
+  are subtle statistical shifts that benefit from a longer
+  observation window before commit.
+expected_effect: >
+  Canary weight stays put; no new traffic shift. Baseline
+  detector windows continue accumulating samples. Operator
+  resumes (proceed) or rolls back after review.
+category: pause

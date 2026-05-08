@@ -1,0 +1,62 @@
+{
+  "id": "llm-inference-streaming",
+  "description": "Canonical healthy baseline for the llm-inference-streaming profile. Shared across demo-clean, demo-novelty, demo-anthropic-2025, demo-github-2020, demo-baseline-maintenance, demo-tokens-creep. Tenant-skew demo uses a distinct tenant-aware baseline.",
+  "baseline": {
+    "p99_latency": 185,
+    "ttft": 220,
+    "tokens_turn": 418,
+    "kv_cache": 0.89,
+    "cost_req": 0.0042,
+    "downstream_err": 0.0012,
+    "mfu": 0.72,
+    "hbm_spill": 0.02,
+    "collective_ops": 0.9997,
+    "corpus_delta": 0.04,
+    "traffic_pct": 0.1
+  },
+  "cell_patch": {
+    "target_cell": {
+      "hour_of_day": 14,
+      "day_of_week": 2
+    },
+    "family_A_per_signal": {
+      "p99_latency": {
+        "baseline_mean": 185,
+        "baseline_sigma_squared": 85.5625,
+        "tau_squared": 85.5625,
+        "delta_min": 7.4
+      },
+      "ttft": {
+        "baseline_mean": 220,
+        "baseline_sigma_squared": 121,
+        "tau_squared": 121,
+        "delta_min": 8.8
+      },
+      "downstream_err": {
+        "baseline_mean": 0.0012,
+        "baseline_sigma_squared": 3.5999999999999996e-9,
+        "tau_squared": 3.5999999999999996e-9,
+        "delta_min": 0.000047999999999999994
+      },
+      "cost_req": {
+        "baseline_mean": 0.0042,
+        "baseline_sigma_squared": 4.4100000000000004e-8,
+        "tau_squared": 4.4100000000000004e-8,
+        "delta_min": 0.000168
+      }
+    },
+    "family_C_mean_vector": [
+      185,
+      220,
+      418,
+      0.89,
+      0.0042,
+      0.0012,
+      0.72,
+      0.02,
+      0.9997,
+      0.04,
+      0.1
+    ]
+  }
+}

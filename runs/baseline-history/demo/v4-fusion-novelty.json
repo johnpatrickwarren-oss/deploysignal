@@ -1,0 +1,26 @@
+{
+  "version_id": "v4-fusion-novelty-2026-04-01",
+  "compiled_at": "2026-04-01T12:00:00Z",
+  "baseline_ref": "runs/compiled-configs/v4-fusion-novelty.json (current runway compiled config; cells[] stub here — UI consumes this history artifact for metadata + maturity_metrics summary; actual compiled cells remain the source of truth for engine evaluation)",
+  "predecessor_version_id": "v3-baseline-post-serving-upgrade-2026-02-20",
+  "recalibration_reason": "scheduled",
+  "alpha_budget": { "total": 1e-3, "per_family": { "A": 4e-4, "B": 2e-4, "C": 2e-4, "D": 1e-4, "E": 1e-4 } },
+  "cells": [],
+  "maturity_metrics": {
+    "p99_latency":       { "mean": 185,    "direction_of_better": "lower" },
+    "ttft":              { "mean": 220,    "direction_of_better": "lower" },
+    "downstream_err":    { "mean": 0.0012, "direction_of_better": "lower" },
+    "hbm_spill":         { "mean": 0.020,  "direction_of_better": "lower" },
+    "refusal_rate":      { "mean": 0.018,  "direction_of_better": "lower" },
+    "mfu":               { "mean": 0.72,   "direction_of_better": "higher" },
+    "eval_score":        { "mean": 0.87,   "direction_of_better": "higher" },
+    "tool_success_rate": { "mean": 0.95,   "direction_of_better": "higher" },
+    "collective_ops":    { "mean": 0.9997, "direction_of_better": "higher" },
+    "cost_req":          { "mean": 0.0042, "informational_only": true },
+    "tokens_turn":       { "mean": 418,    "informational_only": true },
+    "kv_cache":          { "mean": 0.89,   "informational_only": true },
+    "corpus_delta":      { "mean": 0.04,   "informational_only": true }
+  },
+  "drift_detection_result": null,
+  "incident_outcome_tags": []
+}

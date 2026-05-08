@@ -1,0 +1,24 @@
+# playbooks/escalate_to_sre_team.yaml
+# Entry #10 per ARCHITECT-REPLY-49 D2. Category: pause.
+# Reversibility: any — escalation is always safe regardless
+# of deploy reversibility.
+
+id: escalate_to_sre_team
+version: "1.0.0"
+applies_when:
+  firing_families: []
+  min_family_count: 0
+  verdict_class: both
+reversibility_required: any
+confidence_threshold: 0.5
+orchestrator_command_template: "pagerduty trigger ${escalation_policy} --severity ${severity} --summary 'DS agent escalate: ${summary_text}'"
+human_description: >
+  Escalate the incident to the SRE team via PagerDuty when
+  the agent is unable to confidently propose a concrete
+  action from the playbook library (low confidence or
+  ambiguous signal).
+expected_effect: >
+  A PagerDuty page fires against the service's escalation
+  policy. Deploy lifecycle continues unchanged until SRE
+  acknowledges + takes direct action.
+category: pause

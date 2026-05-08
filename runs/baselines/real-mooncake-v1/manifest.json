@@ -1,0 +1,31 @@
+{
+  "version": "real_mooncake-v1",
+  "generated_at": "2026-05-02T06:24:52.774Z",
+  "seed": 0,
+  "cell_dim": "hour_of_day_x_day_of_week",
+  "n_runs": 1,
+  "ticks_per_run": 708,
+  "tenants": 1,
+  "signals": [
+    "p99_latency",
+    "ttft",
+    "tokens_turn",
+    "kv_cache",
+    "cost_req",
+    "downstream_err",
+    "mfu",
+    "hbm_spill",
+    "collective_ops",
+    "corpus_delta",
+    "traffic_pct",
+    "eval_score",
+    "tool_success_rate",
+    "refusal_rate",
+    "output_len_p50"
+  ],
+  "baseline_provenance": "real_mooncake",
+  "caveat_filters_applied": [
+    "mooncake_window:1hour_single",
+    "mooncake_scope:family_b_kv_cache_only_not_family_d"
+  ]
+}

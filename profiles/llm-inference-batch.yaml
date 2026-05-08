@@ -1,0 +1,95 @@
+# profiles/llm-inference-batch.yaml
+#
+# v1 secondary workload profile. Batch (non-streaming) LLM inference
+# — typical scenarios: offline evals, bulk document processing,
+# overnight embedding jobs. Extends streaming; overrides reflect:
+#   - TTFT is meaningless for batch → excluded from sli_list.
+#   - cost_req is primary economic SLI → tighter δ_min.
+#   - p99_latency has looser tolerance → wider δ_min.
+#   - Bake windows are longer (multi-minute requests not 5s ticks).
+#   - Family C α halved (less multivariate load; C-relevant signals
+#     like kv_cache are less volatile in batch).
+
+id: llm-inference-batch
+version: "1.0.0"
+extends: llm-inference-streaming
+description: >
+  Batch (non-streaming) LLM inference workload. Inherits streaming's
+  structural defaults; excludes TTFT; tightens cost_req; widens
+  p99_latency tolerance; reallocates α toward Family A univariate.
+
+sli_list:
+  # D4 array semantics: child replaces parent array entirely.
+  # TTFT excluded explicitly by omission.
+  - signal: p99_latency
+    direction_of_better: lower
+    δ_min: 0.02    # batch: wider tolerance than streaming's 0.01
+  - signal: eval_score
+    direction_of_better: higher
+    δ_min: 0.02
+  - signal: tool_success_rate
+    direction_of_better: higher
+    δ_min: 0.02
+  - signal: downstream_err
+    direction_of_better: lower
+    δ_min: 0.05
+  - signal: cost_req
+    direction_of_better: lower
+    δ_min: 0.005  # batch: tighter than streaming's 0.01
+
+joint_vector:
+  # REPLY-51b v2 D7(a) — batch drops TTFT from the joint vector
+  # (TTFT is undefined for non-streaming batch inference); 10-dim
+  # multivariate instead of streaming's 11-dim.
+  signals:
+    - p99_latency
+    - tokens_turn
+    - kv_cache
+    - cost_req
+    - downstream_err
+    - mfu
+    - hbm_spill
+    - collective_ops
+    - corpus_delta
+    - traffic_pct
+  include_in_family_c: true
+  include_in_family_e: true
+
+alpha_allocation:
+  # Reallocate: halve Family C (less C-relevant covariance drift in
+  # batch), push savings into Family A + B. Family D + E preserved.
+  per_family:
+    A: 5.0e-4   # +1e-4 vs streaming
+    B: 2.0e-4
+    C: 1.0e-4   # −1e-4 vs streaming (half)
+    D: 1.0e-4
+    E: 1.0e-4
+  total: 1.0e-3
+
+bake_profiles:
+  # Batch jobs run for minutes; extend eligibility + windows.
+  - signal: p99_latency
+    min_ticks_before_eligible: 5
+    min_observation_window: 5
+    max_deploy_window_days: 3
+  - signal: downstream_err
+    min_ticks_before_eligible: 6
+    min_observation_window: 6
+    max_deploy_window_days: 3
+  - signal: tool_success_rate
+    min_ticks_before_eligible: 10
+    min_observation_window: 10
+    max_deploy_window_days: 5
+  - signal: eval_score
+    min_ticks_before_eligible: 10
+    min_observation_window: 10
+    max_deploy_window_days: 7
+  - signal: cost_req
+    min_ticks_before_eligible: 10
+    min_observation_window: 10
+    max_deploy_window_days: 14
+
+policy_defaults:
+  reversibility_threshold_minutes: 120  # batch: longer reversibility window
+  auto_rollback_enabled: true
+  default_risk_tier: medium

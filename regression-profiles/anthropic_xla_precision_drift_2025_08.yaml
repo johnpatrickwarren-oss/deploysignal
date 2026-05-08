@@ -1,0 +1,37 @@
+# regression-profiles/anthropic_xla_precision_drift_2025_08.yaml
+# Source: Anthropic Aug 2025 XLA precision-drift postmortem
+# Shape: slow eval_score drift (relative-to-baseline-σ shift)
+# accompanied by a subtle correlation change across quality
+# signals. Family A should eventually fire; Family C may surface
+# the covariance drift earlier via Hotelling T².
+
+id: anthropic_xla_precision_drift_2025_08
+source: "Anthropic Aug 2025 XLA precision-drift postmortem"
+duration_minutes: 60
+affected_signals: [eval_score, refusal_rate]
+
+injection_points:
+  - tick_offset: 0
+    signal: eval_score
+    delta_kind: relative_to_baseline_sigma
+    delta: -0.8
+  - tick_offset: 120
+    signal: eval_score
+    delta_kind: relative_to_baseline_sigma
+    delta: -1.5
+  - tick_offset: 240
+    signal: eval_score
+    delta_kind: relative_to_baseline_sigma
+    delta: -2.2
+  - tick_offset: 120
+    signal: refusal_rate
+    delta_kind: relative_to_baseline_sigma
+    delta: 1.2
+
+expected_detection:
+  family: A
+  signal: eval_score
+  notes: >
+    Slow σ-scaled drift; exercises the relative_to_baseline_sigma
+    delta_kind (matches Family A's δ_min σ-multiplier pattern).
+    Family C may co-fire on the eval_score × refusal_rate joint.

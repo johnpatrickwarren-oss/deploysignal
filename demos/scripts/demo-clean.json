@@ -1,0 +1,544 @@
+{
+  "id": "demo-clean",
+  "name": "Demo 1 — Clean Deploy",
+  "description": "Healthy deploy of a serving-code change. Every family evaluates cleanly; α budget barely touched.",
+  "narrative": "Here's the happy path. Every verdict carries its own receipt. Even on a clean deploy, you can see what was checked and what passed.",
+  "baseline_ref": "baselines/llm-inference-streaming.json",
+  "riskLevel": "high",
+  "author": "human",
+  "changeType": "serving_code",
+  "timeWindow": "ok",
+  "bakeHours": 6,
+  "flags": {
+    "security": false,
+    "artifact_content": false,
+    "provenance": false,
+    "contract": false,
+    "toolchain": false,
+    "zeta": true,
+    "approval": true
+  },
+  "currentHourOfDay": 14,
+  "currentDayOfWeek": 2,
+  "cadence_ms": 200,
+  "total_ticks": 32,
+  "ticks": [
+    {
+      "metrics": {
+        "p99_latency": 184.63347085868008,
+        "ttft": 219.27510007992387,
+        "tokens_turn": 418.1938212451646,
+        "kv_cache": 0.8890122931869142,
+        "cost_req": 0.004196866636967193,
+        "downstream_err": 0.0011943079668581486,
+        "mfu": 0.7198481701033562,
+        "hbm_spill": 0.01992369200075045,
+        "collective_ops": 0.999774740312328,
+        "corpus_delta": 0.040197853710129856,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.52274003102443,
+        "ttft": 219.99943104155363,
+        "tokens_turn": 418.35613837369436,
+        "kv_cache": 0.8912867840272933,
+        "cost_req": 0.004202431038367096,
+        "downstream_err": 0.0011950890018772333,
+        "mfu": 0.7189638042182475,
+        "hbm_spill": 0.020090017655305565,
+        "collective_ops": 0.9997848856158309,
+        "corpus_delta": 0.04015578758250922,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.07475238748827,
+        "ttft": 219.4377091318369,
+        "tokens_turn": 418.1256143677207,
+        "kv_cache": 0.8891419217957743,
+        "cost_req": 0.004211166665897425,
+        "downstream_err": 0.0012038580117635428,
+        "mfu": 0.7190072464569658,
+        "hbm_spill": 0.020065878942143175,
+        "collective_ops": 0.9996933864426476,
+        "corpus_delta": 0.03982428195104003,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.29323374885135,
+        "ttft": 220.06562823943793,
+        "tokens_turn": 418.82754034336193,
+        "kv_cache": 0.8912293823425098,
+        "cost_req": 0.004204559135276545,
+        "downstream_err": 0.0011985690970066933,
+        "mfu": 0.7202466917143017,
+        "hbm_spill": 0.020039279431104663,
+        "collective_ops": 0.9997422603968887,
+        "corpus_delta": 0.04008744723070413,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.72562542241997,
+        "ttft": 219.911565015167,
+        "tokens_turn": 416.9915994331473,
+        "kv_cache": 0.8889020750858448,
+        "cost_req": 0.004198673941125255,
+        "downstream_err": 0.0011955240133926272,
+        "mfu": 0.720774042847082,
+        "hbm_spill": 0.02001874409439042,
+        "collective_ops": 0.9997609105332809,
+        "corpus_delta": 0.03995576455257833,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.57933824560604,
+        "ttft": 219.59882466055453,
+        "tokens_turn": 416.7938645506045,
+        "kv_cache": 0.889209579795152,
+        "cost_req": 0.004195816002102289,
+        "downstream_err": 0.0012045943933781235,
+        "mfu": 0.7213129288626463,
+        "hbm_spill": 0.01993853971976787,
+        "collective_ops": 0.9997742379278535,
+        "corpus_delta": 0.04003292917814106,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.75828800157643,
+        "ttft": 219.67321630626915,
+        "tokens_turn": 417.07043305670186,
+        "kv_cache": 0.8917086938473023,
+        "cost_req": 0.0041899949128269215,
+        "downstream_err": 0.001205058164242655,
+        "mfu": 0.7208805170526356,
+        "hbm_spill": 0.019986591246630995,
+        "collective_ops": 0.9997419994503449,
+        "corpus_delta": 0.03992266583740711,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": true
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.43551787103527,
+        "ttft": 220.01625094912947,
+        "tokens_turn": 417.04037557424135,
+        "kv_cache": 0.8890869659333304,
+        "cost_req": 0.004202623197510559,
+        "downstream_err": 0.0012023738934863358,
+        "mfu": 0.7199731581345945,
+        "hbm_spill": 0.019941934845224024,
+        "collective_ops": 0.9996454764731955,
+        "corpus_delta": 0.04007771325651557,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.56509639670142,
+        "ttft": 220.5578486664593,
+        "tokens_turn": 418.494500415043,
+        "kv_cache": 0.8912085375043562,
+        "cost_req": 0.004197521344594192,
+        "downstream_err": 0.0011958378856927155,
+        "mfu": 0.7189237159638852,
+        "hbm_spill": 0.020007962621841582,
+        "collective_ops": 0.9997303253496436,
+        "corpus_delta": 0.040195128265395764,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.89042474954388,
+        "ttft": 220.43478557653728,
+        "tokens_turn": 417.8251030535167,
+        "kv_cache": 0.88838212105833,
+        "cost_req": 0.004189346761063579,
+        "downstream_err": 0.0012039086988251655,
+        "mfu": 0.7213787458784133,
+        "hbm_spill": 0.02005994039531797,
+        "collective_ops": 0.9996337501223511,
+        "corpus_delta": 0.03995463800113648,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.6790948983375,
+        "ttft": 219.9822047638893,
+        "tokens_turn": 418.8551317989649,
+        "kv_cache": 0.8914730146816559,
+        "cost_req": 0.004192379019489046,
+        "downstream_err": 0.0011977923416756093,
+        "mfu": 0.7200864982386678,
+        "hbm_spill": 0.019952819052617997,
+        "collective_ops": 0.9996807783341408,
+        "corpus_delta": 0.03980497184768319,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.2190105966013,
+        "ttft": 219.76535913817585,
+        "tokens_turn": 417.93580628770866,
+        "kv_cache": 0.8891271850722655,
+        "cost_req": 0.004202355880211759,
+        "downstream_err": 0.0012024087579343467,
+        "mfu": 0.7201520362255721,
+        "hbm_spill": 0.020020711553841827,
+        "collective_ops": 0.9996463882538347,
+        "corpus_delta": 0.03995193287748843,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.8791159134824,
+        "ttft": 220.76734794542193,
+        "tokens_turn": 417.33642463488223,
+        "kv_cache": 0.8914981465831958,
+        "cost_req": 0.004211338555473369,
+        "downstream_err": 0.0012008562960997221,
+        "mfu": 0.7212235694586485,
+        "hbm_spill": 0.019905071719456463,
+        "collective_ops": 0.9996510565528358,
+        "corpus_delta": 0.04001642168574035,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.00327134764754,
+        "ttft": 220.79595240034163,
+        "tokens_turn": 419.20363805448915,
+        "kv_cache": 0.8907391216382385,
+        "cost_req": 0.004207965541660879,
+        "downstream_err": 0.0011977057081963866,
+        "mfu": 0.7201844174969941,
+        "hbm_spill": 0.020037087495066226,
+        "collective_ops": 0.999609965722006,
+        "corpus_delta": 0.03993570363279432,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.94007537574507,
+        "ttft": 220.46876965850592,
+        "tokens_turn": 419.1846084750639,
+        "kv_cache": 0.8883562881837227,
+        "cost_req": 0.004201907080213632,
+        "downstream_err": 0.0011976388140209017,
+        "mfu": 0.7204178297855705,
+        "hbm_spill": 0.020033590451534838,
+        "collective_ops": 0.9996935565535466,
+        "corpus_delta": 0.039901913635432724,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.32724959949962,
+        "ttft": 220.0106880971044,
+        "tokens_turn": 416.83194514703285,
+        "kv_cache": 0.8912263026529924,
+        "cost_req": 0.004205831917114276,
+        "downstream_err": 0.001204849311383441,
+        "mfu": 0.720687201109305,
+        "hbm_spill": 0.020007384840771553,
+        "collective_ops": 0.9997992690789937,
+        "corpus_delta": 0.04019312077257783,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.17908846800216,
+        "ttft": 220.5013406230509,
+        "tokens_turn": 416.8828904566178,
+        "kv_cache": 0.8901552322326415,
+        "cost_req": 0.004202919515260588,
+        "downstream_err": 0.0011969943065643308,
+        "mfu": 0.720712034117505,
+        "hbm_spill": 0.019904813589993863,
+        "collective_ops": 0.9997880717020998,
+        "corpus_delta": 0.03997922809608281,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.7819198642578,
+        "ttft": 220.1325164771825,
+        "tokens_turn": 418.17764312987686,
+        "kv_cache": 0.8883290380320698,
+        "cost_req": 0.004197669233390037,
+        "downstream_err": 0.001201074982954189,
+        "mfu": 0.7187603129810839,
+        "hbm_spill": 0.01992810517977923,
+        "collective_ops": 0.9996216091442759,
+        "corpus_delta": 0.0399025611622259,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.67803065755405,
+        "ttft": 220.10660575330257,
+        "tokens_turn": 417.82471872922497,
+        "kv_cache": 0.8916903210704215,
+        "cost_req": 0.004204248219603952,
+        "downstream_err": 0.0012011834195964038,
+        "mfu": 0.7196007647451013,
+        "hbm_spill": 0.020040084413718434,
+        "collective_ops": 0.9996559714804264,
+        "corpus_delta": 0.04016620192453266,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.56558163571174,
+        "ttft": 220.09699460081757,
+        "tokens_turn": 418.38960281352973,
+        "kv_cache": 0.8908846758074687,
+        "cost_req": 0.004202256876913179,
+        "downstream_err": 0.0011973299151007085,
+        "mfu": 0.7189837974391132,
+        "hbm_spill": 0.01994668164998293,
+        "collective_ops": 0.9996206752344161,
+        "corpus_delta": 0.0399369527535513,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.91316904378124,
+        "ttft": 220.4899228297174,
+        "tokens_turn": 418.3614013516242,
+        "kv_cache": 0.8911651912575029,
+        "cost_req": 0.004194749742602091,
+        "downstream_err": 0.0012023112661466002,
+        "mfu": 0.7197877165078371,
+        "hbm_spill": 0.01997083912761882,
+        "collective_ops": 0.9997460994760627,
+        "corpus_delta": 0.04000926847420633,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.37538526824676,
+        "ttft": 220.3246593866497,
+        "tokens_turn": 417.43148594783156,
+        "kv_cache": 0.8910778975377978,
+        "cost_req": 0.004211605482582841,
+        "downstream_err": 0.0012035452935453502,
+        "mfu": 0.7210971336246282,
+        "hbm_spill": 0.019932389582879843,
+        "collective_ops": 0.9997176513654561,
+        "corpus_delta": 0.04000657243635505,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.29248901830053,
+        "ttft": 219.13494492083788,
+        "tokens_turn": 417.84301815684603,
+        "kv_cache": 0.8884067760157026,
+        "cost_req": 0.004208267436286714,
+        "downstream_err": 0.0011967305025793612,
+        "mfu": 0.7196732944502682,
+        "hbm_spill": 0.020094771413411948,
+        "collective_ops": 0.9997341128755604,
+        "corpus_delta": 0.04004207575917244,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.43561566825025,
+        "ttft": 219.9994944085926,
+        "tokens_turn": 418.1794676340623,
+        "kv_cache": 0.8915268340309337,
+        "cost_req": 0.004191050757014472,
+        "downstream_err": 0.001195842108087614,
+        "mfu": 0.7209113643995673,
+        "hbm_spill": 0.02009354621060193,
+        "collective_ops": 0.9997533997404646,
+        "corpus_delta": 0.03984754701498896,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.59134123762138,
+        "ttft": 220.50294655516743,
+        "tokens_turn": 418.92656308619775,
+        "kv_cache": 0.891330190482121,
+        "cost_req": 0.004209008677042555,
+        "downstream_err": 0.0011950967485159635,
+        "mfu": 0.720517523978278,
+        "hbm_spill": 0.02008609854290262,
+        "collective_ops": 0.9997243312742988,
+        "corpus_delta": 0.04003043274320662,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.57835879801772,
+        "ttft": 220.46099044270812,
+        "tokens_turn": 418.644282955802,
+        "kv_cache": 0.889805626379177,
+        "cost_req": 0.004207143786157015,
+        "downstream_err": 0.0011968580569010226,
+        "mfu": 0.719999037752822,
+        "hbm_spill": 0.020019124435447157,
+        "collective_ops": 0.9996481418347426,
+        "corpus_delta": 0.039862307309918105,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.887033908302,
+        "ttft": 219.36449364304542,
+        "tokens_turn": 418.73625449199693,
+        "kv_cache": 0.8906591247755475,
+        "cost_req": 0.004193115446662064,
+        "downstream_err": 0.0011967638505063951,
+        "mfu": 0.7188232735153287,
+        "hbm_spill": 0.020063054053764788,
+        "collective_ops": 0.9997960276152077,
+        "corpus_delta": 0.039959833753854035,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.90217599215916,
+        "ttft": 219.33729976408185,
+        "tokens_turn": 417.01003532854,
+        "kv_cache": 0.8912140573069081,
+        "cost_req": 0.0041939065772851,
+        "downstream_err": 0.0011993830445799975,
+        "mfu": 0.7202669607064873,
+        "hbm_spill": 0.019972905661910772,
+        "collective_ops": 0.999744092391184,
+        "corpus_delta": 0.03991824538428337,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.6029953846056,
+        "ttft": 220.81095714852214,
+        "tokens_turn": 418.6599509090567,
+        "kv_cache": 0.8883973698753678,
+        "cost_req": 0.004209147022775095,
+        "downstream_err": 0.0011962064894512296,
+        "mfu": 0.7194447896587104,
+        "hbm_spill": 0.019965731987822803,
+        "collective_ops": 0.9997842190688923,
+        "corpus_delta": 0.040121811021491885,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.94441108650528,
+        "ttft": 219.2069841936976,
+        "tokens_turn": 418.713204068034,
+        "kv_cache": 0.8897748778307438,
+        "cost_req": 0.004209921585366223,
+        "downstream_err": 0.0011944907739367336,
+        "mfu": 0.7205567657221108,
+        "hbm_spill": 0.019918296691216527,
+        "collective_ops": 0.9997471466382941,
+        "corpus_delta": 0.03991082489546388,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.64313207865692,
+        "ttft": 220.63337051123384,
+        "tokens_turn": 418.49260979491936,
+        "kv_cache": 0.8884371013129689,
+        "cost_req": 0.0042080935286535875,
+        "downstream_err": 0.0011961576317735016,
+        "mfu": 0.719246544835791,
+        "hbm_spill": 0.020047407691832633,
+        "collective_ops": 0.9996354806676679,
+        "corpus_delta": 0.03995536534339189,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.7127553595137,
+        "ttft": 220.45685689531268,
+        "tokens_turn": 417.85628867741957,
+        "kv_cache": 0.8900494542321935,
+        "cost_req": 0.004205423973802942,
+        "downstream_err": 0.0011963539315480737,
+        "mfu": 0.7187382896069437,
+        "hbm_spill": 0.020001935678347946,
+        "collective_ops": 0.9997322060433625,
+        "corpus_delta": 0.040197394571639594,
+        "traffic_pct": 0.1
+      },
+      "pause_beat": true
+    }
+  ],
+  "expected_outcome": {
+    "verdict": "proceed",
+    "first_fire_tick": null,
+    "alpha_total_max": 0.00001
+  }
+}

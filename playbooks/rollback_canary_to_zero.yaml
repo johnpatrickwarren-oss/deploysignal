@@ -1,0 +1,22 @@
+# playbooks/rollback_canary_to_zero.yaml
+# Entry #1 per ARCHITECT-REPLY-49 D2. Category: rollback.
+# Reversibility: reversible (rail e — only proposed when deploy
+# is reversible; filtered out on forward_only and conditional
+# deploys per P4 conservative semantic).
+
+id: rollback_canary_to_zero
+version: "1.0.0"
+applies_when:
+  firing_families: ["A", "C"]
+  min_family_count: 1
+  verdict_class: rollback
+reversibility_required: reversible
+confidence_threshold: 0.7
+orchestrator_command_template: "argo rollouts set weight ${rollout_name} 0 --namespace ${namespace}"
+human_description: >
+  Set the canary weight to 0 to stop serving the new version
+  while keeping the deploy for post-incident inspection.
+expected_effect: >
+  Traffic shifts back to the stable baseline within one
+  autoscaler cycle (~30s); canary pods remain for debugging.
+category: rollback

@@ -1,0 +1,33 @@
+# regression-profiles/anthropic_tpu_output_corruption_step_2025_09.yaml
+# Source: Anthropic Sep 2025 TPU output corruption postmortem
+# Shape: quality step-down (eval_score drops abruptly) with a
+# persistent tail. tool_success_rate degrades in tandem.
+# Detection target: Family A on eval_score or tool_success_rate;
+# multivariate Family C may co-fire if the correlated drop lands
+# in the joint vector.
+
+id: anthropic_tpu_output_corruption_step_2025_09
+source: "Anthropic Sep 2025 TPU output corruption postmortem"
+duration_minutes: 45
+affected_signals: [eval_score, tool_success_rate]
+
+injection_points:
+  # Instant step on eval_score at T_inject.
+  - tick_offset: 0
+    signal: eval_score
+    delta_kind: absolute
+    delta: -0.08
+  - tick_offset: 0
+    signal: tool_success_rate
+    delta_kind: absolute
+    delta: -0.05
+  # Persistent tail — step continues unchanged across the full
+  # duration (no ramp; delta stays at the step value).
+
+expected_detection:
+  family: A
+  signal: eval_score
+  notes: >
+    Quality-tier signal step-down; Page-CUSUM should fire within
+    bake+sufficiency window on eval_score. Family C may co-fire
+    via the eval_score/tool_success_rate covariance structure.

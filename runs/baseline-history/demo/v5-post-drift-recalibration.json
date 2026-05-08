@@ -1,0 +1,45 @@
+{
+  "version_id": "v5-post-drift-recalibration-2026-04-19",
+  "compiled_at": "2026-04-19T17:45:00Z",
+  "baseline_ref": "synthetic-v3@seed=42 + post-deploy-ticks[0..15] (Demo 6 trajectory)",
+  "predecessor_version_id": "v4-fusion-novelty-2026-04-01",
+  "recalibration_reason": "drift_detected",
+  "alpha_budget": { "total": 1e-3, "per_family": { "A": 4e-4, "B": 2e-4, "C": 2e-4, "D": 1e-4, "E": 1e-4 } },
+  "cells": [
+    {
+      "key": { "hour_of_day": 14, "day_of_week": 2 },
+      "n_samples": 640,
+      "confidence": "strict",
+      "family_A": {
+        "per_signal": {
+          "p99_latency":    { "baseline_mean": 179, "baseline_sigma_squared": 95, "tau_squared": 95, "delta_min": 17.9 },
+          "ttft":           { "baseline_mean": 218, "baseline_sigma_squared": 120, "tau_squared": 120, "delta_min": 21.8 },
+          "downstream_err": { "baseline_mean": 0.00102, "baseline_sigma_squared": 3.2e-7, "tau_squared": 3.2e-7, "delta_min": 2.04e-4 },
+          "cost_req":       { "baseline_mean": 0.00412, "baseline_sigma_squared": 3.5e-8, "tau_squared": 3.5e-8, "delta_min": 4.12e-4 }
+        }
+      }
+    }
+  ],
+  "maturity_metrics": {
+    "p99_latency":       { "mean": 179,     "direction_of_better": "lower" },
+    "ttft":              { "mean": 218,     "direction_of_better": "lower" },
+    "downstream_err":    { "mean": 0.00102, "direction_of_better": "lower" },
+    "hbm_spill":         { "mean": 0.020,   "direction_of_better": "lower" },
+    "refusal_rate":      { "mean": 0.018,   "direction_of_better": "lower" },
+    "mfu":               { "mean": 0.72,    "direction_of_better": "higher" },
+    "eval_score":        { "mean": 0.87,    "direction_of_better": "higher" },
+    "tool_success_rate": { "mean": 0.95,    "direction_of_better": "higher" },
+    "collective_ops":    { "mean": 0.9997,  "direction_of_better": "higher" },
+    "cost_req":          { "mean": 0.00412, "informational_only": true },
+    "tokens_turn":       { "mean": 418,     "informational_only": true },
+    "kv_cache":          { "mean": 0.89,    "informational_only": true },
+    "corpus_delta":      { "mean": 0.04,    "informational_only": true }
+  },
+  "drift_detection_result": {
+    "previous_version_id": "v4-fusion-novelty-2026-04-01",
+    "mahalanobis_distance_squared": 47.3,
+    "threshold": 31.26,
+    "cells_affected": ["hour=14_day=2"]
+  },
+  "incident_outcome_tags": []
+}

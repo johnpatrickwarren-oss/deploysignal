@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://deploysignal.dev/schemas/regression-profile.schema.json",
+  "title": "RegressionProfile",
+  "description": "Hand-curated regression-injection profile per REPLY-52 D4. Derived from public postmortems; applied by tools/inject-regression.ts to mutate baseline sample series at a chosen T_inject tick. No ML inference on postmortem narratives — v1 profiles are hand-curated per architect anti-scope.",
+  "type": "object",
+  "required": [
+    "id",
+    "source",
+    "duration_minutes",
+    "affected_signals",
+    "injection_points",
+    "expected_detection"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*[a-z0-9]$",
+      "description": "Stable snake_case identifier; matches filename stem."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable provenance (e.g., 'OpenAI Dec 2024 routing incident postmortem')."
+    },
+    "duration_minutes": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Total incident duration in minutes. Detection window per REPLY-52 §D5 = duration_minutes × ticks_per_min + sufficiency-gate bound."
+    },
+    "affected_signals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Signal IDs that this regression touches. Used to scope the injection walk + to label attribution expectations."
+    },
+    "injection_points": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["tick_offset", "signal", "delta_kind", "delta"],
+        "additionalProperties": false,
+        "properties": {
+          "tick_offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Ticks after T_inject at which this delta activates. Step-function semantic: latest applicable offset wins."
+          },
+          "signal": { "type": "string", "minLength": 1 },
+          "delta_kind": {
+            "enum": ["absolute", "relative_to_baseline_sigma", "relative_to_baseline_mean"],
+            "description": "Architect D4 refinement — delta scale discriminator. absolute: native units; relative_to_baseline_sigma: σ-multiplier (pairs with Family A δ_min σ-multiplier pattern); relative_to_baseline_mean: fraction of mean (for cost/throughput proportional shifts)."
+          },
+          "delta": {
+            "type": "number",
+            "description": "Magnitude; interpretation depends on delta_kind. Signed — positive inflates signal, negative deflates. Units: native (absolute), σ (relative_to_baseline_sigma), fraction-of-mean (relative_to_baseline_mean)."
+          }
+        }
+      }
+    },
+    "expected_detection": {
+      "type": "object",
+      "required": ["family"],
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "enum": ["A", "B", "C", "D", "E"],
+          "description": "Expected firing family for shadow-compare attribution check."
+        },
+        "signal": {
+          "type": "string",
+          "description": "Optional: expected firing signal (for Family A single-signal attribution)."
+        },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

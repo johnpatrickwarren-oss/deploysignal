@@ -1,0 +1,85 @@
+# profiles/generic-microservice.yaml
+#
+# v1 fallback profile for non-LLM workloads. Minimal SLI surface
+# (latency + error rate + request rate). Family A univariate only —
+# Families C (joint-vector), D (spectral), E (conformal novelty) all
+# disabled for v1 because they require richer signal inventories
+# than a generic HTTP microservice emits.
+#
+# No `extends:` — this is a root profile (not a specialization).
+
+id: generic-microservice
+version: "1.0.0"
+extends: null
+description: >
+  Minimal fallback for non-LLM workloads (generic HTTP / RPC
+  microservices). Family A univariate detection only; multivariate
+  + spectral + conformal families disabled (insufficient signal
+  richness for default joint vector).
+
+sli_list:
+  - signal: p99_latency
+    direction_of_better: lower
+    δ_min: 0.01
+  - signal: downstream_err
+    direction_of_better: lower
+    δ_min: 0.05
+  - signal: cost_req
+    direction_of_better: lower
+    δ_min: 0.01
+
+structural_detectors:
+  # REPLY-51b R4-4 — generic profile disables structural detectors
+  # per brief §D7(b); Family B is an LLM-inference-specific signature
+  # set (slowbleed, kv_saturation, mfu_collapse) that doesn't apply to
+  # generic microservices.
+  enabled: false
+  dependencies: []
+
+joint_vector:
+  # C/E disabled: insufficient signal inventory for meaningful
+  # covariance estimation. D similarly not populated (no per-signal
+  # spectral bootstrap target set).
+  signals: []
+  include_in_family_c: false
+  include_in_family_e: false
+
+alpha_allocation:
+  # All α concentrates on Family A since every other family is
+  # disabled at the profile layer (structural_detectors.enabled:false
+  # per R4-4; joint_vector.include_in_family_c/e:false per D5).
+  per_family:
+    A: 1.0e-3
+    B: 0.0
+    C: 0.0
+    D: 0.0
+    E: 0.0
+  total: 1.0e-3
+
+cell_dimensions:
+  # Only hour_of_day + day_of_week for v1; tenant_tier requires
+  # customer-side tenant-id emission.
+  hour_of_day: true
+  day_of_week: true
+  workload_class: false
+  tenant_tier: false
+  region: false
+
+bake_profiles:
+  - signal: p99_latency
+    min_ticks_before_eligible: 3
+    min_observation_window: 3
+    max_deploy_window_days: 1
+  - signal: downstream_err
+    min_ticks_before_eligible: 4
+    min_observation_window: 4
+    max_deploy_window_days: 1
+  - signal: cost_req
+    min_ticks_before_eligible: 8
+    min_observation_window: 8
+    max_deploy_window_days: 7
+
+policy_defaults:
+  reversibility_threshold_minutes: 30
+  auto_rollback_enabled: true
+  default_risk_tier: medium

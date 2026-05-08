@@ -1,0 +1,57 @@
+{
+  "version": "v1-legacy-equivalent",
+  "compiler_version": "0.2.0",
+  "compiled_at": "1970-01-01T00:00:00.000Z",
+  "baseline_ref": "synthetic-v1@seed=42",
+  "alpha_budget": {
+    "total": 0.001,
+    "per_family": {
+      "A": 0,
+      "B": 0.001,
+      "C": 0,
+      "D": 0,
+      "E": 0
+    }
+  },
+  "family_B": {
+    "cutoffs": {
+      "p99": 1.2,
+      "ttft": 1.2,
+      "compound": 1.12,
+      "behavioral": 1.18,
+      "downstream": 1.5,
+      "cost": 1.2,
+      "tokens": 1.25,
+      "tok_econ_tok": 1.25,
+      "tok_econ_cost": 1.2
+    },
+    "vote_thresholds": {
+      "slowbleed_drift_count": 4,
+      "kv_saturation_ratio": 1.04
+    },
+    "raw_empirical": {
+      "p99": 1.2776038098527998,
+      "ttft": 1.2602638883062922,
+      "behavioral": 1.2339052785017013,
+      "downstream": 1.5357878457994538,
+      "cost": 1.2479332869306112,
+      "tokens": 1.2895314439814805,
+      "tok_econ_tok": 1.2895314439814805,
+      "tok_econ_cost": 1.2479332869306112
+    },
+    "tolerance_issues": [
+      {
+        "cutoff": "p99",
+        "legacy": 1.2,
+        "empirical": 1.2776038098527998,
+        "deviation": 0.06466984154399984
+      },
+      {
+        "cutoff": "ttft",
+        "legacy": 1.2,
+        "empirical": 1.2602638883062922,
+        "deviation": 0.050219906921910216
+      }
+    ]
+  }
+}

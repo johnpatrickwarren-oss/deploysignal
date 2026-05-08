@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "es2020",
+    "moduleResolution": "node",
+    "outDir": "dist-browser/engine",
+    "rootDir": "engine",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": false
+  },
+  "include": ["engine/**/*.ts"],
+  "exclude": ["node_modules", "dist", "dist-browser", "test", "tools", "demos"]
+}

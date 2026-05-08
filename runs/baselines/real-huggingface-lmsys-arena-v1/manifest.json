@@ -1,0 +1,32 @@
+{
+  "version": "real_huggingface_lmsys_arena-v1",
+  "generated_at": "2026-05-04T22:49:27.997Z",
+  "seed": 0,
+  "cell_dim": "hour_of_day_x_day_of_week",
+  "n_runs": 1,
+  "ticks_per_run": 39712,
+  "tenants": 1,
+  "signals": [
+    "p99_latency",
+    "ttft",
+    "tokens_turn",
+    "kv_cache",
+    "cost_req",
+    "downstream_err",
+    "mfu",
+    "hbm_spill",
+    "collective_ops",
+    "corpus_delta",
+    "traffic_pct",
+    "eval_score",
+    "tool_success_rate",
+    "refusal_rate",
+    "output_len_p50"
+  ],
+  "baseline_provenance": "real_huggingface_lmsys_arena",
+  "caveat_filters_applied": [
+    "synthetic_timestamp_derivation:row_index_x_tick_seconds",
+    "token_count_heuristic:chars_div_4_gpt_tokenizer_approximation",
+    "reject_judge_disagreement:true"
+  ]
+}

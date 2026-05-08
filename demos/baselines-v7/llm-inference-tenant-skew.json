@@ -1,0 +1,202 @@
+{
+  "id": "llm-inference-tenant-skew-v7",
+  "description": "Q57 v7 tenant-aware baseline. Mirrors demos/baselines/llm-inference-tenant-skew.json (v4 carve-out anchor) but adds aggregate_fallback_patch field so post-Q2.B.6c aggregate-tier resolution sees demo trajectory live values. Closes Phase 2.4 v2 halt mechanism per Q57 spec.",
+  "baseline": {
+    "p99_latency": 185,
+    "ttft": 220,
+    "tokens_turn": 418,
+    "kv_cache": 0.89,
+    "cost_req": 0.0042,
+    "downstream_err": 0.0012,
+    "mfu": 0.72,
+    "hbm_spill": 0.02,
+    "collective_ops": 0.9997,
+    "corpus_delta": 0.04,
+    "traffic_pct": 0.1,
+    "eval_score": 0.85,
+    "tool_success_rate": 0.95
+  },
+  "cell_patch": {
+    "target_cell": {
+      "hour_of_day": 14,
+      "day_of_week": 2
+    },
+    "tenant_tier_map": {
+      "A": "dominant",
+      "B": "large",
+      "C": "small"
+    },
+    "tenant_tier_config": {
+      "boundaries": {
+        "dominant": 0.5,
+        "large": 0.1,
+        "medium": 0.01
+      }
+    },
+    "family_A_per_signal": {
+      "p99_latency": {
+        "baseline_mean": 185,
+        "baseline_sigma_squared": 85.5625,
+        "tau_squared": 85.5625,
+        "delta_min": 7.4
+      },
+      "ttft": {
+        "baseline_mean": 220,
+        "baseline_sigma_squared": 121,
+        "tau_squared": 121,
+        "delta_min": 8.8
+      },
+      "downstream_err": {
+        "baseline_mean": 0.0012,
+        "baseline_sigma_squared": 3.6e-9,
+        "tau_squared": 3.6e-9,
+        "delta_min": 0.000048
+      },
+      "cost_req": {
+        "baseline_mean": 0.0042,
+        "baseline_sigma_squared": 4.41e-8,
+        "tau_squared": 4.41e-8,
+        "delta_min": 0.000168
+      },
+      "eval_score": {
+        "baseline_mean": 0.85,
+        "baseline_sigma_squared": 0.0001,
+        "tau_squared": 0.0001,
+        "delta_min": 0.0425
+      },
+      "tool_success_rate": {
+        "baseline_mean": 0.95,
+        "baseline_sigma_squared": 0.0001,
+        "tau_squared": 0.0001,
+        "delta_min": 0.0475
+      }
+    },
+    "family_C_mean_vector": [
+      185,
+      220,
+      418,
+      0.89,
+      0.0042,
+      0.0012,
+      0.72,
+      0.02,
+      0.9997,
+      0.04,
+      0.1
+    ],
+    "tenant_tier_cells": [
+      {
+        "key": {
+          "hour_of_day": 14,
+          "day_of_week": 2,
+          "tenant_tier": "large"
+        },
+        "confidence": "strict",
+        "n_samples": 250,
+        "family_A_per_signal": {
+          "p99_latency": {
+            "baseline_mean": 185,
+            "baseline_sigma_squared": 85.5625,
+            "delta_min": 9.25
+          },
+          "ttft": {
+            "baseline_mean": 220,
+            "baseline_sigma_squared": 121,
+            "delta_min": 11
+          },
+          "downstream_err": {
+            "baseline_mean": 0.0012,
+            "baseline_sigma_squared": 3.6e-9,
+            "delta_min": 0.00006
+          },
+          "cost_req": {
+            "baseline_mean": 0.0042,
+            "baseline_sigma_squared": 4.41e-8,
+            "delta_min": 0.00021
+          },
+          "eval_score": {
+            "baseline_mean": 0.85,
+            "baseline_sigma_squared": 0.00015,
+            "delta_min": 0.0425
+          },
+          "tool_success_rate": {
+            "baseline_mean": 0.95,
+            "baseline_sigma_squared": 0.0001,
+            "delta_min": 0.0475
+          }
+        }
+      }
+    ]
+  },
+  "aggregate_fallback_patch": {
+    "family_A_per_signal": {
+      "p99_latency": {
+        "signal_class": "gaussian_like",
+        "baseline_mean": 185,
+        "baseline_mean_raw": 185,
+        "baseline_sigma_squared": 85.5625,
+        "baseline_sigma_squared_raw": 85.5625,
+        "tau_squared": 85.5625,
+        "delta_min": 7.4
+      },
+      "ttft": {
+        "signal_class": "gaussian_like",
+        "baseline_mean": 220,
+        "baseline_mean_raw": 220,
+        "baseline_sigma_squared": 121,
+        "baseline_sigma_squared_raw": 121,
+        "tau_squared": 121,
+        "delta_min": 8.8
+      },
+      "downstream_err": {
+        "signal_class": "gaussian_like",
+        "baseline_mean": 0.0012,
+        "baseline_mean_raw": 0.0012,
+        "baseline_sigma_squared": 3.6e-9,
+        "baseline_sigma_squared_raw": 3.6e-9,
+        "tau_squared": 3.6e-9,
+        "delta_min": 0.000048
+      },
+      "cost_req": {
+        "signal_class": "gaussian_like",
+        "baseline_mean": 0.0042,
+        "baseline_mean_raw": 0.0042,
+        "baseline_sigma_squared": 4.41e-8,
+        "baseline_sigma_squared_raw": 4.41e-8,
+        "tau_squared": 4.41e-8,
+        "delta_min": 0.000168
+      },
+      "eval_score": {
+        "signal_class": "gaussian_like",
+        "baseline_mean": 0.85,
+        "baseline_mean_raw": 0.85,
+        "baseline_sigma_squared": 0.0001,
+        "baseline_sigma_squared_raw": 0.0001,
+        "tau_squared": 0.0001,
+        "delta_min": 0.0425
+      },
+      "tool_success_rate": {
+        "signal_class": "gaussian_like",
+        "baseline_mean": 0.95,
+        "baseline_mean_raw": 0.95,
+        "baseline_sigma_squared": 0.0001,
+        "baseline_sigma_squared_raw": 0.0001,
+        "tau_squared": 0.0001,
+        "delta_min": 0.0475
+      }
+    },
+    "family_C_mean_vector": [
+      185,
+      220,
+      418,
+      0.89,
+      0.0042,
+      0.0012,
+      0.72,
+      0.02,
+      0.9997,
+      0.04,
+      0.1
+    ]
+  }
+}

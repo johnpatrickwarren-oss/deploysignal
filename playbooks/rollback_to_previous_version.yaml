@@ -1,0 +1,23 @@
+# playbooks/rollback_to_previous_version.yaml
+# Entry #8 per ARCHITECT-REPLY-49 D2 (per Addition #5). Category:
+# rollback. Reversibility: reversible — rolls back to the prior
+# version image; inherently requires reversible deploy classification.
+
+id: rollback_to_previous_version
+version: "1.0.0"
+applies_when:
+  firing_families: ["A", "B", "C", "D", "E"]
+  min_family_count: 2
+  verdict_class: rollback
+reversibility_required: reversible
+confidence_threshold: 0.8
+orchestrator_command_template: "argo rollouts undo ${rollout_name} --namespace ${namespace} --to-revision ${previous_revision}"
+human_description: >
+  Roll back to the previous known-good version when
+  multi-family co-fire indicates a systemic regression in
+  the new deploy.
+expected_effect: >
+  Workload returns to the previous revision's behavior;
+  FusedVerdict stabilizes to `proceed` as the baseline-
+  traffic shape matches expectation again.
+category: rollback

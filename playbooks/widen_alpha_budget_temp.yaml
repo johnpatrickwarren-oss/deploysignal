@@ -1,0 +1,25 @@
+# playbooks/widen_alpha_budget_temp.yaml
+# Entry #4 per ARCHITECT-REPLY-49 D2. Category: widen_budget.
+# Reversibility: any — relaxing thresholds temporarily is safe
+# across all reversibility classes since it only affects future
+# verdicts, not already-emitted ones.
+
+id: widen_alpha_budget_temp
+version: "1.0.0"
+applies_when:
+  firing_families: ["A", "B", "C", "D", "E"]
+  min_family_count: 3
+  verdict_class: rollback
+reversibility_required: any
+confidence_threshold: 0.7
+orchestrator_command_template: "ds config set alpha_budget_override ${multiplier} --service ${service} --ttl ${ttl_minutes}m"
+human_description: >
+  Temporarily widen per-family α budgets to reduce detector
+  sensitivity during a noisy incident window (many families
+  co-firing suggests a data-quality or infra shift, not a
+  deploy regression).
+expected_effect: >
+  Subsequent FusedVerdicts reach fewer detector-fire events
+  for the TTL duration. Alpha budget returns to compiled
+  defaults automatically after TTL expiration.
+category: widen_budget

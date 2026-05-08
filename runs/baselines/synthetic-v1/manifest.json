@@ -1,0 +1,35 @@
+{
+  "version": "synthetic-v1",
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "seed": 42,
+  "cell_dim": "hour_of_day_x_day_of_week",
+  "n_runs": 500,
+  "ticks_per_run": 32,
+  "tenants": 4,
+  "signals": [
+    "p99_latency",
+    "ttft",
+    "tokens_turn",
+    "kv_cache",
+    "cost_req",
+    "downstream_err",
+    "mfu",
+    "hbm_spill",
+    "collective_ops",
+    "corpus_delta",
+    "traffic_pct",
+    "eval_score",
+    "refusal_rate",
+    "output_len_p50",
+    "tool_success_rate"
+  ],
+  "factor_stds": {
+    "latency": 0.055,
+    "utilization": 0.05
+  },
+  "ar1_phi": 0.3,
+  "hour_diurnal_amplitude": 0.1,
+  "hour_diurnal_phase": 14,
+  "day_of_week_diurnal_amplitude": 0.05,
+  "day_of_week_diurnal_phase": 3
+}

@@ -1,0 +1,33 @@
+{
+  "name": "deploysignal",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Health signal decision engine for AI inference deployments.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "pretest": "tsc && tsc -p tsconfig.test.json",
+    "test": "node --test test/*.test.js",
+    "audit": "npm audit --audit-level=high",
+    "loop": "bash run_loop.sh"
+  },
+  "files": [
+    "engine/",
+    "tools/",
+    "runner.js",
+    "shared.js",
+    "README.md",
+    "ARCHITECTURE.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^25.6.0",
+    "js-yaml": "^4.1.1",
+    "typescript": "^6.0.3"
+  }
+}

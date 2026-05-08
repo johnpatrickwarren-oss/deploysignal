@@ -1,0 +1,148 @@
+# profiles/llm-inference-streaming.yaml
+#
+# v1 primary DS target workload profile. Matches the current default
+# compile path so `profile_ref: llm-inference-streaming@1.0.0` produces
+# byte-identical CompiledConfig to a legacy (no-profile) compile.
+# Backward-compat regression anchor per REPLY-51 §Acceptance.
+#
+# Signal inventory matches tools/calibrate.ts:
+#   FAMILY_A_SIGNALS (6): p99_latency, ttft, eval_score,
+#     tool_success_rate, downstream_err, cost_req
+#   FAMILY_C_SIGNALS (11): the 6 above + tokens_turn, kv_cache, mfu,
+#     hbm_spill, collective_ops, corpus_delta, traffic_pct
+#     (minus eval_score + tool_success_rate which are quality-tier
+#     signals deferred from Family C per calibrate.ts:389 comment).
+
+id: llm-inference-streaming
+version: "1.0.0"
+extends: null
+description: >
+  Primary DS target: online LLM inference with streaming token output.
+  Tight TTFT + p99_latency SLOs; full six-SLI Family A + eleven-signal
+  Family C/E joint vector; Family D spectral on all signals.
+
+sli_list:
+  - signal: p99_latency
+    direction_of_better: lower
+    δ_min: 0.01
+  - signal: ttft
+    direction_of_better: lower
+    δ_min: 0.01
+  - signal: eval_score
+    direction_of_better: higher
+    δ_min: 0.02
+  - signal: tool_success_rate
+    direction_of_better: higher
+    δ_min: 0.02
+  - signal: downstream_err
+    direction_of_better: lower
+    δ_min: 0.05
+  - signal: cost_req
+    direction_of_better: lower
+    δ_min: 0.01
+
+structural_detectors:
+  enabled: true
+  dependencies: []
+
+joint_vector:
+  # Matches FAMILY_C_SIGNALS from tools/calibrate.ts. Quality-tier
+  # signals (eval_score, tool_success_rate) deferred from joint-vector
+  # per calibrate.ts:389 — optional in Metrics contract + missing-data
+  # handling in covariance derivation is post-runway work.
+  signals:
+    - p99_latency
+    - ttft
+    - tokens_turn
+    - kv_cache
+    - cost_req
+    - downstream_err
+    - mfu
+    - hbm_spill
+    - collective_ops
+    - corpus_delta
+    - traffic_pct
+  include_in_family_c: true
+  include_in_family_e: true
+
+alpha_allocation:
+  # Matches tools/calibrate.ts WEEK4-HANDOFF 40/20/20/10/10 split on
+  # total=1e-3; B absorbs the leftover (4e-4 here = total − A − C − D − E).
+  per_family:
+    A: 4.0e-4
+    B: 2.0e-4
+    C: 2.0e-4
+    D: 1.0e-4
+    E: 1.0e-4
+  total: 1.0e-3
+
+cell_dimensions:
+  # Matches the default deriveBaselineCells configuration with
+  # tenant-tier active (post-#23). workload_class + region are future
+  # dimensions; off by default.
+  hour_of_day: true
+  day_of_week: true
+  workload_class: false
+  tenant_tier: true
+  region: false
+
+bake_profiles:
+  # Mirrors BAKE_PROFILE in tools/calibrate.ts. Per-signal
+  # architect-defaults from Addition #4.
+  - signal: p99_latency
+    min_ticks_before_eligible: 3
+    min_observation_window: 3
+    max_deploy_window_days: 1
+  - signal: ttft
+    min_ticks_before_eligible: 3
+    min_observation_window: 3
+    max_deploy_window_days: 1
+  - signal: downstream_err
+    min_ticks_before_eligible: 4
+    min_observation_window: 4
+    max_deploy_window_days: 1
+  - signal: tool_success_rate
+    min_ticks_before_eligible: 6
+    min_observation_window: 6
+    max_deploy_window_days: 2
+  - signal: eval_score
+    min_ticks_before_eligible: 6
+    min_observation_window: 6
+    max_deploy_window_days: 3
+  - signal: refusal_rate
+    min_ticks_before_eligible: 6
+    min_observation_window: 6
+    max_deploy_window_days: 3
+  - signal: cost_req
+    min_ticks_before_eligible: 8
+    min_observation_window: 8
+    max_deploy_window_days: 7
+  - signal: tokens_turn
+    min_ticks_before_eligible: 8
+    min_observation_window: 8
+    max_deploy_window_days: 3
+  - signal: mfu
+    min_ticks_before_eligible: 4
+    min_observation_window: 4
+    max_deploy_window_days: 1
+  - signal: hbm_spill
+    min_ticks_before_eligible: 4
+    min_observation_window: 4
+    max_deploy_window_days: 1
+  - signal: kv_cache
+    min_ticks_before_eligible: 4
+    min_observation_window: 4
+    max_deploy_window_days: 1
+  - signal: collective_ops
+    min_ticks_before_eligible: 4
+    min_observation_window: 4
+    max_deploy_window_days: 1
+  - signal: corpus_delta
+    min_ticks_before_eligible: 4
+    min_observation_window: 4
+    max_deploy_window_days: 1
+
+policy_defaults:
+  reversibility_threshold_minutes: 30
+  auto_rollback_enabled: true
+  default_risk_tier: medium

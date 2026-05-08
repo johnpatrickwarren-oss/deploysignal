@@ -1,0 +1,40 @@
+{
+  "version_id": "v3-baseline-post-serving-upgrade-2026-02-20",
+  "compiled_at": "2026-02-20T14:15:00Z",
+  "baseline_ref": "synthetic-v2@seed=42 + post-serving-engine-upgrade",
+  "predecessor_version_id": "v2-baseline-post-q1-optimizations-2025-12-15",
+  "recalibration_reason": "post_incident",
+  "alpha_budget": { "total": 1e-3, "per_family": { "A": 4e-4, "B": 2e-4, "C": 2e-4, "D": 1e-4, "E": 1e-4 } },
+  "cells": [
+    {
+      "key": { "hour_of_day": 14, "day_of_week": 2 },
+      "n_samples": 560,
+      "confidence": "strict",
+      "family_A": {
+        "per_signal": {
+          "p99_latency":    { "baseline_mean": 190, "baseline_sigma_squared": 105, "tau_squared": 105, "delta_min": 19 },
+          "ttft":           { "baseline_mean": 228, "baseline_sigma_squared": 130, "tau_squared": 130, "delta_min": 22.8 },
+          "downstream_err": { "baseline_mean": 0.0012, "baseline_sigma_squared": 4.0e-7, "tau_squared": 4.0e-7, "delta_min": 0.00024 },
+          "cost_req":       { "baseline_mean": 0.0043, "baseline_sigma_squared": 4e-8, "tau_squared": 4e-8, "delta_min": 4.3e-4 }
+        }
+      }
+    }
+  ],
+  "maturity_metrics": {
+    "p99_latency":       { "mean": 190,    "direction_of_better": "lower" },
+    "ttft":              { "mean": 228,    "direction_of_better": "lower" },
+    "downstream_err":    { "mean": 0.0012, "direction_of_better": "lower" },
+    "hbm_spill":         { "mean": 0.021,  "direction_of_better": "lower" },
+    "refusal_rate":      { "mean": 0.019,  "direction_of_better": "lower" },
+    "mfu":               { "mean": 0.71,   "direction_of_better": "higher" },
+    "eval_score":        { "mean": 0.868,  "direction_of_better": "higher" },
+    "tool_success_rate": { "mean": 0.948,  "direction_of_better": "higher" },
+    "collective_ops":    { "mean": 0.9996, "direction_of_better": "higher" },
+    "cost_req":          { "mean": 0.0043, "informational_only": true },
+    "tokens_turn":       { "mean": 422,    "informational_only": true },
+    "kv_cache":          { "mean": 0.885,  "informational_only": true },
+    "corpus_delta":      { "mean": 0.041,  "informational_only": true }
+  },
+  "drift_detection_result": null,
+  "incident_outcome_tags": ["incident-2026-01-gossip-storm"]
+}

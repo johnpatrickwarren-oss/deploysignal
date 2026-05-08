@@ -1,0 +1,5004 @@
+[
+  {
+    "id": "adv_inverted_economics",
+    "name": "Inverted Economics",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.028,
+      "costreqSlope": 0.002,
+      "p99latencySlope": 0.003,
+      "ttftSlope": 0.002
+    },
+    "driftDescription": "tokens_turn rises 28% while cost_req drops 12% \u2014 inverted economics signal should catch raw token inflation even though joint cost check passes"
+  },
+  {
+    "id": "adv_late_onset",
+    "name": "Late Onset Degradation",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 400,
+      "tokens_turn": 800,
+      "kv_cache": 0.74,
+      "cost_req": 0.0029,
+      "downstream_err": 0.007,
+      "mfu": 0.73,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.6
+    },
+    "driftParams": {
+      "onsetTick": 6,
+      "p99latencySlope": 0.042,
+      "ttftSlope": 0.035,
+      "tokensturnSlope": 0.02
+    },
+    "driftDescription": "metrics clean for first 6 ticks then sharp degradation \u2014 exploits trend buffer needing n>=4 observations before confirmation"
+  },
+  {
+    "id": "adv_slow_downstream",
+    "name": "Slow Downstream Creep",
+    "riskLevel": "high",
+    "bakeHours": 10,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 172,
+      "ttft": 390,
+      "tokens_turn": 790,
+      "kv_cache": 0.75,
+      "cost_req": 0.0028,
+      "downstream_err": 0.006,
+      "mfu": 0.74,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.58
+    },
+    "driftParams": {
+      "downstreamerrSlope": 0.022,
+      "p99latencySlope": 0.002,
+      "ttftSlope": 0.001
+    },
+    "driftDescription": "downstream_err grows steadily while p99/ttft stay flat \u2014 corroboration check never fires so rollback requires downstream signal alone"
+  },
+  {
+    "id": "adv_behavioral_drift",
+    "name": "Behavioral Drift Only",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 170,
+      "ttft": 385,
+      "tokens_turn": 785,
+      "kv_cache": 0.76,
+      "cost_req": 0.0027,
+      "downstream_err": 0.006,
+      "mfu": 0.75,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.6
+    },
+    "driftParams": {
+      "corpusdeltaSlope": 0.025,
+      "p99latencySlope": 0.001
+    },
+    "driftDescription": "corpus_delta drifts above threshold with no latency or token signals \u2014 behavioral-only degradation should be caught without performance corroboration"
+  },
+  {
+    "id": "adv_threshold_surfing",
+    "name": "Multi-Signal Threshold Surfing",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 178,
+      "ttft": 410,
+      "tokens_turn": 810,
+      "kv_cache": 0.73,
+      "cost_req": 0.003,
+      "downstream_err": 0.007,
+      "mfu": 0.72,
+      "hbm_spill": 0.035,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.57
+    },
+    "driftParams": {
+      "p99latencySlope": 0.016,
+      "ttftSlope": 0.013,
+      "tokensturnSlope": 0.011,
+      "downstreamerrSlope": 0.009
+    },
+    "driftDescription": "each metric stays just below its individual rollback threshold while all signals are simultaneously elevated \u2014 aggregate degradation should trigger compound check"
+  },
+  {
+    "id": "adv_collective_ops_masking",
+    "name": "Collective Ops Masking",
+    "riskLevel": "high",
+    "bakeHours": 7,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 176,
+      "ttft": 405,
+      "tokens_turn": 805,
+      "kv_cache": 0.73,
+      "cost_req": 0.003,
+      "downstream_err": 0.007,
+      "mfu": 0.72,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.58
+    },
+    "driftParams": {
+      "collectiveopsSlope": -0.022,
+      "hbmspillSlope": 0.018,
+      "p99latencySlope": 0.004
+    },
+    "driftDescription": "collective_ops drops (bad) but simultaneous hbm_spill rise suppresses the corroboration check \u2014 collective degradation is real and warrants rollback"
+  },
+  {
+    "id": "adv_multi_metric_coordination",
+    "name": "Multi-Metric Coordination",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 415,
+      "tokens_turn": 815,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.56
+    },
+    "driftParams": {
+      "p99latencySlope": 0.013,
+      "ttftSlope": 0.011,
+      "tokensturnSlope": 0.012,
+      "costreqSlope": 0.01
+    },
+    "driftDescription": "p99, ttft, tokens, and cost each at 90-95% of rollback threshold simultaneously \u2014 individual checks return false but compound checks should fire"
+  },
+  {
+    "id": "adv_kv_cache_drain",
+    "name": "KV Cache Gradual Drain",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 400,
+      "tokens_turn": 800,
+      "kv_cache": 0.78,
+      "cost_req": 0.003,
+      "downstream_err": 0.007,
+      "mfu": 0.73,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.6
+    },
+    "driftParams": {
+      "kvcacheSlope": -0.028,
+      "tokensturnSlope": 0.012,
+      "p99latencySlope": 0.006
+    },
+    "driftDescription": "KV cache hit rate drains steadily causing token inflation \u2014 cache degradation signal should fire before latency becomes severe"
+  },
+  {
+    "id": "adv_gpu_eff_erosion",
+    "name": "GPU Efficiency Erosion",
+    "riskLevel": "high",
+    "bakeHours": 84,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 172,
+      "ttft": 390,
+      "tokens_turn": 790,
+      "kv_cache": 0.76,
+      "cost_req": 0.0028,
+      "downstream_err": 0.006,
+      "mfu": 0.74,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.62
+    },
+    "driftParams": {
+      "mfuSlope": -0.025,
+      "hbmspillSlope": 0.015,
+      "p99latencySlope": 0.004
+    },
+    "driftDescription": "MFU degrades steadily with rising HBM spill \u2014 GPU efficiency signal should catch throughput erosion before latency threshold is crossed"
+  },
+  {
+    "id": "adv_cost_spike_isolated",
+    "name": "Isolated Cost Spike",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 170,
+      "ttft": 385,
+      "tokens_turn": 785,
+      "kv_cache": 0.77,
+      "cost_req": 0.0027,
+      "downstream_err": 0.006,
+      "mfu": 0.75,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.63
+    },
+    "driftParams": {
+      "costreqSlope": 0.032,
+      "tokensturnSlope": 0.003,
+      "p99latencySlope": 0.002
+    },
+    "driftDescription": "cost_req rises sharply while tokens_turn stays flat \u2014 cost efficiency signal should fire independently without token or latency corroboration"
+  },
+  {
+    "id": "adv_compound_latency",
+    "name": "Compound Latency Degradation",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 810,
+      "kv_cache": 0.73,
+      "cost_req": 0.0031,
+      "downstream_err": 0.007,
+      "mfu": 0.72,
+      "hbm_spill": 0.035,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.57
+    },
+    "driftParams": {
+      "p99latencySlope": 0.014,
+      "ttftSlope": 0.018,
+      "tokensturnSlope": 0.005
+    },
+    "driftDescription": "p99 and ttft both degrade just below individual rollback thresholds \u2014 compound_lat joint check should catch combined latency degradation that individual signals miss"
+  },
+  {
+    "id": "adv_ttft_isolated",
+    "name": "TTFT Isolated Degradation",
+    "riskLevel": "high",
+    "bakeHours": 7,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 170,
+      "ttft": 380,
+      "tokens_turn": 782,
+      "kv_cache": 0.77,
+      "cost_req": 0.0027,
+      "downstream_err": 0.006,
+      "mfu": 0.75,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.63
+    },
+    "driftParams": {
+      "ttftSlope": 0.032,
+      "p99latencySlope": 0.003,
+      "tokensturnSlope": 0.004
+    },
+    "driftDescription": "time-to-first-token degrades significantly while p99 total latency stays near baseline \u2014 ttft signal must catch first-token regression independently"
+  },
+  {
+    "id": "adv_tok_econ_joint",
+    "name": "Token Economy Joint Failure",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 173,
+      "ttft": 392,
+      "tokens_turn": 792,
+      "kv_cache": 0.75,
+      "cost_req": 0.0029,
+      "downstream_err": 0.007,
+      "mfu": 0.73,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.999,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.6
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.022,
+      "costreqSlope": 0.019,
+      "p99latencySlope": 0.003,
+      "kvcacheSlope": -0.01
+    },
+    "driftDescription": "tokens_turn and cost_req both rise together with mild KV cache drain \u2014 tok_econ joint check should catch coordinated token and cost inflation"
+  },
+  {
+    "id": "adv_capacity_collective_blip",
+    "name": "Collective-Ops Degradation Blip With Traffic Ramp Masking Recovery",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 370,
+      "ttft": 120,
+      "tokens_turn": 445,
+      "kv_cache": 0.68,
+      "cost_req": 0.0052,
+      "downstream_err": 0.007,
+      "mfu": 0.67,
+      "hbm_spill": 0.025,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0.02,
+      "traffic_pct": 0.25
+    },
+    "driftParams": {
+      "collective_ops_drop_at_hour": 1,
+      "collective_ops_drop_magnitude": 0.0041,
+      "collective_ops_recovery_slope": 0.0015,
+      "traffic_pct_ramp_slope": 0.08,
+      "traffic_pct_ceiling": 0.78,
+      "mfu_suppression_during_blip": 0.09,
+      "p99_latency_correlated_rise": 55,
+      "p99_latency_correlated_decay_slope": 0.09,
+      "hbm_spill_secondary_peak_at_hour": 3.1,
+      "hbm_spill_secondary_magnitude": 0.11
+    },
+    "driftDescription": "A brief collective-ops efficiency drop caused by a transient network fabric hiccup coincides with a weekend traffic ramp-up, making the system appear capacity-bound and triggering early rollback signals even though collective ops recover to baseline before the bake window closes."
+  },
+  {
+    "id": "adv_capacity_collective_lag",
+    "name": "Collective Ops Degradation Lagging Behind Capacity Exhaustion",
+    "riskLevel": "critical",
+    "bakeHours": 4,
+    "author": "human",
+    "changeType": "config",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 445,
+      "ttft": 225,
+      "tokens_turn": 320,
+      "kv_cache": 0.76,
+      "cost_req": 0.0034,
+      "downstream_err": 0.009,
+      "mfu": 0.59,
+      "hbm_spill": 0.05,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0.004,
+      "traffic_pct": 0.15
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.055,
+      "mfuSlope": -0.048,
+      "collectiveopsSlope": -0.0009,
+      "p99latencySlope": 38,
+      "kvcacheSlope": 0.022,
+      "trafficpctSlope": 0.003
+    },
+    "driftDescription": "HBM spill and MFU degrade immediately while collective_ops remains healthy for nearly 3 hours before degrading, so any early rollback evaluation window sees a split signal \u2014 capacity metrics screaming but the collective ops anchor still green \u2014 causing the engine to defer rollback exactly long enough for the config change's tensor-parallelism misconfiguration to propagate to all replicas and cause a cluster-wide incident."
+  },
+  {
+    "id": "adv_capacity_collective_jitter",
+    "name": "Collective Ops Jitter Misread as Capacity Degradation",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 450,
+      "ttft": 230,
+      "tokens_turn": 340,
+      "kv_cache": 0.75,
+      "cost_req": 0.0035,
+      "downstream_err": 0.005,
+      "mfu": 0.64,
+      "hbm_spill": 0.008,
+      "collective_ops": 0.9991,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "collectiveopsSlope": -5e-05
+    },
+    "driftDescription": "Periodic all-reduce timing jitter from a network fabric maintenance window causes collective ops efficiency to oscillate rhythmically, which when combined with correlated latency and HBM spill co-movement, is misinterpreted by the evaluator as a capacity degradation pattern warranting an early rollback."
+  },
+  {
+    "id": "adv_slowbleed",
+    "name": "Sub-Threshold Latency Creep",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 410,
+      "ttft": 195,
+      "tokens_turn": 312,
+      "kv_cache": 0.71,
+      "cost_req": 0.0041,
+      "downstream_err": 0.004,
+      "mfu": 0.61,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.01,
+      "tokensturnSlope": 0.012,
+      "costreqSlope": 0.008,
+      "corpusdeltaSlope": 0.012,
+      "mfuSlope": -0.008,
+      "kvcacheSlope": -0.006,
+      "onsetTick": 2
+    },
+    "driftDescription": "Latency and cache pressure increase at a rate just below per-window alerting thresholds, accumulating into a rollback-warranting degradation only after 5+ hours \u2014 adversarial because no single sample window breaches threshold yet aggregate drift is severe."
+  },
+  {
+    "id": "adv_tokensilence",
+    "name": "Gradual Output Collapse",
+    "riskLevel": "critical",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 390,
+      "ttft": 180,
+      "tokens_turn": 340,
+      "kv_cache": 0.68,
+      "cost_req": 0.0038,
+      "downstream_err": 0.003,
+      "mfu": 0.63,
+      "hbm_spill": 0.008,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "tokensturnSlope": -11.5,
+      "ttftSlope": -1.2,
+      "costreqSlope": -0.00012,
+      "downstreamerrSlope": 0.0018
+    },
+    "driftDescription": "The model progressively truncates output token counts while latency and cost superficially improve, masking a semantic collapse \u2014 adversarial because cost and latency signals appear healthy while actual response quality degrades to unusable levels."
+  },
+  {
+    "id": "adv_thermal",
+    "name": "Thermal Throttle Creep",
+    "riskLevel": "high",
+    "bakeHours": 24,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 420,
+      "ttft": 210,
+      "tokens_turn": 310,
+      "kv_cache": 0.74,
+      "cost_req": 0.0031,
+      "downstream_err": 0.004,
+      "mfu": 0.61,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "mfuSlope": -0.018,
+      "hbmspillSlope": 0.015,
+      "collectiveopsSlope": -0.0003,
+      "onsetTick": 2
+    },
+    "driftDescription": "Gradual GPU thermal throttling causes MFU and collective-ops to decay slowly enough that per-sample snapshots appear within SLO until hour 5 when compounding latency spill crosses p99 threshold \u2014 adversarial because early-window averaging masks the accelerating tail."
+  },
+  {
+    "id": "adv_canary_split",
+    "name": "Asymmetric Canary Traffic Bleed",
+    "riskLevel": "critical",
+    "bakeHours": 4,
+    "author": "human",
+    "changeType": "config",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": true,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 390,
+      "ttft": 195,
+      "tokens_turn": 280,
+      "kv_cache": 0.71,
+      "cost_req": 0.0028,
+      "downstream_err": 0.003,
+      "mfu": 0.63,
+      "hbm_spill": 0.008,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0,
+      "traffic_pct": 0.03
+    },
+    "driftParams": {
+      "downstreamerrSlope": 0.0009,
+      "costreqSlope": 5.5e-05,
+      "tokensturnSlope": 3.2
+    },
+    "driftDescription": "A misconfigured router silently routes 11% of high-value user traffic into the canary slice, inflating tokens_turn and cost_req at a rate that stays sub-threshold individually but collectively breaches downstream contract SLAs at hour 3 \u2014 adversarial because aggregate metrics are diluted by the larger baseline cohort."
+  },
+  {
+    "id": "adv_kv_eviction",
+    "name": "KV Cache Silent Eviction Spiral",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 445,
+      "ttft": 225,
+      "tokens_turn": 340,
+      "kv_cache": 0.82,
+      "cost_req": 0.0034,
+      "downstream_err": 0.005,
+      "mfu": 0.59,
+      "hbm_spill": 0.015,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0.02,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.006,
+      "p99latencySlope": 3.5,
+      "ttftSlope": 1.8,
+      "costreqSlope": 4.2e-05
+    },
+    "driftDescription": "New model weight attention patterns cause progressively higher KV cache eviction rates that remain beneath the alert threshold for 6 hours due to reduced weekend traffic, then enter a self-reinforcing spiral where evictions increase recompute, raising HBM pressure and further evictions \u2014 adversarial because low weekend variance suppresses the signal variance that would normally trigger zeta detection."
+  },
+  {
+    "id": "adv_capacity_collective_flap",
+    "name": "Collective Ops Flapping Under Asymmetric Network Congestion",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 460,
+      "ttft": 195,
+      "tokens_turn": 320,
+      "kv_cache": 0.77,
+      "cost_req": 0.0044,
+      "downstream_err": 0.005,
+      "mfu": 0.69,
+      "hbm_spill": 0.002,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "collectiveopsSlope": -3e-05,
+      "downstreamerrSlope": 0.0001,
+      "trafficpctSlope": 0
+    },
+    "driftDescription": "Periodic network fabric congestion on a subset of interconnect links causes collective ops efficiency to oscillate with a slight downward trend, creating a correlated pattern of mfu dips and latency spikes that the capacity_early_rollback heuristic misreads as accelerating compute-capacity degradation despite no true model or serving regression."
+  },
+  {
+    "id": "adv_silent_kv",
+    "name": "Silent KV Cache Pressure with Masked Latency",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 420,
+      "ttft": 95,
+      "tokens_turn": 312,
+      "kv_cache": 0.71,
+      "cost_req": 0.0041,
+      "downstream_err": 0.004,
+      "mfu": 0.61,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "kvcacheSlope": -0.018,
+      "hbmspillSlope": 0.012,
+      "p99latencySlope": 0.005,
+      "onsetTick": 2
+    },
+    "driftDescription": "KV cache slowly saturates toward eviction threshold while latency creeps only marginally, masking HBM spill buildup behind high noise variance \u2014 the individually sub-threshold signals collectively indicate imminent OOM-driven serving degradation."
+  },
+  {
+    "id": "adv_corpus_skew",
+    "name": "Gradual Corpus Distribution Skew Under Stable Throughput",
+    "riskLevel": "high",
+    "bakeHours": 10,
+    "author": "human",
+    "changeType": "config",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 390,
+      "ttft": 88,
+      "tokens_turn": 287,
+      "kv_cache": 0.58,
+      "cost_req": 0.0037,
+      "downstream_err": 0.003,
+      "mfu": 0.64,
+      "hbm_spill": 0.005,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "corpusdeltaSlope": 0.0041,
+      "tokensturnSlope": 4.2,
+      "downstreamerrSlope": 0.00035,
+      "costreqSlope": 5.5e-05,
+      "p99latencySlope": 0.9,
+      "ttftSlope": 0.2,
+      "kvcacheSlope": 0.006
+    },
+    "driftDescription": "A routing config change slowly biases traffic toward longer-context documents, driving corpus delta and tokens-per-turn upward at a rate that mimics organic weekend traffic growth, causing downstream error accumulation before any single metric breaches its standalone threshold."
+  },
+  {
+    "id": "adv_collective_degr",
+    "name": "Collective Ops Micro-Degradation with Compensating MFU",
+    "riskLevel": "critical",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 450,
+      "ttft": 102,
+      "tokens_turn": 298,
+      "kv_cache": 0.65,
+      "cost_req": 0.0044,
+      "downstream_err": 0.005,
+      "mfu": 0.67,
+      "hbm_spill": 0.008,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "collectiveopsSlope": -8.5e-05,
+      "mfuSlope": 0.0018,
+      "p99latencySlope": 2.2,
+      "hbmspillSlope": 0.007,
+      "downstreamerrSlope": 0.00028,
+      "ttftSlope": 0.6,
+      "costreqSlope": 9.5e-05
+    },
+    "driftDescription": "A serving code regression introduces subtle all-reduce synchronization errors that degrade collective ops efficiency just below the alert floor, while a coincidental batch-size tuning temporarily boosts MFU, creating a false stability signal that delays rollback as cumulative HBM spill and downstream errors compound."
+  },
+  {
+    "id": "adv_early_rollback_ghost",
+    "name": "Synthetic Metric Recovery After Premature Rollback Signal",
+    "riskLevel": "critical",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 410,
+      "ttft": 145,
+      "tokens_turn": 390,
+      "kv_cache": 0.78,
+      "cost_req": 0.0053,
+      "downstream_err": 0.007,
+      "mfu": 0.58,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9991,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "downstream_err_spike_hour": 1.5,
+      "downstream_err_spike_magnitude": 0.048,
+      "downstream_err_recovery_slope": -0.031,
+      "downstream_err_floor_after_recovery": 0.009,
+      "p99_latency_spike_hour": 1.5,
+      "p99_latency_spike_ms": 280,
+      "p99_latency_recovery_slope": -18,
+      "residual_error_drift_slope": 0.0008
+    },
+    "driftDescription": "Metrics spike sharply at hour 1.5 then self-recover to near-baseline, generating a false early rollback trigger while a slow-burn residual error drift continues accumulating underneath the recovered surface signal."
+  },
+  {
+    "id": "adv_cache_warmup_mirage",
+    "name": "Cache Warmup Phase Conceals Capacity Ceiling",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 370,
+      "ttft": 125,
+      "tokens_turn": 440,
+      "kv_cache": 0.41,
+      "cost_req": 0.0047,
+      "downstream_err": 0.003,
+      "mfu": 0.55,
+      "hbm_spill": 0.015,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.009
+    },
+    "driftDescription": "KV cache warmup produces an extended improving signal window that masks a hard HBM capacity ceiling; once warmup plateaus the system immediately enters spill-driven latency degradation invisible during the bake window."
+  },
+  {
+    "id": "adv_volatile_cache_cost_decoupling",
+    "name": "Cache Volatility Decoupled from Cost Signal",
+    "riskLevel": "high",
+    "bakeHours": 5,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "friday",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 340,
+      "ttft": 118,
+      "tokens_turn": 410,
+      "kv_cache": 0.75,
+      "cost_req": 0.0044,
+      "downstream_err": 0.006,
+      "mfu": 0.6,
+      "hbm_spill": 0.012,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.09
+    },
+    "driftParams": {
+      "costreqSlope": -9e-05,
+      "tokensturnSlope": 3.5,
+      "downstreamerrSlope": 0.0004,
+      "hbmspillSlope": 0.003
+    },
+    "driftDescription": "High KV cache volatility co-occurs with a slightly improving cost signal, breaking the expected cache-cost correlation and causing the evaluator to discount real cache instability as noise while token bloat quietly increases HBM pressure."
+  },
+  {
+    "id": "adv_cache_eviction_latency_lag",
+    "name": "Cache Eviction Storm with Delayed Latency Manifestation",
+    "riskLevel": "medium",
+    "bakeHours": 9,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 305,
+      "ttft": 105,
+      "tokens_turn": 430,
+      "kv_cache": 0.79,
+      "cost_req": 0.004,
+      "downstream_err": 0.004,
+      "mfu": 0.62,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.11
+    },
+    "driftParams": {
+      "p99latencySlope": 9.2,
+      "ttftSlope": 5.4,
+      "costreqSlope": 6e-05
+    },
+    "driftDescription": "A cache eviction storm begins at hour 2 but latency and error consequences are delayed by 3-4 hours due to request queue buffering, causing the bake window to pass a clean verdict before the true degradation manifests at production scale."
+  },
+  {
+    "id": "adv_cv_gate_exploit",
+    "name": "CV Gate Exploitation",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 210,
+      "tokens_turn": 410,
+      "kv_cache": 0.89,
+      "cost_req": 0.0041,
+      "downstream_err": 0.11,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.035,
+      "ttftSlope": 0.028
+    },
+    "driftDescription": "Injects high-variance noise (CV >= 0.03) into p99 and ttft while maintaining rising slopes, causing compound_lat signal to fail its CV < 0.03 gate despite both metrics crossing 1.10+ thresholds."
+  },
+  {
+    "id": "adv_hbm_corroboration_dodge",
+    "name": "HBM Corroboration Dodge",
+    "riskLevel": "critical",
+    "bakeHours": 12,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 218,
+      "tokens_turn": 415,
+      "kv_cache": 0.88,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.71,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "collectiveopsSlope": -0.00015,
+      "mfuSlope": -0.008
+    },
+    "driftDescription": "Collective ops degrades steadily (slopeNorm > 0.015) but HBM spill stays flat (slopeNorm < 0.005), failing the collective signal's HBM correlation requirement while GPU efficiency silently erodes."
+  },
+  {
+    "id": "adv_slowbleed_subthreshold",
+    "name": "Slowbleed Subthreshold Coordination",
+    "riskLevel": "high",
+    "bakeHours": 11,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 178,
+      "ttft": 208,
+      "tokens_turn": 405,
+      "kv_cache": 0.9,
+      "cost_req": 0.0039,
+      "downstream_err": 0.1,
+      "mfu": 0.73,
+      "hbm_spill": 0.018,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.04,
+      "traffic_pct": 0.85
+    },
+    "driftParams": {
+      "p99latencySlope": 0.0018,
+      "tokensturnSlope": 0.0018,
+      "costreqSlope": 0.0015,
+      "corpusdeltaSlope": 0.0018,
+      "mfuSlope": -0.0015,
+      "kvcacheSlope": -0.0018
+    },
+    "driftDescription": "All seven slowbleed-tracked metrics drift at slopeNorm ~0.0018 (just below the 0.002 threshold), accumulating to only compound ~0.5 instead of the required 0.6, evading multi-metric compound detection."
+  },
+  {
+    "id": "adv_mfu_drop_no_lat_corr",
+    "name": "MFU Silent Drop",
+    "riskLevel": "critical",
+    "bakeHours": 12,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 182,
+      "ttft": 215,
+      "tokens_turn": 412,
+      "kv_cache": 0.89,
+      "cost_req": 0.004,
+      "downstream_err": 0.11,
+      "mfu": 0.74,
+      "hbm_spill": 0.019,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "mfuSlope": -0.012,
+      "hbmspillSlope": 0.008,
+      "p99latencySlope": 0.005
+    },
+    "driftDescription": "MFU drops 12%+ with HBM rising, but p99_latency remains flat (ratio < 1.05), failing gpu_eff's final latThr gate which requires p99 to rise proportionally to MFU degradation."
+  },
+  {
+    "id": "adv_extend_boundary_surf",
+    "name": "EXTEND Boundary Surfer",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 184,
+      "ttft": 217,
+      "tokens_turn": 416,
+      "kv_cache": 0.88,
+      "cost_req": 0.0041,
+      "downstream_err": 0.11,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.012,
+      "kvcacheSlope": -0.004,
+      "hbmspillSlope": 0.006,
+      "mfuSlope": -0.003
+    },
+    "driftDescription": "P99 reaches 1.08-1.14x baseline (borderline_latency EXTEND zone) while kv_cache stays at 0.86-0.87 (above 0.85 alert) and HBM < 1.25x, triggering multiple EXTEND signals but never crossing any ROLLBACK threshold conjunction."
+  },
+  {
+    "id": "adv_cache_warmup_phantom",
+    "name": "Cold Cache Warmup Mimicking Capacity Regression",
+    "riskLevel": "high",
+    "bakeHours": 1,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 390,
+      "ttft": 180,
+      "tokens_turn": 460,
+      "kv_cache": 0.22,
+      "cost_req": 0.0061,
+      "downstream_err": 0.018,
+      "mfu": 0.48,
+      "hbm_spill": 0.08,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.04
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.035,
+      "p99latencySlope": -8.5,
+      "ttftSlope": -4.2,
+      "costreqSlope": -0.00018,
+      "downstreamerrSlope": -0.0008,
+      "mfuSlope": 0.022,
+      "hbmspillSlope": -0.006
+    },
+    "driftDescription": "Post-deploy cache warming causes rapidly improving latency and error metrics that mimic a successful capacity rollout, causing the evaluator to prematurely confirm the canary before true steady-state capacity limits are observable."
+  },
+  {
+    "id": "adv_early_rollback_recovery_spoof",
+    "name": "Transient Spike Inducing Premature Capacity Rollback Signal",
+    "riskLevel": "critical",
+    "bakeHours": 2,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 72,
+      "tokens_turn": 510,
+      "kv_cache": 0.74,
+      "cost_req": 0.0024,
+      "downstream_err": 0.006,
+      "mfu": 0.76,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.003,
+      "kvcacheSlope": -0.004
+    },
+    "driftDescription": "A sharp but short-lived traffic burst produces latency and error spikes that recover fully within the bake window, causing the engine to either fire a false rollback during the spike or miss a true underlying capacity regression hidden by the recovery curve."
+  },
+  {
+    "id": "adv_cache_eviction_latency_decoupling",
+    "name": "Cache Eviction Storm Decoupled From Latency Signal",
+    "riskLevel": "high",
+    "bakeHours": 2,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "friday",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 160,
+      "ttft": 68,
+      "tokens_turn": 505,
+      "kv_cache": 0.88,
+      "cost_req": 0.0022,
+      "downstream_err": 0.003,
+      "mfu": 0.79,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.12
+    },
+    "driftParams": {
+      "kvcacheSlope": -0.055,
+      "costreqSlope": 0.00042,
+      "mfuSlope": -0.018,
+      "p99latencySlope": 0.4,
+      "ttftSlope": 0.3,
+      "downstreamerrSlope": 3e-05,
+      "hbmspillSlope": 0.002,
+      "tokensturnSlope": -1.8
+    },
+    "driftDescription": "An aggressive cache eviction policy drains KV cache utilization and inflates cost-per-request while latency remains nearly flat due to prefetch compensation, causing the evaluator to conflate volatile cache metrics with a capacity false positive rather than flagging true efficiency regression."
+  },
+  {
+    "id": "adv_rollback_threshold_boundary",
+    "name": "Metrics Hovering at Rollback Decision Boundary Under Noise",
+    "riskLevel": "medium",
+    "bakeHours": 5,
+    "author": "agent",
+    "changeType": "all",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 285,
+      "ttft": 130,
+      "tokens_turn": 470,
+      "kv_cache": 0.77,
+      "cost_req": 0.0045,
+      "downstream_err": 0.012,
+      "mfu": 0.61,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.9991,
+      "corpus_delta": 0.004,
+      "traffic_pct": 0.06
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.006,
+      "mfuSlope": -0.005,
+      "kvcacheSlope": 0.004,
+      "collectiveopsSlope": -8e-05,
+      "costreqSlope": 1.5e-05
+    },
+    "driftDescription": "All degradation signals drift with high-amplitude noise centered exactly at rollback thresholds, causing the evaluator to repeatedly alternate between promote and rollback decisions and producing both false positive rollbacks and false negative confirmations within a single bake window."
+  },
+  {
+    "id": "adv_kv_cv_gate_bypass",
+    "name": "KV Cache High-CV Rollback Bypass",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 210,
+      "tokens_turn": 410,
+      "kv_cache": 0.91,
+      "cost_req": 0.004,
+      "downstream_err": 0.1,
+      "mfu": 0.72,
+      "hbm_spill": 0.018,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "kvcacheSlope": -0.025,
+      "hbmspillSlope": 0.012,
+      "p99latencySlope": 0.018
+    },
+    "driftDescription": "KV cache degrades substantially but with injected noise (CV > 0.05) that triggers the CV gate in capacity signal checks, causing the kv_cache corroboration path to return false even as cache hit rate drops to 0.78."
+  },
+  {
+    "id": "adv_p99_hbm_plateau_mask",
+    "name": "Latency Rise with HBM Plateau Suppression",
+    "riskLevel": "critical",
+    "bakeHours": 9,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 205,
+      "tokens_turn": 405,
+      "kv_cache": 0.89,
+      "cost_req": 0.0039,
+      "downstream_err": 0.09,
+      "mfu": 0.71,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.028
+    },
+    "driftDescription": "p99 latency rises 18% with early HBM spike that then plateaus (slopeNorm < 0.005 after tick 4), triggering the hbmPlateaued gate that suppresses capacity rollback while latency continues degrading unchecked."
+  },
+  {
+    "id": "adv_tok_econ_kv_hbm_flat_gate",
+    "name": "Token Inflation with Flat Infrastructure",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 182,
+      "ttft": 215,
+      "tokens_turn": 400,
+      "kv_cache": 0.9,
+      "cost_req": 0.0041,
+      "downstream_err": 0.11,
+      "mfu": 0.73,
+      "hbm_spill": 0.019,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.032,
+      "costreqSlope": 0.008
+    },
+    "driftDescription": "Tokens inflate 22% but kvD < 0.01 and hbmR < 1.02 with moderate CV (> 0.06), hitting the tok_econ guard that returns false when infrastructure metrics are flat and cost ratio < 1.08."
+  },
+  {
+    "id": "adv_mfu_collective_decorrelation",
+    "name": "MFU Drop Without Collective Ops Correlation",
+    "riskLevel": "critical",
+    "bakeHours": 11,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 178,
+      "ttft": 208,
+      "tokens_turn": 412,
+      "kv_cache": 0.88,
+      "cost_req": 0.0042,
+      "downstream_err": 0.1,
+      "mfu": 0.74,
+      "hbm_spill": 0.017,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "mfuSlope": -0.018,
+      "collectiveopsSlope": 2e-05,
+      "hbmspillSlope": 0.003,
+      "p99latencySlope": 0.006
+    },
+    "driftDescription": "MFU drops 12% but collective_ops stays stable (slopeNorm < 0.003), failing the thermal signal's colDeficit check and the gpu_eff signal's HBM rising requirement since hbmRising needs slopeNorm > 0.002 but HBM rises slowly."
+  },
+  {
+    "id": "adv_compound_lat_cv_evasion",
+    "name": "Compound Latency with CV Threshold Exploit",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 218,
+      "tokens_turn": 415,
+      "kv_cache": 0.89,
+      "cost_req": 0.0041,
+      "downstream_err": 0.11,
+      "mfu": 0.72,
+      "hbm_spill": 0.019,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.022,
+      "ttftSlope": 0.019,
+      "hbmspillSlope": 0.004,
+      "kvcacheSlope": -0.003
+    },
+    "driftDescription": "Both p99 and TTFT degrade 15%+ but with injected noise keeping CV >= 0.03, causing the compound_lat signal's explicit CV < 0.03 gate to return false while individual signals stay just under their thresholds."
+  },
+  {
+    "id": "adv_cache_pressure_mimic",
+    "name": "Cache Eviction Mimicking Capacity Exhaustion",
+    "riskLevel": "high",
+    "bakeHours": 3,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 310,
+      "ttft": 145,
+      "tokens_turn": 412,
+      "kv_cache": 0.91,
+      "cost_req": 0.0041,
+      "downstream_err": 0.004,
+      "mfu": 0.71,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.008,
+      "hbmspillSlope": 0.004,
+      "p99latencySlope": 4.5,
+      "mfuSlope": -0.005
+    },
+    "driftDescription": "KV cache fills gradually due to aggressive eviction policy changes, causing HBM spill and latency rises that are structurally identical to capacity exhaustion signals, triggering the cache_vs_capacity_volatile false positive pattern."
+  },
+  {
+    "id": "adv_oscillating_kv_load",
+    "name": "Oscillating KV Utilization Under Bursty Traffic",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 355,
+      "ttft": 160,
+      "tokens_turn": 490,
+      "kv_cache": 0.72,
+      "cost_req": 0.0052,
+      "downstream_err": 0.007,
+      "mfu": 0.74,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0,
+      "traffic_pct": 0.2
+    },
+    "driftParams": {
+      "p99latencySlope": 2.1,
+      "hbmspillSlope": 0.003,
+      "trafficpctSlope": 0.02
+    },
+    "driftDescription": "Bursty traffic causes KV cache utilization to oscillate with a 12-minute period, creating repeated ambiguous transitions between cache-pressure and capacity-pressure regimes that generate volatile readings matching the cache_vs_capacity_volatile false positive pattern."
+  },
+  {
+    "id": "adv_dual_signal_crossover",
+    "name": "Cache-Capacity Dual Signal Crossover Event",
+    "riskLevel": "critical",
+    "bakeHours": 2,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "friday",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 410,
+      "ttft": 195,
+      "tokens_turn": 460,
+      "kv_cache": 0.88,
+      "cost_req": 0.0059,
+      "downstream_err": 0.012,
+      "mfu": 0.8,
+      "hbm_spill": 0.07,
+      "collective_ops": 0.999,
+      "corpus_delta": 0,
+      "traffic_pct": 0.25
+    },
+    "driftParams": {
+      "kvcacheSlope": -0.015,
+      "mfuSlope": 0.018,
+      "hbmspillSlope": 0.012,
+      "p99latencySlope": 8,
+      "downstreamerrSlope": 0.002,
+      "collectiveopsSlope": -0.0002
+    },
+    "driftDescription": "KV cache utilization decreases while MFU and HBM spill simultaneously increase, creating a crossover pattern where cache relief is offset by raw compute capacity exhaustion, directly exploiting the ambiguity at the core of the cache_vs_capacity_volatile FP pattern on a high-risk Friday window."
+  },
+  {
+    "id": "adv_cache_thrash_plateau",
+    "name": "Cache Thrashing Plateau Near Capacity Threshold",
+    "riskLevel": "high",
+    "bakeHours": 5,
+    "author": "human",
+    "changeType": "config",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 375,
+      "ttft": 175,
+      "tokens_turn": 445,
+      "kv_cache": 0.94,
+      "cost_req": 0.0048,
+      "downstream_err": 0.009,
+      "mfu": 0.76,
+      "hbm_spill": 0.05,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0,
+      "traffic_pct": 0.18
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.002,
+      "p99latencySlope": 1.2,
+      "mfuSlope": 0.004
+    },
+    "driftDescription": "KV cache thrashes in a tight band just below the eviction threshold for an extended period, producing repeated micro-spills that individually resemble capacity noise but collectively signal a systemic cache sizing failure, making per-sample classification volatile and unreliable."
+  },
+  {
+    "id": "adv_p99_cv_inflate_mask",
+    "name": "P99 CV Inflation Masking",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 210,
+      "tokens_turn": 410,
+      "kv_cache": 0.91,
+      "cost_req": 0.0041,
+      "downstream_err": 0.1,
+      "mfu": 0.73,
+      "hbm_spill": 0.018,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.032,
+      "ttftSlope": 0.028
+    },
+    "driftDescription": "P99 latency rises 32% over bake period but injected high-frequency noise inflates CV above 0.03, blocking compound_lat check; individual p99 signal blocked by CV gate in effectiveThreshold calculation that discounts trend when CV is elevated."
+  },
+  {
+    "id": "adv_capacity_recovery_spoof",
+    "name": "Capacity Recovery False Signal",
+    "riskLevel": "critical",
+    "bakeHours": 11,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 218,
+      "tokens_turn": 420,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.11,
+      "mfu": 0.71,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.055,
+      "kvcacheSlope": -0.025,
+      "p99latencySlope": 0.022
+    },
+    "driftDescription": "HBM spill rises and KV cache drops indicating real capacity saturation, but late-tick roc values show hbm_spill declining and kv_cache stabilizing, triggering the ITER-4 RULE[6] recovery detection gate that suppresses rollback when hbmRecovering && kvStabilizing."
+  },
+  {
+    "id": "adv_tok_econ_cost_drop_mask",
+    "name": "Token Inflation with Cost Deflation",
+    "riskLevel": "high",
+    "bakeHours": 9,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 205,
+      "tokens_turn": 395,
+      "kv_cache": 0.9,
+      "cost_req": 0.0039,
+      "downstream_err": 0.09,
+      "mfu": 0.72,
+      "hbm_spill": 0.016,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.038,
+      "costreqSlope": -0.012
+    },
+    "driftDescription": "Tokens/turn inflates 18% but cost_req drops 6%, triggering the tok_econ inverted economics early-return (tr > 1.15 && cr < 0.95 && kvD < 0.01 && hbmR < 1.02 \u2192 return false) while standalone tokens check blocked by flat KV/HBM corroboration gate."
+  },
+  {
+    "id": "adv_slowbleed_boundary_surf",
+    "name": "Slowbleed Compound Score Surfing",
+    "riskLevel": "critical",
+    "bakeHours": 12,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 182,
+      "ttft": 212,
+      "tokens_turn": 408,
+      "kv_cache": 0.9,
+      "cost_req": 0.004,
+      "downstream_err": 0.1,
+      "mfu": 0.72,
+      "hbm_spill": 0.019,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.045,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.0018,
+      "tokensturnSlope": 0.0019,
+      "costreqSlope": 0.0017,
+      "corpusdeltaSlope": 0.0016,
+      "downstreamerrSlope": 0.0015,
+      "mfuSlope": -0.0014,
+      "kvcacheSlope": -0.0013
+    },
+    "driftDescription": "Seven metrics drift simultaneously but each slopeNorm stays at ~0.0015-0.0019, just below the slowbleed check's 0.002 threshold per-metric, keeping compound score at ~0.55 below the 0.6 trigger while cumulative degradation reaches 15-20% by bake end."
+  },
+  {
+    "id": "adv_mfu_stable_flag_exploit",
+    "name": "MFU Degradation with Stable Plateau",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 215,
+      "tokens_turn": 412,
+      "kv_cache": 0.88,
+      "cost_req": 0.0041,
+      "downstream_err": 0.11,
+      "mfu": 0.74,
+      "hbm_spill": 0.017,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "mfuSlope": 0.08,
+      "hbmspillSlope": 0.004,
+      "p99latencySlope": 0.008
+    },
+    "driftDescription": "MFU drops 12% in first 4 ticks then plateaus at 0.65, causing slopeNorm to approach zero by tick 8; gpu_eff requires slopeNorm < -0.004 which fails once plateau stabilizes, while thermal check requires sustained negative roc which flattens, allowing degraded MFU to persist through EXTEND."
+  },
+  {
+    "id": "adv_cache_warming_surge",
+    "name": "Cache Warming Surge Mimics Capacity Pressure",
+    "riskLevel": "high",
+    "bakeHours": 3,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 210,
+      "ttft": 95,
+      "tokens_turn": 310,
+      "kv_cache": 0.55,
+      "cost_req": 0.0041,
+      "downstream_err": 0.003,
+      "mfu": 0.61,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.038,
+      "mfuSlope": 0.025,
+      "hbmspillSlope": 0.008,
+      "p99latencySlope": 4.2,
+      "trafficpctSlope": 0
+    },
+    "driftDescription": "KV cache fill and MFU rise steeply due to cache warming after a cold restart, not genuine capacity exhaustion, causing the engine to falsely flag capacity pressure when the system is actually converging to a healthy steady state."
+  },
+  {
+    "id": "adv_bursty_cache_eviction",
+    "name": "Periodic Cache Eviction Bursts Spike Latency",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 190,
+      "ttft": 88,
+      "tokens_turn": 295,
+      "kv_cache": 0.72,
+      "cost_req": 0.0038,
+      "downstream_err": 0.004,
+      "mfu": 0.58,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9991,
+      "corpus_delta": 0,
+      "traffic_pct": 0.15
+    },
+    "driftParams": {
+      "kv_cache_oscillation_amplitude": 0.22,
+      "kv_cache_period_minutes": 8,
+      "p99_latency_burst_slope": 18,
+      "hbm_spill_burst_slope": 0.03,
+      "mfu_oscillation_amplitude": 0.09
+    },
+    "driftDescription": "Scheduled LRU eviction cycles cause sawtooth oscillations in KV cache utilization with coincident latency spikes every 8 minutes, creating a signal pattern that alternately resembles cache saturation and capacity degradation without either condition actually being sustained."
+  },
+  {
+    "id": "adv_cache_compaction_latency",
+    "name": "HBM Compaction During Cache Pressure Masks Real Latency",
+    "riskLevel": "high",
+    "bakeHours": 5,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 250,
+      "ttft": 115,
+      "tokens_turn": 360,
+      "kv_cache": 0.78,
+      "cost_req": 0.0049,
+      "downstream_err": 0.005,
+      "mfu": 0.62,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.9989,
+      "corpus_delta": 0,
+      "traffic_pct": 0.12
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.014,
+      "kvcacheSlope": 0.011,
+      "p99latencySlope": -2.5,
+      "mfuSlope": 0.007,
+      "collectiveopsSlope": -0.00015
+    },
+    "driftDescription": "HBM spill and KV cache both rise steadily while p99 latency paradoxically improves due to concurrent compaction optimizations, producing a mixed signal where cache and capacity stress indicators diverge from latency, causing the evaluator to misclassify the degradation direction."
+  },
+  {
+    "id": "adv_volatile_cache_low_traffic",
+    "name": "Volatile Cache Metrics Under Sparse Traffic",
+    "riskLevel": "medium",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "config",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 80,
+      "tokens_turn": 270,
+      "kv_cache": 0.3,
+      "cost_req": 0.0031,
+      "downstream_err": 0.001,
+      "mfu": 0.42,
+      "hbm_spill": 0.005,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "trafficpctSlope": -0.002
+    },
+    "driftDescription": "At very low traffic percentages the KV cache hit rate becomes statistically volatile with high variance, generating extreme swings in cache and latency metrics that the evaluator interprets as capacity volatility when the system is simply underloaded and statistically under-sampled."
+  },
+  {
+    "id": "adv_speculative_decode_cache_inflation",
+    "name": "Speculative Decoding Cache Inflation Confounds Capacity",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 200,
+      "ttft": 70,
+      "tokens_turn": 420,
+      "kv_cache": 0.68,
+      "cost_req": 0.0052,
+      "downstream_err": 0.003,
+      "mfu": 0.7,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.999,
+      "corpus_delta": 0,
+      "traffic_pct": 0.25
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.045,
+      "mfuSlope": 0.03,
+      "tokensturnSlope": 12,
+      "hbmspillSlope": 0.012,
+      "p99latencySlope": -1.8,
+      "costreqSlope": 8e-05
+    },
+    "driftDescription": "Enabling speculative decoding inflates KV cache usage and MFU sharply as draft tokens occupy additional cache space, which the evaluator conflates with capacity exhaustion, while actual p99 latency is improving, making this a structurally adversarial false positive for the cache-vs-capacity pattern."
+  },
+  {
+    "id": "adv_cross_request_cache_sharing",
+    "name": "Cross-Request Prefix Cache Sharing Plateau",
+    "riskLevel": "medium",
+    "bakeHours": 10,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "friday",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 220,
+      "ttft": 100,
+      "tokens_turn": 330,
+      "kv_cache": 0.5,
+      "cost_req": 0.0043,
+      "downstream_err": 0.004,
+      "mfu": 0.59,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0,
+      "traffic_pct": 0.3
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.033,
+      "mfuSlope": 0.008,
+      "p99latencySlope": -3,
+      "ttftSlope": -4.5,
+      "costreqSlope": -5.5e-05,
+      "hbmspillSlope": 0.009
+    },
+    "driftDescription": "Cross-request prefix cache sharing causes KV cache utilization to plateau at a high but stable level while TTFT and cost improve, and the rising HBM spill from larger shared tensors mimics early capacity strain, creating a false positive where the evaluator penalizes a genuinely beneficial optimization."
+  },
+  {
+    "id": "adv_cache_bounce",
+    "name": "Oscillating KV Cache Hit Rate with Stable Capacity",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 390,
+      "ttft": 160,
+      "tokens_turn": 290,
+      "kv_cache": 0.78,
+      "cost_req": 0.0028,
+      "downstream_err": 0.003,
+      "mfu": 0.65,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.003,
+      "downstreamerrSlope": 0.0002
+    },
+    "driftDescription": "KV cache hit rate oscillates with a 12-minute period due to a cache invalidation bug, creating rhythmic latency and MFU swings that resemble capacity saturation pulses and confuse volatile signal classifiers."
+  },
+  {
+    "id": "adv_cache_full_no_latency",
+    "name": "Maxed KV Cache with Artificially Suppressed Latency",
+    "riskLevel": "critical",
+    "bakeHours": 2,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 310,
+      "ttft": 130,
+      "tokens_turn": 270,
+      "kv_cache": 0.97,
+      "cost_req": 0.0024,
+      "downstream_err": 0.002,
+      "mfu": 0.72,
+      "hbm_spill": 0,
+      "collective_ops": 0.9999,
+      "corpus_delta": 0,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.001,
+      "p99latencySlope": -2,
+      "ttftSlope": -1.5,
+      "tokensturnSlope": -4,
+      "downstreamerrSlope": 0.0015,
+      "costreqSlope": -5e-05
+    },
+    "driftDescription": "Cache is nearly saturated but a speculative-decoding optimization masks expected latency increases, creating a deceptive signal where high cache pressure appears healthy until downstream errors spike unexpectedly."
+  },
+  {
+    "id": "adv_gradual_cache_degradation",
+    "name": "Slow Cache Fragmentation Mimicking Memory Leak",
+    "riskLevel": "medium",
+    "bakeHours": 8,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 370,
+      "ttft": 155,
+      "tokens_turn": 285,
+      "kv_cache": 0.62,
+      "cost_req": 0.0026,
+      "downstream_err": 0.0025,
+      "mfu": 0.67,
+      "hbm_spill": 0.005,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0,
+      "traffic_pct": 0.12
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.004,
+      "hbmspillSlope": 0.006,
+      "p99latencySlope": 8,
+      "costreqSlope": 0.00012,
+      "mfuSlope": -0.006,
+      "downstreamerrSlope": 0.00015,
+      "tokensturnSlope": -1.5
+    },
+    "driftDescription": "Cache fragmentation accumulates over 8 hours producing a drift signature indistinguishable from a slow capacity memory leak, exploiting the cache_vs_capacity_volatile pattern by sitting at the ambiguous boundary between both root causes."
+  },
+  {
+    "id": "adv_cache_thrash_high_traffic",
+    "name": "Cache Thrashing Under Bursty High-Concurrency Traffic",
+    "riskLevel": "high",
+    "bakeHours": 2,
+    "author": "agent",
+    "changeType": "all",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 500,
+      "ttft": 220,
+      "tokens_turn": 340,
+      "kv_cache": 0.88,
+      "cost_req": 0.0042,
+      "downstream_err": 0.008,
+      "mfu": 0.55,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.9989,
+      "corpus_delta": 0,
+      "traffic_pct": 0.3
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.006,
+      "p99latencySlope": 22,
+      "hbmspillSlope": 0.018,
+      "downstreamerrSlope": 0.0025,
+      "mfuSlope": -0.022,
+      "collectiveopsSlope": -0.0004
+    },
+    "driftDescription": "High-concurrency bursts cause rapid cache thrashing where KV cache simultaneously shows near-full and near-empty readings within evaluation windows, creating contradictory signals that exploit volatile pattern detection thresholds."
+  },
+  {
+    "id": "adv_p99_cv_inflation_with_kv_stable",
+    "name": "P99 CV Inflation with Stable KV",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.035
+    },
+    "driftDescription": "P99 latency rises 25%+ but with high CV (>0.03) from injected noise, causing compound_lat CV gate to block; KV and HBM stay flat so capacity corroboration never fires, leaving only the noisy p99 signal which gets filtered."
+  },
+  {
+    "id": "adv_tok_econ_inverse_with_quality_drop",
+    "name": "Token Inflation with Cost Decrease",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 210,
+      "tokens_turn": 400,
+      "kv_cache": 0.88,
+      "cost_req": 0.004,
+      "downstream_err": 0.1,
+      "mfu": 0.71,
+      "hbm_spill": 0.018,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.025,
+      "costreqSlope": -0.015
+    },
+    "driftDescription": "Tokens inflate 18% while cost drops 12% (cheaper but verbose outputs), triggering the tok_econ inverse gate that returns false; KV/HBM stay flat blocking corroboration, while eval_score silently degrades below quality signal thresholds."
+  },
+  {
+    "id": "adv_mfu_erosion_stable_plateau",
+    "name": "MFU Erosion at Stable Plateau",
+    "riskLevel": "critical",
+    "bakeHours": 11,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 182,
+      "ttft": 215,
+      "tokens_turn": 415,
+      "kv_cache": 0.9,
+      "cost_req": 0.0041,
+      "downstream_err": 0.11,
+      "mfu": 0.73,
+      "hbm_spill": 0.015,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "mfuSlope": -0.012,
+      "hbmspillSlope": 0.003,
+      "p99latencySlope": 0.005,
+      "collectiveopsSlope": 2e-05
+    },
+    "driftDescription": "MFU drops 11% with negative slopeNorm but p99_latency stays flat, failing the gpu_eff joint check requiring both MFU drop AND latency rise; HBM rises just under 1.05 ratio blocking the compound HBM corroboration path."
+  },
+  {
+    "id": "adv_slowbleed_four_metric_subthreshold",
+    "name": "Four-Metric Subthreshold Creep",
+    "riskLevel": "critical",
+    "bakeHours": 12,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 212,
+      "tokens_turn": 410,
+      "kv_cache": 0.89,
+      "cost_req": 0.0039,
+      "downstream_err": 0.1,
+      "mfu": 0.72,
+      "hbm_spill": 0.017,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.045,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.0018,
+      "tokensturnSlope": 0.0018,
+      "costreqSlope": 0.0018,
+      "corpusdeltaSlope": 0.0018
+    },
+    "driftDescription": "Each of p99, tokens, cost, corpus_delta rises with slopeNorm=0.0018 (just under the 0.002 slowbleed threshold), and mfu falls at -0.0015; compound score reaches ~0.55 but stays below 0.60 firing threshold, producing EXTEND not ROLLBACK."
+  },
+  {
+    "id": "adv_capacity_recovery_false_positive",
+    "name": "Capacity Recovery False Signal",
+    "riskLevel": "critical",
+    "bakeHours": 9,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.04
+    },
+    "driftDescription": "P99 rises 30%, HBM rises 35%, KV drops to 0.82, but hbm_spill.roc goes negative and kv_cache.roc goes positive in later ticks, triggering the capacity recovery suppression gate (hbmRecovering && kvStabilizing) that blocks rollback."
+  },
+  {
+    "id": "adv_cache_warmup_spike",
+    "name": "Cache Warmup Masking Capacity Exhaustion",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 420,
+      "ttft": 210,
+      "tokens_turn": 310,
+      "kv_cache": 0.88,
+      "cost_req": 0.0031,
+      "downstream_err": 0.004,
+      "mfu": 0.71,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.018,
+      "mfuSlope": 0.009
+    },
+    "driftDescription": "KV cache fills rapidly due to large-context warmup traffic, holding MFU and latency stable until cache saturation triggers sudden HBM spill, making the system appear healthy during bake while masking an imminent capacity cliff."
+  },
+  {
+    "id": "adv_cache_oscillation",
+    "name": "Oscillating Cache Hit Rate Confusing Capacity Signal",
+    "riskLevel": "high",
+    "bakeHours": 12,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 380,
+      "ttft": 190,
+      "tokens_turn": 295,
+      "kv_cache": 0.72,
+      "cost_req": 0.0028,
+      "downstream_err": 0.003,
+      "mfu": 0.68,
+      "hbm_spill": 0.005,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "kv_cache_oscillation_amplitude": 0.22,
+      "kv_cache_oscillation_period_hours": 1.5,
+      "kv_cache_drift_mean": 0.79,
+      "capacity_pressure_correlation": 0.85,
+      "mfu_noise_sigma": 0.04,
+      "p99_latency_oscillation_amplitude": 55
+    },
+    "driftDescription": "Cache hit rate oscillates in sync with a periodic batch job, causing alternating false-healthy and false-stressed capacity readings that prevent the evaluator from distinguishing genuine degradation from cache churn artifacts."
+  },
+  {
+    "id": "adv_cache_eviction_storm",
+    "name": "Aggressive Cache Eviction Mimicking Capacity Pressure",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 395,
+      "ttft": 200,
+      "tokens_turn": 280,
+      "kv_cache": 0.83,
+      "cost_req": 0.0029,
+      "downstream_err": 0.006,
+      "mfu": 0.66,
+      "hbm_spill": 0.012,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0,
+      "traffic_pct": 0.12
+    },
+    "driftParams": {
+      "kv_cache_drop_events": 3,
+      "kv_cache_drop_magnitude": 0.31,
+      "kv_cache_recovery_rate": 0.14,
+      "p99_latency_spike_per_drop": 120,
+      "mfu_dip_per_drop": 0.09,
+      "downstream_err_spike_per_drop": 0.018,
+      "event_interval_hours": 1.2
+    },
+    "driftDescription": "A misconfigured eviction policy triggers periodic cache flush events that cause sharp metric drops followed by rapid recovery, producing a sawtooth pattern that looks like capacity pressure spikes but is purely a cache management artifact confusing the FP discriminator."
+  },
+  {
+    "id": "adv_traffic_ramp_cache_saturation",
+    "name": "Traffic Ramp Saturating Cache Before Capacity Limit",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "human",
+    "changeType": "all",
+    "timeWindow": "friday",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 360,
+      "ttft": 175,
+      "tokens_turn": 265,
+      "kv_cache": 0.55,
+      "cost_req": 0.0025,
+      "downstream_err": 0.002,
+      "mfu": 0.62,
+      "hbm_spill": 0.003,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.06
+    },
+    "driftParams": {
+      "trafficpctSlope": 0.055
+    },
+    "driftDescription": "Gradual traffic ramp drives cache to saturation well before compute capacity is reached, causing the evaluator to incorrectly attribute post-saturation latency and HBM spill increases to capacity exhaustion rather than cache thrashing on a Friday pre-weekend ramp."
+  },
+  {
+    "id": "adv_compound_lat_cv_spike_decay",
+    "name": "Compound Latency CV Spike Then Decay",
+    "riskLevel": "critical",
+    "bakeHours": 10,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 210,
+      "tokens_turn": 410,
+      "kv_cache": 0.9,
+      "cost_req": 0.0041,
+      "downstream_err": 0.11,
+      "mfu": 0.72,
+      "hbm_spill": 0.018,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.045,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.022,
+      "ttftSlope": 0.018
+    },
+    "driftDescription": "Both p99 and ttft rise steadily toward 1.12x threshold but inject CV>0.03 noise during ticks 2-6, causing compound_lat check to fail its cv<0.03 gate while individual signals remain below their effective thresholds."
+  },
+  {
+    "id": "adv_capacity_hbm_recovery_oscillation",
+    "name": "HBM Recovery Oscillation Mask",
+    "riskLevel": "critical",
+    "bakeHours": 11,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 218,
+      "tokens_turn": 420,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.71,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.05,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.065,
+      "kvcacheSlope": -0.025,
+      "p99latencySlope": 0.028
+    },
+    "driftDescription": "HBM and KV degrade toward capacity rollback thresholds but hbm.roc oscillates negative every 3rd tick, triggering the ITER-4 RULE[6] recovery detection gate (hbmRecovering && kvStabilizing) which suppresses rollback and forces EXTEND."
+  },
+  {
+    "id": "adv_tok_econ_inverted_kv_hbm_gate",
+    "name": "Token Inflation with KV/HBM Flat Gate Exploit",
+    "riskLevel": "high",
+    "bakeHours": 9,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 175,
+      "ttft": 205,
+      "tokens_turn": 395,
+      "kv_cache": 0.88,
+      "cost_req": 0.0039,
+      "downstream_err": 0.1,
+      "mfu": 0.7,
+      "hbm_spill": 0.019,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.055,
+      "traffic_pct": 0.85
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.038,
+      "costreqSlope": -0.012
+    },
+    "driftDescription": "Tokens inflate 1.18x while cost drops 5%, hitting the inverted economics early-return (tr>1.10 && cr<0.95 \u2192 return false), and KV/HBM stay within 1% of baseline with CV>0.06, satisfying the flat-gate bypass in tok_econ that returns false."
+  },
+  {
+    "id": "adv_mfu_collective_stable_decorrelation",
+    "name": "MFU Decline with Collective Ops Stable Flag",
+    "riskLevel": "critical",
+    "bakeHours": 12,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 182,
+      "ttft": 212,
+      "tokens_turn": 415,
+      "kv_cache": 0.895,
+      "cost_req": 0.004,
+      "downstream_err": 0.11,
+      "mfu": 0.73,
+      "hbm_spill": 0.017,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.042,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "mfuSlope": -0.012,
+      "collectiveopsSlope": 8e-05,
+      "hbmspillSlope": 0.004,
+      "p99latencySlope": 0.008
+    },
+    "driftDescription": "MFU drops 12% over bake but collective_ops adds high-frequency noise keeping slopeNorm<0.015, failing the thermal signal's colDeficit threshold and gpu_eff's hbmRising corroboration since HBM slope stays at 0.004 (below 0.005 trigger)."
+  },
+  {
+    "id": "adv_slowbleed_five_metric_boundary",
+    "name": "Five-Metric Compound Drift at 0.55 Score",
+    "riskLevel": "high",
+    "bakeHours": 11,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 178,
+      "ttft": 208,
+      "tokens_turn": 405,
+      "kv_cache": 0.885,
+      "cost_req": 0.0038,
+      "downstream_err": 0.095,
+      "mfu": 0.715,
+      "hbm_spill": 0.016,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.048,
+      "traffic_pct": 0.9
+    },
+    "driftParams": {
+      "p99latencySlope": 0.0018,
+      "tokensturnSlope": 0.0016,
+      "costreqSlope": 0.0015,
+      "corpusdeltaSlope": 0.0017,
+      "mfuSlope": -0.0014
+    },
+    "driftDescription": "Five metrics drift with slopeNorm in range 0.0014-0.0018 (just below the 0.002 threshold in slowbleed), yielding compound score ~0.55 which fails the >=0.6 gate, while individual signals stay 8-12% below their rollback thresholds."
+  },
+  {
+    "id": "adv_cache_warmup_transient",
+    "name": "Cold Cache Warmup Transient After Rolling Restart",
+    "riskLevel": "medium",
+    "bakeHours": 2,
+    "author": "human",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 550,
+      "ttft": 310,
+      "tokens_turn": 280,
+      "kv_cache": 0.12,
+      "cost_req": 0.0042,
+      "downstream_err": 0.012,
+      "mfu": 0.55,
+      "hbm_spill": 0,
+      "collective_ops": 0.9999,
+      "corpus_delta": 0,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.065,
+      "p99latencySlope": -28,
+      "ttftSlope": -18,
+      "mfuSlope": 0.014,
+      "downstreamerrSlope": -0.004,
+      "costreqSlope": -0.0007
+    },
+    "driftDescription": "A rolling restart empties the KV cache, temporarily spiking latency and errors in a pattern that resembles a capacity event, but all metrics self-heal within the bake window as the cache warms up organically."
+  },
+  {
+    "id": "adv_high_cache_low_traffic_plateau",
+    "name": "High Cache Utilization Plateau Under Low Traffic Ramp",
+    "riskLevel": "medium",
+    "bakeHours": 5,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "friday",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 360,
+      "ttft": 175,
+      "tokens_turn": 340,
+      "kv_cache": 0.94,
+      "cost_req": 0.0026,
+      "downstream_err": 0.002,
+      "mfu": 0.76,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "trafficpctSlope": 0.018,
+      "kvcacheSlope": 0.004,
+      "hbmspillSlope": 0.008,
+      "p99latencySlope": 9,
+      "mfuSlope": -0.002
+    },
+    "driftDescription": "Cache is already near saturation at low traffic; as traffic ramps toward production levels the small additional cache and spill slopes push signals over threshold, looking like capacity stress when it is purely cache-sizing insufficiency on the new code path."
+  },
+  {
+    "id": "adv_cache_warmup_spike_v2",
+    "name": "Cache Warmup Mimicking Capacity Pressure",
+    "riskLevel": "high",
+    "bakeHours": 3,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 210,
+      "ttft": 95,
+      "tokens_turn": 312,
+      "kv_cache": 0.45,
+      "cost_req": 0.0031,
+      "downstream_err": 0.002,
+      "mfu": 0.61,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.09,
+      "hbmspillSlope": 0.012,
+      "mfuSlope": -0.04,
+      "p99latencySlope": 18
+    },
+    "driftDescription": "Cold-start cache repopulation after a rolling restart causes kv_cache and hbm_spill to rise sharply in the first hour, producing signals identical to genuine capacity exhaustion and triggering false capacity alerts before steady state is reached."
+  },
+  {
+    "id": "adv_cache_fragmentation_plateau",
+    "name": "KV-Cache Fragmentation at Stable Utilization Plateau",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 240,
+      "ttft": 110,
+      "tokens_turn": 298,
+      "kv_cache": 0.72,
+      "cost_req": 0.0045,
+      "downstream_err": 0.003,
+      "mfu": 0.58,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0,
+      "traffic_pct": 0.15
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.001,
+      "hbmspillSlope": 0.008,
+      "p99latencySlope": 6,
+      "mfuSlope": -0.015
+    },
+    "driftDescription": "Internal KV-cache block fragmentation causes hbm_spill and latency to creep upward while aggregate kv_cache utilization appears plateaued and healthy, making the signal look like normal volatile cache churn rather than a structural memory leak."
+  },
+  {
+    "id": "adv_volatile_cache_oscillation",
+    "name": "High-Frequency Cache Eviction Oscillation",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 225,
+      "ttft": 102,
+      "tokens_turn": 305,
+      "kv_cache": 0.65,
+      "cost_req": 0.0038,
+      "downstream_err": 0.002,
+      "mfu": 0.6,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0,
+      "traffic_pct": 0.12
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.005,
+      "mfuSlope": -0.01
+    },
+    "driftDescription": "An aggressive new cache eviction policy causes kv_cache and p99_latency to oscillate with an 8-minute period, making time-averaged metrics appear within bounds while instantaneous tail latency repeatedly breaches SLO in a pattern the current window-averaged evaluator cannot distinguish from normal cache volatility."
+  },
+  {
+    "id": "adv_spill_with_clean_cache",
+    "name": "HBM Spill Under Low Reported Cache Utilization",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 230,
+      "ttft": 105,
+      "tokens_turn": 415,
+      "kv_cache": 0.41,
+      "cost_req": 0.0051,
+      "downstream_err": 0.003,
+      "mfu": 0.55,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9991,
+      "corpus_delta": 0.03,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.035,
+      "p99latencySlope": 28,
+      "tokensturnSlope": 55,
+      "kvcacheSlope": 0.005,
+      "mfuSlope": -0.03,
+      "collectiveopsSlope": -0.0003
+    },
+    "driftDescription": "New model weights generate significantly longer output sequences, causing HBM spill and latency to degrade sharply while the kv_cache metric stays deceptively low because the cache accounting only tracks prefill blocks and not the growing decode-side activation buffers."
+  },
+  {
+    "id": "adv_cache_saturation_plateau",
+    "name": "Cache Saturation Plateau with Capacity Headroom Illusion",
+    "riskLevel": "high",
+    "bakeHours": 3,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 210,
+      "ttft": 95,
+      "tokens_turn": 310,
+      "kv_cache": 0.91,
+      "cost_req": 0.0041,
+      "downstream_err": 0.003,
+      "mfu": 0.71,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0.01,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.008
+    },
+    "driftDescription": "KV cache climbs slowly to near-saturation while reported capacity headroom remains falsely optimistic due to eviction accounting lag, causing the evaluator to miss impending OOM by misreading cache pressure as stable utilization."
+  },
+  {
+    "id": "adv_rollback_ghost_signal",
+    "name": "Early Rollback Triggered by Transient Cache Thrash Ghost",
+    "riskLevel": "critical",
+    "bakeHours": 1,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 340,
+      "ttft": 140,
+      "tokens_turn": 280,
+      "kv_cache": 0.78,
+      "cost_req": 0.0067,
+      "downstream_err": 0.012,
+      "mfu": 0.65,
+      "hbm_spill": 0.05,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0.03,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "kv_cache_spike_at_cycle": 3,
+      "kv_cache_spike_magnitude": 0.18,
+      "kv_cache_recovery_cycles": 2,
+      "rollback_trigger_threshold": 0.94,
+      "post_spike_stable_value": 0.76
+    },
+    "driftDescription": "A brief cache thrash spike at cycle 3 crosses the rollback threshold momentarily then self-recovers, tricking the evaluator into issuing an early rollback on a healthy deployment whose transient volatility was caused by a one-time batch recomputation."
+  },
+  {
+    "id": "adv_volatile_cache_false_healthy",
+    "name": "Oscillating Cache Ratio Averaging to False Healthy Baseline",
+    "riskLevel": "high",
+    "bakeHours": 2,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 225,
+      "ttft": 102,
+      "tokens_turn": 305,
+      "kv_cache": 0.74,
+      "cost_req": 0.0044,
+      "downstream_err": 0.004,
+      "mfu": 0.69,
+      "hbm_spill": 0.03,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0.02,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "kv_cache_oscillation_amplitude": 0.21,
+      "kv_cache_oscillation_period_cycles": 2,
+      "kv_cache_mean": 0.74,
+      "latency_correlation_lag": 1,
+      "evaluator_window_cycles": 4
+    },
+    "driftDescription": "Cache ratio oscillates \u00b10.21 every 2 cycles but averages to 0.74 within the evaluator's 4-cycle window, masking repeated near-saturation peaks and producing a healthy signal despite chronic instability."
+  },
+  {
+    "id": "adv_cache_pressure_masquerade",
+    "name": "Cache Eviction Mimicking Capacity Exhaustion",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 420,
+      "ttft": 210,
+      "tokens_turn": 310,
+      "kv_cache": 0.91,
+      "cost_req": 0.0038,
+      "downstream_err": 0.004,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0,
+      "traffic_pct": 0.15
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.008,
+      "hbmspillSlope": 0.018,
+      "p99latencySlope": 12,
+      "mfuSlope": -0.012,
+      "costreqSlope": 0.00015,
+      "downstreamerrSlope": 0.0008
+    },
+    "driftDescription": "KV cache steadily fills and triggers HBM spill that mimics capacity exhaustion signal, causing the engine to misclassify a cache tuning regression as an infrastructure capacity event."
+  },
+  {
+    "id": "adv_volatile_cache_oscillation_v2",
+    "name": "Oscillating Cache Hit Rate Under Bursty Traffic",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 380,
+      "ttft": 185,
+      "tokens_turn": 290,
+      "kv_cache": 0.78,
+      "cost_req": 0.0031,
+      "downstream_err": 0.003,
+      "mfu": 0.68,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "p99latencySlope": 5,
+      "trafficpctSlope": 0.04,
+      "mfuSlope": -0.005
+    },
+    "driftDescription": "Cache hit rate oscillates with an 8-minute period due to bursty request patterns, creating alternating false capacity-stress and false clean signals that confuse steady-state evaluation windows."
+  },
+  {
+    "id": "adv_early_rollback_phantom",
+    "name": "Transient Spike Triggering Premature Rollback Signal",
+    "riskLevel": "critical",
+    "bakeHours": 2,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 390,
+      "ttft": 280,
+      "tokens_turn": 210,
+      "kv_cache": 0.75,
+      "cost_req": 0.0027,
+      "downstream_err": 0.001,
+      "mfu": 0.68,
+      "hbm_spill": 0.005,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "trafficpctSlope": 0.03
+    },
+    "driftDescription": "A short-lived 3-minute latency and error spike at minute 15 of bake fully recovers before the standard evaluation window closes, but arrives early enough to incorrectly satisfy the capacity_early_rollback heuristic threshold."
+  },
+  {
+    "id": "adv_volatile_cache_warmup",
+    "name": "Cold Cache Warmup Volatility Masking True Regression",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 450,
+      "ttft": 340,
+      "tokens_turn": 195,
+      "kv_cache": 0.3,
+      "cost_req": 0.0042,
+      "downstream_err": 0.005,
+      "mfu": 0.55,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0.01,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.22,
+      "p99latencySlope": -60,
+      "ttftSlope": -45,
+      "costreqSlope": -0.0009,
+      "mfuSlope": 0.09,
+      "downstreamerrSlope": 0.006
+    },
+    "driftDescription": "Cache hit rate climbs steeply during warmup masking a genuine downstream error rate regression that only emerges after hour 4, exploiting the cache_vs_capacity_volatile false positive pattern by making early signals look like normal warmup noise."
+  },
+  {
+    "id": "adv_oscillating_cache_signal",
+    "name": "Oscillating Cache Hit Rate With Stable Averages",
+    "riskLevel": "medium",
+    "bakeHours": 5,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 400,
+      "ttft": 295,
+      "tokens_turn": 200,
+      "kv_cache": 0.72,
+      "cost_req": 0.0033,
+      "downstream_err": 0.002,
+      "mfu": 0.65,
+      "hbm_spill": 0.012,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0,
+      "traffic_pct": 0.12
+    },
+    "driftParams": {
+      "downstreamerrSlope": 0.0015
+    },
+    "driftDescription": "KV cache and latency oscillate with a 20-minute period keeping rolling averages deceptively stable, causing the cache_vs_capacity_volatile detector to suppress real degradation signals because mean-based thresholds never breach while variance steadily increases."
+  },
+  {
+    "id": "adv_rollback_masking_traffic_shift",
+    "name": "Traffic Composition Shift Masking Capacity Signal",
+    "riskLevel": "high",
+    "bakeHours": 3,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "friday",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 360,
+      "ttft": 250,
+      "tokens_turn": 160,
+      "kv_cache": 0.8,
+      "cost_req": 0.0025,
+      "downstream_err": 0.001,
+      "mfu": 0.69,
+      "hbm_spill": 0.007,
+      "collective_ops": 0.9998,
+      "corpus_delta": 0.02,
+      "traffic_pct": 0.2
+    },
+    "driftParams": {
+      "tokensturnSlope": 85,
+      "kvcacheSlope": -0.14,
+      "p99latencySlope": 95,
+      "hbmspillSlope": 0.028,
+      "mfuSlope": 0.06,
+      "costreqSlope": 0.0011,
+      "downstreamerrSlope": 0.002,
+      "corpusdeltaSlope": 0.015
+    },
+    "driftDescription": "A Friday traffic shift toward longer-context requests inflates tokens_turn and drives legitimate-looking KV cache and latency degradation that is structurally identical to capacity_early_rollback signals, making it impossible to distinguish a bad deploy from an organic request mix change."
+  },
+  {
+    "id": "adv_dual_pattern_confluence",
+    "name": "Simultaneous Cache Volatility and Capacity Pressure Confluence",
+    "riskLevel": "critical",
+    "bakeHours": 7,
+    "author": "agent",
+    "changeType": "all",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 430,
+      "ttft": 320,
+      "tokens_turn": 215,
+      "kv_cache": 0.7,
+      "cost_req": 0.0036,
+      "downstream_err": 0.003,
+      "mfu": 0.63,
+      "hbm_spill": 0.015,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0.005,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": -0.1,
+      "hbmspillSlope": 0.022,
+      "p99latencySlope": 40,
+      "mfuSlope": -0.05,
+      "downstreamerrSlope": 0.004,
+      "collectiveopsSlope": -0.0003,
+      "costreqSlope": 0.0007,
+      "trafficpctSlope": 0.05
+    },
+    "driftDescription": "Both the cache_vs_capacity_volatile and capacity_early_rollback false positive patterns are simultaneously active \u2014 noisy cache churn masks a real HBM spill trajectory \u2014 so the evaluation engine's suppression logic for each individual pattern inadvertently suppresses a true combined-risk rollback signal."
+  },
+  {
+    "id": "adv_cache_warmup_spike_v3",
+    "name": "Cold Cache Warmup Transient Mimicking Capacity Alarm",
+    "riskLevel": "high",
+    "bakeHours": 3,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 380,
+      "ttft": 160,
+      "tokens_turn": 290,
+      "kv_cache": 0.12,
+      "cost_req": 0.0031,
+      "downstream_err": 0.002,
+      "mfu": 0.68,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.005,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.072,
+      "p99latencySlope": 45,
+      "ttftSlope": 22,
+      "mfuSlope": -0.035,
+      "hbmspillSlope": 0.018,
+      "costreqSlope": 0.0009
+    },
+    "driftDescription": "A cold-start cache warmup cycle causes a sharp transient rise in latency and MFU drop that briefly overlaps the volatile capacity signal boundary, producing a false positive before stabilizing at healthy steady state."
+  },
+  {
+    "id": "adv_slow_bleed",
+    "name": "Sub-Threshold Latency Slow Bleed",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 480,
+      "ttft": 210,
+      "tokens_turn": 312,
+      "kv_cache": 0.71,
+      "cost_req": 0.0041,
+      "downstream_err": 0.003,
+      "mfu": 0.61,
+      "hbm_spill": 0.01,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.1
+    },
+    "driftParams": {
+      "p99latencySlope": 3.8,
+      "ttftSlope": 1.2,
+      "costreqSlope": 4e-05
+    },
+    "driftDescription": "Latency creeps at 3.8ms/hour \u2014 individually sub-threshold per window but compounds past SLO breach by hour 6, mimicking natural load variance to evade per-sample checks."
+  },
+  {
+    "id": "adv_token_collapse",
+    "name": "Silent Token Output Collapse",
+    "riskLevel": "critical",
+    "bakeHours": 3,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "evening",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": true,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 390,
+      "ttft": 185,
+      "tokens_turn": 298,
+      "kv_cache": 0.68,
+      "cost_req": 0.0038,
+      "downstream_err": 0.002,
+      "mfu": 0.63,
+      "hbm_spill": 0.008,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.05
+    },
+    "driftParams": {
+      "tokensturnSlope": -12,
+      "costreqSlope": -0.00015,
+      "p99latencySlope": -2.1
+    },
+    "driftDescription": "Model begins truncating outputs causing tokens_turn to fall ~12/hour while latency and cost also drop, making the signal look like an efficiency win rather than a contract-breaking output degradation."
+  },
+  {
+    "id": "adv_kv_saturation_plateau",
+    "name": "KV Cache Asymptotic Saturation",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 510,
+      "ttft": 230,
+      "tokens_turn": 320,
+      "kv_cache": 0.74,
+      "cost_req": 0.0044,
+      "downstream_err": 0.004,
+      "mfu": 0.58,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9991,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.15
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.008,
+      "p99latencySlope": 5.2
+    },
+    "driftDescription": "KV cache utilization follows a logistic curve toward 0.97 saturation, causing hbm_spill to rise gradually; the smooth plateau shape makes threshold crossings ambiguous and can stall rollback decisions."
+  },
+  {
+    "id": "adv_correlated_noise",
+    "name": "Correlated Multi-Metric Noise Injection",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 460,
+      "ttft": 200,
+      "tokens_turn": 305,
+      "kv_cache": 0.7,
+      "cost_req": 0.004,
+      "downstream_err": 0.0025,
+      "mfu": 0.62,
+      "hbm_spill": 0.012,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0.002,
+      "traffic_pct": 0.08
+    },
+    "driftParams": {
+      "shared_noise_amplitude": 0.18,
+      "p99_latency_drift_ms": 55,
+      "downstream_err_drift": 0.009,
+      "mfu_drift": -0.07,
+      "correlation_rho": 0.82,
+      "drift_onset_hour": 1,
+      "noise_sigma": 0.2
+    },
+    "driftDescription": "All degraded metrics are driven by a single latent noise process with high cross-correlation, making each individual signal appear within noise tolerance while the joint probability of the observed pattern is anomalously low."
+  },
+  {
+    "id": "adv_weekend_ramp",
+    "name": "Weekend Low-Traffic Metric Masking",
+    "riskLevel": "medium",
+    "bakeHours": 16,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "weekend",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": false
+    },
+    "baseline": {
+      "p99_latency": 430,
+      "ttft": 190,
+      "tokens_turn": 295,
+      "kv_cache": 0.55,
+      "cost_req": 0.0036,
+      "downstream_err": 0.0015,
+      "mfu": 0.48,
+      "hbm_spill": 0.005,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.004,
+      "traffic_pct": 0.03
+    },
+    "driftParams": {
+      "traffic_pct_peak": 0.45,
+      "traffic_ramp_start_hour": 14,
+      "p99_latency_at_peak_ms": 780,
+      "downstream_err_at_peak": 0.028,
+      "mfu_at_peak": 0.38,
+      "low_traffic_masking_factor": 0.6,
+      "noise_sigma": 0.1
+    },
+    "driftDescription": "Defect only manifests under load; weekend bake runs at 3% traffic where all metrics appear healthy, but the model has a latency cliff that will breach SLO when weekday traffic ramps \u2014 statistical power is too low at low traffic_pct to detect."
+  },
+  {
+    "id": "adv_collective_ops_flap",
+    "name": "Collective Ops Intermittent Degradation Flap",
+    "riskLevel": "critical",
+    "bakeHours": 5,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": true,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 520,
+      "ttft": 240,
+      "tokens_turn": 318,
+      "kv_cache": 0.72,
+      "cost_req": 0.0045,
+      "downstream_err": 0.005,
+      "mfu": 0.59,
+      "hbm_spill": 0.018,
+      "collective_ops": 0.9995,
+      "corpus_delta": 0.001,
+      "traffic_pct": 0.12
+    },
+    "driftParams": {
+      "collective_ops_flap_low": 0.9871,
+      "collective_ops_flap_high": 0.9994,
+      "flap_period_minutes": 22,
+      "flap_duty_cycle": 0.3,
+      "p99_latency_during_flap_ms": 1100,
+      "hbm_spill_during_flap": 0.11,
+      "noise_sigma": 0.05
+    },
+    "driftDescription": "Collective ops efficiency drops to 0.987 for 30% of each 22-minute cycle, causing burst latency and HBM spill spikes that are averaged away in time-windowed aggregations, hiding a real distributed synchronization bug."
+  },
+  {
+    "id": "adv_corpus_drift_shadow",
+    "name": "Corpus Delta Shadow Shift",
+    "riskLevel": "medium",
+    "bakeHours": 12,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": true,
+      "provenance": true,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 445,
+      "ttft": 195,
+      "tokens_turn": 308,
+      "kv_cache": 0.69,
+      "cost_req": 0.0039,
+      "downstream_err": 0.002,
+      "mfu": 0.64,
+      "hbm_spill": 0.009,
+      "collective_ops": 0.9996,
+      "corpus_delta": 0.031,
+      "traffic_pct": 0.2
+    },
+    "driftParams": {
+      "corpusdeltaSlope": 0.0028,
+      "downstreamerrSlope": 0.0006,
+      "tokensturnSlope": -3.5
+    },
+    "driftDescription": "Training corpus distribution shift accumulates slowly in embedding space, measurable only via corpus_delta which starts below threshold and crosses it at hour 11 \u2014 downstream_err and token output degrade in lockstep but each metric alone stays beneath its individual rollback trigger."
+  },
+  {
+    "id": "adv_collective_flap",
+    "name": "Collective Ops Flap with HBM Masking",
+    "riskLevel": "high",
+    "bakeHours": 16,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 840,
+      "ttft": 205,
+      "tokens_turn": 418,
+      "kv_cache": 0.74,
+      "cost_req": 0.0027,
+      "downstream_err": 0.0029,
+      "mfu": 0.82,
+      "hbm_spill": 0.041,
+      "collective_ops": 0.9994,
+      "corpus_delta": 0.04,
+      "traffic_pct": 0.63
+    },
+    "driftParams": {
+      "collectiveopsOscAmp": 0.007,
+      "collectiveopsOscPeriod": 5,
+      "collectiveopsSlope": -0.003,
+      "hbmspillOscAmp": 0.09,
+      "hbmspillOscPeriod": 5,
+      "hbmspillSlope": 0.004
+    },
+    "driftDescription": "Collective ops flaps around threshold with period-5 oscillation while HBM also oscillates in sync \u2014 when collective_ops dips (degraded), HBM simultaneously spikes, which the corroboration check uses to suppress the collective signal."
+  },
+  {
+    "id": "adv_lat_osc_drift",
+    "name": "Latency Oscillation Masking Upward Drift",
+    "riskLevel": "critical",
+    "bakeHours": 18,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 870,
+      "ttft": 220,
+      "tokens_turn": 430,
+      "kv_cache": 0.71,
+      "cost_req": 0.0029,
+      "downstream_err": 0.0033,
+      "mfu": 0.8,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0.043,
+      "traffic_pct": 0.6
+    },
+    "driftParams": {
+      "p99latencyOscAmp": 0.09,
+      "p99latencyOscPeriod": 5,
+      "p99latencySlope": 0.007,
+      "ttftOscAmp": 0.07,
+      "ttftOscPeriod": 7,
+      "ttftSlope": 0.005
+    },
+    "driftDescription": "P99 and TTFT both carry a real upward drift (+0.007/tick) but are wrapped in out-of-phase oscillations (period 5 vs 7) \u2014 the trend buffer sees alternating rises and dips, making slopeNorm small despite genuine degradation accumulating."
+  },
+  {
+    "id": "adv_mfu_osc_hbm",
+    "name": "MFU Oscillation with HBM Phase Drift",
+    "riskLevel": "high",
+    "bakeHours": 13,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 845,
+      "ttft": 210,
+      "tokens_turn": 420,
+      "kv_cache": 0.73,
+      "cost_req": 0.0028,
+      "downstream_err": 0.003,
+      "mfu": 0.82,
+      "hbm_spill": 0.038,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0.041,
+      "traffic_pct": 0.62
+    },
+    "driftParams": {
+      "mfuOscAmp": 0.06,
+      "mfuOscPeriod": 4,
+      "mfuSlope": -0.006,
+      "hbmspillOscAmp": 0.1,
+      "hbmspillOscPeriod": 6,
+      "hbmspillSlope": 0.005,
+      "kvcacheSlope": -0.004
+    },
+    "driftDescription": "MFU oscillates and bleeds down (-0.006/tick) while HBM oscillates with a different period (6 vs 4) \u2014 they're rarely simultaneously alarming, so the corroboration gate for gpu_eff keeps failing even though both metrics are genuinely degrading."
+  },
+  {
+    "id": "adv_token_osc_inverted_econ",
+    "name": "Token Oscillation with Inverted Cost Signal",
+    "riskLevel": "high",
+    "bakeHours": 15,
+    "author": "human",
+    "changeType": "config",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 850,
+      "ttft": 212,
+      "tokens_turn": 422,
+      "kv_cache": 0.72,
+      "cost_req": 0.0028,
+      "downstream_err": 0.0031,
+      "mfu": 0.81,
+      "hbm_spill": 0.039,
+      "collective_ops": 0.9993,
+      "corpus_delta": 0.042,
+      "traffic_pct": 0.62
+    },
+    "driftParams": {
+      "tokensturnOscAmp": 0.12,
+      "tokensturnOscPeriod": 5,
+      "tokensturnSlope": 0.008,
+      "costreqSlope": -0.003,
+      "kvcacheSlope": -0.005
+    },
+    "driftDescription": "Tokens/turn oscillates above baseline and drifts up (+0.008/tick), but cost/req is falling (-0.003/tick) \u2014 the tok_econ joint check requires both to rise, so falling cost suppresses rollback despite token inflation being real."
+  },
+  {
+    "id": "adv_multi_osc_phase_shift",
+    "name": "Multi-Metric Phase-Shifted Oscillation",
+    "riskLevel": "critical",
+    "bakeHours": 20,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 855,
+      "ttft": 218,
+      "tokens_turn": 428,
+      "kv_cache": 0.71,
+      "cost_req": 0.0029,
+      "downstream_err": 0.0032,
+      "mfu": 0.8,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.9992,
+      "corpus_delta": 0.043,
+      "traffic_pct": 0.61
+    },
+    "driftParams": {
+      "p99latencyOscAmp": 0.08,
+      "p99latencyOscPeriod": 3,
+      "ttftOscAmp": 0.07,
+      "ttftOscPeriod": 5,
+      "mfuOscAmp": 0.05,
+      "mfuOscPeriod": 7,
+      "kvcacheOscAmp": 0.1,
+      "kvcacheOscPeriod": 4,
+      "globalSlope": 0.004
+    },
+    "driftDescription": "Four metrics oscillate with coprime periods (3,4,5,7) so they're rarely simultaneously alarming \u2014 plus a global slope of 0.004 means all metrics drift upward, but the phase-scattered oscillation keeps any joint detection from firing consistently."
+  },
+  {
+    "id": "adv_context_len_cliff",
+    "name": "Context Length Cliff",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.025,
+      "p99latencySlope": 0.015,
+      "ttftSlope": 0.02,
+      "onsetTick": 8
+    },
+    "driftDescription": "Long-context traffic fills KV cache to saturation; p99 and TTFT spike once evictions begin. System looks healthy early in the bake while the cache ceiling approaches."
+  },
+  {
+    "id": "adv_context_kv_cost_cliff",
+    "name": "Context KV Cost Cliff",
+    "riskLevel": "medium",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.02,
+      "costreqSlope": 0.007,
+      "mfuSlope": -0.008,
+      "tokensturnSlope": 0.001
+    },
+    "driftDescription": "O(n^2) attention cost at long context lengths drives cost-per-request above threshold while token volume barely moves. MFU drops as attention dominates. Token-economics signal misses it because token count looks normal."
+  },
+  {
+    "id": "adv_context_quality_regression",
+    "name": "Context Quality Regression",
+    "riskLevel": "high",
+    "bakeHours": 10,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "corpusdeltaSlope": 0.008,
+      "kvcacheSlope": 0.018,
+      "ttftSlope": 0.003,
+      "onsetTick": 6
+    },
+    "driftDescription": "Quality degrades only on long-context inputs, showing up as corpus delta drift while latency and throughput remain normal. Regression masked by p50 traffic being short-context."
+  },
+  {
+    "id": "adv_context_attn_hbm_saturation",
+    "name": "Context Attention HBM Saturation",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.005,
+      "mfuSlope": -0.008,
+      "kvcacheSlope": 0.02,
+      "p99latencySlope": 0.002,
+      "onsetTick": 4
+    },
+    "driftDescription": "GPU memory bandwidth saturates at long sequence lengths, causing HBM spill and MFU degradation before p99 responds. Serving layer appears stable on latency SLOs while GPU resources are silently exhausted."
+  },
+  {
+    "id": "adv_context_oom_sporadic",
+    "name": "Context OOM Sporadic",
+    "riskLevel": "critical",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.028,
+      "downstreamerrSlope": 0.003,
+      "hbmspillSlope": 0.003,
+      "p99latencySlope": 0.003,
+      "onsetTick": 5
+    },
+    "driftDescription": "OOM evictions hit p95-length requests as KV cache fills to saturation, causing sporadic downstream errors while p50 traffic looks healthy."
+  },
+  {
+    "id": "adv_batch_saturation_cliff",
+    "name": "Batch Saturation Cliff",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "collectiveopsSlope": -0.006,
+      "hbmspillSlope": 0.008,
+      "p99latencySlope": 0.012,
+      "onsetTick": 10
+    },
+    "driftDescription": "GPU batch efficiency collapses at high concurrency \u2014 collective ops drops 13%+ while HBM spill climbs. System looks healthy during low-traffic early bake then saturates as request volume ramps."
+  },
+  {
+    "id": "adv_batch_queue_saturation",
+    "name": "Batch Queue Saturation",
+    "riskLevel": "high",
+    "bakeHours": 5,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "p99latencySlope": 0.012,
+      "ttftSlope": 0.01,
+      "downstreamerrSlope": 0.005,
+      "mfuSlope": -0.003,
+      "onsetTick": 8
+    },
+    "driftDescription": "Request queue backs up at high concurrency, driving p99 and TTFT above SLO while GPU appears underloaded. Downstream timeout errors accumulate as requests wait in queue."
+  },
+  {
+    "id": "adv_batch_hbm_oom",
+    "name": "Batch HBM OOM",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.008,
+      "p99latencySlope": 0.008,
+      "collectiveopsSlope": -0.001,
+      "onsetTick": 6
+    },
+    "driftDescription": "Large batch sizes cause HBM OOM evictions, producing sustained HBM spill rise and p99 latency degradation. The serving change increases batch size beyond the GPU memory envelope."
+  },
+  {
+    "id": "adv_batch_mfu_erosion",
+    "name": "Batch MFU Erosion",
+    "riskLevel": "medium",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "mfuSlope": -0.015,
+      "collectiveopsSlope": -0.0015,
+      "p99latencySlope": 0.005,
+      "onsetTick": 12
+    },
+    "driftDescription": "Inefficient batching for the new model weights causes gradual MFU collapse as the batch optimizer fails to pack requests efficiently. Reaches 30% GPU efficiency loss late in the bake."
+  },
+  {
+    "id": "adv_batch_size_cliff_latency_lag",
+    "name": "Batch Size Cliff Latency Lag",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.006,
+      "kvcacheSlope": 0.015,
+      "mfuSlope": -0.005,
+      "p99latencySlope": 0.003,
+      "onsetTick": 8
+    },
+    "driftDescription": "New model weights require a larger optimal batch size than the serving config expects. KV cache fills to saturation and HBM pressure rises before latency SLOs respond."
+  },
+  {
+    "id": "adv_quant_behavioral_drift",
+    "name": "Quantization Behavioral Drift",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "corpusdeltaSlope": 0.035,
+      "mfuSlope": -0.003,
+      "onsetTick": 6
+    },
+    "driftDescription": "INT8 quantization causes systematic token-probability shifts that accumulate into measurable corpus delta regression \u2014 pure behavioral signal with minimal infrastructure footprint."
+  },
+  {
+    "id": "adv_quant_mfu_asymmetry",
+    "name": "Quantization MFU Asymmetry",
+    "riskLevel": "medium",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "mfuSlope": -0.018,
+      "hbmspillSlope": 0.008,
+      "corpusdeltaSlope": 0.01,
+      "onsetTick": 8
+    },
+    "driftDescription": "INT8 quantization is asymmetrically efficient \u2014 attention layers benefit but FFN layers lose throughput, producing sustained MFU drop with rising HBM pressure and subtle quality regression."
+  },
+  {
+    "id": "adv_quant_outlier_token",
+    "name": "Quantization Outlier Token Inflation",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.03,
+      "corpusdeltaSlope": 0.018,
+      "costreqSlope": 0.012,
+      "onsetTick": 4,
+      "mfuSlope": -0.006
+    },
+    "driftDescription": "INT8 quantization error on high-magnitude weight outliers causes the model to generate systematically longer outputs \u2014 token count and cost rise together with corpus delta and slight MFU erosion, mimicking valid workload growth."
+  },
+  {
+    "id": "adv_quant_long_tail_regression",
+    "name": "Quantization Long-Tail Regression",
+    "riskLevel": "critical",
+    "bakeHours": 12,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "corpusdeltaSlope": 0.045,
+      "onsetTick": 16,
+      "mfuSlope": -0.008
+    },
+    "driftDescription": "INT4 quantization errors manifest only on tail token distributions \u2014 corpus delta is flat during the early bake window then accelerates sharply as long-tail prompts accumulate, with gradual MFU degradation testing late-onset behavioral detection."
+  },
+  {
+    "id": "adv_quant_layer_sensitivity",
+    "name": "Quantization Layer Sensitivity",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 180,
+      "ttft": 420,
+      "tokens_turn": 820,
+      "kv_cache": 0.72,
+      "cost_req": 0.0031,
+      "downstream_err": 0.008,
+      "mfu": 0.71,
+      "hbm_spill": 0.04,
+      "collective_ops": 0.998,
+      "corpus_delta": 0.003,
+      "traffic_pct": 0.55
+    },
+    "driftParams": {
+      "hbmspillSlope": 0.014,
+      "corpusdeltaSlope": 0.022,
+      "mfuSlope": -0.01,
+      "p99latencySlope": 0.006,
+      "onsetTick": 6
+    },
+    "driftDescription": "INT8 quantization-sensitive transformer layers cause HBM pressure and corpus delta to co-rise while MFU erodes and latency creeps \u2014 multi-metric slowbleed pattern that avoids crossing any single-signal threshold cleanly."
+  },
+  {
+    "id": "adv_correlated_noise_p99_ttft",
+    "name": "p99 rises while TTFT drops (broken latency correlation)",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.004,
+      "ttftSlope": -0.004
+    },
+    "driftDescription": "p99 rises and ttft drops \u2014 both within individual ratio thresholds but breaks the native positive (p99, ttft) correlation. Hotelling T\u00b2 spikes on the anti-correlated direction."
+  },
+  {
+    "id": "adv_correlated_noise_mfu_cost",
+    "name": "MFU drops + cost rises (broken utilization correlation)",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "mfuSlope": -0.005,
+      "costreqSlope": 0.005
+    },
+    "driftDescription": "mfu drops and cost rises over 32 ticks \u2014 normally util-loaded factor makes these co-move; anti-correlated drift breaks that pattern."
+  },
+  {
+    "id": "adv_correlated_noise_kv_hbm",
+    "name": "KV rises + HBM drops (unusual inverse memory pattern)",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "kvcacheSlope": 0.004,
+      "hbmspillSlope": -0.005
+    },
+    "driftDescription": "kv_cache rises while hbm_spill drops \u2014 inverse of the typical memory-pressure pattern. Individually small; multivariate test picks up the inversion."
+  },
+  {
+    "id": "adv_correlated_noise_cross_family",
+    "name": "Cross-family covariance-break (p99 up, ttft down, cost up, mfu up)",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "p99latencySlope": 0.004,
+      "ttftSlope": -0.004,
+      "costreqSlope": 0.004,
+      "mfuSlope": -0.004
+    },
+    "driftDescription": "Multi-signal drift that breaks two native correlations simultaneously: (p99, ttft) anti-correlated and (mfu, cost) anti-correlated. Family A misses each signal; Family C catches the joint pattern."
+  },
+  {
+    "id": "adv_correlated_noise_slow_burn",
+    "name": "Slow-burn anti-correlated multi-signal drift",
+    "riskLevel": "high",
+    "bakeHours": 8,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1
+    },
+    "driftParams": {
+      "onsetTick": 6,
+      "p99latencySlope": 0.005,
+      "ttftSlope": -0.004,
+      "costreqSlope": 0.005,
+      "mfuSlope": -0.004
+    },
+    "driftDescription": "4-signal anti-correlated drift with late onset at tick 6 \u2014 26 ticks of anti-correlation give Hotelling T\u00b2 enough accumulation to cross the \u03c7\u00b2 boundary while each individual signal stays under its \u03b4_min."
+  },
+  {
+    "id": "adv_w4_oscillation_kv_cache",
+    "name": "W4 KV Cache Oscillation",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1.0
+    },
+    "driftParams": {
+      "kvcacheOscAmp": 0.05,
+      "kvcacheOscPeriod": 6,
+      "kvcacheSlope": 0
+    },
+    "driftDescription": "kv_cache oscillates 8% at period 6 ticks (cache-bounce from partial eviction cycling). Amplitude kept small so Family C Mahalanobis stays sub-threshold and Family A CUSUM doesn't accumulate (mean stationary); Family D ACF picks up the periodic signature."
+  },
+  {
+    "id": "adv_w4_oscillation_latency",
+    "name": "W4 Latency Bounce",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1.0
+    },
+    "driftParams": {
+      "p99latencyOscAmp": 0.14,
+      "p99latencyOscPeriod": 5,
+      "ttftOscAmp": 0.1,
+      "ttftOscPeriod": 5,
+      "p99latencySlope": 0
+    },
+    "driftDescription": "p99 and ttft bounce 14% at period 5 ticks (retry-storm latency flapping). Mean-stationary drift evades slope detectors; Family D catches the periodic signature."
+  },
+  {
+    "id": "adv_w4_oscillation_hbm",
+    "name": "W4 HBM Pressure Oscillation",
+    "riskLevel": "high",
+    "bakeHours": 4,
+    "author": "agent",
+    "changeType": "infrastructure",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1.0
+    },
+    "driftParams": {
+      "hbmspillOscAmp": 0.22,
+      "hbmspillOscPeriod": 7,
+      "hbmspillSlope": 0
+    },
+    "driftDescription": "hbm_spill oscillates 22% at period 7 \u2014 periodic memory pressure from a batch-scheduling anomaly. Zero net drift trips no slope detector; Family D ACF catches the frequency signature."
+  },
+  {
+    "id": "adv_w4_novelty_high_dim_drift",
+    "name": "W4 High-Dimensional Subtle Drift",
+    "riskLevel": "critical",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1.0
+    },
+    "driftParams": {
+      "p99latencySlope": 0.003,
+      "ttftSlope": 0.003,
+      "tokensturnSlope": 0.002,
+      "costreqSlope": 0.002,
+      "kvcacheSlope": 0.002,
+      "hbmspillSlope": 0.004,
+      "mfuSlope": -0.002,
+      "corpusdeltaSlope": 0.004
+    },
+    "driftDescription": "8 signals drift coherently at sub-per-signal-threshold magnitudes. Joint Mahalanobis distance lands in the extreme tail of the baseline's nonconformity distribution \u2014 Family E novelty territory. Family C may catch via anti-correlation; Family E targets the cross-dimensional novelty even when covariance-consistent."
+  },
+  {
+    "id": "adv_w4_novelty_tail_shape",
+    "name": "W4 Tail Shape Shift",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "agent",
+    "changeType": "serving_code",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1.0
+    },
+    "driftParams": {
+      "corpusdeltaSlope": 0.009,
+      "kvcacheSlope": -0.003,
+      "collectiveopsSlope": -0.0002,
+      "mfuSlope": 0.003
+    },
+    "driftDescription": "Uncommon multi-signal pattern: corpus_delta rises, kv_cache drops, collective_ops degrades slightly, mfu rises. Not on any Family-C-correlated pair axis; joint pattern novel relative to baseline."
+  },
+  {
+    "id": "adv_w4_novelty_marginal",
+    "name": "W4 Marginal Distribution Novelty",
+    "riskLevel": "high",
+    "bakeHours": 6,
+    "author": "human",
+    "changeType": "model_weights",
+    "timeWindow": "ok",
+    "flags": {
+      "security": false,
+      "artifact_content": false,
+      "provenance": false,
+      "contract": false,
+      "toolchain": false,
+      "zeta": true,
+      "approval": true
+    },
+    "baseline": {
+      "p99_latency": 185,
+      "ttft": 220,
+      "tokens_turn": 418,
+      "kv_cache": 0.89,
+      "cost_req": 0.0042,
+      "downstream_err": 0.12,
+      "mfu": 0.72,
+      "hbm_spill": 0.02,
+      "collective_ops": 0.9997,
+      "corpus_delta": 0.04,
+      "traffic_pct": 1.0
+    },
+    "driftParams": {
+      "tokensturnSlope": 0.006,
+      "corpusdeltaSlope": 0.005,
+      "mfuSlope": 0.001,
+      "hbmspillSlope": 0.003,
+      "kvcacheSlope": -0.002,
+      "costreqSlope": 0.0008
+    },
+    "driftDescription": "Tokens/turn rises while corpus_delta also rises \u2014 uncommon pairing in baseline (roughly independent there). Coupled with subtle hbm/kv movement, joint pattern is novel; Family E captures via conformal p-value on Mahalanobis distance."
+  }
+]

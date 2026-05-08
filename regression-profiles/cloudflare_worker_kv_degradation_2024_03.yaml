@@ -1,0 +1,42 @@
+# regression-profiles/cloudflare_worker_kv_degradation_2024_03.yaml
+# Source: Cloudflare Workers KV Mar 2024 degradation postmortem
+# Shape: p99_latency fan-out — latency tail stretches with a
+# clear σ-scaled shift; downstream_err co-elevates modestly.
+# Detection target: Family A p99_latency fires quickly; Family D
+# spectral may catch the oscillatory retry pattern if baseline
+# had Family D calibration.
+
+id: cloudflare_worker_kv_degradation_2024_03
+source: "Cloudflare Workers KV Mar 2024 degradation postmortem"
+duration_minutes: 25
+affected_signals: [p99_latency, downstream_err]
+
+injection_points:
+  # Latency ramp in σ-relative units — exercises the
+  # relative_to_baseline_sigma delta_kind.
+  - tick_offset: 0
+    signal: p99_latency
+    delta_kind: relative_to_baseline_sigma
+    delta: 1.5
+  - tick_offset: 90
+    signal: p99_latency
+    delta_kind: relative_to_baseline_sigma
+    delta: 3.0
+  - tick_offset: 180
+    signal: p99_latency
+    delta_kind: relative_to_baseline_sigma
+    delta: 4.2
+  # Error rate co-elevation in absolute terms.
+  - tick_offset: 60
+    signal: downstream_err
+    delta_kind: absolute
+    delta: 0.008
+
+expected_detection:
+  family: A
+  signal: p99_latency
+  notes: >
+    Latency-dominated regression; exercises σ-scaled ramp. Family
+    D spectral e-detector may co-fire if baseline was computed
+    with Family D (kv_cache spectral not applicable for this
+    synthetic; p99_latency is).

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://deploysignal.dev/schemas/customer-override.schema.json",
+  "title": "CustomerOverride",
+  "description": "Customer-side override layer per ARCHITECT-REPLY-51 D8. Composition: effective_config = deepMerge(base_profile, override). Overrides must not introduce fields absent from the base profile schema; the loader enforces this (schema-enforced structural constraint).",
+  "type": "object",
+  "required": ["base_profile", "customer_id", "overrides"],
+  "additionalProperties": false,
+  "properties": {
+    "base_profile": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*[a-z0-9]@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "profile_ref format `<id>@<semver>` per D5."
+    },
+    "customer_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable customer identifier; threaded through audit for attribution."
+    },
+    "overrides": {
+      "type": "object",
+      "description": "Partial profile shape. Loader enforces that every leaf key must be a valid path in the base profile schema (no new fields; schema-enforced per D8). Array fields replace parent arrays entirely (D4 semantics propagate to override layer). `null` values disable a base-profile field.",
+      "additionalProperties": true
+    }
+  }
+}

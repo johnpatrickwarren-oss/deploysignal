@@ -1,0 +1,25 @@
+# playbooks/revert_tenant_tier_isolation.yaml
+# Entry #7 per ARCHITECT-REPLY-49 D2 (per #23 multi-tenancy).
+# Category: rollback. Reversibility: reversible — tier isolation
+# changes are routing-layer operations that require reversible
+# deploy semantics to revert cleanly.
+
+id: revert_tenant_tier_isolation
+version: "1.0.0"
+applies_when:
+  firing_families: ["A", "C"]
+  min_family_count: 1
+  verdict_class: rollback
+reversibility_required: reversible
+confidence_threshold: 0.75
+orchestrator_command_template: "ds isolate tenant_tier=${tenant_tier} --revert --service ${service}"
+human_description: >
+  Revert per-tier traffic-isolation rules when a fire
+  localizes to a specific tenant_tier cell (per Addition
+  #23 per-tier detection surface).
+expected_effect: >
+  Tenant traffic returns to the pre-isolation routing rules;
+  the affected tier's cell re-enters the shared aggregate
+  pool. Subsequent ticks show cross-tier metric shape
+  consistent with pre-isolation baselines.
+category: rollback

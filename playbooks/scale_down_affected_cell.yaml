@@ -1,0 +1,22 @@
+# playbooks/scale_down_affected_cell.yaml
+# Entry #3 per ARCHITECT-REPLY-49 D2. Category: scale.
+# Reversibility: reversible (scaling back up after the incident
+# requires reversible deploy semantics).
+
+id: scale_down_affected_cell
+version: "1.0.0"
+applies_when:
+  firing_families: ["B", "C"]
+  min_family_count: 1
+  verdict_class: both
+reversibility_required: reversible
+confidence_threshold: 0.75
+orchestrator_command_template: "kubectl scale deployment/${deployment} --replicas=${target_replicas} --namespace ${namespace} --selector='tenant_tier=${tenant_tier}'"
+human_description: >
+  Scale down replicas on the affected tenant_tier / baseline cell
+  to reduce load on a capacity-correlated regression.
+expected_effect: >
+  Target tier's request latency + KV-cache pressure drop
+  within one horizontal-scaling cycle (~2 min). Aggregate
+  traffic redistributes; other cells absorb the shift.
+category: scale

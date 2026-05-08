@@ -1,0 +1,576 @@
+{
+  "id": "demo-baseline-maintenance",
+  "name": "Demo 6 — Baseline Drift + Service-Maturity Dashboard",
+  "description": "Baseline maintenance — service improvement over time triggers drift detection and automatic recalibration. Three primary SLIs (p99_latency, downstream_err, cost_req) drift slowly downward over 32 ticks simulating long-term service improvement. The drift detector catches baseline staleness at tick 12 via Mahalanobis distance on the cell-mean vector crossing the chi-squared quantile at α_drift=10⁻³; recalibration workflow cuts over to a new baseline version in shadow mode; α guarantee is preserved throughout. No family fires rollback — this isn't a bad deploy, it's the service getting better, and the system treats that correctly.",
+  "narrative": "Baselines drift. Real-world services improve (or degrade) over months as infrastructure changes, traffic mix shifts, customer composition evolves. A deploy gate running against a stale baseline either false-alarms (treating the new normal as regression) or false-misses (failing to catch real regressions against outdated reference points). This demo shows the baseline-maintenance loop: a Mahalanobis-distance drift detector watches the current baseline against recent live traffic; when the distance crosses the chi-squared quantile at α_drift=10⁻³, recalibration is triggered; the new baseline enters shadow mode, validates, and cuts over. The trajectory here is three primary SLIs drifting downward — p99_latency, downstream_err, cost_req all improving — triggering drift detection at tick 12. No family fires rollback because the system distinguishes 'baseline is stale' from 'this deploy is bad.' The secondary pitch beat: the archive of baseline versions IS a service-maturity and engineering-maturity dashboard. Baseline p99 trending 600ms → 400ms over 12 months visibly shows the service got faster; baseline error rates trending down shows reliability improved; baseline traffic gates rising shows deploys reaching higher confidence. Every recalibration event becomes a data point in a higher-level platform-monitoring layer — turning the deploy gate from a safety mechanism into a strategic insight source for engineering leadership.",
+  "baseline_ref": "baselines/llm-inference-streaming.json",
+  "baseline_override": {
+    "traffic_pct": 1
+  },
+  "cell_patch_override": {
+    "family_C_mean_vector": [
+      185,
+      220,
+      418,
+      0.89,
+      0.0042,
+      0.0012,
+      0.72,
+      0.02,
+      0.9997,
+      0.04,
+      1
+    ]
+  },
+  "riskLevel": "medium",
+  "author": "human",
+  "changeType": "serving_code",
+  "timeWindow": "ok",
+  "bakeHours": 6,
+  "flags": {
+    "security": false,
+    "artifact_content": false,
+    "provenance": false,
+    "contract": false,
+    "toolchain": false,
+    "zeta": true,
+    "approval": true
+  },
+  "currentHourOfDay": 14,
+  "currentDayOfWeek": 2,
+  "cadence_ms": 200,
+  "total_ticks": 32,
+  "ticks": [
+    {
+      "metrics": {
+        "p99_latency": 184.72510314401006,
+        "ttft": 219.45632505994288,
+        "tokens_turn": 418.1615177043039,
+        "kv_cache": 0.8892592198901856,
+        "cost_req": 0.004198433318483597,
+        "downstream_err": 0.0011954463734865188,
+        "mfu": 0.719924085051678,
+        "hbm_spill": 0.019938953600600363,
+        "collective_ops": 0.999737370156164,
+        "corpus_delta": 0.040098926855064936,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 185.39205502326834,
+        "ttft": 219.99957328116523,
+        "tokens_turn": 418.2967819780786,
+        "kv_cache": 0.89096508802047,
+        "cost_req": 0.004201215519183547,
+        "downstream_err": 0.0011960712015017866,
+        "mfu": 0.7194819021091238,
+        "hbm_spill": 0.02007201412424445,
+        "collective_ops": 0.9997424428079155,
+        "corpus_delta": 0.04007789379125461,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 184.3158400334537,
+        "ttft": 219.57828184887765,
+        "tokens_turn": 418.1046786397672,
+        "kv_cache": 0.8893564413468307,
+        "cost_req": 0.004188760999616918,
+        "downstream_err": 0.0011994771501826016,
+        "mfu": 0.7195036232284829,
+        "hbm_spill": 0.02005270315371454,
+        "collective_ops": 0.9996966932213238,
+        "corpus_delta": 0.03991214097552002,
+        "traffic_pct": 1
+      },
+      "pause_beat": true
+    },
+    {
+      "metrics": {
+        "p99_latency": 182.9941659091454,
+        "ttft": 220.04922117957844,
+        "tokens_turn": 418.6896169528016,
+        "kv_cache": 0.8909220367568825,
+        "cost_req": 0.004168661331097166,
+        "downstream_err": 0.0011916621459397226,
+        "mfu": 0.7201233458571508,
+        "hbm_spill": 0.020031423544883728,
+        "collective_ops": 0.9997211301984442,
+        "corpus_delta": 0.040043723615352064,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 183.3176884380132,
+        "ttft": 219.93367376137525,
+        "tokens_turn": 417.15966619428946,
+        "kv_cache": 0.8891765563143836,
+        "cost_req": 0.0041489449269158755,
+        "downstream_err": 0.0011856514378176747,
+        "mfu": 0.720387021423541,
+        "hbm_spill": 0.02001499527551234,
+        "collective_ops": 0.9997304552666406,
+        "corpus_delta": 0.039977882276289164,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 181.72955162525727,
+        "ttft": 219.6991184954159,
+        "tokens_turn": 416.99488712550374,
+        "kv_cache": 0.8894071848463639,
+        "cost_req": 0.004130741473034326,
+        "downstream_err": 0.0011892314085260689,
+        "mfu": 0.7206564644313231,
+        "hbm_spill": 0.019950831775814297,
+        "collective_ops": 0.9997371189639267,
+        "corpus_delta": 0.04001646458907053,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 181.12234168115867,
+        "ttft": 219.7549122297019,
+        "tokens_turn": 417.2253608805849,
+        "kv_cache": 0.8912815203854767,
+        "cost_req": 0.0041110975072851915,
+        "downstream_err": 0.001185985833423212,
+        "mfu": 0.7204402585263178,
+        "hbm_spill": 0.019989272997304797,
+        "collective_ops": 0.9997209997251725,
+        "corpus_delta": 0.03996133291870356,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 180.1467990815978,
+        "ttft": 220.0121882118471,
+        "tokens_turn": 417.2003129785345,
+        "kv_cache": 0.8893152244499978,
+        "cost_req": 0.0041004801203851525,
+        "downstream_err": 0.0011802649307228652,
+        "mfu": 0.7199865790672972,
+        "hbm_spill": 0.019953547876179218,
+        "collective_ops": 0.9996727382365977,
+        "corpus_delta": 0.04003885662825778,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 180.23195527319533,
+        "ttft": 220.4183864998445,
+        "tokens_turn": 418.41208367920245,
+        "kv_cache": 0.8909064031282672,
+        "cost_req": 0.004081195373472777,
+        "downstream_err": 0.001171540232074535,
+        "mfu": 0.7194618579819426,
+        "hbm_spill": 0.020006370097473265,
+        "collective_ops": 0.9997151626748219,
+        "corpus_delta": 0.040097564132697876,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 179.00044836816886,
+        "ttft": 220.32608918240294,
+        "tokens_turn": 417.8542525445972,
+        "kv_cache": 0.8887865907937474,
+        "cost_req": 0.004060443832354772,
+        "downstream_err": 0.0011742519120426893,
+        "mfu": 0.7206893729392067,
+        "hbm_spill": 0.020047952316254378,
+        "collective_ops": 0.9996668750611756,
+        "corpus_delta": 0.039977319000568244,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 178.107985611498,
+        "ttft": 219.986653572917,
+        "tokens_turn": 418.71260983247083,
+        "kv_cache": 0.8911047610112419,
+        "cost_req": 0.0040451266873937205,
+        "downstream_err": 0.0011658815587602944,
+        "mfu": 0.7200432491193338,
+        "hbm_spill": 0.0199622552420944,
+        "collective_ops": 0.9996903891670704,
+        "corpus_delta": 0.039902485923841595,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 177.75768762955292,
+        "ttft": 219.82401935363188,
+        "tokens_turn": 417.94650523975724,
+        "kv_cache": 0.8893453888041992,
+        "cost_req": 0.004033130822501645,
+        "downstream_err": 0.001165869196157053,
+        "mfu": 0.7200760181127861,
+        "hbm_spill": 0.020016569243073462,
+        "collective_ops": 0.9996731941269175,
+        "corpus_delta": 0.03997596643874422,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 176.77332610996686,
+        "ttft": 220.57551095906646,
+        "tokens_turn": 417.44702052906854,
+        "kv_cache": 0.8911236099373969,
+        "cost_req": 0.00402061982951627,
+        "downstream_err": 0.001161062430662745,
+        "mfu": 0.7206117847293243,
+        "hbm_spill": 0.01992405737556517,
+        "collective_ops": 0.9996755282764179,
+        "corpus_delta": 0.04000821084287018,
+        "traffic_pct": 1
+      },
+      "pause_beat": true
+    },
+    {
+      "metrics": {
+        "p99_latency": 176.12233574222034,
+        "ttft": 220.59696430025625,
+        "tokens_turn": 419.00303171207435,
+        "kv_cache": 0.8905543412286788,
+        "cost_req": 0.004002191597830577,
+        "downstream_err": 0.0011550306421610533,
+        "mfu": 0.720092208748497,
+        "hbm_spill": 0.02002966999605298,
+        "collective_ops": 0.999654982861003,
+        "corpus_delta": 0.039967851816397164,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 175.33739359215474,
+        "ttft": 220.35157724387943,
+        "tokens_turn": 418.98717372921993,
+        "kv_cache": 0.888767216137792,
+        "cost_req": 0.0039825039560212605,
+        "downstream_err": 0.0011513847202192693,
+        "mfu": 0.7202089148927853,
+        "hbm_spill": 0.02002687236122787,
+        "collective_ops": 0.9996967782767733,
+        "corpus_delta": 0.03995095681771636,
+        "traffic_pct": 1
+      },
+      "pause_beat": true
+    },
+    {
+      "metrics": {
+        "p99_latency": 174.87169271644575,
+        "ttft": 220.0080160728283,
+        "tokens_turn": 417.0266209558607,
+        "kv_cache": 0.8909197269897442,
+        "cost_req": 0.0039675526648779375,
+        "downstream_err": 0.0011533165122442689,
+        "mfu": 0.7203436005546525,
+        "hbm_spill": 0.020005907872617246,
+        "collective_ops": 0.999749634539497,
+        "corpus_delta": 0.04009656038628891,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 174.02625736994148,
+        "ttft": 220.37600546728817,
+        "tokens_turn": 417.06907538051485,
+        "kv_cache": 0.8901164241744811,
+        "cost_req": 0.0039493721721724755,
+        "downstream_err": 0.001143703650215149,
+        "mfu": 0.7203560170587524,
+        "hbm_spill": 0.019923850871995094,
+        "collective_ops": 0.9997440358510499,
+        "corpus_delta": 0.039989614048041404,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 173.00690774470897,
+        "ttft": 220.0993873578869,
+        "tokens_turn": 418.14803594156405,
+        "kv_cache": 0.8887467785240524,
+        "cost_req": 0.0039301092012265365,
+        "downstream_err": 0.0011432187070179105,
+        "mfu": 0.719380156490542,
+        "hbm_spill": 0.019942484143823384,
+        "collective_ops": 0.999660804572138,
+        "corpus_delta": 0.039951280581112955,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 172.19494342963026,
+        "ttft": 220.0799543149769,
+        "tokens_turn": 417.8539322743541,
+        "kv_cache": 0.891267740802816,
+        "cost_req": 0.003916379670335441,
+        "downstream_err": 0.0011396984521575898,
+        "mfu": 0.7198003823725506,
+        "hbm_spill": 0.020032067530974747,
+        "collective_ops": 0.9996779857402132,
+        "corpus_delta": 0.040083100962266326,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 172.07364481845534,
+        "ttft": 220.07274595061318,
+        "tokens_turn": 418.3246690112748,
+        "kv_cache": 0.8906635068556014,
+        "cost_req": 0.0038986471908877144,
+        "downstream_err": 0.0011331792797482161,
+        "mfu": 0.7194918987195567,
+        "hbm_spill": 0.019957345319986344,
+        "collective_ops": 0.9996603376172081,
+        "corpus_delta": 0.039968476376775655,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 170.8798261473404,
+        "ttft": 220.36744212228805,
+        "tokens_turn": 418.3011677930201,
+        "kv_cache": 0.8908738934431273,
+        "cost_req": 0.003878374381082166,
+        "downstream_err": 0.001133343619180995,
+        "mfu": 0.7198938582539186,
+        "hbm_spill": 0.019976671302095055,
+        "collective_ops": 0.9997230497380314,
+        "corpus_delta": 0.04000463423710317,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 170.45901583509027,
+        "ttft": 220.2434945399873,
+        "tokens_turn": 417.5262382898596,
+        "kv_cache": 0.8908084231533483,
+        "cost_req": 0.0038693385219881063,
+        "downstream_err": 0.0011306660607461032,
+        "mfu": 0.720548566812314,
+        "hbm_spill": 0.019945911666303873,
+        "collective_ops": 0.999708825682728,
+        "corpus_delta": 0.040003286218177524,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 169.66093995557247,
+        "ttft": 219.35120869062843,
+        "tokens_turn": 417.8691817973717,
+        "kv_cache": 0.888805082011777,
+        "cost_req": 0.0038509864858193143,
+        "downstream_err": 0.0011219491847334893,
+        "mfu": 0.7198366472251341,
+        "hbm_spill": 0.020075817130729555,
+        "collective_ops": 0.9997170564377803,
+        "corpus_delta": 0.04002103787958622,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 168.33396111708316,
+        "ttft": 219.99962080644443,
+        "tokens_turn": 418.1495563617186,
+        "kv_cache": 0.8911451255232004,
+        "cost_req": 0.003826319145198599,
+        "downstream_err": 0.0011176932231630652,
+        "mfu": 0.7204556821997835,
+        "hbm_spill": 0.02007483696848154,
+        "collective_ops": 0.9997266998702323,
+        "corpus_delta": 0.03992377350749448,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 167.70170338282017,
+        "ttft": 220.3772099163756,
+        "tokens_turn": 418.77213590516476,
+        "kv_cache": 0.8909976428615907,
+        "cost_req": 0.00381768993937732,
+        "downstream_err": 0.0011135480582946896,
+        "mfu": 0.7202587619891391,
+        "hbm_spill": 0.020068878834322096,
+        "collective_ops": 0.9997121656371495,
+        "corpus_delta": 0.04001521637160331,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 167.63212726505603,
+        "ttft": 220.3457428320311,
+        "tokens_turn": 418.53690246316836,
+        "kv_cache": 0.8898542197843827,
+        "cost_req": 0.0038000289913429713,
+        "downstream_err": 0.001111267421443319,
+        "mfu": 0.719999518876411,
+        "hbm_spill": 0.020015299548357724,
+        "collective_ops": 0.9996740709173714,
+        "corpus_delta": 0.03993115365495905,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 166.42374788810383,
+        "ttft": 219.52337023228407,
+        "tokens_turn": 418.61354540999747,
+        "kv_cache": 0.8904943435816607,
+        "cost_req": 0.003776901950997929,
+        "downstream_err": 0.0011076052493747322,
+        "mfu": 0.7194116367576644,
+        "hbm_spill": 0.02005044324301183,
+        "collective_ops": 0.9997480138076038,
+        "corpus_delta": 0.03997991687692702,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 165.69426226673096,
+        "ttft": 219.50297482306138,
+        "tokens_turn": 417.17502944045,
+        "kv_cache": 0.8909105429801811,
+        "cost_req": 0.0037604701466237246,
+        "downstream_err": 0.0011059449336822064,
+        "mfu": 0.7201334803532435,
+        "hbm_spill": 0.019978324529528618,
+        "collective_ops": 0.999722046195592,
+        "corpus_delta": 0.039959122692141684,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 164.75440391230117,
+        "ttft": 220.60821786139158,
+        "tokens_turn": 418.5499590908806,
+        "kv_cache": 0.8887980274065258,
+        "cost_req": 0.003750479572157692,
+        "downstream_err": 0.0011000110110445439,
+        "mfu": 0.7197223948293551,
+        "hbm_spill": 0.019972585590258243,
+        "collective_ops": 0.9997421095344461,
+        "corpus_delta": 0.040060905510745946,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 164.2429777836125,
+        "ttft": 219.4052381452732,
+        "tokens_turn": 418.59433672336166,
+        "kv_cache": 0.8898311583730578,
+        "cost_req": 0.0037340051839026035,
+        "downstream_err": 0.0010951628391408384,
+        "mfu": 0.7202783828610554,
+        "hbm_spill": 0.019934637352973225,
+        "collective_ops": 0.9997235733191472,
+        "corpus_delta": 0.039955412447731944,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 163.30339656814954,
+        "ttft": 220.47502788342535,
+        "tokens_turn": 418.4105081624328,
+        "kv_cache": 0.8888278259847268,
+        "cost_req": 0.0037163773396648855,
+        "downstream_err": 0.0010927935342473654,
+        "mfu": 0.7196232724178955,
+        "hbm_spill": 0.020037926153466105,
+        "collective_ops": 0.999667740333834,
+        "corpus_delta": 0.03997768267169595,
+        "traffic_pct": 1
+      },
+      "pause_beat": false
+    },
+    {
+      "metrics": {
+        "p99_latency": 163.27041853727906,
+        "ttft": 220.34264267148447,
+        "tokens_turn": 417.88024056451627,
+        "kv_cache": 0.8900370906741452,
+        "cost_req": 0.0036983865484732947,
+        "downstream_err": 0.0010893456621669977,
+        "mfu": 0.7193691448034718,
+        "hbm_spill": 0.020001548542678358,
+        "collective_ops": 0.9997161030216813,
+        "corpus_delta": 0.0400986972858198,
+        "traffic_pct": 1
+      },
+      "pause_beat": true
+    }
+  ],
+  "expected_outcome": {
+    "verdict": "rollback",
+    "first_families": [
+      "A"
+    ],
+    "first_fire_tick": 26,
+    "first_fire_detectors": [
+      "mSPRT_p99_latency",
+      "mSPRT_cost_req"
+    ],
+    "drift_detected": true,
+    "drift_detection_tick": 18,
+    "recalibration_recommended": true,
+    "baseline_trajectory": "improving",
+    "alpha_total_max": 0.0002,
+    "divergence_from_spec": "Architect ARCHITECT-REPLY-24 line 162 targets drift_detection_tick=12 at magnitudes (p99 -0.3%/tick, downstream_err -1.5%/tick, cost_req -0.2%/tick). On the project's v4 Ledoit-Wolf cell covariance (Σ_ii for p99≈2.64e-3, downstream_err≈1.89e-2, cost_req≈1.53e-3), those magnitudes produce d²≈4 at tick 12 — well under the χ²(1-1e-3, 11) threshold of 31.26. Raising drift per tick to hit tick 12 forces Family A mSPRT_p99_latency to fire (cumulative drift crosses δ_min=4% before the drift detector trips at tick 12). Calibrated trajectory (p99 -0.4%/tick, downstream -0.3%/tick, cost -0.4%/tick) preserves the architect's priority ordering (REPLY-24 lines 153-155: 'reduce drift magnitudes if family fires; do not touch family thresholds'). PRE-Q66 .A: all five families stay clean through all 32 ticks; drift detector fires at tick 18. POST-Q66 .A + Q72 SLICE 2: mixture-supermartingale + RFF detectors fire Family A legitimately at t=26 on the cumulative drift via mSPRT_p99_latency + mSPRT_cost_req — the pre-Q66 .A 'all five families stay clean' framing was a Q67 §Q67.4-ter streaming-witness artifact; corrected detectors now fire correctly.",
+    "q72_slice_2_phase_3_b_annotation": "Q72 SLICE 2 Phase 3.B: verdict-tick re-baselined post-RFF architectural-fix; Q67 §Q67.4-ter v1 biased streaming-witness retired; v2 RFF unbiased-by-linearity. Per architect Q68.b cascade-resolution + accuracy-first directive 2026-05-07: demo trajectory carries -0.4%/tick drift on p99_latency + cost_req; under post-Q66 .A mixture-supermartingale + post-Q72 RFF detectors, Family A fires legitimately on cumulative drift at t=26. HALT-CRITERION (a2) checked: fire ordering preserved (Family A only). HALT-CRITERION (a3) checked: empirical α-spent 1.33e-4 < 4e-4 per_family.C Ville-bound cap → Ville bound construction preserves caps. Demo pedagogy invalidation ACCEPTED architectural consequence per accuracy-first directive; Q71 demo retuning REJECTED-INDEFINITELY."
+  },
+  "fidelity_caveat": "This demo stylizes service-improvement-over-months into a 32-tick trajectory for demonstration pacing. In production, drift detection would run at longer cadence (per-recalibration-interval rather than per-tick), and baseline improvements accumulate over weeks-to-months rather than 32 ticks. The Mahalanobis math, chi-squared threshold derivation, and recalibration workflow are architecturally representative; the time compression is for pitch pacing. Follow-on at production scale, the baseline archive becomes an MLflow-tracked artifact series; the service-maturity dashboard becomes a Unity-Catalog-governed view."
+}

@@ -1,0 +1,32 @@
+# regression-profiles/openai_routing_error_ramp_2024_12_11.yaml
+# Source: OpenAI Dec 11 2024 routing incident postmortem
+# Shape: step-function ramp on downstream_err over ~15 min.
+# Detection target: Family A `downstream_err` fires as the routing
+# error rate climbs from baseline noise to ~3.5% absolute.
+
+id: openai_routing_error_ramp_2024_12_11
+source: "OpenAI Dec 11 2024 routing incident postmortem (public)"
+duration_minutes: 15
+affected_signals: [downstream_err]
+
+injection_points:
+  - tick_offset: 0
+    signal: downstream_err
+    delta_kind: absolute
+    delta: 0.001
+  - tick_offset: 60
+    signal: downstream_err
+    delta_kind: absolute
+    delta: 0.012
+  - tick_offset: 180
+    signal: downstream_err
+    delta_kind: absolute
+    delta: 0.035
+
+expected_detection:
+  family: A
+  signal: downstream_err
+  notes: >
+    Step-function ramp; Family A Page-CUSUM + betting e-process
+    on downstream_err should fire within the sufficiency window
+    once cumulative shift crosses δ_min.

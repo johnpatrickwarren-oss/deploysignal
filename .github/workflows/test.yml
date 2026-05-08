@@ -1,0 +1,123 @@
+# .github/workflows/test.yml
+name: Tests
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+
+jobs:
+  # Compile job — single tsc pass produces dist/ + test/*.test.js + tools/**/*.js
+  # outputs that the parallel test matrix shards consume via artifact. Keeps
+  # `tsc` work off the matrix (compile cost amortized once instead of N×).
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        # Node 24 (LTS) — need 23.6+ for native .ts execution. The test
+        # suite invokes `node tools/gen-synthetic-baseline.ts` directly
+        # (see tools/gen-synthetic-baseline.ts header comment), which
+        # throws ERR_UNKNOWN_FILE_EXTENSION under Node 20.
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      # tsbuildinfo cache intentionally NOT used here. The cache key
+      # `hashFiles(tsconfig*.json, **/*.ts)` doesn't change when only the
+      # workflow file changes between PR commits, so cache HITs across
+      # commits. tsbuildinfo says "already emitted, skip", but the .js
+      # outputs aren't in cache, so tsc skips and downstream `tsc -p
+      # tsconfig.test.json` fails with `Cannot find module ../dist/engine/X`.
+      # Cold tsc is ~80s (engine + test compile combined); not worth the
+      # cache fragility. npm cache (via setup-node) still applies.
+
+      - run: npm ci
+
+      - name: Compile engine (tsc)
+        run: npm run build
+
+      - name: Compile test sources (tsc -p tsconfig.test.json)
+        run: npx tsc -p tsconfig.test.json
+
+      - name: Upload compiled outputs for test matrix
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-outputs
+          # tsc -p tsconfig.test.json emits .js to source-tree positions
+          # (rootDir=outDir="."). TypeScript's dependency-resolution
+          # transitively emits advisory/**/*.js and engine/**/*.js even
+          # though tsconfig.test.json has `engine` in its exclude list —
+          # tests reference them as `require('../engine/X')` /
+          # `require('../advisory/X')`, so those .js files are required
+          # at runtime. Some tests use `require('../dist/engine/X')`
+          # too, so dist/ must also ship (different file from
+          # engine/X.js — first is tsc emission to outDir, second is
+          # transitive emission from the test compile).
+          path: |
+            dist/
+            advisory/**/*.js
+            advisory/**/*.js.map
+            engine/**/*.js
+            engine/**/*.js.map
+            test/**/*.test.js
+            test/**/*.test.js.map
+            tools/**/*.js
+            tools/**/*.js.map
+          retention-days: 1
+          if-no-files-found: error
+          # node_modules deliberately NOT uploaded — re-installed per shard
+          # via npm cache (faster than artifact extraction at 100+ MB).
+
+  # Test matrix — 4 shards in parallel, files distributed via LPT bin-pack
+  # in tools/diagnostic/test-shard-partition.js. Wall-clock target: ~7-9 min.
+  #
+  # Background: 13 of 133 test files account for ~96% of runtime
+  # (TypeScript compile-heavy tests at 30-90s each). Round-robin partition
+  # by sorted filename concentrates these unevenly — 3-way local variance
+  # 1.69×, 4-way 1.78×; CI 4-way max-shard hit 14m28s (vs 3m36s min, 4×
+  # imbalance, blowing past 12-min target). LPT bin-packed 4-way local
+  # variance: 1.002× (all 4 shards within 0.4s of each other).
+  test:
+    name: Test (shard ${{ matrix.shard }}/4)
+    needs: compile
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Download compiled outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-outputs
+
+      - name: Run test shard ${{ matrix.shard }}/4
+        run: |
+          # LPT bin-packed partition: heavy files (30-90s each on local
+          # Node 25 native .ts) are hand-distributed across 4 bins to
+          # equalize per-shard total runtime; light files round-robin.
+          # See tools/diagnostic/test-shard-partition.js for the bin map.
+          # Re-derive when test/profile/* files churn (run script's
+          # docblock locally).
+          files=$(node tools/diagnostic/test-shard-partition.js ${{ matrix.shard }} 4)
+          file_count=$(echo "$files" | wc -l | tr -d ' ')
+          echo "Shard ${{ matrix.shard }}/4 — $file_count test files (bin-packed)"
+          # Bypass `npm test`'s pretest hook (compile already done in compile
+          # job + downloaded above); call node --test directly.
+          node --test $files

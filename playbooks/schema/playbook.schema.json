@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://deploysignal.dev/schemas/playbook.schema.json",
+  "title": "Playbook",
+  "description": "Agentic-rollback playbook entry per ARCHITECT-REPLY-49 Addition #27 D2. Loaded by engine/agent/playbook.ts; validated at load time. Each entry defines a recovery action the FM agent may propose when `applies_when` conditions match + `reversibility_required` is compatible with the deploy's reversibility tag (rail e per D6).",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "applies_when",
+    "reversibility_required",
+    "confidence_threshold",
+    "orchestrator_command_template",
+    "human_description",
+    "expected_effect",
+    "category"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*[a-z0-9]$",
+      "description": "Stable identifier. snake_case; matches filename stem."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semver per Q2. v1 entries default to 1.0.0."
+    },
+    "applies_when": {
+      "type": "object",
+      "required": ["firing_families", "min_family_count", "verdict_class"],
+      "additionalProperties": false,
+      "properties": {
+        "firing_families": {
+          "type": "array",
+          "items": { "enum": ["A", "B", "C", "D", "E"] },
+          "description": "Subset of families that must be co-firing for this entry to match. Empty array → entry applies regardless of firing family set."
+        },
+        "min_family_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum number of distinct firing families for this entry to apply. 0 → entry applies even on all-silent groups (unusual)."
+        },
+        "verdict_class": {
+          "enum": ["rollback", "extend", "both"],
+          "description": "Applies only when the group's verdict falls in this class. `both` matches either rollback or extend."
+        }
+      }
+    },
+    "reversibility_required": {
+      "enum": ["reversible", "forward_only", "any"],
+      "description": "Rail (e) anchor per REPLY-44 / D6. Entry is filtered from the FM input when the deploy's reversibility tag is incompatible. `any` matches all three reversibility values including `conditional` (treated as forward_only conservatively per P4)."
+    },
+    "confidence_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Per-entry confidence floor per D6 rail (c). Agent's top-level ConfiguredAgent.confidence_threshold is the global default; entries may tighten (not loosen) it."
+    },
+    "orchestrator_command_template": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Templated action string the orchestrator (or human operator via UI) executes after proposal confirmation. Template placeholders use `${var}` syntax; rendered by the FM at proposal time."
+    },
+    "human_description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Oncall-readable one-sentence action description."
+    },
+    "expected_effect": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What the operator should observe if the action succeeds. Helps verify effectiveness + catches no-op cases."
+    },
+    "category": {
+      "enum": ["rollback", "pause", "suppress", "scale", "widen_budget"],
+      "description": "D2 action categorization. Drives oncall-UI grouping and ProposedAction.playbook_category."
+    }
+  }
+}

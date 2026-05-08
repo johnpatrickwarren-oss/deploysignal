@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DeploySignal — Five-Family Intuition Cheat Sheet</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --ink: #1a1a1a;
+    --ink-dim: #666;
+    --ink-mute: #888;
+    --line: #e0e0e0;
+    --fam-a: #2d6fd1;
+    --fam-b: #0f9b8e;
+    --fam-c: #8b3fc7;
+    --fam-d: #d18d2d;
+    --fam-e: #c7286b;
+    --bg-a: #e9f0fa;
+    --bg-b: #e3f4f2;
+    --bg-c: #f1e9f7;
+    --bg-d: #fbf3e5;
+    --bg-e: #fae5ee;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 15px;
+  }
+  header {
+    background: var(--ink);
+    color: #f5f5f5;
+    padding: 28px 40px;
+    border-bottom: 4px solid #333;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+  header .subtitle {
+    margin-top: 6px;
+    color: #bbb;
+    font-size: 13px;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px 40px 60px;
+  }
+  .preamble {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-bottom: 32px;
+  }
+  .preamble p {
+    margin: 0 0 10px;
+  }
+  .preamble p:last-child { margin-bottom: 0; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--line);
+    border-radius: 6px;
+    padding: 22px 26px 26px;
+    margin-bottom: 22px;
+  }
+  .card.family-a { border-left-color: var(--fam-a); }
+  .card.family-b { border-left-color: var(--fam-b); }
+  .card.family-c { border-left-color: var(--fam-c); }
+  .card.family-d { border-left-color: var(--fam-d); }
+  .card.family-e { border-left-color: var(--fam-e); }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .card-title .fam-letter {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    border-radius: 4px;
+    color: white;
+    font-weight: 700;
+    margin-right: 10px;
+    vertical-align: middle;
+    font-size: 14px;
+  }
+  .family-a .fam-letter { background: var(--fam-a); }
+  .family-b .fam-letter { background: var(--fam-b); }
+  .family-c .fam-letter { background: var(--fam-c); }
+  .family-d .fam-letter { background: var(--fam-d); }
+  .family-e .fam-letter { background: var(--fam-e); }
+  .card-subtitle {
+    color: var(--ink-dim);
+    font-size: 13px;
+    font-style: italic;
+  }
+  .card-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+    align-items: start;
+  }
+  .visual-panel {
+    background: #fbfbfb;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px;
+  }
+  .visual-panel svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .visual-caption {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-mute);
+    text-align: center;
+    font-style: italic;
+  }
+  .text-panel { font-size: 14px; }
+  .text-panel h3 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-dim);
+    font-weight: 600;
+  }
+  .text-panel h3:not(:first-child) { margin-top: 14px; }
+  .text-panel p { margin: 0; }
+  .demo-ref {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 6px 10px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .family-a .demo-ref { background: var(--bg-a); }
+  .family-b .demo-ref { background: var(--bg-b); }
+  .family-c .demo-ref { background: var(--bg-c); }
+  .family-d .demo-ref { background: var(--bg-d); }
+  .family-e .demo-ref { background: var(--bg-e); }
+  .shared-concepts {
+    margin-top: 36px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 22px 26px 26px;
+  }
+  .shared-concepts > h2 {
+    margin: 0 0 8px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .shared-concepts .concepts-intro {
+    margin: 0 0 20px;
+    color: var(--ink-dim);
+    font-size: 14px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .concept {
+    margin-bottom: 22px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .concept:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .concept-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+  .concept .quick {
+    background: #f5f7f9;
+    border-left: 3px solid #888;
+    padding: 10px 14px;
+    margin: 0 0 12px;
+    font-size: 14px;
+    border-radius: 0 3px 3px 0;
+  }
+  .concept .deeper {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: #333;
+  }
+  .concept .deeper p {
+    margin: 0 0 8px;
+  }
+  .concept .deeper p:last-child { margin-bottom: 0; }
+  .concept .exec-q {
+    background: #fdf8ea;
+    border-left: 3px solid #d18d2d;
+    padding: 10px 14px;
+    margin: 0;
+    font-size: 13px;
+    border-radius: 0 3px 3px 0;
+  }
+  .concept .exec-q strong { color: #8a5920; }
+  .concept ul {
+    margin: 6px 0 8px 18px;
+    padding: 0;
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .concept ul li {
+    margin-bottom: 3px;
+  }
+  .concept-category {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink-mute);
+    margin: 4px 0 14px;
+    padding: 6px 0;
+    border-top: 2px solid var(--ink);
+    font-weight: 600;
+  }
+  .baseline-diagram-wrapper {
+    margin-top: 14px;
+    padding: 16px;
+    background: #fbfbfb;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  .baseline-diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 820px;
+  }
+  .baseline-diagram-caption {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-style: italic;
+    text-align: left;
+    line-height: 1.5;
+  }
+  .fire-bullet {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d93025;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .check-bullet {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #1e9e4f;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @media (max-width: 760px) {
+    .card-body { grid-template-columns: 1fr; }
+    main { padding: 20px; }
+  }
+  @media print {
+    body { background: white; }
+    .card, .preamble, .shared-concepts { break-inside: avoid; }
+    header { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>DeploySignal — Five-Family Intuition Cheat Sheet</h1>
+  <div class="subtitle">Visual intuition for the pitch. No new math required. One page per family.</div>
+</header>
+
+<main>
+  <div class="preamble">
+    <p><strong>How to use this.</strong> One card per family. Each visualization shows the <em>shape</em> of what that family catches — the pattern in the data where this family's detector crosses threshold. The intuition sentence is what you'd say if a skeptical engineer asks "what's Family X for?" without getting into the statistics.</p>
+    <p><strong>What unites the portfolio.</strong> Five families run in parallel every tick. Each applies a different mathematical approach to the metric stream. Any one firing triggers rollback. When multiple fire on the same event, you get multi-family corroboration — independent statistical tests agreeing.</p>
+  </div>
+
+  <!-- FAMILY A -->
+  <div class="card family-a">
+    <div class="card-header">
+      <div class="card-title"><span class="fam-letter">A</span>Per-Signal Sequential Tests (Page-CUSUM / mSPRT)</div>
+      <div class="card-subtitle">Cumulative evidence on individual signals</div>
+    </div>
+    <div class="card-body">
+      <div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Top panel: signal with noise + drift -->
+            <text x="10" y="16" font-size="11" fill="#666" font-weight="600">signal value</text>
+            <line x1="10" y1="20" x2="390" y2="20" stroke="#ddd" stroke-width="0.5"/>
+
+            <!-- Baseline line -->
+            <line x1="30" y1="80" x2="390" y2="80" stroke="#aaa" stroke-dasharray="2,2" stroke-width="0.5"/>
+            <text x="32" y="76" font-size="9" fill="#888">baseline</text>
+
+            <!-- Threshold line (dashed red) -->
+            <line x1="30" y1="40" x2="390" y2="40" stroke="#d93025" stroke-dasharray="3,3" stroke-width="0.8"/>
+            <text x="32" y="36" font-size="9" fill="#d93025">ratio threshold (cascade)</text>
+
+            <!-- Signal line - noisy around baseline, slowly drifting up but stays below threshold -->
+            <polyline points="30,82 50,78 70,81 90,75 110,79 130,74 150,78 170,72 190,75 210,70 230,73 250,68 270,71 290,66 310,69 330,64 350,67 370,62 390,65" fill="none" stroke="#2d6fd1" stroke-width="1.5"/>
+
+            <!-- Bottom panel: CUSUM statistic -->
+            <text x="10" y="160" font-size="11" fill="#666" font-weight="600">CUSUM S_n</text>
+            <line x1="10" y1="164" x2="390" y2="164" stroke="#ddd" stroke-width="0.5"/>
+
+            <!-- Zero line -->
+            <line x1="30" y1="250" x2="390" y2="250" stroke="#aaa" stroke-width="0.5"/>
+            <text x="32" y="248" font-size="9" fill="#888">0</text>
+
+            <!-- Ville threshold line -->
+            <line x1="30" y1="180" x2="390" y2="180" stroke="#d93025" stroke-dasharray="3,3" stroke-width="0.8"/>
+            <text x="32" y="176" font-size="9" fill="#d93025">h = -log(α) threshold</text>
+
+            <!-- CUSUM curve - accumulating, crossing threshold around x=290 -->
+            <polyline points="30,250 50,248 70,245 90,240 110,234 130,227 150,219 170,210 190,199 210,187 230,174 250,180 250,180" fill="none" stroke="#2d6fd1" stroke-width="1.5"/>
+            <polyline points="30,250 50,248 70,245 90,240 110,234 130,227 150,219 170,210 190,199 210,187 230,174 250,159 270,142 290,125" fill="none" stroke="#2d6fd1" stroke-width="1.5"/>
+
+            <!-- Fire marker -->
+            <circle cx="290" cy="125" r="4" fill="#d93025" stroke="white" stroke-width="1.5"/>
+            <text x="300" y="120" font-size="10" fill="#d93025" font-weight="600">FIRE</text>
+            <line x1="290" y1="128" x2="290" y2="160" stroke="#d93025" stroke-width="0.5" stroke-dasharray="2,2"/>
+
+            <text x="200" y="275" font-size="9" fill="#888" text-anchor="middle">time →</text>
+          </svg>
+          <div class="visual-caption">Signal (top) stays below any single-tick threshold. Cumulative CUSUM (bottom) crosses Ville's bound and fires.</div>
+        </div>
+      </div>
+      <div class="text-panel">
+        <h3>Intuition</h3>
+        <p>A statistical accumulator that keeps a running tally of evidence against "deploy is healthy." Each tick, it adds the log-likelihood ratio of observed data under the drift hypothesis vs the healthy hypothesis. When the accumulator crosses a formal bound, it fires.</p>
+        <h3>When it fires</h3>
+        <p><span class="fire-bullet"></span>Slow, persistent drifts on a single signal that stay within tick-by-tick threshold but accumulate enough evidence over time.</p>
+        <h3>Why it exists</h3>
+        <p>Threshold alerters catch signals that <em>spike</em>. Family A catches signals that <em>creep</em>. Six primary SLIs watched: p99_latency, ttft, eval_score, tool_success_rate, downstream_err, cost_req. α-budget: 40% of total (largest family).</p>
+        <div class="demo-ref">Exercised in: <strong>Demo 5</strong> — cost_req creeps upward; mSPRT_cost_req fires at tick 16 despite no individual-tick threshold crossing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAMILY B -->
+  <div class="card family-b">
+    <div class="card-header">
+      <div class="card-title"><span class="fam-letter">B</span>Structural Signatures</div>
+      <div class="card-subtitle">Hand-tuned rules encoding legacy SRE expertise</div>
+    </div>
+    <div class="card-body">
+      <div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Title -->
+            <text x="10" y="16" font-size="11" fill="#666" font-weight="600">9 monitored signals — slowbleed rule: "4+ drift together"</text>
+
+            <!-- Bars for 9 signals, each with slight upward or downward drift -->
+            <!-- Each bar: vertical gray ruler showing baseline, then colored bar showing drift -->
+            <g transform="translate(30, 40)">
+              <!-- p99_latency: drifting up (matches rule) -->
+              <line x1="0" y1="10" x2="340" y2="10" stroke="#ddd"/>
+              <text x="-5" y="14" font-size="9" fill="#666" text-anchor="end">p99_latency</text>
+              <rect x="200" y="4" width="35" height="12" fill="#0f9b8e" opacity="0.8"/>
+              <text x="237" y="14" font-size="9" fill="#0f9b8e" font-weight="600">↑</text>
+
+              <!-- ttft: drifting up -->
+              <line x1="0" y1="35" x2="340" y2="35" stroke="#ddd"/>
+              <text x="-5" y="39" font-size="9" fill="#666" text-anchor="end">ttft</text>
+              <rect x="200" y="29" width="30" height="12" fill="#0f9b8e" opacity="0.8"/>
+              <text x="232" y="39" font-size="9" fill="#0f9b8e" font-weight="600">↑</text>
+
+              <!-- tokens_turn: drifting up -->
+              <line x1="0" y1="60" x2="340" y2="60" stroke="#ddd"/>
+              <text x="-5" y="64" font-size="9" fill="#666" text-anchor="end">tokens_turn</text>
+              <rect x="200" y="54" width="32" height="12" fill="#0f9b8e" opacity="0.8"/>
+              <text x="234" y="64" font-size="9" fill="#0f9b8e" font-weight="600">↑</text>
+
+              <!-- cost_req: drifting up -->
+              <line x1="0" y1="85" x2="340" y2="85" stroke="#ddd"/>
+              <text x="-5" y="89" font-size="9" fill="#666" text-anchor="end">cost_req</text>
+              <rect x="200" y="79" width="28" height="12" fill="#0f9b8e" opacity="0.8"/>
+              <text x="230" y="89" font-size="9" fill="#0f9b8e" font-weight="600">↑</text>
+
+              <!-- kv_cache: flat -->
+              <line x1="0" y1="110" x2="340" y2="110" stroke="#ddd"/>
+              <text x="-5" y="114" font-size="9" fill="#666" text-anchor="end">kv_cache</text>
+              <rect x="198" y="104" width="4" height="12" fill="#aaa" opacity="0.6"/>
+              <text x="210" y="114" font-size="9" fill="#aaa">—</text>
+
+              <!-- downstream_err: flat -->
+              <line x1="0" y1="135" x2="340" y2="135" stroke="#ddd"/>
+              <text x="-5" y="139" font-size="9" fill="#666" text-anchor="end">downstream_err</text>
+              <rect x="198" y="129" width="4" height="12" fill="#aaa" opacity="0.6"/>
+              <text x="210" y="139" font-size="9" fill="#aaa">—</text>
+
+              <!-- mfu: flat -->
+              <line x1="0" y1="160" x2="340" y2="160" stroke="#ddd"/>
+              <text x="-5" y="164" font-size="9" fill="#666" text-anchor="end">mfu</text>
+              <rect x="196" y="154" width="6" height="12" fill="#aaa" opacity="0.6"/>
+              <text x="210" y="164" font-size="9" fill="#aaa">—</text>
+
+              <!-- hbm_spill: flat -->
+              <line x1="0" y1="185" x2="340" y2="185" stroke="#ddd"/>
+              <text x="-5" y="189" font-size="9" fill="#666" text-anchor="end">hbm_spill</text>
+              <rect x="198" y="179" width="4" height="12" fill="#aaa" opacity="0.6"/>
+              <text x="210" y="189" font-size="9" fill="#aaa">—</text>
+
+              <!-- collective_ops: flat -->
+              <line x1="0" y1="210" x2="340" y2="210" stroke="#ddd"/>
+              <text x="-5" y="214" font-size="9" fill="#666" text-anchor="end">collective_ops</text>
+              <rect x="196" y="204" width="6" height="12" fill="#aaa" opacity="0.6"/>
+              <text x="210" y="214" font-size="9" fill="#aaa">—</text>
+
+              <!-- Vertical baseline reference line -->
+              <line x1="200" y1="0" x2="200" y2="220" stroke="#555" stroke-width="0.5"/>
+              <text x="200" y="236" font-size="9" fill="#555" text-anchor="middle">baseline</text>
+
+              <!-- Rule annotation -->
+              <g transform="translate(-10, 255)">
+                <rect x="0" y="0" width="350" height="20" fill="#e3f4f2" rx="3"/>
+                <text x="175" y="14" font-size="11" fill="#0f9b8e" text-anchor="middle" font-weight="600">4 of 9 drifting in same direction → slowbleed FIRES</text>
+              </g>
+            </g>
+          </svg>
+          <div class="visual-caption">Each signal's drift alone is harmless. A <em>pattern</em> of multiple signals drifting together is the architectural signature the rule recognizes.</div>
+        </div>
+      </div>
+      <div class="text-panel">
+        <h3>Intuition</h3>
+        <p>The "things an experienced SRE would recognize" family. Hand-tuned rules encode domain knowledge that didn't fall out of pure statistics — patterns experienced operators know are bad, coded as logic rather than thresholds.</p>
+        <h3>When it fires</h3>
+        <p><span class="fire-bullet"></span>Specific architectural signatures: slowbleed (4+ of 9 metrics all drifting at same time), kv_saturation (specific kv_cache pressure + latency ramp pattern), refusal spikes, and others.</p>
+        <h3>Why it exists</h3>
+        <p>The baseline knowledge that went into your legacy cascade engine before the project. Statistical families (A, C, D, E) add rigor on top; Family B is the expert-system layer that brought baseline coverage. <strong>Rule-based, no α-spent</strong> — Ville's budget doesn't apply because these are hand-tuned heuristics.</p>
+        <div class="demo-ref">Exercised in: <strong>Demo 3</strong> — slowbleed fires at tick 5 on the GitHub 2020 Redis cascade reconstruction. It's the first family to catch, anchoring the decision before A/C/E corroborate.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAMILY C -->
+  <div class="card family-c">
+    <div class="card-header">
+      <div class="card-title"><span class="fam-letter">C</span>Hotelling T² (Multivariate Distance)</div>
+      <div class="card-subtitle">Joint-distribution shift detection</div>
+    </div>
+    <div class="card-body">
+      <div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Title -->
+            <text x="10" y="16" font-size="11" fill="#666" font-weight="600">two-signal joint view (actual engine uses 11-dim)</text>
+
+            <!-- Plot area -->
+            <g transform="translate(60, 40)">
+              <!-- Axes -->
+              <line x1="0" y1="0" x2="0" y2="220" stroke="#333" stroke-width="1"/>
+              <line x1="0" y1="220" x2="320" y2="220" stroke="#333" stroke-width="1"/>
+
+              <!-- Axis labels -->
+              <text x="-15" y="115" font-size="10" fill="#666" transform="rotate(-90, -15, 115)">signal 2</text>
+              <text x="160" y="245" font-size="10" fill="#666" text-anchor="middle">signal 1</text>
+
+              <!-- Univariate thresholds (dashed) -->
+              <line x1="250" y1="0" x2="250" y2="220" stroke="#d93025" stroke-dasharray="3,3" stroke-width="0.6" opacity="0.5"/>
+              <line x1="0" y1="30" x2="320" y2="30" stroke="#d93025" stroke-dasharray="3,3" stroke-width="0.6" opacity="0.5"/>
+              <text x="256" y="14" font-size="9" fill="#d93025" opacity="0.8">thr 1</text>
+              <text x="260" y="28" font-size="9" fill="#d93025" opacity="0.8">thr 2 ↓</text>
+
+              <!-- Mahalanobis ellipse (tilted correlation) -->
+              <ellipse cx="130" cy="130" rx="90" ry="35" transform="rotate(-30 130 130)" fill="none" stroke="#8b3fc7" stroke-width="1.5" stroke-dasharray="4,2"/>
+              <text x="195" y="75" font-size="10" fill="#8b3fc7" font-weight="600">Mahalanobis</text>
+              <text x="195" y="87" font-size="10" fill="#8b3fc7" font-weight="600">ellipse (T²)</text>
+
+              <!-- Baseline healthy points (inside ellipse) -->
+              <circle cx="100" cy="145" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="115" cy="140" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="130" cy="135" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="145" cy="125" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="160" cy="120" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="95" cy="152" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="120" cy="130" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="135" cy="145" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="108" cy="135" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="150" cy="135" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+              <circle cx="125" cy="150" r="2.5" fill="#8b3fc7" opacity="0.6"/>
+
+              <!-- Drift point: inside both univariate thresholds but OUTSIDE ellipse -->
+              <circle cx="180" cy="80" r="5" fill="#d93025" stroke="white" stroke-width="1.5"/>
+              <text x="190" y="77" font-size="11" fill="#d93025" font-weight="600">drifted</text>
+              <text x="190" y="89" font-size="11" fill="#d93025" font-weight="600">point</text>
+
+              <!-- Annotations -->
+              <g transform="translate(0, 260)">
+                <text x="0" y="0" font-size="10" fill="#333">
+                  <tspan fill="#666">• signal 1 alone:</tspan>
+                  <tspan fill="#1e9e4f" font-weight="600"> within threshold</tspan>
+                  <tspan fill="#666">  • signal 2 alone:</tspan>
+                  <tspan fill="#1e9e4f" font-weight="600"> within threshold</tspan>
+                </text>
+                <text x="0" y="14" font-size="10" fill="#8b3fc7" font-weight="600">• joint position outside Mahalanobis ellipse → T² FIRES</text>
+              </g>
+            </g>
+          </svg>
+          <div class="visual-caption">Baseline healthy points form a correlated cloud (ellipse). New deploy's point looks "fine" on each axis individually but sits <em>off</em> the correlation structure.</div>
+        </div>
+      </div>
+      <div class="text-panel">
+        <h3>Intuition</h3>
+        <p>Distance-from-baseline in multi-signal space, accounting for how signals normally move together. Not "is any signal outside its range" but "is the overall picture outside normal covariance structure."</p>
+        <h3>When it fires</h3>
+        <p><span class="fire-bullet"></span>Joint-distribution shifts where each individual signal stays within its own noise band but the signals move in a pattern inconsistent with healthy correlation structure.</p>
+        <h3>Why it exists</h3>
+        <p>This is the family threshold-based systems categorically miss. Uses Ledoit-Wolf shrinkage on the baseline covariance matrix for numerical stability; Wilson-Hilferty χ² quantile for the threshold. α-budget: 20% of total.</p>
+        <div class="demo-ref">Exercised in: <strong>Demo 2</strong> (unknown-unknowns) and <strong>Demo 4</strong> (Anthropic Aug 2025 reconstruction). Both demos specifically designed so no individual signal crosses threshold; only the joint vector does.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAMILY D -->
+  <div class="card family-d">
+    <div class="card-header">
+      <div class="card-title"><span class="fam-letter">D</span>Spectral / ACF Oscillation</div>
+      <div class="card-subtitle">Temporal pattern detection</div>
+    </div>
+    <div class="card-body">
+      <div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Top panel: time series with oscillation -->
+            <text x="10" y="16" font-size="11" fill="#666" font-weight="600">signal value</text>
+            <line x1="10" y1="20" x2="390" y2="20" stroke="#ddd"/>
+
+            <!-- Sinusoidal oscillation (period 3) -->
+            <line x1="30" y1="70" x2="390" y2="70" stroke="#aaa" stroke-width="0.5"/>
+            <text x="32" y="66" font-size="9" fill="#888">baseline</text>
+            <polyline points="30,70 45,45 60,95 75,50 90,90 105,45 120,95 135,45 150,90 165,50 180,95 195,45 210,90 225,50 240,95 255,45 270,90 285,50 300,95 315,45 330,90 345,50 360,95 375,45 390,90"
+                      fill="none" stroke="#d18d2d" stroke-width="1.5"/>
+
+            <text x="200" y="115" font-size="9" fill="#888" text-anchor="middle">time (periodic oscillation at period ≈ 3)</text>
+
+            <!-- Bottom panel: ACF -->
+            <text x="10" y="145" font-size="11" fill="#666" font-weight="600">autocorrelation (ACF)</text>
+            <line x1="10" y1="149" x2="390" y2="149" stroke="#ddd"/>
+
+            <!-- ACF axis -->
+            <line x1="30" y1="160" x2="30" y2="260" stroke="#333"/>
+            <line x1="30" y1="240" x2="390" y2="240" stroke="#333"/>
+            <text x="20" y="165" font-size="9" fill="#666" text-anchor="end">+1</text>
+            <text x="20" y="245" font-size="9" fill="#666" text-anchor="end">0</text>
+
+            <!-- Significance bound (dashed red) -->
+            <line x1="30" y1="195" x2="390" y2="195" stroke="#d93025" stroke-dasharray="3,3" stroke-width="0.6"/>
+            <text x="34" y="192" font-size="9" fill="#d93025">significance bound</text>
+
+            <!-- ACF bars - peak at lag 3 -->
+            <rect x="40" y="160" width="20" height="80" fill="#d18d2d"/>
+            <rect x="70" y="220" width="20" height="20" fill="#d18d2d" opacity="0.5"/>
+            <rect x="100" y="215" width="20" height="25" fill="#d18d2d" opacity="0.5"/>
+            <rect x="130" y="175" width="20" height="65" fill="#d18d2d" stroke="#d93025" stroke-width="1.5"/>
+            <rect x="160" y="222" width="20" height="18" fill="#d18d2d" opacity="0.5"/>
+            <rect x="190" y="218" width="20" height="22" fill="#d18d2d" opacity="0.5"/>
+            <rect x="220" y="183" width="20" height="57" fill="#d18d2d" stroke="#d93025" stroke-width="1.5"/>
+            <rect x="250" y="224" width="20" height="16" fill="#d18d2d" opacity="0.5"/>
+            <rect x="280" y="220" width="20" height="20" fill="#d18d2d" opacity="0.5"/>
+            <rect x="310" y="190" width="20" height="50" fill="#d18d2d" stroke="#d93025" stroke-width="1.5"/>
+
+            <!-- Lag labels -->
+            <text x="50" y="254" font-size="9" fill="#666" text-anchor="middle">0</text>
+            <text x="80" y="254" font-size="9" fill="#666" text-anchor="middle">1</text>
+            <text x="110" y="254" font-size="9" fill="#666" text-anchor="middle">2</text>
+            <text x="140" y="254" font-size="9" fill="#666" text-anchor="middle">3</text>
+            <text x="170" y="254" font-size="9" fill="#666" text-anchor="middle">4</text>
+            <text x="200" y="254" font-size="9" fill="#666" text-anchor="middle">5</text>
+            <text x="230" y="254" font-size="9" fill="#666" text-anchor="middle">6</text>
+            <text x="260" y="254" font-size="9" fill="#666" text-anchor="middle">7</text>
+            <text x="290" y="254" font-size="9" fill="#666" text-anchor="middle">8</text>
+            <text x="320" y="254" font-size="9" fill="#666" text-anchor="middle">9</text>
+            <text x="200" y="272" font-size="10" fill="#666" text-anchor="middle">lag (ticks)</text>
+
+            <!-- Annotation on lag 3 peak -->
+            <text x="145" y="172" font-size="10" fill="#d93025" font-weight="600">peak at lag 3</text>
+            <text x="175" y="184" font-size="10" fill="#d93025">→ periodic pattern</text>
+          </svg>
+          <div class="visual-caption">Signal oscillates (top). Autocorrelation at lag 3 is unusually high (bottom). Peak = "pattern repeats every 3 ticks" = oscillation detected.</div>
+        </div>
+      </div>
+      <div class="text-panel">
+        <h3>Intuition</h3>
+        <p>Looks for periodic patterns in signals that shouldn't have them. When a signal starts oscillating (cache flap, feedback loop, resource cycling), autocorrelation develops a peak at the oscillation lag. Family D sees that peak and fires.</p>
+        <h3>When it fires</h3>
+        <p><span class="fire-bullet"></span>Sustained oscillation patterns — e.g., kv_cache flapping between 60% and 90% every 3 ticks (classic cache-thrash signature). Uses bootstrap null distribution for the significance threshold.</p>
+        <h3>Why it exists</h3>
+        <p>Oscillation is a failure-mode signature that amplitude-based detectors miss entirely. A kv_cache oscillating at 70%±20% has normal mean and normal variance; its <em>time structure</em> is what's wrong. α-budget: 10% of total. Currently deployed on kv_cache; architecturally extends to other signals.</p>
+        <div class="demo-ref">Not a primary beat in any canned demo — Family D's role in the pitch is breadth coverage: "here's a failure mode we specifically handle that other approaches miss." First-fires on only 1 of 131 adversarial scenarios — niche but important.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAMILY E -->
+  <div class="card family-e">
+    <div class="card-header">
+      <div class="card-title"><span class="fam-letter">E</span>Conformal Novelty</div>
+      <div class="card-subtitle">Nonparametric unknown-unknowns detector</div>
+    </div>
+    <div class="card-body">
+      <div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Title -->
+            <text x="10" y="16" font-size="11" fill="#666" font-weight="600">distance to held-out healthy baseline samples</text>
+
+            <!-- Plot area -->
+            <g transform="translate(60, 40)">
+              <!-- Axes -->
+              <line x1="0" y1="0" x2="0" y2="200" stroke="#333"/>
+              <line x1="0" y1="200" x2="320" y2="200" stroke="#333"/>
+              <text x="-15" y="100" font-size="10" fill="#666" transform="rotate(-90, -15, 100)">signal 2</text>
+              <text x="160" y="225" font-size="10" fill="#666" text-anchor="middle">signal 1</text>
+
+              <!-- Healthy baseline cluster (N points) -->
+              <!-- Scatter of healthy samples -->
+              <circle cx="110" cy="120" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="125" cy="115" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="140" cy="110" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="100" cy="135" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="130" cy="120" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="115" cy="125" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="145" cy="115" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="120" cy="105" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="135" cy="125" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="105" cy="110" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="150" cy="120" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="110" cy="130" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="140" cy="130" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="120" cy="135" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="130" cy="130" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="155" cy="125" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="95" cy="125" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="108" cy="118" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="137" cy="117" r="2.5" fill="#c7286b" opacity="0.5"/>
+              <circle cx="123" cy="125" r="2.5" fill="#c7286b" opacity="0.5"/>
+
+              <!-- Conformal ellipse (aggregate-fallback quantile) -->
+              <ellipse cx="126" cy="120" rx="50" ry="30" fill="none" stroke="#c7286b" stroke-width="1.5" stroke-dasharray="4,2"/>
+              <text x="185" y="108" font-size="10" fill="#c7286b" font-weight="600">conformal α=1e-4</text>
+              <text x="185" y="120" font-size="10" fill="#c7286b" font-weight="600">quantile boundary</text>
+
+              <!-- Novel point: far from all baseline samples -->
+              <circle cx="240" cy="55" r="5" fill="#d93025" stroke="white" stroke-width="1.5"/>
+              <text x="250" y="55" font-size="11" fill="#d93025" font-weight="600">novel</text>
+              <text x="250" y="67" font-size="11" fill="#d93025" font-weight="600">deploy</text>
+
+              <!-- Dashed distance line -->
+              <line x1="140" y1="110" x2="240" y2="55" stroke="#d93025" stroke-dasharray="2,2" stroke-width="0.8" opacity="0.6"/>
+              <text x="180" y="80" font-size="9" fill="#d93025" opacity="0.7" font-style="italic">Mahalanobis distance</text>
+
+              <!-- Label for baseline cluster -->
+              <text x="80" y="155" font-size="10" fill="#c7286b" font-weight="600">~16K held-out</text>
+              <text x="80" y="167" font-size="10" fill="#c7286b" font-weight="600">healthy samples</text>
+
+              <!-- Annotations -->
+              <g transform="translate(0, 240)">
+                <text x="0" y="0" font-size="10" fill="#333">
+                  <tspan fill="#666">• no model of what "failure" looks like required</tspan>
+                </text>
+                <text x="0" y="14" font-size="10" fill="#c7286b" font-weight="600">• deploy's joint vector is too far from ANY healthy sample → FIRE</text>
+              </g>
+            </g>
+          </svg>
+          <div class="visual-caption">Compare incoming deploy (red) to a bank of known-healthy samples (pink). If it's farther from every healthy sample than a calibration threshold, it's novel — flag it.</div>
+        </div>
+      </div>
+      <div class="text-panel">
+        <h3>Intuition</h3>
+        <p>Instead of predicting what failure looks like, compare every deploy against a bank of known-healthy samples. If the new deploy is in a region no healthy sample has ever occupied, it's novel — and we flag it without having to know in advance what went wrong.</p>
+        <h3>When it fires</h3>
+        <p><span class="fire-bullet"></span>Joint-vector patterns the other four families weren't designed to catch. "Unknown-unknowns" in the strict sense — the failure mode no one wrote a rule or calibrated a test for.</p>
+        <h3>Why it exists</h3>
+        <p>The other four families assume a model of what degradation looks like. Family E doesn't. It just asks: "Is this live vector more anomalous than α_E of the healthy calibration samples?" Uses aggregate-fallback calibration (~16K samples) to achieve α_E=1e-4 without a large per-cell sample requirement. α-budget: 10% of total.</p>
+        <div class="demo-ref">Exercised in: <strong>Demo 2</strong> (alongside C — co-fires at onset tick 10) and <strong>Demo 4</strong> (alongside C — fires at tick 11). Both demos designed so the joint-vector shift is genuinely novel relative to calibration.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARED CONCEPTS -->
+  <div class="shared-concepts">
+    <h2>Shared Concepts — Explaining the Math to a Mixed Audience</h2>
+    <p class="concepts-intro">Half the pitch audience will be former researchers or math-comfortable engineers; the other half will be execs who need the intuition without formulas. Each concept below has a one-line definition (for quick reference), an intuition-level explanation (for depth when asked), and the likely skeptical-exec question with a drafted answer.</p>
+
+    <div class="concept-category">Primary — every audience needs these</div>
+
+    <div class="concept">
+      <div class="concept-title">α (alpha) — false-positive rate</div>
+      <div class="quick"><strong>Quick:</strong> The formal guarantee on how often a healthy deploy gets mistakenly rolled back. α=1e-3 means "at most 0.1% of healthy deploys get wrongly rolled back" — a mathematical bound, not a hope.</div>
+      <div class="deeper">
+        <p><strong>Deeper intuition.</strong> α is a property of the <em>test procedure</em> under the null hypothesis (deploy is healthy), not a count of individual cases. Think of a fair coin: binomial math says if I flip 100 times and my test rule is "reject fair if ≥60 heads," there's about a 2.8% chance a truly fair coin triggers rejection. I can never verify whether any specific coin is actually fair — but the math guarantees that <em>if it is fair</em>, my procedure mistakes it for biased ~2.8% of the time.</p>
+        <p>Our Page-CUSUM procedure, via Ville's inequality, guarantees that if the deploy is drawn from the healthy baseline, the test fires at most α of the time. We verify the guarantee empirically on synthetic healthy data — our 131-scenario adversarial sweep shows 0% false positives, consistent with the theoretical 1e-3 bound. The guarantee holds under assumptions (baseline accurately represents healthy; reasonable stationarity); production maintains those assumptions via baseline maintenance (see below).</p>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "How do you know anything is a false positive if the rolled-back deploy never gets a chance to prove itself?" &rarr; Honest answer: we don't know per-deploy. α is a property of the procedure under assumptions, verified empirically on synthetic known-healthy data. Production adds baseline maintenance + post-incident metric-recovery analysis to keep the assumptions valid over time. <em>Threshold-based gates have no equivalent bound — their FP rate is just whatever the operator hand-tuned to produce.</em></div>
+    </div>
+
+    <div class="concept">
+      <div class="concept-title">Portfolio vs Cascade — the two verdict topologies</div>
+      <div class="quick"><strong>Quick:</strong> Portfolio = 5 methodological families running in parallel with formal α bookkeeping. Cascade = legacy flat detector list, no formal FP guarantee. Both run every tick; portfolio is the NS architectural upgrade.</div>
+      <div class="deeper">
+        <p>Cascade is fast, simple, and has served production deploy gates for years — hand-tuned thresholds, no math infrastructure. Portfolio adds formal statistical structure on top: five detector families (sequential tests, structural rules, multivariate distance, spectral, conformal novelty) running in parallel with α allocated across them and Ville's inequality bounding total FP rate.</p>
+        <p>Cascade's coverage is a subset of portfolio's — anything cascade catches, portfolio's Family A or B catches at the same tick or earlier. What portfolio adds is the architectural families (C, D, E) that catch what cascade categorically cannot: joint-distribution drift, oscillation patterns, unknown-unknowns.</p>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "Why ship both?" &rarr; Cascade runs for shadow comparison ("what would the legacy engine have decided?"), for backwards-compatibility with the v1 audit schema used by existing downstream tooling, and as a defensive check during initial rollout. Post-runway, portfolio becomes the sole decision path; cascade retires to observational-only.</div>
+    </div>
+
+    <div class="concept">
+      <div class="concept-title">Any-fire rule — how portfolio decides to rollback</div>
+      <div class="quick"><strong>Quick:</strong> Portfolio fires rollback as soon as <em>any one</em> family crosses its threshold. Same semantics as cascade — single strong signal triggers rollback. Not "require multi-family agreement."</div>
+      <div class="deeper">
+        <p>Multi-family corroboration is <em>observed behavior</em> on complex incidents (Demo 3 — four families fire by tick 8), not a firing requirement. On simple incidents where one family catches first, rollback happens at that first fire. Other families continue evaluating and their fires accumulate into the audit record — building confidence evidence, but not changing the decision.</p>
+        <p>The architecture <em>could</em> be configured to require N≥2 families before firing, trading off FP rate for detection speed. We don't do this today; the any-fire rule matches cascade's rollback semantics while adding statistical coverage cascade lacks.</p>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "So multi-family agreement doesn't prevent rollback, it just adds confidence after the fact?" &rarr; Exactly. The decision happens at first fire; the corroboration makes the audit record skeptic-proof. In Demo 3, Family B catches at tick 5 — rollback happens there. By tick 8, three more families have independently arrived at the same conclusion via orthogonal mathematical approaches. When the post-incident review asks "was this the right call?", the audit record shows four statistical tests agreed.</div>
+    </div>
+
+    <div class="concept-category">Architectural — production integrity</div>
+
+    <div class="concept">
+      <div class="concept-title">Baseline maintenance — keeping α's guarantee valid over time</div>
+      <div class="quick"><strong>Quick:</strong> α holds under assumptions (baseline represents healthy behavior, traffic is reasonably stationary). Over time, "healthy" drifts — seasonality, new customer cohorts, model updates. Without baseline maintenance, the bound becomes stale. Automation prevents manual-operator-burden failure modes.</div>
+      <div class="deeper">
+        <p><strong>What's built into the project engine today:</strong></p>
+        <ul>
+          <li><strong>2-D cell baselines (hour × day-of-week matrix).</strong> 168 cells capturing diurnal and weekly traffic patterns natively. Tuesday at 2pm has its own baseline separate from Sunday at 2am. Seasonality isn't a noise source — it's structure the baseline encodes.</li>
+          <li><strong>Schema continuity consumer (Addition #8).</strong> Detects when metric schemas change post-deploy; suppresses affected detectors pending re-baseline. Prevents a silent-contract-break from being read as deploy drift.</li>
+          <li><strong>Per-cell underpowered-guard.</strong> Refuses to fire detectors in cells where sample counts are below statistical-validity thresholds; falls back to aggregate calibration.</li>
+        </ul>
+        <p><strong>What production deployment needs to add (for follow-on roadmap):</strong></p>
+        <ul>
+          <li><strong>Automatic drift detection on the baseline itself.</strong> Statistical test (Kolmogorov-Smirnov or similar) between the active baseline distribution and a rolling window of recent healthy data. If divergence exceeds threshold, trigger recalibration workflow automatically. <em>No human in the loop for detection.</em></li>
+          <li><strong>Rolling baseline window with staged cutover.</strong> Baseline slides forward on a schedule (weekly/monthly). New baseline runs in shadow mode alongside old for N periods; fire-rate divergence is monitored. Only cuts over after shadow period confirms no unexpected behavior.</li>
+          <li><strong>Post-incident feedback loop.</strong> After every rollback, monitor metric recovery in the rolled-back-to state. If metrics recover and root cause is confirmed, flag as true positive. If metrics don't recover (deploy wasn't the problem), flag as suspected false positive. Over many incidents, empirical FP rate compared to theoretical α — structural mismatch triggers recalibration.</li>
+          <li><strong>Schedule-based forced recalibration.</strong> Even absent drift signals, recalibrate every N weeks. Defensive against slow, undetected drift the KS test misses.</li>
+          <li><strong>Alerting if fire rate diverges from theoretical α.</strong> If the system starts firing significantly more or less than 1e-3 over a rolling window, the baseline is miscalibrated. Alert goes to on-call, not silent drift.</li>
+        </ul>
+        <p>The architectural thesis: <strong>baseline maintenance is an engineering system, not an operator responsibility.</strong> The only manual step is reviewing recalibration decisions flagged by the system — the detection, trigger, and staged rollout are automated.</p>
+        <p><strong>Runway state note:</strong> the drift detector is shipped as runtime code (<code>engine/drift/baseline-drift-detector.ts</code>); the baseline-version archive schema is shipped; the dashboard UI is shipped and demonstrates against a synthesized v1→v5 history in Demo 6. The <em>full automation loop</em> that takes a drift detection and produces a new baseline version (compiler run + shadow-mode validation + cutover) is architecturally specified but not runtime-implemented in this project — it's first-90-days production work once real telemetry is wired. Demo 6 ships the substrate; the automation loop closes for follow-on.</p>
+        <div class="baseline-diagram-wrapper">
+          <svg viewBox="0 0 820 390" xmlns="http://www.w3.org/2000/svg" class="baseline-diagram">
+            <!-- Title -->
+            <text x="410" y="22" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a">Rolling Baseline with Shadow-Mode Cutover — How the Flow Works</text>
+
+            <!-- Legend top-right -->
+            <g font-size="10" fill="#333">
+              <rect x="620" y="38" width="14" height="10" fill="#2d6fd1" fill-opacity="0.3" stroke="#2d6fd1"/>
+              <text x="640" y="47">active baseline (live decisions)</text>
+              <rect x="620" y="54" width="14" height="10" fill="#0f9b8e" fill-opacity="0.3" stroke="#0f9b8e" stroke-dasharray="3,2"/>
+              <text x="640" y="63">shadow baseline (comparison only)</text>
+            </g>
+
+            <!-- Light vertical gridlines every 2 weeks -->
+            <g stroke="#e8e8e8" stroke-width="0.5">
+              <line x1="100" y1="42" x2="100" y2="288"/>
+              <line x1="220" y1="42" x2="220" y2="288"/>
+              <line x1="340" y1="42" x2="340" y2="288"/>
+              <line x1="460" y1="42" x2="460" y2="288"/>
+              <line x1="580" y1="42" x2="580" y2="288"/>
+              <line x1="700" y1="42" x2="700" y2="288"/>
+            </g>
+
+            <!-- Shadow baseline lane (y ~75–100) -->
+            <text x="92" y="92" text-anchor="end" font-size="11" fill="#0f9b8e" font-weight="600">shadow</text>
+            <rect x="340" y="78" width="120" height="26" fill="#0f9b8e" fill-opacity="0.3" stroke="#0f9b8e" stroke-width="1.5" stroke-dasharray="4,2" rx="3"/>
+            <text x="400" y="95" text-anchor="middle" font-size="10" fill="#0a6f65" font-weight="600">v2 candidate — fire rates compared to v1</text>
+
+            <!-- Active baseline lane v1 + v2 (y ~130–155) -->
+            <text x="92" y="147" text-anchor="end" font-size="11" fill="#2d6fd1" font-weight="600">active</text>
+            <rect x="100" y="132" width="360" height="26" fill="#2d6fd1" fill-opacity="0.3" stroke="#2d6fd1" stroke-width="1.5" rx="3"/>
+            <text x="280" y="149" text-anchor="middle" font-size="10" fill="#1d5fb3" font-weight="600">v1 active (live decisions)</text>
+            <rect x="460" y="132" width="280" height="26" fill="#2d6fd1" fill-opacity="0.3" stroke="#2d6fd1" stroke-width="1.5" rx="3"/>
+            <text x="600" y="149" text-anchor="middle" font-size="10" fill="#1d5fb3" font-weight="600">v2 active (live decisions)</text>
+
+            <!-- Fire rate sparkline (y ~185–270) -->
+            <text x="92" y="210" text-anchor="end" font-size="11" fill="#666" font-weight="600">fire rate</text>
+            <text x="92" y="222" text-anchor="end" font-size="9" fill="#888">(empirical α)</text>
+
+            <!-- α target reference line -->
+            <line x1="100" y1="240" x2="740" y2="240" stroke="#999" stroke-dasharray="2,2" stroke-width="0.8"/>
+            <text x="744" y="243" font-size="9" fill="#999">α = 1e-3 target</text>
+
+            <!-- Alert zone shading -->
+            <rect x="280" y="185" width="180" height="55" fill="#d93025" fill-opacity="0.08"/>
+            <text x="370" y="200" text-anchor="middle" font-size="9" fill="#d93025" font-style="italic">baseline stale — fire rate above α</text>
+
+            <!-- Fire rate curve -->
+            <path d="M 100,245 L 160,244 L 220,243 L 280,239 L 310,228 L 340,218 L 370,212 L 400,208 L 430,211 L 460,225 L 490,239 L 520,245 L 580,244 L 640,243 L 700,244 L 740,244"
+                  fill="none" stroke="#d93025" stroke-width="1.6"/>
+
+            <!-- Event markers and annotations -->
+            <!-- ① drift alert at week 4 -->
+            <g>
+              <circle cx="340" cy="52" r="4" fill="#d18d2d" stroke="white" stroke-width="1.5"/>
+              <line x1="340" y1="56" x2="340" y2="78" stroke="#d18d2d" stroke-dasharray="2,2" stroke-width="0.8"/>
+              <text x="340" y="42" text-anchor="middle" font-size="10" font-weight="600" fill="#d18d2d">① drift alert</text>
+              <text x="340" y="68" text-anchor="middle" font-size="8" fill="#a66d1e" font-style="italic">KS-test triggers recalibration</text>
+            </g>
+
+            <!-- ② cutover at week 6 -->
+            <g>
+              <circle cx="460" cy="118" r="4" fill="#0f9b8e" stroke="white" stroke-width="1.5"/>
+              <line x1="460" y1="108" x2="460" y2="75" stroke="#0f9b8e" stroke-dasharray="2,2" stroke-width="0.8"/>
+              <line x1="460" y1="122" x2="460" y2="132" stroke="#0f9b8e" stroke-dasharray="2,2" stroke-width="0.8"/>
+              <text x="460" y="125" text-anchor="middle" font-size="10" font-weight="600" fill="#0a6f65">② cutover to v2</text>
+              <text x="460" y="70" text-anchor="middle" font-size="8" fill="#0a6f65" font-style="italic">shadow confirmed clean</text>
+            </g>
+
+            <!-- Timeline axis -->
+            <line x1="100" y1="288" x2="740" y2="288" stroke="#333" stroke-width="1"/>
+
+            <!-- Week tick marks + labels -->
+            <g font-size="9" fill="#666" text-anchor="middle">
+              <line x1="100" y1="286" x2="100" y2="292" stroke="#333"/>
+              <text x="100" y="304">week 0</text>
+              <line x1="220" y1="286" x2="220" y2="292" stroke="#333"/>
+              <text x="220" y="304">2</text>
+              <line x1="340" y1="286" x2="340" y2="292" stroke="#333"/>
+              <text x="340" y="304">4</text>
+              <line x1="460" y1="286" x2="460" y2="292" stroke="#333"/>
+              <text x="460" y="304">6</text>
+              <line x1="580" y1="286" x2="580" y2="292" stroke="#333"/>
+              <text x="580" y="304">8</text>
+              <line x1="700" y1="286" x2="700" y2="292" stroke="#333"/>
+              <text x="700" y="304">10</text>
+            </g>
+            <text x="420" y="320" text-anchor="middle" font-size="10" fill="#666" font-style="italic">time →</text>
+
+            <!-- Bottom annotations: what's happening -->
+            <g font-size="10" fill="#444">
+              <text x="200" y="355">baseline v1 holds α bound</text>
+              <text x="200" y="368" fill="#888" font-size="9" font-style="italic">rolling window feeds drift detector</text>
+
+              <text x="400" y="355" text-anchor="middle" fill="#c23a15">drift period — v1 miscalibrated</text>
+              <text x="400" y="368" text-anchor="middle" fill="#888" font-size="9" font-style="italic">system auto-triggers shadow</text>
+
+              <text x="610" y="355">baseline v2 restores α bound</text>
+              <text x="610" y="368" fill="#888" font-size="9" font-style="italic">no operator intervention required</text>
+            </g>
+          </svg>
+          <div class="baseline-diagram-caption">
+            Baseline v1 holds the α guarantee for ~4 weeks. Drift detector sees baseline distribution diverging from recent healthy data; triggers automatic recalibration. New candidate baseline v2 enters shadow mode in parallel. Shadow comparison confirms v2's fire rate matches v1 pre-drift. Cutover happens automatically; v2 becomes active. No human "noticed something looked wrong." The entire flow is an engineering system, not an operator chore.
+          </div>
+        </div>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "Who watches the baseline?" &rarr; The system watches itself. Drift detectors on the baseline trigger recalibration workflows automatically. Humans approve the recalibration decisions flagged by the system; they don't notice drift manually. If fire rate deviates from theoretical α over a rolling window, the system alerts on-call before any operator would manually spot it. The architecture is explicitly designed to avoid "operator notices bad rollbacks, retunes by hand" as a failure mode.</div>
+    </div>
+
+    <div class="concept">
+      <div class="concept-title">Baseline history as platform-maturity signal</div>
+      <div class="quick"><strong>Quick:</strong> If the system tracks baseline versions over time, that history is a service-trajectory and engineering-maturity dashboard. Repositions the engine from "a smart deploy gate" to "a strategic platform-monitoring layer derived from the gate's operational history."</div>
+      <div class="deeper">
+        <p>Baseline maintenance (above) solves the α-guarantee problem. A separate, compounding value comes from <em>retaining</em> baseline versions in a time-series archive. Each recalibration is a datapoint. Over many recalibrations, you get:</p>
+        <p><strong>Service trajectory.</strong> Baseline p99 latency trending 600ms → 400ms over 12 months → the service got faster. Baseline downstream_err trending 0.005 → 0.001 → reliability improved. Baseline cost_req trending 0.006 → 0.004 → cost efficiency improved. These trends are visible in the baseline-version archive regardless of whether any single deploy was good or bad.</p>
+        <p><strong>Engineering-maturity trajectory.</strong> Meta-metrics over the rollback audit record: rollback frequency trending down, time-to-decision shortening, drift-alert intervals lengthening → deploys are getting safer and baselines are more stable. These are signals about the <em>engineering team's</em> behavior, not just the service's behavior. They tell engineering leadership whether the overall deploy-quality bar is improving.</p>
+        <p><strong>Product signal.</strong> Traffic gate thresholds rising (deploys reaching higher traffic percentages because confidence in them grows); cell coverage expanding (new customer cohorts populating cells previously empty) → adoption growing, or scale expanding, or both.</p>
+        <p>This architectural layer differs categorically from traditional monitoring. Grafana/Prometheus show you "current state" — how the service looks <em>right now</em>. Baseline history shows you "trajectory" — how the service has evolved over the observation window. The trajectory signal emerges for free from infrastructure you'd build for baseline maintenance anyway.</p>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "How do I know if my engineering team is getting better at deploys?" &rarr; Today, you probably don't — you track current-state SLIs and hope the trendline is obvious by eyeball. A baseline-history dashboard gives you objective measurement: rollback frequency, time-to-decision, empirical α, drift-alert intervals. These are meta-metrics about the engineering process itself, derived from operational data the deploy gate already produces. Follow-on production deployment work includes standing up this dashboard layer; the substrate is already in the engine's audit schema.</div>
+    </div>
+
+    <div class="concept-category">Mathematical — for the math-comfortable audience</div>
+
+    <div class="concept">
+      <div class="concept-title">α-budget — Type I error allocated across families</div>
+      <div class="quick"><strong>Quick:</strong> Not compute. Not voting weight. The pool of false-positive rate each family is allowed to "spend." 40/20/20/10/10% across A/B/C/D/E of the 1e-3 total.</div>
+      <div class="deeper">
+        <p>Imagine having a budget of "acceptable mistakes per 1000 deploys" equal to 1. You split it across detector families: Family A gets 0.4 of those, Family C gets 0.2, etc. Each detector within a family has to stay within its allocation. The math (Ville's inequality + union bound across families) guarantees total system FP rate stays within 1 per 1000 — even as multiple families run in parallel.</p>
+        <p>Family B is rule-based (hand-tuned signatures) and doesn't participate in the α budget — its rules don't have Ville-bounded sequential structure. The formal FP guarantee comes from families A, C, D, E.</p>
+        <p>The audit record carries the α each detector committed at fire time, so every verdict is budget-accountable. The stacked α-meter in the demo drawer visualizes this live: per-family consumption + total vs budget cap.</p>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "Why that specific 40/20/20/10/10 allocation?" &rarr; Family A gets the largest share because Page-CUSUM does most of the adversarial-catch work empirically; 10% to D and E reflects their specialization on narrow edge cases. Allocation is an engineering choice reflecting expected workload, not a mathematical requirement. Follow-on we'd tune it based on the target platform workload patterns.</div>
+    </div>
+
+    <div class="concept">
+      <div class="concept-title">Ville's inequality — the theorem behind sequential testing</div>
+      <div class="quick"><strong>Quick:</strong> Mathematical theorem that keeps sequential tests formally bounded at α even as you keep re-evaluating the data. Lets us check every tick without inflating false-positive rate.</div>
+      <div class="deeper">
+        <p>Named after Jean Ville (1939). The naive concern with sequential testing: "if I test 32 times per deploy and each test has α=1e-3 false-positive chance, my total FP rate is 32×1e-3 = 3.2%!" Ville's inequality shows this isn't how martingale-bounded sequential tests work.</p>
+        <p>For tests structured as Ville-bounded martingales (which Page-CUSUM is under H0), the <em>maximum</em> over the entire observation sequence is bounded at α — not each individual test. You're not running 32 independent tests; you're running one test that keeps accumulating evidence. The fire decision happens when the accumulator crosses threshold, not at every tick independently.</p>
+        <p>Practical consequence: we can keep checking forever without α inflation. The test "converges" at α.</p>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "But if you keep looking, doesn't your false-positive rate compound?" &rarr; No — that's precisely what Ville's inequality prevents. The math of sequential testing is specifically structured so repeated looks at accumulating evidence don't inflate α. Unlike running 32 independent threshold tests (which <em>would</em> compound), Page-CUSUM is one continuous test with formal bound preserved across the whole observation window.</div>
+    </div>
+
+    <div class="concept">
+      <div class="concept-title">Bonferroni correction — α allocation across multiple tests within a family</div>
+      <div class="quick"><strong>Quick:</strong> When running multiple tests in one family (e.g., six signals in Family A), divide the family's α by N to preserve total family FP bound. Conservative but rigorous.</div>
+      <div class="deeper">
+        <p>Family A runs mSPRT on 6 primary SLIs (p99_latency, ttft, eval_score, tool_success_rate, downstream_err, cost_req). Naive analysis: each test has α, total = 6α. Union bound: total FP ≤ 6α. To keep total at 4e-4 (Family A's allocation), each signal test uses 4e-4 / 6 ≈ 6.7e-5.</p>
+        <p>Bonferroni is conservative — it doesn't exploit correlation between tests, which typically makes the true total FP rate lower than the union bound says. More sophisticated methods (FDR, Benjamini-Hochberg, Holm) are less conservative but require more assumptions about test dependencies. For a deploy gate where a missed fire ships a bad deploy, conservatism is the right trade-off.</p>
+      </div>
+      <div class="exec-q"><strong>Exec question:</strong> "Why not use FDR or a less conservative method?" &rarr; Bonferroni's conservatism is a feature for deploy-decision-scope. We'd rather err toward "missed a potential false positive we could have caught" than "let a real regression through because our multiplicity correction was aggressive." FDR would give us slightly tighter bounds at the cost of requiring stronger dependency assumptions that are harder to verify in production.</div>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

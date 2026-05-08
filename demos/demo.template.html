@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeploySignal — Live Demo</title>
+<style>
+/* ── WS3-INTERFACE-WEEK5 normative colors (§4) ───────────────────────── */
+:root {
+  /* verdict traffic-light (§4.1) */
+  --v-proceed:    #1e9e4f;
+  --v-extend:     #e8b109;
+  --v-rollback:   #d93025;
+  --v-baking:     #8a8f9c;
+  --v-suppressed: #8a8f9c;
+  /* family palette (§4.2) */
+  --fam-A: #2f6ec9;
+  --fam-B: #0d8a7c;
+  --fam-C: #7b3fc7;
+  --fam-D: #d07a1f;
+  --fam-E: #c32c8a;
+  /* divergence (§4.4) */
+  --diverge-bg: #fdf2cc;
+  /* dark theme surfaces */
+  --bg:        #0f1117;
+  --surface-1: #1a1d24;
+  --surface-2: #1e293b;
+  --border:    #334155;
+  --text:      #e2e8f0;
+  --text-dim:  #94a3b8;
+  --text-mute: #64748b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+a { color: #60a5fa; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.mono { font-family: 'SF Mono', Menlo, Consolas, monospace; }
+
+/* ── Header ──────────────────────────────────────────────────────────── */
+.header { padding: 24px 32px 16px; border-bottom: 1px solid var(--surface-2); display: flex; align-items: flex-start; gap: 24px; }
+.header-titles { flex: 1; }
+.header h1 { font-size: 1.4rem; color: #f8fafc; }
+.header .tagline { font-size: .85rem; color: var(--text-dim); margin-top: 2px; }
+.header-right { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+
+/* Calibration badge (§3.3) */
+.cal-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 12px; font-size: .8rem;
+  cursor: pointer; transition: background .15s;
+}
+.cal-badge:hover { background: var(--border); }
+.cal-badge .icon { color: var(--text-mute); font-size: .85rem; }
+.cal-badge .ver { font-family: 'SF Mono', Menlo, Consolas, monospace; color: var(--text); font-size: .75rem; }
+
+/* Calibration modal */
+.cal-modal-back {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 100;
+  display: none; align-items: center; justify-content: center;
+}
+.cal-modal-back.open { display: flex; }
+.cal-modal {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 10px; padding: 24px; min-width: 480px; max-width: 720px;
+  max-height: 80vh; overflow-y: auto;
+}
+.cal-modal h3 { font-size: 1.05rem; color: #f8fafc; margin-bottom: 12px; }
+.cal-modal table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: 12px; }
+.cal-modal th, .cal-modal td { padding: 6px 10px; border-bottom: 1px solid var(--surface-2); text-align: left; }
+.cal-modal th { color: var(--text-mute); font-weight: 500; }
+.cal-modal .close { float: right; cursor: pointer; color: var(--text-mute); font-size: 1.1rem; }
+
+/* ── Controls ────────────────────────────────────────────────────────── */
+.controls { padding: 14px 32px; border-bottom: 1px solid var(--surface-2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+select { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: .82rem; min-width: 280px; }
+select:focus { outline: none; border-color: #60a5fa; }
+button { border: none; border-radius: 6px; padding: 7px 16px; font-size: .82rem; cursor: pointer; font-weight: 500; }
+.btn-run { background: #3b82f6; color: #fff; }
+.btn-run:hover:not(:disabled) { background: #2563eb; }
+.btn-run:disabled { background: var(--border); color: var(--text-mute); cursor: not-allowed; }
+.btn-pause { background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--border); }
+.btn-pause:hover { background: var(--border); }
+.btn-reset { background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--border); }
+.btn-reset:hover { background: var(--border); }
+.desc { padding: 8px 32px; font-size: .78rem; color: var(--text-dim); font-style: italic; border-bottom: 1px solid var(--surface-2); }
+
+/* Reconstruction-fidelity caveat strip — Demo 3 (§6.3 honest-broker) */
+.fidelity-strip {
+  display: none; padding: 10px 32px; font-size: .78rem;
+  background: rgba(208, 122, 31, .12); border-bottom: 1px solid var(--fam-D);
+  color: #f5d6a8;
+}
+.fidelity-strip.show { display: block; }
+.fidelity-strip strong { color: var(--fam-D); }
+
+/* ── α-budget meter (§3.4) ───────────────────────────────────────────── */
+.alpha-meter { padding: 12px 32px; border-bottom: 1px solid var(--surface-2); }
+.alpha-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.alpha-header .lbl { font-size: .72rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: .06em; }
+.alpha-header .val { font-size: .78rem; color: var(--text-dim); font-family: 'SF Mono', Menlo, monospace; }
+.alpha-bar {
+  display: flex; height: 16px; border-radius: 4px; overflow: hidden;
+  background: var(--surface-1); border: 1px solid var(--surface-2);
+  cursor: help;
+}
+.alpha-seg { flex: 1; position: relative; min-width: 0; transition: opacity .2s; }
+.alpha-seg .fill { height: 100%; transition: width .3s ease-out; }
+.alpha-seg.flash { animation: flash 1s ease-out; }
+@keyframes flash { 0%, 100% { box-shadow: none; } 50% { box-shadow: 0 0 8px currentColor; } }
+.alpha-legend { display: flex; gap: 14px; margin-top: 6px; font-size: .7rem; color: var(--text-mute); }
+.alpha-legend .item { display: flex; align-items: center; gap: 4px; }
+.alpha-legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
+/* α-budget hover tooltips (§3.4) */
+.alpha-seg .seg-tip {
+  display: none; position: absolute; left: 50%; top: -2px; transform: translate(-50%, -100%);
+  z-index: 60; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 4px; padding: 5px 8px; font-size: .7rem;
+  font-family: 'SF Mono', Menlo, monospace; color: var(--text); white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0,0,0,.4);
+}
+.alpha-seg:hover .seg-tip { display: block; }
+.alpha-meter-tip {
+  display: none; position: absolute; left: 32px; top: -2px; transform: translateY(-100%);
+  z-index: 60; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 4px; padding: 8px 12px; font-size: .72rem;
+  color: var(--text-dim); max-width: 460px; line-height: 1.5;
+  box-shadow: 0 4px 10px rgba(0,0,0,.4);
+}
+.alpha-bar:hover ~ .alpha-meter-tip,
+.alpha-meter-tip:hover { display: block; }
+.alpha-meter { position: relative; }
+
+/* ── Main layout ─────────────────────────────────────────────────────── */
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0;
+}
+@media (max-width: 1100px) { .main { grid-template-columns: 1fr; } }
+
+/* ── Provenance panel (§3.1) ─────────────────────────────────────────── */
+.prov-panel {
+  padding: 16px 32px;
+  overflow-y: auto;
+  max-height: calc(100vh - 360px);
+  border-right: 1px solid var(--surface-2);
+}
+.prov-panel h2,
+.shadow-panel h2,
+.tick-stream h2 {
+  font-size: .78rem; color: var(--text-mute); text-transform: uppercase;
+  letter-spacing: .06em; margin-bottom: 12px;
+}
+
+.fam-block {
+  background: var(--surface-1); border: 1px solid var(--surface-2);
+  border-radius: 6px; margin-bottom: 10px; overflow: hidden;
+}
+.fam-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer; user-select: none;
+}
+.fam-row:hover { background: var(--surface-2); }
+.fam-letter {
+  width: 24px; height: 24px; border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .85rem; color: #fff;
+  flex-shrink: 0;
+}
+.fam-A .fam-letter, .fam-letter.A { background: var(--fam-A); }
+.fam-B .fam-letter, .fam-letter.B { background: var(--fam-B); }
+.fam-C .fam-letter, .fam-letter.C { background: var(--fam-C); }
+.fam-D .fam-letter, .fam-letter.D { background: var(--fam-D); }
+.fam-E .fam-letter, .fam-letter.E { background: var(--fam-E); }
+
+.fam-name { color: var(--text); font-size: .85rem; flex: 1; }
+.fam-name .descr { color: var(--text-mute); font-size: .72rem; margin-left: 6px; }
+.fam-counts { color: var(--text-dim); font-size: .72rem; font-family: 'SF Mono', Menlo, monospace; }
+.fam-alpha { color: var(--text-mute); font-size: .7rem; font-family: 'SF Mono', Menlo, monospace; min-width: 70px; text-align: right; }
+
+/* Verdict chips (verdict palette §4.1) */
+.v {
+  display: inline-block; padding: 2px 8px; border-radius: 9px;
+  font-size: .7rem; font-weight: 600; text-transform: lowercase;
+  font-family: 'SF Mono', Menlo, monospace;
+}
+.v-proceed    { background: rgba(30,158,79,.18);  color: var(--v-proceed);  border: 1px solid var(--v-proceed); }
+.v-extend     { background: rgba(232,177,9,.18);  color: var(--v-extend);   border: 1px solid var(--v-extend); }
+.v-rollback   { background: rgba(217,48,37,.18);  color: var(--v-rollback); border: 1px solid var(--v-rollback); }
+.v-baking     { background: rgba(138,143,156,.15); color: var(--v-baking);  border: 1px solid var(--v-baking); }
+.v-suppressed {
+  background: repeating-linear-gradient(45deg, rgba(138,143,156,.12), rgba(138,143,156,.12) 4px, transparent 4px, transparent 8px);
+  color: var(--v-suppressed); border: 1px solid var(--v-suppressed);
+}
+.v-fire { background: rgba(217,48,37,.18); color: var(--v-rollback); border: 1px solid var(--v-rollback); }
+.v-clean { background: rgba(30,158,79,.18); color: var(--v-proceed); border: 1px solid var(--v-proceed); }
+.v-indeterminate { background: rgba(232,177,9,.18); color: var(--v-extend); border: 1px solid var(--v-extend); }
+
+/* Suppression-reason chip */
+.supr-chip {
+  display: inline-block; padding: 1px 7px; border-radius: 4px;
+  font-size: .65rem; font-family: 'SF Mono', Menlo, monospace;
+  background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--border);
+  margin-left: 6px;
+}
+
+/* Family ghosted-when-suppressed (§4.3 'none' visual extended to suppressed family rows) */
+.fam-block.suppressed { opacity: .55; }
+
+/* Detector list within family — collapsible */
+.fam-detectors {
+  display: none;
+  padding: 0 12px 10px;
+  border-top: 1px solid var(--surface-2);
+}
+.fam-block.open .fam-detectors { display: block; }
+
+.det-row {
+  position: relative;
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--surface-2);
+  font-size: .76rem;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1fr) 70px;
+  gap: 10px;
+  align-items: center;
+}
+.det-row:last-child { border-bottom: none; }
+.det-row:hover { background: var(--surface-2); }
+.det-label { color: var(--text); font-weight: 500; }
+.det-id { color: var(--text-mute); font-family: 'SF Mono', Menlo, monospace; font-size: .68rem; display: block; margin-top: 2px; }
+.det-stat { font-family: 'SF Mono', Menlo, monospace; color: var(--text); font-size: .72rem; }
+.det-stat .lbl { color: var(--text-mute); }
+.det-reason { font-family: 'SF Mono', Menlo, monospace; font-size: .65rem; color: var(--text-dim); padding: 1px 6px; background: var(--surface-2); border-radius: 3px; display: inline-block; }
+.det-alpha { font-family: 'SF Mono', Menlo, monospace; font-size: .7rem; color: var(--text-mute); text-align: right; }
+.det-cusum { color: var(--fam-A); font-size: .68rem; font-family: 'SF Mono', Menlo, monospace; margin-top: 2px; }
+
+/* Hover-for-derivation popover (§3.1, §5.1) */
+.derivation-pop {
+  display: none; position: absolute; left: 8px; top: 100%; z-index: 50;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px; min-width: 380px; max-width: 480px;
+  font-size: .72rem; color: var(--text-dim);
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  font-family: 'SF Mono', Menlo, monospace;
+  line-height: 1.55;
+}
+.det-row:hover .derivation-pop { display: block; }
+.derivation-pop .row { color: var(--text); margin-bottom: 4px; }
+.derivation-pop .row:last-child { margin-bottom: 0; }
+.derivation-pop .k { color: var(--text-mute); display: inline-block; min-width: 110px; }
+
+/* Cell confidence visual (§4.3) */
+.conf-chip {
+  display: inline-block; padding: 1px 6px; border-radius: 3px;
+  font-size: .62rem; font-weight: 600;
+  font-family: 'SF Mono', Menlo, monospace;
+  margin-left: 4px;
+}
+.conf-strict    { background: var(--surface-2); color: var(--text); }
+.conf-pooled    { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.conf-aggregate { background: transparent; color: var(--text-dim); border: 1px dashed var(--border); }
+.conf-none      { background: transparent; color: var(--text-mute); opacity: .7; }
+
+/* ── Right column: shadow-compare + tick-stream ──────────────────────── */
+.right-col { display: flex; flex-direction: column; max-height: calc(100vh - 360px); }
+.shadow-panel { padding: 16px 24px 8px; border-bottom: 1px solid var(--surface-2); }
+.tick-stream { padding: 12px 24px; overflow-y: auto; flex: 1; }
+
+/* Shadow-compare table (§3.2) */
+.shadow-table { width: 100%; border-collapse: collapse; font-size: .72rem; }
+.shadow-table th { color: var(--text-mute); font-weight: 500; padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--surface-2); }
+.shadow-table td { padding: 3px 6px; border-bottom: 1px solid var(--surface-2); vertical-align: top; }
+.shadow-table .tk { color: var(--text-mute); font-family: 'SF Mono', Menlo, monospace; width: 28px; }
+.shadow-table .casc, .shadow-table .port { font-family: 'SF Mono', Menlo, monospace; font-size: .7rem; }
+.shadow-table tr.diverge { background: var(--diverge-bg); }
+.shadow-table tr.diverge td { color: #2d2814; }
+.shadow-table tr.diverge .tk { color: #5a4f1d; }
+.diff-chip { display: inline-block; padding: 0 5px; border-radius: 3px; font-size: .6rem; margin-left: 4px; background: rgba(0,0,0,.25); color: #2d2814; }
+/* §3.2 divergence categories */
+.diff-portfolio-catches { background: var(--v-proceed); color: #fff; }
+.diff-cascade-catches   { background: var(--v-rollback); color: #fff; }
+.diff-timing            { background: rgba(0,0,0,.45); color: #fff; }
+/* Inline adversarial cascade-only label (ARCHITECT-REPLY-18 Option A) */
+.cascade-only-label { font-size: .7rem; color: var(--text-mute); font-style: italic; }
+.shadow-summary { font-size: .7rem; color: var(--text-mute); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--surface-2); }
+
+/* Tick-stream table (existing pattern, slim) */
+.tick-stream table { width: 100%; border-collapse: collapse; font-size: .76rem; }
+.tick-stream th { color: var(--text-mute); font-weight: 500; padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--surface-2); position: sticky; top: 0; background: var(--bg); }
+.tick-stream td { padding: 5px 8px; border-bottom: 1px solid #1a2332; vertical-align: top; }
+.tick-stream tr.active { background: var(--surface-2); }
+
+/* Final-verdict banner */
+.final { margin: 10px 32px; padding: 12px 16px; border-radius: 6px; font-size: .82rem; display: none; }
+.final.show { display: block; }
+.final-rollback { background: rgba(217,48,37,.10); border: 1px solid var(--v-rollback); color: #fca5a5; }
+.final-proceed  { background: rgba(30,158,79,.10);  border: 1px solid var(--v-proceed);  color: #86efac; }
+.final-extend   { background: rgba(232,177,9,.10);  border: 1px solid var(--v-extend);   color: #fcd34d; }
+
+/* Pause-beat indicator */
+.pause-beat-flash { animation: pulse 1.5s ease-out; }
+@keyframes pulse { 0%, 100% { background: var(--surface-2); } 50% { background: var(--diverge-bg); } }
+
+/* Footer */
+.footer { padding: 12px 32px; border-top: 1px solid var(--surface-2); font-size: .72rem; color: var(--text-mute); text-align: center; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * W6 UX REBUILD — front-panel shell (Phase 1.5 visual identity) and
+ * details drawer. Markup under these rules is what the stakeholder sees;
+ * the old provenance / shadow-compare / α-budget / calibration markup
+ * (above) is reused verbatim inside the drawer sections (W6 brief: no
+ * engine changes; reuse W5 panels for math-depth on demand).
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Mode toggle — cascade vs portfolio (front-panel switch) ──────── */
+.mode-toggle { display: inline-flex; align-items: center; gap: 0; margin-left: auto; }
+.mode-toggle-label { font-size: .7rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: .06em; margin-right: 8px; }
+.mode-btn {
+  background: var(--surface-2); color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 6px 14px; font-size: .78rem; cursor: pointer;
+  font-family: 'SF Mono', Menlo, monospace;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.mode-btn.left { border-radius: 6px 0 0 6px; border-right: none; }
+.mode-btn.right { border-radius: 0 6px 6px 0; }
+.mode-btn.active { background: #1e40af; color: #fff; border-color: #3b82f6; }
+.mode-btn.active + .mode-btn { border-left: 1px solid #3b82f6; }
+
+/* ── Live verdict banner (between controls and front panel) ───────── */
+.live-banner {
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--surface-2);
+  background: var(--surface-1);
+  display: flex; align-items: center; gap: 20px;
+}
+.live-banner .lbl {
+  font-size: .68rem; color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.live-banner .tick-val {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 1.25rem; color: var(--text);
+  min-width: 80px;
+}
+.live-banner .mode-chip {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .72rem; color: var(--text-dim);
+  padding: 3px 10px; border: 1px solid var(--border); border-radius: 4px;
+  background: var(--surface-2);
+}
+.live-banner .verdict-group {
+  margin-left: auto; display: flex; align-items: center; gap: 10px;
+}
+.live-banner .v-live {
+  display: inline-block;
+  padding: 6px 20px; border-radius: 20px;
+  font-size: 1rem; font-weight: 600;
+  font-family: 'SF Mono', Menlo, monospace;
+  letter-spacing: .01em;
+  /* Friendly wording ("Extend · Continue Observing") is mixed-case —
+   * drop the v.v-live lowercase override the v-* chip sets elsewhere. */
+  text-transform: none;
+}
+
+/* ── Verdict legend — 4 color-coded dots + gloss for unfamiliar viewers ─ */
+.verdict-legend {
+  padding: 8px 32px; border-bottom: 1px solid var(--surface-2);
+  font-size: .7rem; color: var(--text-dim);
+  display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline;
+}
+.verdict-legend .lbl {
+  color: var(--text-mute); text-transform: uppercase; letter-spacing: .06em;
+  font-size: .65rem;
+}
+.verdict-legend .item { display: inline-flex; align-items: center; gap: 6px; }
+.verdict-legend .dot {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.verdict-legend .dot-proceed  { background: var(--v-proceed); }
+.verdict-legend .dot-extend   { background: var(--v-extend); }
+.verdict-legend .dot-rollback { background: var(--v-rollback); }
+.verdict-legend .dot-baking   { background: var(--v-baking); }
+.verdict-legend b { color: var(--text); font-weight: 600; }
+
+/* ── Front panel — metrics panel (left) + detectors panel (right) ── */
+.front {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0;
+}
+@media (max-width: 1100px) { .front { grid-template-columns: 1fr; } }
+
+.metrics-panel, .detectors-panel {
+  padding: 14px 24px;
+  overflow-y: auto;
+  max-height: calc(100vh - 340px);
+  min-height: 340px;
+}
+.metrics-panel { border-right: 1px solid var(--surface-2); }
+.panel-h {
+  font-size: .72rem; color: var(--text-mute); text-transform: uppercase;
+  letter-spacing: .06em; margin-bottom: 10px;
+}
+
+/* Metrics panel rows — one per signal */
+.metric-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 72px 68px 70px 22px;
+  gap: 8px; align-items: center;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--surface-2);
+  font-size: .78rem;
+  position: relative;
+}
+.metric-row:last-child { border-bottom: none; }
+.metric-name { color: var(--text); font-family: 'SF Mono', Menlo, monospace; font-size: .74rem; }
+.metric-val, .metric-base {
+  text-align: right; font-family: 'SF Mono', Menlo, monospace; font-size: .74rem;
+}
+.metric-val { color: var(--text); }
+.metric-base { color: var(--text-mute); }
+.metric-delta {
+  text-align: right; font-family: 'SF Mono', Menlo, monospace; font-size: .7rem;
+  padding: 2px 6px; border-radius: 3px;
+}
+.metric-delta.green   { background: rgba(30,158,79,.14);   color: #86efac; }
+.metric-delta.yellow  { background: rgba(232,177,9,.14);   color: #fcd34d; }
+.metric-delta.red     { background: rgba(217,48,37,.16);   color: #fca5a5; }
+.metric-delta.neutral { background: var(--surface-2);       color: var(--text-mute); }
+.trend-arrow {
+  text-align: center; font-size: .9rem; cursor: help;
+  color: var(--text-mute); line-height: 1;
+}
+.trend-arrow.up   { color: #fca5a5; }
+.trend-arrow.down { color: #93c5fd; }
+.trend-arrow.flat { color: var(--text-mute); }
+
+/* Trend snapshot popover (hover trend arrow) — shows {n, slopeNorm, cv, trendStrength} */
+.trend-pop {
+  display: none; position: absolute; right: 0; top: 100%; z-index: 55;
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 5px; padding: 10px 12px; min-width: 260px;
+  font-family: 'SF Mono', Menlo, monospace; font-size: .68rem;
+  color: var(--text-dim); line-height: 1.55;
+  box-shadow: 0 6px 16px rgba(0,0,0,.5);
+}
+.metric-row:hover .trend-pop { display: block; }
+.trend-pop .hd {
+  color: var(--text); font-size: .72rem; margin-bottom: 6px;
+  border-bottom: 1px solid var(--surface-2); padding-bottom: 4px;
+}
+.trend-pop .win { margin-bottom: 3px; }
+.trend-pop .k { color: var(--text-mute); display: inline-block; min-width: 58px; }
+
+/* Detectors panel — 5 family groups */
+.det-filter {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 8px; padding: 2px 0;
+  font-size: .72rem; color: var(--text-dim);
+  cursor: pointer; user-select: none;
+}
+.det-filter input { cursor: pointer; }
+.det-fam {
+  background: var(--surface-1); border: 1px solid var(--surface-2);
+  border-radius: 5px; margin-bottom: 6px; overflow: hidden;
+}
+.det-fam-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; cursor: pointer; user-select: none;
+}
+.det-fam-row:hover { background: var(--surface-2); }
+.det-fam-row .fl {
+  width: 22px; height: 22px; border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .78rem; color: #fff; flex-shrink: 0;
+}
+.det-fam-A .fl { background: var(--fam-A); }
+.det-fam-B .fl { background: var(--fam-B); }
+.det-fam-C .fl { background: var(--fam-C); }
+.det-fam-D .fl { background: var(--fam-D); }
+.det-fam-E .fl { background: var(--fam-E); }
+.det-fam-name { flex: 1; color: var(--text); font-size: .78rem; }
+.det-fam-name .descr { color: var(--text-mute); font-size: .68rem; margin-left: 6px; }
+.det-fam-count {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .68rem; color: var(--text-mute);
+  min-width: 72px; text-align: right;
+}
+.det-fam-state {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .63rem; padding: 2px 7px; border-radius: 3px;
+  text-transform: lowercase; min-width: 66px; text-align: center;
+}
+.det-state-monitoring { background: var(--surface-2); color: var(--text-mute); border: 1px solid var(--border); }
+.det-state-armed      { background: rgba(59,130,246,.14); color: #93c5fd; border: 1px solid #3b82f6; }
+.det-state-fired      { background: rgba(217,48,37,.18); color: var(--v-rollback); border: 1px solid var(--v-rollback); }
+.det-state-suppressed {
+  background: repeating-linear-gradient(45deg, rgba(138,143,156,.12), rgba(138,143,156,.12) 3px, transparent 3px, transparent 6px);
+  color: var(--text-mute); border: 1px solid var(--v-suppressed);
+}
+.det-fam-list {
+  display: none;
+  padding: 0 12px 8px;
+  border-top: 1px solid var(--surface-2);
+}
+.det-fam.open .det-fam-list { display: block; }
+.det-mini-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 80px;
+  gap: 8px; align-items: center;
+  padding: 5px 2px;
+  border-bottom: 1px solid var(--surface-2);
+}
+.det-mini-row:last-child { border-bottom: none; }
+.det-mini-name {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .66rem; color: var(--text);
+}
+.det-mini-state { text-align: right; }
+
+/* ── Details drawer ───────────────────────────────────────────────── */
+.drawer-toggle {
+  width: 100%; padding: 12px 32px;
+  background: var(--surface-1);
+  border: none; border-top: 1px solid var(--surface-2);
+  border-bottom: 1px solid var(--surface-2);
+  color: var(--text); font-size: .82rem; cursor: pointer;
+  text-align: left; transition: background .15s;
+  font-family: inherit;
+}
+.drawer-toggle:hover { background: var(--surface-2); }
+.drawer-toggle .caret {
+  display: inline-block; margin-right: 10px;
+  transition: transform .2s; font-size: .75rem; color: var(--text-mute);
+}
+.drawer-toggle.open .caret { transform: rotate(90deg); }
+.drawer-toggle .hint {
+  float: right; font-size: .72rem; color: var(--text-mute); font-weight: normal;
+}
+.drawer { display: none; }
+.drawer.open { display: block; }
+
+.drawer-section { border-bottom: 1px solid var(--surface-2); }
+.drawer-section:last-child { border-bottom: none; }
+.drawer-section-head {
+  padding: 10px 32px; background: var(--surface-1);
+  cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 10px;
+  transition: background .15s;
+}
+.drawer-section-head:hover { background: var(--surface-2); }
+.drawer-section-head .caret {
+  transition: transform .2s; font-size: .7rem;
+  color: var(--text-mute); min-width: 12px;
+}
+.drawer-section.open .drawer-section-head .caret { transform: rotate(90deg); }
+.drawer-section-head .title { font-size: .8rem; color: var(--text); }
+.drawer-section-head .sub {
+  margin-left: auto; font-size: .68rem; color: var(--text-mute);
+  font-family: 'SF Mono', Menlo, monospace;
+}
+.drawer-section-body { display: none; }
+.drawer-section.open .drawer-section-body { display: block; }
+
+/* Override old panel max-heights when living inside the drawer — the
+ * drawer already scrolls within the page, so each section should show
+ * its full content (scrollable inner where needed). */
+.drawer .main { display: block; }
+.drawer .prov-panel, .drawer .right-col { max-height: none; border-right: none; }
+.drawer .prov-panel { padding: 12px 32px 4px; }
+.drawer .shadow-panel { padding: 12px 32px 6px; border-bottom: none; }
+.drawer .alpha-meter { border-bottom: none; padding: 14px 32px; }
+.drawer .prov-panel,
+.drawer .shadow-panel,
+.drawer .alpha-meter { overflow-x: auto; }
+.cal-drawer-body { padding: 14px 32px; font-size: .82rem; color: var(--text-dim); }
+.cal-drawer-body table { width: 100%; border-collapse: collapse; font-size: .76rem; margin-top: 8px; }
+.cal-drawer-body th, .cal-drawer-body td { padding: 5px 10px; border-bottom: 1px solid var(--surface-2); text-align: left; }
+.cal-drawer-body th { color: var(--text-mute); font-weight: 500; }
+
+/* ── Baseline-history / service-maturity drawer section (W13) ──────
+ * Per ARCHITECT-REPLY-24 Item 6. Slate-gray is reserved for baseline-
+ * status indicators; NOT reusing verdict traffic-light (green/yellow/
+ * red) or family palette (A blue / B teal / C purple / D amber / E
+ * magenta). Users shouldn't read "drift detected" as "rollback needed"
+ * or tag it to a specific family. Keeping the hue distinct carries that
+ * meaning visually. */
+:root {
+  --baseline-status:      #5a6573;  /* slate-gray — baseline-state indicators */
+  --baseline-status-dim:  #3a4048;  /* muted slate — timeline background */
+  --maturity-up:          #1e9e4f;  /* green — signal moved in direction-of-better */
+  --maturity-down:        #d93025;  /* red — signal moved opposite direction-of-better */
+  --maturity-neutral:     #94a3b8;  /* gray — informational-only signals (no direction) */
+}
+
+.baseline-drawer-body { padding: 14px 32px; font-size: .8rem; color: var(--text-dim); }
+
+/* Current baseline badge (top of the section) */
+.baseline-badge {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--baseline-status);
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+.baseline-badge .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--baseline-status);
+  flex-shrink: 0;
+}
+.baseline-badge .ver {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .85rem; color: var(--text);
+}
+.baseline-badge .meta {
+  font-size: .72rem; color: var(--text-mute);
+  margin-left: auto;
+}
+.baseline-badge.drift-detected { border-color: var(--maturity-down); }
+.baseline-badge.drift-detected .dot { background: var(--maturity-down); }
+
+/* Timeline: horizontal list of baseline versions */
+.baseline-timeline {
+  display: flex; gap: 12px;
+  padding: 10px 4px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--surface-2);
+  overflow-x: auto;
+}
+.baseline-timeline .node {
+  min-width: 140px; flex-shrink: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--surface-2);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: .72rem;
+}
+.baseline-timeline .node.active {
+  border-color: var(--baseline-status);
+  box-shadow: 0 0 0 2px rgba(90,101,115,.3);
+}
+.baseline-timeline .node .id {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .68rem; color: var(--text);
+}
+.baseline-timeline .node .reason {
+  font-size: .65rem; color: var(--text-mute);
+  text-transform: lowercase;
+  margin-top: 3px;
+}
+.baseline-timeline .node .marker {
+  display: inline-block;
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-right: 6px; vertical-align: middle;
+}
+.baseline-timeline .node .marker.drift-detected { background: var(--baseline-status); }
+.baseline-timeline .node .marker.cutover        { background: var(--maturity-up); }
+.baseline-timeline .node .marker.shadow-pending { background: #e8b109; } /* amber */
+.baseline-timeline .node .marker.scheduled      { background: var(--text-mute); }
+.baseline-timeline .node .marker.post-incident  { background: var(--maturity-down); }
+
+/* Meta-metrics trend chart */
+.maturity-chart {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.maturity-signal {
+  background: var(--surface-1);
+  border: 1px solid var(--surface-2);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.maturity-signal .name {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .7rem; color: var(--text-dim);
+  margin-bottom: 3px;
+}
+.maturity-signal .val {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .82rem; color: var(--text);
+}
+.maturity-signal .delta {
+  float: right;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: .7rem;
+  padding: 1px 6px; border-radius: 3px;
+}
+.maturity-signal .delta.up    { background: rgba(30,158,79,.14);  color: var(--maturity-up); }
+.maturity-signal .delta.down  { background: rgba(217,48,37,.14);  color: var(--maturity-down); }
+.maturity-signal .delta.info  { background: var(--surface-2);     color: var(--maturity-neutral); }
+.maturity-signal .info-tag {
+  display: inline-block;
+  font-size: .58rem; color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: .08em;
+  margin-left: 6px;
+}
+
+/* Service trajectory summary line */
+.maturity-summary {
+  font-size: .78rem; color: var(--text-dim);
+  padding: 10px 12px;
+  background: var(--surface-1);
+  border-left: 3px solid var(--baseline-status);
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 14px;
+}
+.maturity-summary strong { color: var(--text); font-weight: 600; }
+
+/* Live drift-status readout (surfaces during a Demo 6 run) */
+.drift-status {
+  display: flex; align-items: baseline; gap: 14px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: 5px;
+  margin-bottom: 12px;
+  font-size: .76rem;
+  color: var(--text-dim);
+  border: 1px solid var(--baseline-status-dim);
+}
+.drift-status .lbl { color: var(--text-mute); text-transform: uppercase; letter-spacing: .06em; font-size: .65rem; }
+.drift-status .val { font-family: 'SF Mono', Menlo, monospace; color: var(--text); }
+.drift-status.fired { border-color: var(--baseline-status); background: rgba(90,101,115,.16); }
+.drift-status.fired .val { color: var(--baseline-status); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-titles">
+    <h1>DeploySignal</h1>
+    <div class="tagline">Deployment health gate for AI inference. Five families, portfolio fusion, anytime-valid α control.</div>
+  </div>
+  <div class="header-right">
+    <!-- Calibration version badge (§3.3) — populated at run time from compiled_config_version -->
+    <div class="cal-badge" id="calBadge" onclick="openCalModal()">
+      <span class="icon">📎</span>
+      <span class="ver" id="calBadgeVer">no config loaded</span>
+    </div>
+  </div>
+</div>
+
+<!-- Calibration modal (§3.3 click-to-expand) -->
+<div class="cal-modal-back" id="calModalBack" onclick="closeCalModal(event)">
+  <div class="cal-modal" onclick="event.stopPropagation()">
+    <span class="close" onclick="closeCalModal()">&times;</span>
+    <h3>Compiled Configuration</h3>
+    <div id="calModalBody"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <select id="scenarioSelect" onchange="onScenarioChange()"></select>
+  <button class="btn-run" id="runBtn" onclick="runDemo()">Run</button>
+  <button class="btn-pause" id="pauseBtn" onclick="pauseDemo()" disabled>Pause</button>
+  <button class="btn-reset" onclick="resetDemo()">Reset</button>
+  <div class="mode-toggle">
+    <span class="mode-toggle-label">Mode</span>
+    <button class="mode-btn left" id="modeBtnCascade" onclick="setMode('cascade')">Cascade</button>
+    <button class="mode-btn right active" id="modeBtnPortfolio" onclick="setMode('portfolio')">Portfolio</button>
+  </div>
+</div>
+<div class="desc" id="descBox"></div>
+
+<!-- Demo 3 reconstruction-fidelity caveat (§6.3 honest-broker) — toggled by scenario -->
+<div class="fidelity-strip" id="fidelityStrip"></div>
+
+<!-- Live verdict banner — updates per tick during run -->
+<div class="live-banner">
+  <span class="lbl">Tick</span>
+  <span class="tick-val" id="liveTick">—/—</span>
+  <span class="mode-chip" id="liveMode">portfolio</span>
+  <div class="verdict-group">
+    <span class="lbl">Verdict</span>
+    <span class="v v-live v-baking" id="liveVerdict">Baking…</span>
+  </div>
+</div>
+
+<!-- Four-state verdict legend — kept inline so first-time viewers can
+     parse the live banner without opening the drawer. -->
+<div class="verdict-legend">
+  <span class="lbl">States:</span>
+  <span class="item"><span class="dot dot-proceed"></span><b>Proceed</b> — promote the deploy</span>
+  <span class="item"><span class="dot dot-extend"></span><b>Extend</b> — keep observing; not yet decided</span>
+  <span class="item"><span class="dot dot-rollback"></span><b>Rollback</b> — revert the deploy</span>
+  <span class="item"><span class="dot dot-baking"></span><b>Baking</b> — gathering tick history (pre-decision)</span>
+</div>
+
+<div class="final" id="finalBanner"></div>
+
+<!-- ── Front panel: metrics (left) + detectors (right) ────────────── -->
+<div class="front">
+  <div class="metrics-panel">
+    <div class="panel-h">Signals — Live vs Baseline</div>
+    <div id="metricsBody">
+      <div style="font-size:.78rem;color:var(--text-mute);font-style:italic">Run a scenario to populate signals.</div>
+    </div>
+  </div>
+  <div class="detectors-panel">
+    <div class="panel-h">Detectors — State per Family</div>
+    <label class="det-filter">
+      <input type="checkbox" id="detArmedOnly" onchange="renderDetectors()">
+      Armed / fired only
+    </label>
+    <div id="detectorsBody">
+      <div style="font-size:.78rem;color:var(--text-mute);font-style:italic">Run a scenario to populate detectors.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Details drawer (collapsed by default — math-depth on demand) ─ -->
+<button type="button" class="drawer-toggle" id="drawerToggle" onclick="toggleDrawer()">
+  <span class="caret">▸</span>
+  <span id="drawerToggleLabel">Show details</span>
+  <span class="hint">provenance · shadow-compare · α-budget · calibration</span>
+</button>
+
+<div class="drawer" id="drawer">
+  <div class="drawer-section" id="drawerSecProv">
+    <div class="drawer-section-head" onclick="toggleDrawerSection('Prov')">
+      <span class="caret">▸</span>
+      <span class="title">Provenance — Per-Tick Family Verdicts (§3.1)</span>
+      <span class="sub">hover any detector for derivation</span>
+    </div>
+    <div class="drawer-section-body">
+      <div class="prov-panel">
+        <div id="provBody">
+          <div style="font-size:.78rem;color:var(--text-mute);font-style:italic">Run a scenario to populate per-tick provenance.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-section" id="drawerSecShadow">
+    <div class="drawer-section-head" onclick="toggleDrawerSection('Shadow')">
+      <span class="caret">▸</span>
+      <span class="title">Shadow-Compare — Cascade vs Portfolio (§3.2)</span>
+      <span class="sub">divergence highlighted in yellow</span>
+    </div>
+    <div class="drawer-section-body">
+      <div class="shadow-panel">
+        <table class="shadow-table">
+          <thead><tr><th>Tick</th><th>Cascade (legacy)</th><th>Portfolio (NS)</th></tr></thead>
+          <tbody id="shadowBody"></tbody>
+        </table>
+        <div class="shadow-summary" id="shadowSummary">No divergences yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-section" id="drawerSecAlpha">
+    <div class="drawer-section-head" onclick="toggleDrawerSection('Alpha')">
+      <span class="caret">▸</span>
+      <span class="title">α-Budget — Per-Family Allocation (§3.4)</span>
+      <span class="sub">Ville's inequality · 40/20/20/10/10</span>
+    </div>
+    <div class="drawer-section-body">
+      <div class="alpha-meter">
+        <div class="alpha-header">
+          <span class="lbl">α budget</span>
+          <span class="val" id="alphaTotalVal">0 / 1.0e-3 (0.0%)</span>
+        </div>
+        <div class="alpha-bar" id="alphaBar">
+          <div class="alpha-seg" data-fam="A" style="background:rgba(47,110,201,.20)"><div class="fill" style="background:var(--fam-A);width:0%"></div><div class="seg-tip" id="segTipA">A: 0 / 0</div></div>
+          <div class="alpha-seg" data-fam="B" style="background:rgba(13,138,124,.20)"><div class="fill" style="background:var(--fam-B);width:0%"></div><div class="seg-tip" id="segTipB">B: 0 / 0</div></div>
+          <div class="alpha-seg" data-fam="C" style="background:rgba(123,63,199,.20)"><div class="fill" style="background:var(--fam-C);width:0%"></div><div class="seg-tip" id="segTipC">C: 0 / 0</div></div>
+          <div class="alpha-seg" data-fam="D" style="background:rgba(208,122,31,.20)"><div class="fill" style="background:var(--fam-D);width:0%"></div><div class="seg-tip" id="segTipD">D: 0 / 0</div></div>
+          <div class="alpha-seg" data-fam="E" style="background:rgba(195,44,138,.20)"><div class="fill" style="background:var(--fam-E);width:0%"></div><div class="seg-tip" id="segTipE">E: 0 / 0</div></div>
+        </div>
+        <div class="alpha-meter-tip">
+          Under <strong>Ville's inequality</strong> (Page-CUSUM with mixture prior),
+          run-level false-alarm probability ≤ α<sub>total</sub> regardless of tick count.
+          Stacked bar shows per-family allocation (40/20/20/10/10); fill within each segment
+          is cumulative α<sub>spent</sub>. Hover any segment for per-family detail.
+        </div>
+        <div class="alpha-legend">
+          <span class="item"><span class="swatch" style="background:var(--fam-A)"></span>A 40%</span>
+          <span class="item"><span class="swatch" style="background:var(--fam-B)"></span>B 20%</span>
+          <span class="item"><span class="swatch" style="background:var(--fam-C)"></span>C 20%</span>
+          <span class="item"><span class="swatch" style="background:var(--fam-D)"></span>D 10%</span>
+          <span class="item"><span class="swatch" style="background:var(--fam-E)"></span>E 10%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-section" id="drawerSecCal">
+    <div class="drawer-section-head" onclick="toggleDrawerSection('Cal')">
+      <span class="caret">▸</span>
+      <span class="title">Calibration — Compiled Config (§3.3)</span>
+      <span class="sub">header badge opens full modal</span>
+    </div>
+    <div class="drawer-section-body">
+      <div class="cal-drawer-body" id="calDrawerBody">
+        <span style="color:var(--text-mute);font-style:italic">No compiled config loaded yet.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- W13 (ARCHITECT-REPLY-24 Item 6): Baseline History / service-
+       maturity dashboard. Renders baseline version timeline + per-
+       signal maturity trends + live drift detector state. Useful for
+       all demos — for Demo 6 the live drift-status panel lights up as
+       the drift detector crosses its threshold mid-run. -->
+  <div class="drawer-section" id="drawerSecBaseline">
+    <div class="drawer-section-head" onclick="toggleDrawerSection('Baseline')">
+      <span class="caret">▸</span>
+      <span class="title">Baseline History — Service Maturity Dashboard</span>
+      <span class="sub">drift detector · recalibration timeline · 9 directional + 4 informational signals</span>
+    </div>
+    <div class="drawer-section-body">
+      <div class="baseline-drawer-body" id="baselineDrawerBody">
+        <span style="color:var(--text-mute);font-style:italic">No baseline history loaded.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <a href="https://github.com/johnpatrickwarren-oss/deploysignal">github.com/johnpatrickwarren-oss/deploysignal</a>
+  &nbsp;·&nbsp; Engine runs entirely in-browser &nbsp;·&nbsp; No backend &nbsp;·&nbsp;
+  WS3-INTERFACE-WEEK5 spec compliance
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// DeploySignal Engine — AUTO-GENERATED from engine/index.browser.js
+// Do not edit this block. Run: node tools/build-demo.js
+// ══════════════════════════════════════════════════════════════════════
+/* {{ENGINE_INLINE}} */
+
+// ══════════════════════════════════════════════════════════════════════
+// Compiled config (v4) — embedded for portfolio runs
+// ══════════════════════════════════════════════════════════════════════
+/* {{COMPILED_CONFIG_INLINE}} */
+
+// ══════════════════════════════════════════════════════════════════════
+// Canned demos (filled by WS3.5; empty until then)
+// ══════════════════════════════════════════════════════════════════════
+/* {{CANNED_DEMOS_INLINE}} */
+
+// ══════════════════════════════════════════════════════════════════════
+// Baseline history (W13; ARCHITECT-REPLY-24 Item 2). Array of prior
+// baseline versions ordered oldest → newest. Feeds the service-maturity
+// dashboard drawer section — timeline, per-signal trend, meta-metrics
+// summary line. The actual current baseline is window.COMPILED_CONFIG_V4;
+// these are lighter-weight artifact records with per-version metadata
+// + maturity_metrics summary for UI display.
+// ══════════════════════════════════════════════════════════════════════
+/* {{BASELINE_HISTORY_INLINE}} */
+
+// ══════════════════════════════════════════════════════════════════════
+// Demo scenarios — adversarial set used until WS3.5 canned demos land
+// ══════════════════════════════════════════════════════════════════════
+
+// Inline synthetic scenarios — cascade-mode-only in UI per ARCHITECT-REPLY-18
+// (Option A: cascade-only-lock). These entries have no cell_patch, so
+// portfolio mode evaluates them against v4 cell (14,2) baseline means that
+// don't match the scenario baseline; Family A CUSUMs fire on the mismatch
+// delta rather than on the family the scenario was designed to exercise
+// (same artifact class as commit aa5070b — "Clean Deploy (clean)" removal).
+// The shadow-compare portfolio column renders an "inline adversarial —
+// cascade-mode only" label when one of these is selected. §D regression
+// lock in test/canned-demo-right-reasons.test.ts stays as a forcing
+// function — if anyone re-enables inline adversarials in portfolio mode
+// later, the lock trips and cell_patches must ship alongside. Users who
+// want a portfolio run pick a canned demo (demos/scripts/demo-*.json),
+// which ships a matching cell_patch.
+var DEMO_SCENARIOS = [
+  { id:'adv_slowbleed', name:'Sub-Threshold Latency Creep (Family A/B)', riskLevel:'high', bakeHours:6, author:'agent', changeType:'model_weights', timeWindow:'ok',
+    flags:{security:false,artifact_content:false,provenance:false,contract:false,toolchain:false,zeta:true,approval:true},
+    baseline:{p99_latency:410,ttft:195,tokens_turn:312,kv_cache:0.71,cost_req:0.0041,downstream_err:0.004,mfu:0.61,hbm_spill:0.01,collective_ops:0.9993,corpus_delta:0.002,traffic_pct:0.1},
+    driftParams:{p99latencySlope:0.01,tokensturnSlope:0.012,costreqSlope:0.008,corpusdeltaSlope:0.012,mfuSlope:-0.008,kvcacheSlope:-0.006,onsetTick:2},
+    description:'4+ metrics drift simultaneously below individual thresholds. Family B slowbleed catches the joint pattern.',
+    expectedVerdict:'rollback'
+  },
+  { id:'adv_mfu_drop_no_lat_corr', name:'MFU Silent Drop (Family C)', riskLevel:'critical', bakeHours:12, author:'agent', changeType:'model_weights', timeWindow:'ok',
+    flags:{security:false,artifact_content:false,provenance:false,contract:false,toolchain:false,zeta:true,approval:true},
+    baseline:{p99_latency:182,ttft:215,tokens_turn:412,kv_cache:0.89,cost_req:0.004,downstream_err:0.11,mfu:0.74,hbm_spill:0.019,collective_ops:0.9997,corpus_delta:0.05,traffic_pct:1},
+    driftParams:{mfuSlope:-0.012,hbmspillSlope:0.008,p99latencySlope:0.005},
+    description:'MFU drops 12%+ with HBM rising, but p99 stays flat. Family C Hotelling T² catches the joint multivariate drift.',
+    expectedVerdict:'rollback'
+  },
+  { id:'adv_slow_downstream', name:'Slow Downstream Creep (Family A)', riskLevel:'high', bakeHours:10, author:'human', changeType:'serving_code', timeWindow:'ok',
+    flags:{security:false,artifact_content:false,provenance:false,contract:false,toolchain:false,zeta:true,approval:true},
+    baseline:{p99_latency:172,ttft:390,tokens_turn:790,kv_cache:0.75,cost_req:0.0028,downstream_err:0.006,mfu:0.74,hbm_spill:0.03,collective_ops:0.999,corpus_delta:0.003,traffic_pct:0.58},
+    driftParams:{downstreamerrSlope:0.022,p99latencySlope:0.002,ttftSlope:0.001},
+    description:'Downstream errors grow steadily — Family A mSPRT on downstream_err crosses threshold.',
+    expectedVerdict:'rollback'
+  }
+];
+
+// makeAdvDrift — reproduces the multiplier-per-tick drift generator used
+// by the inline adversarial scenarios. Inlined here because the browser
+// bundle (engine/index.browser.js) does not expose it: it's a demo-only
+// helper, not part of the engine's public API surface. Reference impl
+// lives at test/canned-demo-right-reasons.test.ts:181 for test replay;
+// keep these two in sync if either changes.
+//
+// Accepts an older set of slope aliases ("latSlope" → "p99latencySlope",
+// etc.) so hand-written scenarios don't have to match the engine-key
+// form exactly. Returns a function(tick) → per-signal multipliers; live
+// metric = baseline × multiplier at each tick.
+function makeAdvDrift(p) {
+  var _ka = {
+    latSlope: 'p99latencySlope', tokSlope: 'tokensturnSlope', tokenSlope: 'tokensturnSlope',
+    costSlope: 'costreqSlope', costDrop: 'costreqSlope', costDropSlope: 'costreqSlope',
+    kvSlope: 'kvcacheSlope', hbmSlope: 'hbmspillSlope', hbmRiseSlope: 'hbmspillSlope',
+    kvDropSlope: 'kvcacheSlope', collectiveSlope: 'collectiveopsSlope',
+  };
+  var _pn = {};
+  for (var k in p) {
+    if (Object.prototype.hasOwnProperty.call(p, k)) {
+      var _k = _ka[k] || k;
+      if (!(_k in _pn)) _pn[_k] = p[k];
+    }
+  }
+  p = _pn;
+  var onset = p.onsetTick || 0;
+  var gAmp  = p.oscillationAmplitude || 0;
+  var gPer  = p.oscillationPeriod || 8;
+  var keys = ['p99_latency','ttft','tokens_turn','kv_cache','cost_req','downstream_err','mfu','hbm_spill','collective_ops','corpus_delta','traffic_pct'];
+  return function (i) {
+    var out = {};
+    for (var ki = 0; ki < keys.length; ki++) {
+      var key = keys[ki];
+      var flat = key.replace(/_/g, '');
+      var sl  = p[flat + 'Slope']     || p.globalSlope || 0;
+      var amp = p[flat + 'OscAmp']    || gAmp;
+      var per = p[flat + 'OscPeriod'] || gPer;
+      var osc = amp > 0 ? amp * Math.sin(2 * Math.PI * i / per) : 0;
+      var mult = i >= onset
+        ? 1 + (i - onset + 1) * sl + osc + 0.005 * (Math.random() - 0.5)
+        : 1 + osc + 0.005 * (Math.random() - 0.5);
+      // Ratio-space signals clamp at physical bounds (the engine's
+      // mSPRT baselines treat >1.05 as out-of-band, <0.3 as numerically
+      // unstable). Mirrors the reference impl.
+      if (key === 'kv_cache' || key === 'mfu' || key === 'traffic_pct' || key === 'collective_ops') {
+        mult = Math.max(0.3, Math.min(1.05, mult));
+      }
+      out[key] = mult;
+    }
+    return out;
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Family + verdict labeling — per WS3-INTERFACE-WEEK5 §3.1
+// ══════════════════════════════════════════════════════════════════════
+
+var FAMILY_LABELS = {
+  A: 'Per-Signal mSPRT',
+  B: 'Structural Signatures',
+  C: 'Multivariate (Hotelling T²)',
+  D: 'Temporal (ACF Spectral)',
+  E: 'Conformal Novelty',
+};
+
+// Compiler version display — falls back to 'cascade-default' if no compiled config.
+function readCompiledConfigVersion(rec) {
+  if (rec && rec.compiled_config_version) return rec.compiled_config_version;
+  if (window.COMPILED_CONFIG_V4 && window.COMPILED_CONFIG_V4.version) return window.COMPILED_CONFIG_V4.version;
+  return 'cascade-default';
+}
+
+// α budget defaults — matches v4 layout (40/20/20/10/10).
+var ALPHA_FAMILY_WEIGHTS = { A: 0.40, B: 0.20, C: 0.20, D: 0.10, E: 0.10 };
+
+// ══════════════════════════════════════════════════════════════════════
+// State
+// ══════════════════════════════════════════════════════════════════════
+
+var _state = {
+  running: false,
+  paused: false,
+  animTimer: null,
+  tick: 0,
+  totalTicks: 32,
+  scenario: null,
+  cascadeTb: null,
+  portfolioTb: null,
+  cascadeRecords: [],   // per-tick v1 records
+  portfolioRecords: [], // per-tick v2 records
+  alphaSpent: { A: 0, B: 0, C: 0, D: 0, E: 0 },
+  alphaTotal: 1e-3,
+  divergences: 0,
+  divPortfolioCatches: 0,
+  divCascadeCatches: 0,
+  divTimingDeltas: 0,
+  cascadeFinalTick: null,
+  portfolioFinalTick: null,
+  // Tick cadence (§5.4) — 500 ms default for demo pace; canned demos can override.
+  cadenceMs: 120,
+  // W6: primary-surface display mode. Both engines still run every tick
+  // (shadow-compare stays honest); this just selects which record drives
+  // the live banner + detectors panel.
+  mode: 'portfolio',
+  // W6: current live metric values (most recent tick) for the metrics panel.
+  lastLive: null,
+  // W6: first-fire tick per detector — drives detector state chip.
+  detectorFired: { cascade: {}, portfolio: {} },
+  // W6: expand-state per family in the detectors panel.
+  detFamOpen: { A: true, B: false, C: false, D: false, E: false },
+  // W6: reusable DOM handles (built once in initMetricsPanel / renderDetectors)
+  metricRowCache: null,
+  // W9 Item 3 (α-meter first-fire aggregation): "f:detector_id" set of
+  // detectors that have already contributed their Ville bound. Ville's
+  // inequality — α is committed once at first fire. Subsequent fires
+  // of the same detector don't re-spend α.
+  firedDetectors: null,
+  // W9 Item 2 (rollback-settle window): once a rollback fires, the live
+  // banner locks on "Rollback @ t=N" and the run continues for a short
+  // settle window so corroborating fires remain visible, then stops.
+  // rollbackLockedTick is the tick at which rollback first fired (null
+  // otherwise). settleRemaining counts down each tick after rollback;
+  // when it hits 0 the tick loop terminates via finalize().
+  rollbackLockedTick: null,
+  rollbackLockedMode: null,  // 'cascade' | 'portfolio' — which stream rolled back
+  settleRemaining: 0,
+};
+
+// W9 Item 2: settle-window length after first rollback. Sized to cover
+// Demo 3's corroboration window (t=5 fire → t=10 four-family corroboration).
+var SETTLE_TICKS = 5;
+
+// W6: front-panel constants — 11 signals (brief §Primary surface #2).
+var METRICS_SIGNALS = [
+  'p99_latency', 'ttft', 'tokens_turn', 'kv_cache', 'cost_req',
+  'downstream_err', 'mfu', 'hbm_spill', 'collective_ops',
+  'corpus_delta', 'traffic_pct',
+];
+// Deltas on these signals are "red when higher" (latency, errors, cost, spill).
+// Everything else is "red when lower" (kv_cache, mfu, collective_ops).
+var METRICS_RED_WHEN_HIGHER = {
+  p99_latency: true, ttft: true, tokens_turn: true,
+  cost_req: true, downstream_err: true, hbm_spill: true,
+  corpus_delta: true, traffic_pct: true,
+};
+var METRICS_RED_WHEN_LOWER = {
+  kv_cache: true, mfu: true, collective_ops: true,
+};
+var FAMILY_DESCR = {
+  A: 'per-signal mSPRT (anytime-valid)',
+  B: 'structural signature heuristics',
+  C: 'multivariate Hotelling T²',
+  D: 'temporal ACF spectral',
+  E: 'conformal novelty (nonconformity)',
+};
+
+// W8a: friendly wording for the four verdict states a viewer actually
+// sees. Raw engine strings (proceed/extend/rollback/baking) are
+// technically correct but read as jargon — "extend" in particular was
+// misparsed as "don't exist" by a first-time viewer. Map reads left-to-
+// right: engine state → chip label. Palette (green/yellow/red/gray)
+// still comes from the v-<state> CSS classes; this only touches wording.
+var VERDICT_WORDING = {
+  proceed:    'Proceed · Promote',
+  extend:     'Extend · Continue Observing',
+  rollback:   'Rollback',
+  baking:     'Baking…',
+  // Defensive fallback — suppressed is a family-level state, not a
+  // run-level verdict, so it shouldn't reach the live banner. But if
+  // the engine ever emits it, render something readable.
+  suppressed: 'Suppressed',
+};
+function verdictWording(v) {
+  return VERDICT_WORDING[v] || (v ? String(v) : '—');
+}
+
+// The bundle declares DETECTOR_REGISTRY as a top-level `const` (destructured
+// from __NS__). Top-level const does NOT auto-attach to window in browsers
+// — it stays in module/script scope. Re-publish onto window so the
+// provenance panel's fire-count lookup (renderFamily) and the W6
+// detectors panel both resolve it. Pre-W6 code referenced
+// `window.DETECTOR_REGISTRY` unconditionally and silently got undefined
+// (the `window.X && window.X[f]` guard made the bug invisible — family
+// counts just rendered as "X/0 fired").
+if (typeof DETECTOR_REGISTRY !== 'undefined') {
+  window.DETECTOR_REGISTRY = DETECTOR_REGISTRY;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Initialization
+// ══════════════════════════════════════════════════════════════════════
+
+function initDemo() {
+  populateScenarioDropdown(_state.mode);
+  onScenarioChange();
+  updateCalBadge();
+  renderCalDrawer();
+  renderDetectors();
+  renderBaselineDrawer();  // W13: render with empty _state.driftResult until a run starts
+  updateLiveBanner(null, null);
+}
+
+// W9 Item 1 (ARCHITECT-REPLY-18 Item A finish): rebuild the scenario
+// dropdown to match the active mode. In portfolio mode, inline
+// adversarials are hidden — they lack cell_patch and produce the
+// aa5070b-class cell-baseline-mismatch artifact verdict. Canned demos
+// (which ship a cell_patch) are always visible; cascade mode also shows
+// the inline scenarios.
+//
+// Called at initDemo and on every mode switch. Preserves the current
+// selection if still valid, else snaps to the first canned demo.
+function populateScenarioDropdown(mode) {
+  var sel = document.getElementById('scenarioSelect');
+  if (!sel) return;
+  var prior = sel.value;
+  // Clear existing options (initDemo may have pre-populated; setMode
+  // rebuilds from scratch).
+  while (sel.options && sel.options.length > 0) sel.remove(0);
+  // Canned demos — always shown, regardless of mode.
+  var cannedIds = (window.CANNED_DEMOS && Object.keys(window.CANNED_DEMOS).sort()) || [];
+  for (var ci = 0; ci < cannedIds.length; ci++) {
+    var d = window.CANNED_DEMOS[cannedIds[ci]];
+    var opt = document.createElement('option');
+    opt.value = 'canned:' + cannedIds[ci];
+    opt.textContent = d.name || cannedIds[ci];
+    sel.appendChild(opt);
+  }
+  // Inline adversarials — cascade mode only.
+  if (mode === 'cascade' && DEMO_SCENARIOS && DEMO_SCENARIOS.length > 0) {
+    var sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '— synthetic adversarials (cascade-only) —';
+    sel.appendChild(sep);
+    for (var i = 0; i < DEMO_SCENARIOS.length; i++) {
+      var sc = DEMO_SCENARIOS[i];
+      var opt2 = document.createElement('option');
+      opt2.value = 'inline:' + i;
+      opt2.textContent = sc.name + (sc.expectedVerdict === 'proceed' ? ' (clean)' : '');
+      sel.appendChild(opt2);
+    }
+  }
+  // Reconcile selection. If prior value still exists in the new options
+  // (canned demos always persist; inline only when mode is cascade),
+  // keep it. Otherwise snap to the first canned demo.
+  var priorStillValid = false;
+  for (var pi = 0; pi < sel.options.length; pi++) {
+    if (sel.options[pi].value === prior && !sel.options[pi].disabled) { priorStillValid = true; break; }
+  }
+  if (priorStillValid) {
+    sel.value = prior;
+  } else {
+    // Pick the first non-disabled option (always a canned demo now).
+    for (var fi = 0; fi < sel.options.length; fi++) {
+      if (!sel.options[fi].disabled) { sel.value = sel.options[fi].value; break; }
+    }
+  }
+}
+
+function selectedScenario() {
+  var v = document.getElementById('scenarioSelect').value;
+  if (v.indexOf('canned:') === 0) {
+    var id = v.slice('canned:'.length);
+    return { kind: 'canned', sc: window.CANNED_DEMOS[id], id: id };
+  }
+  var idx = parseInt(v.slice('inline:'.length), 10);
+  return { kind: 'inline', sc: DEMO_SCENARIOS[idx], id: DEMO_SCENARIOS[idx].id };
+}
+
+function onScenarioChange() {
+  var pick = selectedScenario();
+  document.getElementById('descBox').textContent = pick.sc.description || pick.sc.narrative || '';
+  // §6.3 honest-broker fidelity caveat — render only when scenario flags it.
+  var strip = document.getElementById('fidelityStrip');
+  if (pick.sc.fidelity_caveat) {
+    strip.classList.add('show');
+    strip.innerHTML = '<strong>Reconstruction fidelity:</strong> ' + escapeHtml(pick.sc.fidelity_caveat);
+  } else {
+    strip.classList.remove('show');
+    strip.textContent = '';
+  }
+  // W6: stash the scenario so initMetricsPanel can render the baseline
+  // column before Run. Also clear any prior detector-fire state so the
+  // detectors panel resets to monitoring/armed on scenario switch.
+  _state.scenario = pick.sc;
+  _state.totalTicks = (pick.sc.total_ticks || (pick.kind === 'canned' && pick.sc.ticks ? pick.sc.ticks.length : 32));
+  _state.detectorFired = { cascade: {}, portfolio: {} };
+  initMetricsPanel();
+  renderDetectors();
+  updateLiveBanner(null, null);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Calibration version badge + modal (§3.3)
+// ══════════════════════════════════════════════════════════════════════
+
+function updateCalBadge(rec) {
+  var v = readCompiledConfigVersion(rec);
+  document.getElementById('calBadgeVer').textContent = v;
+}
+
+function openCalModal() {
+  var cfg = window.COMPILED_CONFIG_V4;
+  var body = document.getElementById('calModalBody');
+  if (!cfg) {
+    body.innerHTML = '<p style="color:var(--text-mute);font-size:.85rem">No compiled config loaded. Demo is running cascade-only against hand-tuned thresholds.</p>';
+  } else {
+    var bc = cfg.baseline_cells || {};
+    var cells = bc.cells || [];
+    var confDist = { strict: 0, pooled: 0, aggregate: 0, none: 0 };
+    for (var i = 0; i < cells.length; i++) {
+      var c = cells[i].confidence;
+      if (confDist[c] !== undefined) confDist[c]++;
+    }
+    var ab = cfg.alpha_budget || {};
+    var pf = ab.per_family || {};
+    var rows = '';
+    for (var f of ['A','B','C','D','E']) {
+      rows += '<tr><td>' + f + '</td><td class="mono">' + (pf[f] !== undefined ? pf[f].toExponential(2) : 'n/a') + '</td></tr>';
+    }
+    body.innerHTML =
+      '<table>' +
+      '<tr><th>Version</th><td class="mono">' + escapeHtml(cfg.version) + '</td></tr>' +
+      '<tr><th>Compiler</th><td class="mono">' + escapeHtml(cfg.compiler_version || 'n/a') + '</td></tr>' +
+      '<tr><th>Compiled at</th><td class="mono">' + escapeHtml(cfg.compiled_at || 'n/a') + '</td></tr>' +
+      '<tr><th>Baseline ref</th><td class="mono">' + escapeHtml(cfg.baseline_ref || 'n/a') + '</td></tr>' +
+      '<tr><th>α total</th><td class="mono">' + (ab.total !== undefined ? ab.total.toExponential(2) : 'n/a') + '</td></tr>' +
+      '</table>' +
+      '<h3 style="font-size:.9rem;margin-top:18px">Per-Family α Budget</h3>' +
+      '<table><thead><tr><th>Family</th><th>α</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<h3 style="font-size:.9rem;margin-top:18px">Cell Matrix</h3>' +
+      '<p class="mono" style="font-size:.78rem;color:var(--text-dim)">' + cells.length + ' cells: ' +
+      confDist.strict + ' strict, ' + confDist.pooled + ' pooled, ' + confDist.aggregate + ' aggregate, ' + confDist.none + ' none</p>';
+  }
+  document.getElementById('calModalBack').classList.add('open');
+}
+
+function closeCalModal(e) {
+  if (e && e.target && e.target.classList && !e.target.classList.contains('cal-modal-back') && e.target.tagName !== 'SPAN') return;
+  document.getElementById('calModalBack').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Provenance panel rendering (§3.1)
+// ══════════════════════════════════════════════════════════════════════
+
+var _provFamilyOpen = { A: true, B: true, C: false, D: false, E: false };
+
+function renderProvenance(record) {
+  var body = document.getElementById('provBody');
+  if (!record || !record.families) {
+    body.innerHTML = '<div style="font-size:.78rem;color:var(--text-mute);font-style:italic">Cascade run — v2 records emitted only under portfolio fusion. Switch to a portfolio-eligible scenario.</div>';
+    return;
+  }
+  var html = '';
+  var fams = ['A', 'B', 'C', 'D', 'E'];
+  for (var fi = 0; fi < fams.length; fi++) {
+    var f = fams[fi];
+    var fam = record.families[f] || { verdict: 'clean', detectors: [], alpha_spent: 0, suppression_reason: null };
+    html += renderFamily(f, fam);
+  }
+  body.innerHTML = html;
+  // Wire family-row collapse toggle.
+  var rows = body.querySelectorAll('.fam-row');
+  for (var ri = 0; ri < rows.length; ri++) {
+    rows[ri].addEventListener('click', function (ev) {
+      var f = ev.currentTarget.getAttribute('data-fam');
+      _provFamilyOpen[f] = !_provFamilyOpen[f];
+      ev.currentTarget.parentElement.classList.toggle('open', _provFamilyOpen[f]);
+    });
+  }
+}
+
+function renderFamily(famId, fam) {
+  // Empty-state per §3.1: B's 16 detectors collapse if all clean.
+  var verdictClass = 'v-' + fam.verdict;
+  var supr = fam.suppression_reason
+    ? '<span class="supr-chip">' + escapeHtml(fam.suppression_reason) + '</span>'
+    : '';
+  var detectorCount = fam.detectors ? fam.detectors.length : 0;
+  var registrySize = (window.DETECTOR_REGISTRY && window.DETECTOR_REGISTRY[famId]) ? window.DETECTOR_REGISTRY[famId].length : 0;
+  var counts = detectorCount + '/' + registrySize + ' fired';
+  var alphaTxt = (fam.alpha_spent || 0).toExponential(2);
+  var blockClass = 'fam-block fam-' + famId + (_provFamilyOpen[famId] ? ' open' : '') + (fam.verdict === 'suppressed' ? ' suppressed' : '');
+
+  var detList = '';
+  if (detectorCount > 0) {
+    for (var di = 0; di < fam.detectors.length; di++) {
+      detList += renderDetector(fam.detectors[di], famId);
+    }
+  } else if (fam.verdict === 'suppressed') {
+    detList = '<div style="padding:8px;font-size:.72rem;color:var(--text-mute);font-style:italic">Family suppressed — see chip above for reason.</div>';
+  } else {
+    detList = '<div style="padding:8px;font-size:.72rem;color:var(--text-mute)">Family ' + famId + ': 0/' + registrySize + ' fired, all clean</div>';
+  }
+
+  return '<div class="' + blockClass + '">' +
+    '<div class="fam-row" data-fam="' + famId + '">' +
+      '<span class="fam-letter">' + famId + '</span>' +
+      '<span class="fam-name">' + escapeHtml(FAMILY_LABELS[famId]) + '</span>' +
+      '<span class="v ' + verdictClass + '">' + escapeHtml(fam.verdict) + '</span>' +
+      supr +
+      '<span class="fam-counts">' + counts + '</span>' +
+      '<span class="fam-alpha">α=' + alphaTxt + '</span>' +
+    '</div>' +
+    '<div class="fam-detectors">' + detList + '</div>' +
+  '</div>';
+}
+
+function renderDetector(d, famId) {
+  // Statistic / threshold (§3.1 column "Statistic value", "Threshold", ratio).
+  var statTxt = (d.statistic === null || d.statistic === undefined)
+    ? '—'
+    : sigFigs(d.statistic, 4);
+  var thrTxt = (d.threshold === null || d.threshold === undefined)
+    ? '—'
+    : sigFigs(d.threshold, 4);
+  var ratio = (d.statistic !== null && d.threshold && d.threshold > 0)
+    ? (d.statistic / d.threshold)
+    : null;
+  var ratioTxt = ratio === null ? '' : ' (' + ratio.toFixed(2) + '×)';
+  var alphaTxt = (d.alpha_spent || 0).toExponential(1);
+  var cusum = (famId === 'A' && d.cusum_progress !== undefined && d.cusum_progress !== null)
+    ? '<div class="det-cusum">CUSUM progress: ' + Math.round(d.cusum_progress * 100) + '%</div>'
+    : '';
+  // Provenance derivation popover (§3.1 hover, §5.1).
+  var prov = d.provenance || {};
+  var cellKey = prov.cell_key ? JSON.stringify(prov.cell_key) : 'n/a';
+  var cellConf = prov.cell_confidence || 'none';
+  var confChip = '<span class="conf-chip conf-' + cellConf + '">' + cellConf + '</span>';
+  var schemaC = prov.schema_continuity || 'continuous (default)';
+  var derivation =
+    '<div class="derivation-pop">' +
+      '<div class="row"><span class="k">signal_path:</span> ' + escapeHtml(d.detector_id || '?') + '</div>' +
+      '<div class="row"><span class="k">cell_key:</span> ' + escapeHtml(cellKey) + ' ' + confChip + '</div>' +
+      '<div class="row"><span class="k">variance_inflated:</span> ' + (prov.variance_inflated ? 'true' : 'false') + '</div>' +
+      '<div class="row"><span class="k">covariate_freshness:</span> ' + (prov.covariate_freshness !== undefined ? prov.covariate_freshness + ' h' : 'n/a') + '</div>' +
+      '<div class="row"><span class="k">baseline_version:</span> ' + escapeHtml(prov.baseline_version || 'n/a') + '</div>' +
+      '<div class="row"><span class="k">schema_continuity:</span> ' + escapeHtml(schemaC) + '</div>' +
+      '<div class="row"><span class="k">gate:</span> ' + escapeHtml(d.gate || 'n/a') + '</div>' +
+    '</div>';
+  return '<div class="det-row">' +
+    '<div>' +
+      '<span class="det-label">' + escapeHtml(d.label || d.detector_id || 'detector') + '</span>' +
+      '<span class="det-id">' + escapeHtml(d.detector_id || '') + '</span>' +
+      cusum +
+    '</div>' +
+    '<div class="det-stat"><span class="lbl">stat=</span>' + statTxt + ' <span class="lbl">/ thr=</span>' + thrTxt + ratioTxt + '</div>' +
+    '<div><span class="det-reason">' + escapeHtml(d.reason_code || '') + '</span></div>' +
+    '<div class="det-alpha">α=' + alphaTxt + '</div>' +
+    derivation +
+  '</div>';
+}
+
+function sigFigs(x, n) {
+  if (typeof x !== 'number' || !isFinite(x)) return String(x);
+  if (x === 0) return '0';
+  var d = Math.ceil(Math.log10(Math.abs(x)));
+  var p = Math.max(0, n - d);
+  return x.toFixed(p);
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// α-budget meter rendering (§3.4)
+// ══════════════════════════════════════════════════════════════════════
+
+function renderAlphaMeter() {
+  var cfg = window.COMPILED_CONFIG_V4;
+  var alphaTotal = (cfg && cfg.alpha_budget && cfg.alpha_budget.total) || _state.alphaTotal;
+  var perFam = (cfg && cfg.alpha_budget && cfg.alpha_budget.per_family) || {};
+  var totalSpent = 0;
+  var fams = ['A','B','C','D','E'];
+  for (var fi = 0; fi < fams.length; fi++) {
+    var f = fams[fi];
+    totalSpent += _state.alphaSpent[f] || 0;
+    var alloc = (perFam[f] !== undefined) ? perFam[f] : (alphaTotal * (ALPHA_FAMILY_WEIGHTS[f] || 0));
+    var fillPct = alloc > 0 ? Math.min(100, (_state.alphaSpent[f] / alloc) * 100) : 0;
+    var seg = document.querySelector('.alpha-seg[data-fam="' + f + '"]');
+    if (seg) {
+      var fill = seg.querySelector('.fill');
+      if (fill) fill.style.width = fillPct.toFixed(1) + '%';
+      if (fillPct >= 80 && !seg.classList.contains('flash')) {
+        seg.classList.add('flash');
+        setTimeout(function (s) { return function () { s.classList.remove('flash'); }; }(seg), 1000);
+      }
+      // Per-family tooltip (§3.4 numerical readout in tooltip).
+      var tip = seg.querySelector('.seg-tip');
+      if (tip) {
+        tip.textContent = 'Family ' + f + ': ' + (_state.alphaSpent[f] || 0).toExponential(2) +
+                          ' / ' + alloc.toExponential(2) + ' (' + fillPct.toFixed(1) + '%)';
+      }
+    }
+  }
+  var pct = (totalSpent / alphaTotal) * 100;
+  document.getElementById('alphaTotalVal').textContent =
+    totalSpent.toExponential(2) + ' / ' + alphaTotal.toExponential(2) + ' (' + pct.toFixed(1) + '%)';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// W6 metrics panel — 11 signals × (name · live · baseline · Δ · trend)
+// Rows are built ONCE per run and updated in place — avoids the per-tick
+// innerHTML reflow that Phase 1.5 feedback flagged as sluggish.
+// ══════════════════════════════════════════════════════════════════════
+
+function initMetricsPanel() {
+  var body = document.getElementById('metricsBody');
+  if (!body) return;
+  var scenario = _state.scenario;
+  var baseline = (scenario && scenario.baseline) || null;
+  if (!baseline) {
+    body.innerHTML = '<div style="font-size:.78rem;color:var(--text-mute);font-style:italic">Run a scenario to populate signals.</div>';
+    _state.metricRowCache = null;
+    return;
+  }
+  // Build 11 rows once. Cache handles for per-tick updates.
+  var html = '';
+  for (var i = 0; i < METRICS_SIGNALS.length; i++) {
+    var sig = METRICS_SIGNALS[i];
+    var baseVal = baseline[sig];
+    var baseTxt = baseVal === undefined ? '—' : fmtMetric(sig, baseVal);
+    html += '<div class="metric-row" data-sig="' + sig + '">' +
+      '<div class="metric-name">' + sig + '</div>' +
+      '<div class="metric-val" data-val>—</div>' +
+      '<div class="metric-base">' + baseTxt + '</div>' +
+      '<div class="metric-delta neutral" data-delta>—</div>' +
+      '<div class="trend-arrow flat" data-arrow>·</div>' +
+      '<div class="trend-pop" data-pop></div>' +
+    '</div>';
+  }
+  body.innerHTML = html;
+  // Cache row element refs — per-tick update avoids re-rendering full HTML.
+  var rows = body.querySelectorAll('.metric-row');
+  _state.metricRowCache = {};
+  for (var ri = 0; ri < rows.length; ri++) {
+    var row = rows[ri];
+    var sigKey = row.getAttribute('data-sig');
+    _state.metricRowCache[sigKey] = {
+      row: row,
+      val: row.querySelector('[data-val]'),
+      delta: row.querySelector('[data-delta]'),
+      arrow: row.querySelector('[data-arrow]'),
+      pop: row.querySelector('[data-pop]'),
+    };
+  }
+}
+
+function renderMetrics() {
+  if (!_state.metricRowCache || !_state.lastLive || !_state.scenario) return;
+  var baseline = _state.scenario.baseline || {};
+  // Prefer the mode-selected TrendBuffer for trend snapshots (they're
+  // the same data either way, but this keeps the UX honest: portfolio
+  // mode → portfolio TrendBuffer, cascade mode → cascade TrendBuffer).
+  var tb = _state.mode === 'cascade' ? _state.cascadeTb : _state.portfolioTb;
+  for (var i = 0; i < METRICS_SIGNALS.length; i++) {
+    var sig = METRICS_SIGNALS[i];
+    var cache = _state.metricRowCache[sig];
+    if (!cache) continue;
+    var live = _state.lastLive[sig];
+    var base = baseline[sig];
+    if (live === undefined || base === undefined) {
+      cache.val.textContent = '—';
+      cache.delta.textContent = '—';
+      cache.delta.className = 'metric-delta neutral';
+      cache.arrow.textContent = '·';
+      cache.arrow.className = 'trend-arrow flat';
+      continue;
+    }
+    cache.val.textContent = fmtMetric(sig, live);
+    var pct = base !== 0 ? ((live - base) / Math.abs(base)) * 100 : 0;
+    var pctAbs = Math.abs(pct);
+    var deltaSign = pct >= 0 ? '+' : '−';
+    var pctFmt = pctAbs >= 10 ? pctAbs.toFixed(1) : pctAbs.toFixed(2);
+    cache.delta.textContent = deltaSign + pctFmt + '%';
+    // Color-code delta:
+    //   <1%  neutral; <5%  yellow on unfavorable direction; >=5% red;
+    //   favorable direction always green/neutral.
+    var unfavorable = (pct > 0 && METRICS_RED_WHEN_HIGHER[sig]) ||
+                      (pct < 0 && METRICS_RED_WHEN_LOWER[sig]);
+    var cls = 'metric-delta neutral';
+    if (pctAbs < 1) { cls = 'metric-delta neutral'; }
+    else if (unfavorable && pctAbs >= 5) { cls = 'metric-delta red'; }
+    else if (unfavorable) { cls = 'metric-delta yellow'; }
+    else if (pctAbs >= 1) { cls = 'metric-delta green'; }
+    cache.delta.className = cls;
+    // Trend arrow from the TrendBuffer medium window — slopeNorm sign
+    // gates up/down; small slope → flat. Hover popover shows the
+    // short/medium/long snapshot from TrendBuffer.snapshot().
+    var snap = tb ? tb.snapshot(sig) : null;
+    var slopeN = snap && snap.medium ? snap.medium.slopeNorm : 0;
+    var aCls = 'trend-arrow flat';
+    var aTxt = '·';
+    if (Math.abs(slopeN) < 0.002) { aCls = 'trend-arrow flat'; aTxt = '→'; }
+    else if (slopeN > 0)           { aCls = 'trend-arrow up';   aTxt = '↑'; }
+    else                           { aCls = 'trend-arrow down'; aTxt = '↓'; }
+    // Color polarity: up on red-when-higher = red arrow; up on red-when-lower = blue;
+    // otherwise just neutral gray direction.
+    if (slopeN > 0 && METRICS_RED_WHEN_HIGHER[sig]) aCls = 'trend-arrow up';
+    else if (slopeN < 0 && METRICS_RED_WHEN_LOWER[sig]) aCls = 'trend-arrow up';
+    else if (Math.abs(slopeN) >= 0.002) aCls = 'trend-arrow down';
+    cache.arrow.className = aCls;
+    cache.arrow.textContent = aTxt;
+    // Popover content — snapshot's short/medium/long windows each
+    // carry {n, mean, std, slopeNorm, cv, trendStrength} by engine def.
+    if (snap) {
+      cache.pop.innerHTML = renderTrendPopHtml(sig, snap);
+    }
+  }
+}
+
+function renderTrendPopHtml(sig, snap) {
+  function row(lbl, w) {
+    if (!w) w = { n: 0, slopeNorm: 0, cv: 0, trendStrength: 0 };
+    return '<div class="win"><span class="k">' + lbl + '</span>' +
+      'n=' + (w.n || 0) + '  ' +
+      'slopeNorm=' + (w.slopeNorm ? w.slopeNorm.toExponential(2) : '0') + '<br>' +
+      '<span class="k"></span>' +
+      'cv=' + (w.cv ? w.cv.toFixed(3) : '0') + '  ' +
+      'trendStrength=' + (w.trendStrength ? w.trendStrength.toFixed(3) : '0') +
+    '</div>';
+  }
+  return '<div class="hd">TrendBuffer snapshot — <b>' + sig + '</b></div>' +
+    row('short',  snap.short) +
+    row('medium', snap.medium) +
+    row('long',   snap.long);
+}
+
+function fmtMetric(sig, v) {
+  if (typeof v !== 'number' || !isFinite(v)) return String(v);
+  if (sig === 'collective_ops') return v.toFixed(4);
+  if (sig === 'kv_cache' || sig === 'mfu' || sig === 'traffic_pct' || sig === 'corpus_delta' || sig === 'hbm_spill') {
+    return v.toFixed(3);
+  }
+  if (sig === 'cost_req' || sig === 'downstream_err') return v.toExponential(2);
+  if (Math.abs(v) >= 100) return v.toFixed(0);
+  if (Math.abs(v) >= 10)  return v.toFixed(1);
+  return v.toFixed(2);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// W6 detectors panel — 5 family groups × state chip (monitoring / armed
+// / fired / suppressed). Portfolio mode uses portRec.families[f] from
+// the v2 audit record; cascade mode derives family bins by mapping the
+// v1 tripped[] ids back to DETECTOR_REGISTRY.
+// ══════════════════════════════════════════════════════════════════════
+
+function trackDetectorFires(cascRec, portRec) {
+  // Cascade — v1 tripped[] holds rollback/extend trips. The family is
+  // resolved by the v1 id prefix pattern (family_A_*, family_C, …).
+  if (cascRec && cascRec.tripped) {
+    for (var i = 0; i < cascRec.tripped.length; i++) {
+      var rid = mapV1IdToFamily(cascRec.tripped[i].id);
+      if (rid && !_state.detectorFired.cascade[rid.detector_id]) {
+        _state.detectorFired.cascade[rid.detector_id] = _state.tick;
+      }
+    }
+  }
+  // Portfolio — v2 families[f].detectors[] holds per-detector trips.
+  if (portRec && portRec.families) {
+    var fams = ['A','B','C','D','E'];
+    for (var fi = 0; fi < fams.length; fi++) {
+      var dets = portRec.families[fams[fi]].detectors || [];
+      for (var di = 0; di < dets.length; di++) {
+        var did = dets[di].detector_id;
+        if (did && !_state.detectorFired.portfolio[did]) {
+          _state.detectorFired.portfolio[did] = _state.tick;
+        }
+      }
+    }
+  }
+}
+
+// Mirror the engine's resolveDetectorId for the cascade v1 path so the
+// front-panel detector state chip lights up even in cascade mode.
+function mapV1IdToFamily(id) {
+  if (!id) return null;
+  if (id.indexOf('family_A_') === 0) {
+    var s = id.slice('family_A_'.length);
+    var d = 'mSPRT_' + s;
+    if (window.DETECTOR_REGISTRY && window.DETECTOR_REGISTRY.A.indexOf(d) >= 0) {
+      return { family_id: 'A', detector_id: d };
+    }
+    return null;
+  }
+  if (id === 'family_C') return { family_id: 'C', detector_id: 'hotelling_t2_joint_vector' };
+  if (id.indexOf('family_D_') === 0) {
+    var sd = id.slice('family_D_'.length);
+    var dd = 'spectral_peak_acf_' + sd;
+    if (window.DETECTOR_REGISTRY && window.DETECTOR_REGISTRY.D.indexOf(dd) >= 0) {
+      return { family_id: 'D', detector_id: dd };
+    }
+    return null;
+  }
+  if (id === 'family_E') return { family_id: 'E', detector_id: 'mahalanobis_conformal_baseline' };
+  if (window.DETECTOR_REGISTRY && window.DETECTOR_REGISTRY.B.indexOf(id) >= 0) {
+    return { family_id: 'B', detector_id: id };
+  }
+  return null;
+}
+
+function renderDetectors() {
+  var body = document.getElementById('detectorsBody');
+  if (!body) return;
+  if (!window.DETECTOR_REGISTRY) {
+    body.innerHTML = '<div style="font-size:.78rem;color:var(--text-mute);font-style:italic">Detector registry not loaded.</div>';
+    return;
+  }
+  var fams = ['A','B','C','D','E'];
+  var armedOnly = document.getElementById('detArmedOnly') && document.getElementById('detArmedOnly').checked;
+  var isPortfolio = _state.mode === 'portfolio';
+  var rec = null;
+  if (isPortfolio && _state.portfolioRecords.length > 0) {
+    rec = _state.portfolioRecords[_state.portfolioRecords.length - 1];
+  }
+  var firedSet = isPortfolio ? _state.detectorFired.portfolio : _state.detectorFired.cascade;
+  var html = '';
+  for (var fi = 0; fi < fams.length; fi++) {
+    var f = fams[fi];
+    var detIds = window.DETECTOR_REGISTRY[f] || [];
+    var firedCount = 0;
+    for (var ci = 0; ci < detIds.length; ci++) {
+      if (firedSet[detIds[ci]] !== undefined) firedCount++;
+    }
+    // Family-level state: suppressed (portfolio only) → fired → armed → monitoring.
+    var famVerdict = rec && rec.families && rec.families[f] ? rec.families[f].verdict : null;
+    var famSuppression = rec && rec.families && rec.families[f] ? rec.families[f].suppression_reason : null;
+    var famState = 'monitoring';
+    if (famVerdict === 'suppressed') famState = 'suppressed';
+    else if (firedCount > 0) famState = 'fired';
+    else if (_state.tick >= 4) famState = 'armed';
+    if (armedOnly && famState === 'monitoring') continue;
+    var countTxt = firedCount + '/' + detIds.length + ' fired';
+    var descr = FAMILY_DESCR[f] || '';
+    var supr = famSuppression ? ' <span style="font-size:.62rem;color:var(--text-mute);font-family:SF Mono,Menlo,monospace">· ' + escapeHtml(famSuppression) + '</span>' : '';
+    var open = _state.detFamOpen[f];
+    html += '<div class="det-fam det-fam-' + f + (open ? ' open' : '') + '" data-fam="' + f + '">' +
+      '<div class="det-fam-row" data-fam-head="' + f + '">' +
+        '<span class="fl">' + f + '</span>' +
+        '<span class="det-fam-name">' + escapeHtml(FAMILY_LABELS[f]) + '<span class="descr">· ' + descr + '</span>' + supr + '</span>' +
+        '<span class="det-fam-count">' + countTxt + '</span>' +
+        '<span class="det-fam-state det-state-' + famState + '">' + famState + '</span>' +
+      '</div>' +
+      '<div class="det-fam-list">' + renderDetMiniRows(detIds, firedSet, armedOnly) + '</div>' +
+    '</div>';
+  }
+  body.innerHTML = html;
+  // Wire family-row toggles.
+  var heads = body.querySelectorAll('[data-fam-head]');
+  for (var hi = 0; hi < heads.length; hi++) {
+    heads[hi].addEventListener('click', function (ev) {
+      var f = ev.currentTarget.getAttribute('data-fam-head');
+      _state.detFamOpen[f] = !_state.detFamOpen[f];
+      ev.currentTarget.parentElement.classList.toggle('open', _state.detFamOpen[f]);
+    });
+  }
+}
+
+function renderDetMiniRows(detIds, firedSet, armedOnly) {
+  var html = '';
+  for (var i = 0; i < detIds.length; i++) {
+    var id = detIds[i];
+    var firedAt = firedSet[id];
+    var state = 'monitoring';
+    if (firedAt !== undefined) state = 'fired';
+    else if (_state.tick >= 4) state = 'armed';
+    if (armedOnly && state === 'monitoring') continue;
+    var stateTxt = state + (state === 'fired' ? ' @t' + firedAt : '');
+    html += '<div class="det-mini-row">' +
+      '<div class="det-mini-name">' + escapeHtml(id) + '</div>' +
+      '<div class="det-mini-state"><span class="det-fam-state det-state-' + state + '">' + escapeHtml(stateTxt) + '</span></div>' +
+    '</div>';
+  }
+  if (!html) {
+    html = '<div style="padding:6px 2px;font-size:.7rem;color:var(--text-mute);font-style:italic">no detectors match filter</div>';
+  }
+  return html;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// W6 mode toggle — switches which engine's record drives the front
+// panel. Both engines keep running per tick (shadow-compare stays
+// honest); this is a view-layer selector only.
+// ══════════════════════════════════════════════════════════════════════
+function setMode(mode) {
+  if (mode !== 'cascade' && mode !== 'portfolio') return;
+  if (_state.mode === mode) return;
+  _state.mode = mode;
+  var casc = document.getElementById('modeBtnCascade');
+  var port = document.getElementById('modeBtnPortfolio');
+  if (casc) casc.classList.toggle('active', mode === 'cascade');
+  if (port) port.classList.toggle('active', mode === 'portfolio');
+  // W9 Item 1: rebuild the scenario dropdown for the new mode. If an
+  // inline adversarial was selected before flipping to portfolio,
+  // populateScenarioDropdown snaps the selection to the first canned
+  // demo. Notify downstream via onScenarioChange so the desc / fidelity
+  // strip / metrics baseline / detectors reset to the snapped scenario.
+  var sel = document.getElementById('scenarioSelect');
+  var priorValue = sel ? sel.value : '';
+  populateScenarioDropdown(mode);
+  if (sel && sel.value !== priorValue) {
+    onScenarioChange();
+  }
+  // Re-render everything that's mode-dependent.
+  renderMetrics();
+  renderDetectors();
+  var lastCasc = _state.cascadeRecords[_state.cascadeRecords.length - 1] || null;
+  var lastPort = _state.portfolioRecords[_state.portfolioRecords.length - 1] || null;
+  updateLiveBanner(lastCasc, lastPort);
+  // W11 Item E: if the run has stopped, the terminal banner's
+  // cascade-truncation subtitle needs re-rendering on mode flips.
+  renderTerminalBanner();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// W6 drawer — single "Show details" toggle reveals 4 collapsible sections
+// (provenance / shadow-compare / α-budget / calibration). Each section
+// expands independently. All default to closed when the drawer first
+// opens, matching the brief's "math-depth on demand" requirement.
+// ══════════════════════════════════════════════════════════════════════
+function toggleDrawer() {
+  var btn = document.getElementById('drawerToggle');
+  var drw = document.getElementById('drawer');
+  if (!btn || !drw) return;
+  var isOpen = drw.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  var lbl = document.getElementById('drawerToggleLabel');
+  if (lbl) lbl.textContent = isOpen ? 'Hide details' : 'Show details';
+}
+
+function toggleDrawerSection(suffix) {
+  var el = document.getElementById('drawerSec' + suffix);
+  if (el) el.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// W6 calibration drawer section — condensed view of the compiled-config
+// facts (version / α budget / cell matrix summary). Header badge keeps
+// the full-fidelity modal for click-through.
+// ══════════════════════════════════════════════════════════════════════
+function renderCalDrawer() {
+  var body = document.getElementById('calDrawerBody');
+  if (!body) return;
+  var cfg = window.COMPILED_CONFIG_V4;
+  if (!cfg) {
+    body.innerHTML = '<span style="color:var(--text-mute);font-style:italic">No compiled config loaded. Demo is running cascade-only against hand-tuned thresholds.</span>';
+    return;
+  }
+  var bc = cfg.baseline_cells || {};
+  var cells = bc.cells || [];
+  var confDist = { strict: 0, pooled: 0, aggregate: 0, none: 0 };
+  for (var i = 0; i < cells.length; i++) {
+    var c = cells[i].confidence;
+    if (confDist[c] !== undefined) confDist[c]++;
+  }
+  var ab = cfg.alpha_budget || {};
+  var pf = ab.per_family || {};
+  var rows = '';
+  for (var f of ['A','B','C','D','E']) {
+    rows += '<tr><td>' + f + '</td><td class="mono">' + (pf[f] !== undefined ? pf[f].toExponential(2) : 'n/a') + '</td></tr>';
+  }
+  body.innerHTML =
+    '<table>' +
+    '<tr><th>Version</th><td class="mono">' + escapeHtml(cfg.version) + '</td></tr>' +
+    '<tr><th>Compiler</th><td class="mono">' + escapeHtml(cfg.compiler_version || 'n/a') + '</td></tr>' +
+    '<tr><th>Baseline ref</th><td class="mono">' + escapeHtml(cfg.baseline_ref || 'n/a') + '</td></tr>' +
+    '<tr><th>α total</th><td class="mono">' + (ab.total !== undefined ? ab.total.toExponential(2) : 'n/a') + '</td></tr>' +
+    '<tr><th>Cell matrix</th><td class="mono">' + cells.length + ' cells (' +
+      confDist.strict + ' strict · ' + confDist.pooled + ' pooled · ' + confDist.aggregate + ' aggregate · ' + confDist.none + ' none)</td></tr>' +
+    '</table>' +
+    '<div style="font-size:.74rem;margin-top:10px"><b>Per-family α:</b></div>' +
+    '<table><tbody>' + rows + '</tbody></table>' +
+    '<div style="font-size:.72rem;color:var(--text-mute);margin-top:10px">Click the header badge for the full modal (includes compiled-at timestamp).</div>';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// W13 (ARCHITECT-REPLY-24 Item 6): Baseline History / service-maturity
+// dashboard drawer section. Renders:
+//   (a) current baseline badge with drift status
+//   (b) horizontal timeline of recent baseline versions + recalibration-
+//       reason markers (slate-gray=drift_detected, green=cutover,
+//       amber=shadow-pending, muted-gray=scheduled, red=post_incident)
+//   (c) per-signal maturity chart: 9 directional signals with green/red
+//       delta arrows, 4 informational signals with neutral gray delta
+//   (d) service-trajectory summary line
+//   (e) live drift-status readout (Demo 6 exercises this mid-run)
+// ══════════════════════════════════════════════════════════════════════
+
+// Architect-specified maturity signal directions (REPLY-24 Item 3).
+var MATURITY_DIRECTIONS = {
+  p99_latency:        'lower',   ttft:               'lower',
+  downstream_err:     'lower',   hbm_spill:          'lower',
+  refusal_rate:       'lower',   mfu:                'higher',
+  eval_score:         'higher',  tool_success_rate:  'higher',
+  collective_ops:     'higher',
+};
+// Architect-specified informational-only signals (REPLY-24 Item 3 —
+// direction is context-dependent, surface without direction-of-better
+// coloring). Note: cost_req marked informational for the maturity
+// dashboard even though rising cost_req IS regression in the Demo 5
+// Family-A-fire context — the dashboard's "service improved over
+// months" framing treats cost as workload-dependent.
+var MATURITY_INFORMATIONAL = {
+  cost_req: true, tokens_turn: true, kv_cache: true, corpus_delta: true,
+};
+
+// Compact formatter: same-order-of-magnitude output across signals.
+function fmtMaturity(sig, v) {
+  if (typeof v !== 'number' || !isFinite(v)) return '—';
+  if (sig === 'collective_ops') return v.toFixed(4);
+  if (sig === 'kv_cache' || sig === 'mfu' || sig === 'eval_score' ||
+      sig === 'tool_success_rate' || sig === 'corpus_delta' || sig === 'hbm_spill' ||
+      sig === 'refusal_rate') {
+    return v.toFixed(3);
+  }
+  if (sig === 'cost_req' || sig === 'downstream_err') return v.toExponential(2);
+  if (Math.abs(v) >= 100) return v.toFixed(0);
+  if (Math.abs(v) >= 10)  return v.toFixed(1);
+  return v.toFixed(2);
+}
+
+function renderBaselineDrawer() {
+  var body = document.getElementById('baselineDrawerBody');
+  if (!body) return;
+  var history = window.BASELINE_HISTORY || [];
+  if (history.length === 0) {
+    body.innerHTML = '<span style="color:var(--text-mute);font-style:italic">No baseline history loaded. Run the canned demos to see the live drift-status readout; static history lives at runs/baseline-history/&lt;service&gt;/.</span>';
+    return;
+  }
+
+  // Current baseline is the newest entry in the history (last in sorted order).
+  var current = history[history.length - 1];
+  // Compare to the predecessor (second-newest) for delta arrows.
+  var previous = history.length >= 2 ? history[history.length - 2] : null;
+
+  var html = '';
+
+  // (a) Current baseline badge — slate-gray accent; flips to red outline
+  // if the live drift-status shows drift_detected.
+  var driftFired = _state.driftResult && _state.driftResult.drift_detected;
+  html += '<div class="baseline-badge' + (driftFired ? ' drift-detected' : '') + '">' +
+    '<span class="dot"></span>' +
+    '<span class="ver">' + escapeHtml(current.version_id) + '</span>' +
+    '<span class="meta">compiled ' + escapeHtml((current.compiled_at || '').slice(0, 10)) +
+      ' · reason: ' + escapeHtml(current.recalibration_reason || 'scheduled') + '</span>' +
+    '</div>';
+
+  // (e) Live drift-status readout — surfaces during a Demo 6 run when
+  // the drift detector has been ticked at least once.
+  if (_state.driftResult) {
+    var d = _state.driftResult;
+    html += '<div class="drift-status' + (d.drift_detected ? ' fired' : '') + '">' +
+      '<span><span class="lbl">live drift</span> <span class="val">' +
+      (d.drift_detected ? 'FIRED' : 'below threshold') + '</span></span>' +
+      '<span><span class="lbl">d²</span> <span class="val">' + d.mahalanobis_distance_squared.toFixed(2) + '</span></span>' +
+      '<span><span class="lbl">threshold</span> <span class="val">' + d.threshold.toFixed(2) + '</span></span>' +
+      '<span><span class="lbl">n</span> <span class="val">' + d.n_samples_used + '</span></span>' +
+      (d.drift_detected
+        ? '<span><span class="lbl">recommend</span> <span class="val">recalibrate</span></span>'
+        : '<span><span class="lbl">recommend</span> <span class="val">hold</span></span>') +
+      '</div>';
+  }
+
+  // (b) Timeline — last 4 versions with recalibration-reason markers.
+  var recent = history.slice(Math.max(0, history.length - 4));
+  html += '<div class="baseline-timeline">';
+  for (var ti = 0; ti < recent.length; ti++) {
+    var v = recent[ti];
+    var reason = v.recalibration_reason || 'scheduled';
+    // Marker color: drift_detected → slate-gray (pre-cutover state); if
+    // the version landed (we're looking at it post-cutover), that IS
+    // the cutover event → green. Shadow-pending would be surfaced by
+    // a follow-on workflow that's out of current scope. Represent the
+    // semantics here: current version always shows "cutover" marker;
+    // predecessor's reason-of-next-version shows what triggered this
+    // cutover. For simplicity: marker = recalibration_reason mapped
+    // to the color palette.
+    var markerClass = (reason === 'drift_detected') ? 'drift-detected'
+                    : (reason === 'post_incident')  ? 'post-incident'
+                    : (reason === 'scheduled')      ? 'scheduled'
+                    : 'cutover';
+    var isActive = (v.version_id === current.version_id);
+    html += '<div class="node' + (isActive ? ' active' : '') + '">' +
+      '<div><span class="marker ' + markerClass + '"></span><span class="id">' + escapeHtml(v.version_id) + '</span></div>' +
+      '<div class="reason">' + escapeHtml(reason.replace(/_/g, ' ')) + '</div>' +
+      '</div>';
+  }
+  html += '</div>';
+
+  // (d) Service trajectory summary line — pulls p99 delta across the
+  // first → current versions as a concrete maturity headline.
+  if (history.length >= 2) {
+    var first = history[0];
+    var fp99 = first.maturity_metrics && first.maturity_metrics.p99_latency &&
+               first.maturity_metrics.p99_latency.mean;
+    var cp99 = current.maturity_metrics && current.maturity_metrics.p99_latency &&
+               current.maturity_metrics.p99_latency.mean;
+    if (fp99 && cp99) {
+      var pct = ((cp99 - fp99) / fp99) * 100;
+      var ferr = first.maturity_metrics.downstream_err &&
+                 first.maturity_metrics.downstream_err.mean;
+      var cerr = current.maturity_metrics.downstream_err &&
+                 current.maturity_metrics.downstream_err.mean;
+      var errPct = (ferr && cerr) ? ((cerr - ferr) / ferr) * 100 : null;
+      html += '<div class="maturity-summary"><strong>Service trajectory</strong> ' +
+        '(' + history.length + ' baselines): ' +
+        'p99 ' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '% ' +
+        (errPct !== null ? '· downstream_err ' + (errPct >= 0 ? '+' : '') + errPct.toFixed(1) + '% ' : '') +
+        '· ' + history.length + ' recalibrations over ' +
+        escapeHtml((first.compiled_at || '').slice(0, 10)) + ' → ' +
+        escapeHtml((current.compiled_at || '').slice(0, 10)) + '.' +
+        '</div>';
+    }
+  }
+
+  // (c) Maturity chart — 9 directional + 4 informational signals. Delta
+  // computed against the predecessor's maturity_metrics when available.
+  var sigsDir = Object.keys(MATURITY_DIRECTIONS);
+  var sigsInfo = Object.keys(MATURITY_INFORMATIONAL);
+  html += '<div class="maturity-chart">';
+  for (var i = 0; i < sigsDir.length; i++) {
+    var sig = sigsDir[i];
+    var cm = current.maturity_metrics && current.maturity_metrics[sig];
+    if (!cm) continue;
+    var pm = previous && previous.maturity_metrics && previous.maturity_metrics[sig];
+    var dir = MATURITY_DIRECTIONS[sig];
+    var deltaHtml = '';
+    if (pm && typeof pm.mean === 'number' && pm.mean !== 0) {
+      var delta = ((cm.mean - pm.mean) / Math.abs(pm.mean)) * 100;
+      // direction-of-better: "lower" → decrease is up-arrow; "higher" → increase is up-arrow
+      var improved = (dir === 'lower' && delta < 0) || (dir === 'higher' && delta > 0);
+      var cls = Math.abs(delta) < 0.1 ? 'info' : (improved ? 'up' : 'down');
+      var arrow = Math.abs(delta) < 0.1 ? '·' : (improved ? '↑' : '↓');
+      deltaHtml = '<span class="delta ' + cls + '">' + arrow + ' ' + Math.abs(delta).toFixed(1) + '%</span>';
+    }
+    html += '<div class="maturity-signal">' +
+      '<div class="name">' + sig + '</div>' +
+      '<div class="val">' + fmtMaturity(sig, cm.mean) + deltaHtml + '</div>' +
+      '</div>';
+  }
+  for (var ii = 0; ii < sigsInfo.length; ii++) {
+    var sigI = sigsInfo[ii];
+    var cmI = current.maturity_metrics && current.maturity_metrics[sigI];
+    if (!cmI) continue;
+    var pmI = previous && previous.maturity_metrics && previous.maturity_metrics[sigI];
+    var deltaHtmlI = '';
+    if (pmI && typeof pmI.mean === 'number' && pmI.mean !== 0) {
+      var dI = ((cmI.mean - pmI.mean) / Math.abs(pmI.mean)) * 100;
+      deltaHtmlI = '<span class="delta info">· ' + (dI >= 0 ? '+' : '') + dI.toFixed(1) + '%</span>';
+    }
+    html += '<div class="maturity-signal">' +
+      '<div class="name">' + sigI + '<span class="info-tag">info</span></div>' +
+      '<div class="val">' + fmtMaturity(sigI, cmI.mean) + deltaHtmlI + '</div>' +
+      '</div>';
+  }
+  html += '</div>';
+
+  body.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Shadow-compare panel (§3.2)
+// ══════════════════════════════════════════════════════════════════════
+
+function appendShadowRow(tick, cascRec, portRec) {
+  var body = document.getElementById('shadowBody');
+  var cv = (cascRec && cascRec.verdict) || '—';
+  var pv = (portRec && portRec.verdict) || '—';
+  // Inline adversarials are cascade-mode-only per ARCHITECT-REPLY-18 (Option A).
+  // Portfolio column renders a label instead of a verdict; divergence stats
+  // and timing-delta are suppressed so the "regression" chip doesn't fire on
+  // cell-baseline-mismatch artifacts (aa5070b class).
+  var inlineCascadeOnly = _state.scenario && _state.scenario.__inlineAdversarial === true;
+  var diverge = !inlineCascadeOnly && cv !== pv;
+  // Categorize divergence per §3.2.
+  var category = null;  // 'portfolio-catches' | 'cascade-catches' | 'other'
+  if (diverge) {
+    _state.divergences++;
+    if (pv === 'rollback' && cv !== 'rollback') {
+      _state.divPortfolioCatches++;
+      category = 'portfolio-catches';
+    } else if (cv === 'rollback' && pv !== 'rollback') {
+      _state.divCascadeCatches++;
+      category = 'cascade-catches';
+    } else {
+      category = 'other';
+    }
+  }
+  // Timing-delta chip: when both have already rolled back but at different ticks,
+  // surface the delta inline next to the portfolio cell.
+  var timingDeltaTxt = '';
+  if (!inlineCascadeOnly && _state.cascadeFinalTick !== null && _state.portfolioFinalTick !== null) {
+    var d = _state.cascadeFinalTick - _state.portfolioFinalTick;
+    if (d !== 0 && tick === Math.max(_state.cascadeFinalTick, _state.portfolioFinalTick)) {
+      var direction = d > 0 ? 'portfolio caught ' + d + ' tick' + (d === 1 ? '' : 's') + ' earlier' :
+                              'cascade caught ' + Math.abs(d) + ' tick' + (Math.abs(d) === 1 ? '' : 's') + ' earlier';
+      timingDeltaTxt = ' <span class="diff-chip diff-timing">Δ ' + direction + '</span>';
+    }
+  }
+  var tr = document.createElement('tr');
+  if (diverge) tr.className = 'diverge';
+  var cascCell = '<span class="v v-' + cv + '">' + escapeHtml(cv) + '</span>';
+  var portCell;
+  if (inlineCascadeOnly) {
+    portCell = '<span class="cascade-only-label">inline adversarial — cascade-mode only</span>';
+  } else {
+    portCell = '<span class="v v-' + pv + '">' + escapeHtml(pv) + '</span>';
+    if (diverge) {
+      var chipClass = category === 'portfolio-catches' ? 'diff-chip diff-portfolio-catches' :
+                      category === 'cascade-catches'   ? 'diff-chip diff-cascade-catches' :
+                                                         'diff-chip';
+      var chipText = category === 'portfolio-catches' ? '✓ portfolio catches' :
+                     category === 'cascade-catches'   ? '⚠ regression' :
+                                                        'cascade: ' + escapeHtml(cv);
+      portCell += ' <span class="' + chipClass + '">' + chipText + '</span>';
+    }
+    portCell += timingDeltaTxt;
+  }
+  tr.innerHTML = '<td class="tk">' + tick + '</td><td class="casc">' + cascCell + '</td><td class="port">' + portCell + '</td>';
+  body.appendChild(tr);
+  body.parentElement.scrollTop = body.parentElement.scrollHeight;
+  updateShadowSummary();
+}
+
+function updateShadowSummary() {
+  var n = _state.divergences;
+  var ct = (_state.cascadeFinalTick !== null && _state.portfolioFinalTick !== null)
+    ? Math.abs(_state.cascadeFinalTick - _state.portfolioFinalTick)
+    : 0;
+  document.getElementById('shadowSummary').textContent =
+    'Divergences: ' + n +
+    ' · portfolio-catches/cascade-misses: ' + _state.divPortfolioCatches +
+    ' · cascade-catches/portfolio-misses: ' + _state.divCascadeCatches +
+    (ct > 0 ? ' · timing delta at first rollback: ' + ct + ' tick' + (ct === 1 ? '' : 's') : '');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Tick stream
+// ══════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════
+// W6 live banner — "Tick X/Y · <mode> · <verdict chip>" updated per tick
+// Replaces the pre-W6 tick-stream table on the front panel (which moved
+// out of the primary surface per W6 brief §Primary surface — current
+// verdict + tick counter is enough; the tick-by-tick log lives inside
+// the shadow-compare drawer section).
+// ══════════════════════════════════════════════════════════════════════
+function updateLiveBanner(cascRec, portRec) {
+  var rec = _state.mode === 'cascade' ? cascRec : portRec;
+  var tickEl = document.getElementById('liveTick');
+  var modeEl = document.getElementById('liveMode');
+  var verdEl = document.getElementById('liveVerdict');
+  if (!tickEl || !modeEl || !verdEl) return;
+  // W9 Item 2: once the rollback lock is set, pin the banner on
+  // "Rollback @ t=N" regardless of subsequent records. Corroborating
+  // fires still show up in detectors / provenance / α-meter; banner
+  // itself stops updating so the stakeholder sees a stable terminal.
+  if (_state.rollbackLockedTick !== null) {
+    tickEl.textContent = (_state.tick + 1) + '/' + _state.totalTicks;
+    modeEl.textContent = _state.mode;
+    verdEl.className = 'v v-live v-rollback';
+    verdEl.textContent = 'Rollback @ t=' + _state.rollbackLockedTick;
+    return;
+  }
+  if (rec === null || rec === undefined) {
+    tickEl.textContent = (_state.totalTicks ? '0/' + _state.totalTicks : '—/—');
+    modeEl.textContent = _state.mode;
+    verdEl.className = 'v v-live v-baking';
+    verdEl.textContent = verdictWording('baking');
+    return;
+  }
+  tickEl.textContent = (_state.tick + 1) + '/' + _state.totalTicks;
+  modeEl.textContent = _state.mode;
+  var v = (rec && rec.verdict) || 'baking';
+  verdEl.className = 'v v-live v-' + v;
+  verdEl.textContent = verdictWording(v);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Run loop — drives both engines per tick, emits to all panels
+// ══════════════════════════════════════════════════════════════════════
+
+function resetDemo() {
+  _state.running = false;
+  _state.paused = false;
+  if (_state.animTimer) { clearTimeout(_state.animTimer); _state.animTimer = null; }
+  _state.tick = 0;
+  _state.cascadeRecords = [];
+  _state.portfolioRecords = [];
+  _state.alphaSpent = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+  _state.firedDetectors = new Set();  // W9 Item 3
+  _state.divergences = 0;
+  _state.divPortfolioCatches = 0;
+  _state.divCascadeCatches = 0;
+  _state.divTimingDeltas = 0;
+  _state.cascadeFinalTick = null;
+  _state.portfolioFinalTick = null;
+  _state.rollbackLockedTick = null;   // W9 Item 2
+  _state.rollbackLockedMode = null;
+  _state.settleRemaining = 0;
+  _state.lastLive = null;
+  _state.detectorFired = { cascade: {}, portfolio: {} };
+  _state.metricRowCache = null;
+  // W13 (ARCHITECT-REPLY-24 Item 1): per-run sample buffer for the
+  // drift detector + latest drift result for the baseline-history panel.
+  _state.driftSamples = [];
+  _state.driftResult = null;
+  _state.driftFiredTick = null;
+  document.getElementById('shadowBody').innerHTML = '';
+  document.getElementById('shadowSummary').textContent = 'No divergences yet.';
+  document.getElementById('finalBanner').className = 'final';
+  document.getElementById('finalBanner').textContent = '';
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+  document.getElementById('pauseBtn').textContent = 'Pause';
+  renderProvenance(null);
+  renderAlphaMeter();
+  initMetricsPanel();
+  renderDetectors();
+  renderBaselineDrawer();
+  updateLiveBanner(null, null);
+}
+
+function pauseDemo() {
+  if (!_state.running) return;
+  _state.paused = !_state.paused;
+  document.getElementById('pauseBtn').textContent = _state.paused ? 'Resume' : 'Pause';
+  if (!_state.paused) step();
+}
+
+function runDemo() {
+  if (_state.running) return;
+  resetDemo();
+  _state.running = true;
+  _state.paused = false;
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('pauseBtn').disabled = false;
+
+  var pick = selectedScenario();
+  _state.scenario = pick.sc;
+  // Tag for shadow-compare: inline adversarials are cascade-mode-only per
+  // ARCHITECT-REPLY-18 (Option A). The portfolio column renders a label
+  // rather than a verdict to avoid surfacing cell-baseline-mismatch artifacts.
+  _state.scenario.__inlineAdversarial = (pick.kind === 'inline');
+  // Cadence: canned demos can override; otherwise demo-pace 120ms (smooth playback).
+  _state.cadenceMs = (pick.sc.cadence_ms || 120);
+  _state.totalTicks = (pick.sc.total_ticks || (pick.kind === 'canned' && pick.sc.ticks ? pick.sc.ticks.length : (typeof TOTAL_TICKS !== 'undefined' ? TOTAL_TICKS : 32)));
+
+  _state.cascadeTb = new TrendBuffer(10);
+  _state.portfolioTb = new TrendBuffer(10);
+
+  // Apply cell_patch (canned demos only) — overrides v4 cell means at the
+  // demo's targeted hour/day so the demo's `metrics` trajectory is
+  // baseline-consistent with the engine's mSPRT/Hotelling cell lookup.
+  _state.patchedConfig = applyCellPatch(window.COMPILED_CONFIG_V4, pick.sc.cell_patch);
+
+  // Drift fn: canned demos pre-bake their per-tick live metrics; inline scenarios
+  // generate via drift fn or makeAdvDrift.
+  if (pick.kind === 'inline') {
+    _state.driftFn = pick.sc.drift || makeAdvDrift(pick.sc.driftParams || {});
+  }
+
+  // W6 front panel: build the 11-row metric table ONCE so per-tick
+  // updates mutate the cached row handles rather than re-rendering the
+  // full innerHTML (Phase 1.5 perf parity requirement).
+  initMetricsPanel();
+
+  step();
+}
+
+// applyCellPatch — produces a deep-cloned config with the patched cell's
+// Family A per-signal means + Family C mean_vector overridden + per-cell
+// Family E calibration scores attached. Returns the source config
+// unchanged when no patch is supplied (inline scenarios).
+//
+// Q57 Path-3 (per ARCHITECT-REPLY-Q57-PATH-2-OUTCOME-DISPOSITION):
+// extends the patch to apply across ALL tier-segmented cells matching
+// (h, d) AND to the top-level baseline_cells.aggregate_fallback structure.
+// Pre-Path-3: Find returned the FIRST cell at (h, d) — for v4 single-tier
+// substrate this was the only cell; for v7 multi-tier substrate this was
+// the dominant tier (n=0). Runtime cell-lookup post-Q2.B.6c resolves to
+// aggregate-tier cell which the patch never touched. Path-3 closes the
+// (c) cell-resolution layer mismatch by patching ALL tier-segmented cells
+// at the target (h, d) plus the aggregate_fallback structure.
+function applyCellPatch(sourceConfig, patch) {
+  if (!sourceConfig || !patch) return sourceConfig;
+  var cfg = JSON.parse(JSON.stringify(sourceConfig));
+  var target = patch.target_cell || {};
+  // Q57 Path-3: filter ALL cells matching (h, d) across tiers (was: find
+  // first match). Each tier-segmented cell receives the override so post-
+  // Q2.B.6c runtime cell-lookup (which resolves to tier='aggregate' under
+  // tenantId-less queries) sees the patched values.
+  var matchingCells = (cfg.baseline_cells && cfg.baseline_cells.cells || []).filter(function (c) {
+    return c.key && c.key.hour_of_day === target.hour_of_day && c.key.day_of_week === target.day_of_week;
+  });
+  // Q57 Path-3: also include the top-level aggregate_fallback structure
+  // (NOT in cells[]; separate object) so fallback queries see the patch.
+  var aggFallback = cfg.baseline_cells && cfg.baseline_cells.aggregate_fallback;
+  var applyTargets = matchingCells.slice();
+  if (aggFallback) applyTargets.push(aggFallback);
+  if (applyTargets.length === 0) return cfg;
+  for (var ti = 0; ti < applyTargets.length; ti++) {
+    var cell = applyTargets[ti];
+    if (patch.family_A_per_signal && cell.family_A) {
+      for (var sig in patch.family_A_per_signal) {
+        if (Object.prototype.hasOwnProperty.call(patch.family_A_per_signal, sig)) {
+          // Q57 Path-3: MERGE per_signal entry rather than REPLACE.
+          // Pre-Path-3 REPLACE wiped Q2.A signal_class + baseline_mean_raw
+          // + Q2.B.5 baseline_sigma_squared_raw + Q2.B.6.3
+          // betting_sliding_buffer_threshold from the patched cell when
+          // patch only sets demo-narrative fields (baseline_mean,
+          // baseline_sigma_squared, tau_squared, delta_min). Without those
+          // substrate-stamped fields, runtime falls back to analytical
+          // 1/α_betting + bounded_probability transform — re-introducing
+          // Phase-2.4-v2-halt-class artifacts. MERGE preserves substrate
+          // fields while overriding demo-specified fields.
+          var existing = cell.family_A.per_signal[sig] || {};
+          var override = patch.family_A_per_signal[sig];
+          var merged = {};
+          for (var ek in existing) if (Object.prototype.hasOwnProperty.call(existing, ek)) merged[ek] = existing[ek];
+          for (var ok in override) if (Object.prototype.hasOwnProperty.call(override, ok)) merged[ok] = override[ok];
+          cell.family_A.per_signal[sig] = merged;
+        }
+      }
+    }
+    if (patch.family_C_mean_vector && cell.family_C) {
+      cell.family_C.mean_vector = patch.family_C_mean_vector.slice();
+    }
+    // Per-cell Family E calibration scores — override v4's aggregate fallback
+    // so demo nonconformity is scored against the demo's own clean envelope.
+    if (patch.family_E_calibration_scores) {
+      cell.family_E = { calibration_scores: patch.family_E_calibration_scores.slice() };
+    }
+  }
+  // Top-level α budget override — typically narrows Family E so 100
+  // calibration scores meet conformal's underpowered guard.
+  if (patch.alpha_budget_override) {
+    cfg.alpha_budget = cfg.alpha_budget || {};
+    cfg.alpha_budget.per_family = cfg.alpha_budget.per_family || {};
+    if (patch.alpha_budget_override.per_family) {
+      for (var f in patch.alpha_budget_override.per_family) {
+        if (Object.prototype.hasOwnProperty.call(patch.alpha_budget_override.per_family, f)) {
+          cfg.alpha_budget.per_family[f] = patch.alpha_budget_override.per_family[f];
+        }
+      }
+    }
+    if (patch.alpha_budget_override.total !== undefined) {
+      cfg.alpha_budget.total = patch.alpha_budget_override.total;
+    }
+  }
+  return cfg;
+}
+
+function step() {
+  if (!_state.running || _state.paused) return;
+  if (_state.tick >= _state.totalTicks) return finalize();
+
+  var sc = _state.scenario;
+  var tick = _state.tick;
+  var hrs = tick * ((sc.bakeHours || 6) / _state.totalTicks);
+  var live;
+
+  if (sc.ticks && sc.ticks[tick]) {
+    // Canned demo path — pre-baked live metrics.
+    live = sc.ticks[tick].metrics || sc.ticks[tick];
+  } else {
+    var mults = _state.driftFn(tick, sc.driftParams || {});
+    live = {};
+    var keys = Object.keys(sc.baseline);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      live[k] = sc.baseline[k] * (mults[k] !== undefined ? mults[k] : 1);
+    }
+  }
+
+  // Push to both TrendBuffers.
+  var lkeys = Object.keys(live);
+  for (var lj = 0; lj < lkeys.length; lj++) {
+    _state.cascadeTb.push(lkeys[lj], live[lkeys[lj]]);
+    _state.portfolioTb.push(lkeys[lj], live[lkeys[lj]]);
+  }
+
+  // Run cascade engine (legacy v1 path, no compiledConfig).
+  var cascParams = {
+    liveMetrics: live, scenario: sc, hoursElapsed: hrs,
+    trendBuffer: _state.cascadeTb, tick: tick, totalTicks: _state.totalTicks,
+    fusionTopology: 'cascade',
+  };
+  var cascRes = evaluate(cascParams);
+  var cascRec = buildAuditRecord(cascParams, cascRes, { service: 'demo' });
+
+  // W9 Item 1 (ARCHITECT-REPLY-18 Item A finish): inline adversarials
+  // don't ship a cell_patch, so running them through the portfolio
+  // engine produces aa5070b-class cell-baseline-mismatch verdicts. The
+  // picker already hides them in portfolio mode (populateScenarioDropdown);
+  // this skip is belt-and-suspenders for any path that still selects
+  // them in cascade. Portfolio record is null on these ticks so the
+  // shadow-compare panel renders its "cascade-mode only" label instead
+  // of a fake verdict.
+  var portRec = null;
+  var portRes = null;
+  if (!sc.__inlineAdversarial) {
+    // Run portfolio engine (full v4 surface, v2 records). Canned demos may
+    // ship a cell_patch overriding v4's targeted cell means — applied once
+    // at run start (not per-tick) so the patched cell stays consistent.
+    var portParams = {
+      liveMetrics: live, scenario: sc, hoursElapsed: hrs,
+      trendBuffer: _state.portfolioTb, tick: tick, totalTicks: _state.totalTicks,
+      compiledConfig: _state.patchedConfig || window.COMPILED_CONFIG_V4 || null,
+      currentHourOfDay: (sc.currentHourOfDay !== undefined ? sc.currentHourOfDay : 14),
+      currentDayOfWeek: (sc.currentDayOfWeek !== undefined ? sc.currentDayOfWeek : 2),
+      fusionTopology: 'portfolio',
+    };
+    portRes = evaluate(portParams);
+    portRec = buildAuditRecord(portParams, portRes, { service: 'demo' });
+  }
+
+  _state.cascadeRecords.push(cascRec);
+  _state.portfolioRecords.push(portRec);
+
+  // Track first rollback per stream for shadow-compare timing-delta.
+  if (cascRes.verdict === 'rollback' && _state.cascadeFinalTick === null) _state.cascadeFinalTick = tick;
+  if (portRes && portRes.verdict === 'rollback' && _state.portfolioFinalTick === null) _state.portfolioFinalTick = tick;
+
+  // Accumulate per-family α from v2 record (guarded for inline
+  // adversarial runs where portRec is null).
+  if (portRec && portRec.families) {
+    // W9 Item 3: first-fire-per-detector aggregation. Previous code
+    // summed fa.alpha_spent per tick, which double-counted Ville bound
+    // commitments — a detector that fires every tick after t=10 was
+    // accumulating 22× the Ville bound, producing "660% of budget" on
+    // Demo 2. Ville's inequality says α is committed once at first fire;
+    // re-fires of the same detector don't re-spend α.
+    for (var f of ['A','B','C','D','E']) {
+      var fa = portRec.families[f];
+      if (!fa || !fa.detectors) continue;
+      for (var di = 0; di < fa.detectors.length; di++) {
+        var d = fa.detectors[di];
+        if (!d || !d.detector_id) continue;
+        var key = f + ':' + d.detector_id;
+        if (_state.firedDetectors.has(key)) continue;
+        _state.firedDetectors.add(key);
+        _state.alphaSpent[f] += (d.alpha_spent || 0);
+      }
+    }
+  }
+
+  // Track first-fire per detector for the detectors panel state chips.
+  trackDetectorFires(cascRec, portRec);
+
+  // W6: lastLive drives the metrics panel. The SAME live metrics are
+  // input to both cascade + portfolio engines, so the metrics panel is
+  // mode-agnostic — changing the mode toggle doesn't re-render it.
+  _state.lastLive = live;
+
+  // W9 Item 2: settle-window check. On the FIRST tick where the mode-
+  // selected stream fires rollback, lock the banner and start a 5-tick
+  // settle window. Subsequent ticks still update the metrics / detectors
+  // / provenance / α-meter panels (corroborating family fires remain
+  // visible) but the banner stays pinned on "Rollback @ t=N".
+  //
+  // In cascade mode, cascRec drives the banner; in portfolio mode, the
+  // portRec does (and for inline adversarials, the portfolio path is
+  // skipped so the lock never fires from that side). Compute the
+  // relevant verdict up front so locking is single-sourced.
+  var bannerRec = (_state.mode === 'cascade') ? cascRec : portRec;
+  var bannerVerdict = bannerRec && bannerRec.verdict;
+  if (bannerVerdict === 'rollback' && _state.rollbackLockedTick === null) {
+    _state.rollbackLockedTick = tick;
+    _state.rollbackLockedMode = _state.mode;
+    _state.settleRemaining = SETTLE_TICKS;
+  }
+
+  // W13 (ARCHITECT-REPLY-24 Item 1): evaluate the baseline-drift
+  // detector against the growing sample buffer. Works from any scenario
+  // (all five shipped demos) — for most scenarios d² stays well below
+  // threshold; Demo 6's trajectory drives it above threshold by tick
+  // ~18. Silent on the cascade-only path (no compiled config) — the
+  // detector needs per-cell Family C covariance to compute Mahalanobis.
+  _state.driftSamples.push(live);
+  if (typeof evaluateBaselineDrift === 'function' &&
+      (_state.patchedConfig || window.COMPILED_CONFIG_V4)) {
+    var driftCfg = _state.patchedConfig || window.COMPILED_CONFIG_V4;
+    var driftHour = (sc.currentHourOfDay !== undefined) ? sc.currentHourOfDay : 14;
+    var driftDay  = (sc.currentDayOfWeek !== undefined) ? sc.currentDayOfWeek : 2;
+    _state.driftResult = evaluateBaselineDrift(driftCfg, {
+      recentSamples: _state.driftSamples,
+      cell: { hour_of_day: driftHour, day_of_week: driftDay },
+    });
+    if (_state.driftResult && _state.driftResult.drift_detected && _state.driftFiredTick === null) {
+      _state.driftFiredTick = tick;
+    }
+  }
+
+  // Render all panels.
+  updateCalBadge(portRec);
+  updateLiveBanner(cascRec, portRec);
+  renderMetrics();
+  renderDetectors();
+  renderProvenance(portRec);
+  appendShadowRow(tick, cascRec, portRec);
+  renderAlphaMeter();
+  renderBaselineDrawer();
+
+  // Pause-beat (§6.4) — auto-pause for ~2 s on architecturally significant ticks.
+  var pauseBeat = !!(sc.ticks && sc.ticks[tick] && sc.ticks[tick].pause_beat);
+  if (pauseBeat) {
+    var bRow = document.querySelector('#tickBody tr.active');
+    if (bRow) bRow.classList.add('pause-beat-flash');
+    _state.animTimer = setTimeout(advance, 2000);
+  } else {
+    _state.animTimer = setTimeout(advance, _state.cadenceMs);
+  }
+}
+
+function advance() {
+  _state.tick++;
+  // W9 Item 2: after the rollback lock fires, step for SETTLE_TICKS more
+  // ticks so corroborating family fires remain visible, then stop.
+  // Counter is decremented BEFORE stepping so a lock at t=10 yields
+  // settle ticks t=11..t=15 (SETTLE_TICKS=5) then finalize.
+  if (_state.rollbackLockedTick !== null) {
+    if (_state.settleRemaining === 0) return finalize();
+    _state.settleRemaining--;
+  }
+  if (_state.tick >= _state.totalTicks) return finalize();
+  if (_state.running && !_state.paused) step();
+}
+
+function finalize() {
+  _state.running = false;
+  if (_state.animTimer) { clearTimeout(_state.animTimer); _state.animTimer = null; }
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+  renderTerminalBanner();
+  updateShadowSummary();
+}
+
+// W11 Item E: render the terminal banner + subtitle. Mode-dependent
+// (the cascade-truncation subtitle only shows in cascade view when
+// portfolio rollback stopped the run and cascade stayed clean), so
+// setMode() re-invokes this after a stopped run to keep the subtitle
+// in sync with the active view.
+function renderTerminalBanner() {
+  // No-op before the first run completes.
+  if (_state.running) return;
+  var lastPort = _state.portfolioRecords[_state.portfolioRecords.length - 1];
+  var lastCasc = _state.cascadeRecords[_state.cascadeRecords.length - 1];
+  var isInline = _state.scenario && _state.scenario.__inlineAdversarial === true;
+  var last = (isInline || !lastPort) ? lastCasc : lastPort;
+  var label = (isInline || !lastPort) ? 'Cascade verdict' : 'Portfolio verdict';
+  if (!last) return;
+  var v = last.verdict;
+  var b = document.getElementById('finalBanner');
+  if (!b) return;
+  b.className = 'final show final-' + v;
+  var wording = _state.rollbackLockedTick !== null
+    ? 'Rollback · rolled back at t=' + _state.rollbackLockedTick
+    : verdictWording(v);
+  // Compose the subtitle. The cascade-truncation subtitle (W11 Item E)
+  // makes the "cascade would have missed" beat explicit to a viewer who
+  // flips to cascade after a portfolio-triggered stop: renders only
+  // when (a) portfolio rolled back, (b) run is stopped, (c) the user
+  // is currently viewing cascade, (d) cascade's final record shows no
+  // rollback. Otherwise falls back to the plain "Run complete." subtitle.
+  var subtitle = 'Run complete.';
+  var portfolioStopped = !_state.running
+    && _state.rollbackLockedTick !== null
+    && _state.rollbackLockedMode === 'portfolio';
+  var cascadeMissed = lastCasc && lastCasc.verdict !== 'rollback';
+  if (portfolioStopped && _state.mode === 'cascade' && cascadeMissed) {
+    var n = _state.cascadeRecords.length - 1;  // last tick cascade reached
+    var m = _state.rollbackLockedTick;
+    subtitle = 'Cascade clean through tick ' + n + '; portfolio rolled back at tick ' + m + ', run stopped.';
+  }
+  b.innerHTML = '<strong>' + label + ': ' + escapeHtml(wording) + '</strong>' +
+    (last.reason ? ' &mdash; ' + escapeHtml(last.reason) : '') +
+    '<div style="margin-top:6px;font-size:.78rem;color:var(--text-dim);font-style:italic">' + escapeHtml(subtitle) + '</div>';
+}
+
+window.runDemo = runDemo;
+window.resetDemo = resetDemo;
+window.pauseDemo = pauseDemo;
+window.openCalModal = openCalModal;
+window.closeCalModal = closeCalModal;
+window.onScenarioChange = onScenarioChange;
+// W6 additions
+window.setMode = setMode;
+window.toggleDrawer = toggleDrawer;
+window.toggleDrawerSection = toggleDrawerSection;
+window.renderDetectors = renderDetectors;
+window.renderBaselineDrawer = renderBaselineDrawer;
+
+document.addEventListener('DOMContentLoaded', initDemo);
+</script>
+</body></html>

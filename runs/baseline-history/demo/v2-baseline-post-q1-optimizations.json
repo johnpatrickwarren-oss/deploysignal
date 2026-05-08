@@ -1,0 +1,40 @@
+{
+  "version_id": "v2-baseline-post-q1-optimizations-2025-12-15",
+  "compiled_at": "2025-12-15T10:30:00Z",
+  "baseline_ref": "synthetic-v1@seed=42 + post-q1-optimization-cutover",
+  "predecessor_version_id": "v1-baseline-initial-2025-11-01",
+  "recalibration_reason": "scheduled",
+  "alpha_budget": { "total": 1e-3, "per_family": { "A": 4e-4, "B": 2e-4, "C": 2e-4, "D": 1e-4, "E": 1e-4 } },
+  "cells": [
+    {
+      "key": { "hour_of_day": 14, "day_of_week": 2 },
+      "n_samples": 520,
+      "confidence": "strict",
+      "family_A": {
+        "per_signal": {
+          "p99_latency":    { "baseline_mean": 205, "baseline_sigma_squared": 120, "tau_squared": 120, "delta_min": 20.5 },
+          "ttft":           { "baseline_mean": 245, "baseline_sigma_squared": 140, "tau_squared": 140, "delta_min": 24.5 },
+          "downstream_err": { "baseline_mean": 0.0014, "baseline_sigma_squared": 5.0e-7, "tau_squared": 5.0e-7, "delta_min": 0.00028 },
+          "cost_req":       { "baseline_mean": 0.0045, "baseline_sigma_squared": 5e-8, "tau_squared": 5e-8, "delta_min": 4.5e-4 }
+        }
+      }
+    }
+  ],
+  "maturity_metrics": {
+    "p99_latency":       { "mean": 205,    "direction_of_better": "lower" },
+    "ttft":              { "mean": 245,    "direction_of_better": "lower" },
+    "downstream_err":    { "mean": 0.0014, "direction_of_better": "lower" },
+    "hbm_spill":         { "mean": 0.022,  "direction_of_better": "lower" },
+    "refusal_rate":      { "mean": 0.020,  "direction_of_better": "lower" },
+    "mfu":               { "mean": 0.69,   "direction_of_better": "higher" },
+    "eval_score":        { "mean": 0.865,  "direction_of_better": "higher" },
+    "tool_success_rate": { "mean": 0.945,  "direction_of_better": "higher" },
+    "collective_ops":    { "mean": 0.9993, "direction_of_better": "higher" },
+    "cost_req":          { "mean": 0.0045, "informational_only": true },
+    "tokens_turn":       { "mean": 428,    "informational_only": true },
+    "kv_cache":          { "mean": 0.87,   "informational_only": true },
+    "corpus_delta":      { "mean": 0.042,  "informational_only": true }
+  },
+  "drift_detection_result": null,
+  "incident_outcome_tags": []
+}

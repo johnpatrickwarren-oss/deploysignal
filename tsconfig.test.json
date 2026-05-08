@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": true,
+    "rootDir": ".",
+    "outDir": ".",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "composite": false,
+    "noEmit": false
+  },
+  "include": [
+    "test/**/*.ts",
+    "tools/calibrate.ts",
+    "tools/calibrators/**/*.ts",
+    "tools/benchmark-tick-latency.ts",
+    "tools/profile-loader.ts",
+    "tools/bundle-loader.ts",
+    "tools/inject-regression.ts",
+    "tools/ingest-real-trace.ts",
+    "tools/curate-baseline-pipeline.ts",
+    "tools/per-tick-detector-trace.ts",
+    "tools/nab-scoring.ts",
+    "tools/run-nab-validation.ts"
+  ],
+  "exclude": ["node_modules", "dist", "engine"]
+}

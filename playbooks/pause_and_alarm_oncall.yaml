@@ -1,0 +1,23 @@
+# playbooks/pause_and_alarm_oncall.yaml
+# Entry #2 per ARCHITECT-REPLY-49 D2. Category: pause.
+# Reversibility: any (all three deploy reversibilities pass rail e
+# filter; safe default when agent is uncertain between rollback
+# and deeper investigation).
+
+id: pause_and_alarm_oncall
+version: "1.0.0"
+applies_when:
+  firing_families: []
+  min_family_count: 1
+  verdict_class: both
+reversibility_required: any
+confidence_threshold: 0.7
+orchestrator_command_template: "argo rollouts pause ${rollout_name} --namespace ${namespace} && pagerduty trigger ${service} --severity high --summary 'DS agent pause + investigate'"
+human_description: >
+  Pause the rollout at the current canary weight and page the
+  on-call SRE to investigate before resuming or rolling back.
+expected_effect: >
+  Canary weight frozen; traffic allocation unchanged; on-call
+  receives a PagerDuty alert within the standard notification
+  SLA. Deploy lifecycle resumes only after human action.
+category: pause

@@ -1,0 +1,25 @@
+# playbooks/suppress_family_a_signal_x.yaml
+# Entry #5 per ARCHITECT-REPLY-49 D2. Category: suppress.
+# Reversibility: any — signal-level suppression is restorable
+# via config and doesn't depend on deploy reversibility.
+# Parameterized: ${signal} is filled by the FM at proposal time.
+
+id: suppress_family_a_signal_x
+version: "1.0.0"
+applies_when:
+  firing_families: ["A"]
+  min_family_count: 1
+  verdict_class: both
+reversibility_required: any
+confidence_threshold: 0.75
+orchestrator_command_template: "ds config set ignore_thresholds.${signal} ${band_low}..${band_high} --service ${service} --ttl ${ttl_minutes}m --reason 'DS agent suppress; operator confirmed'"
+human_description: >
+  Suppress a specific Family A signal when its in-band
+  observation band is driving false fires (e.g., known
+  quality-tier signal drift that's not deploy-caused).
+expected_effect: >
+  Family A detector for ${signal} stops contributing to
+  FusedVerdict for the TTL. Other signals continue to
+  evaluate normally. Suppression visible in audit under
+  'ignore_threshold' reason_code.
+category: suppress

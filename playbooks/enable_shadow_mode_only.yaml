@@ -1,0 +1,24 @@
+# playbooks/enable_shadow_mode_only.yaml
+# Entry #9 per ARCHITECT-REPLY-49 D2. Category: pause.
+# Reversibility: any — shadow-mode doesn't commit traffic;
+# safe across reversibility classes.
+
+id: enable_shadow_mode_only
+version: "1.0.0"
+applies_when:
+  firing_families: ["A", "C", "E"]
+  min_family_count: 1
+  verdict_class: extend
+reversibility_required: any
+confidence_threshold: 0.7
+orchestrator_command_template: "ds route set ${service} mode=shadow --shadow-target ${canary_name} --duration ${duration_minutes}m"
+human_description: >
+  Route 100% of traffic to the stable baseline but continue
+  evaluating the new version's verdicts in shadow mode to
+  collect more data before committing.
+expected_effect: >
+  All user-facing traffic served from the baseline; canary
+  continues to receive mirrored requests for detector
+  evaluation only. After the duration, operator reviews
+  shadow-mode FusedVerdict trend and decides next step.
+category: pause

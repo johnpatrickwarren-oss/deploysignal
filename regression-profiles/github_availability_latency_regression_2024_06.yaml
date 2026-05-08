@@ -1,0 +1,45 @@
+# regression-profiles/github_availability_latency_regression_2024_06.yaml
+# Source: GitHub Jun 2024 availability + latency regression postmortem
+# Shape: cost_req inflates proportionally (more retries, longer
+# context walks); p99_latency follows with a smaller σ-scaled shift.
+# Detection target: Family A on p99_latency; potentially Family A
+# on cost_req if the mean-fraction shift is severe enough.
+
+id: github_availability_latency_regression_2024_06
+source: "GitHub Jun 2024 availability + latency regression postmortem"
+duration_minutes: 30
+affected_signals: [p99_latency, cost_req]
+
+injection_points:
+  # Cost inflates proportionally — exercises
+  # relative_to_baseline_mean delta_kind (fraction-of-mean shift).
+  - tick_offset: 0
+    signal: cost_req
+    delta_kind: relative_to_baseline_mean
+    delta: 0.08
+  - tick_offset: 120
+    signal: cost_req
+    delta_kind: relative_to_baseline_mean
+    delta: 0.18
+  - tick_offset: 240
+    signal: cost_req
+    delta_kind: relative_to_baseline_mean
+    delta: 0.28
+  # Latency follows with σ-scaled ramp.
+  - tick_offset: 60
+    signal: p99_latency
+    delta_kind: relative_to_baseline_sigma
+    delta: 1.8
+  - tick_offset: 180
+    signal: p99_latency
+    delta_kind: relative_to_baseline_sigma
+    delta: 2.8
+
+expected_detection:
+  family: A
+  signal: p99_latency
+  notes: >
+    Mixed delta_kind exercise (mean-fraction on cost_req; σ-scaled
+    on p99_latency). Family A Page-CUSUM on p99_latency should
+    fire; cost_req firing depends on its δ_min vs 28%-mean shift
+    magnitude.
