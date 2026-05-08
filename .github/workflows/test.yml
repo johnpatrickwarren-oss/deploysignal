@@ -46,7 +46,7 @@ jobs:
         run: npx tsc -p tsconfig.test.json
 
       - name: Upload compiled outputs for test matrix
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compiled-outputs
           # tsc -p tsconfig.test.json emits .js to source-tree positions
