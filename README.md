@@ -64,6 +64,38 @@ DeploySignal's detector calibration assumes baseline traces are operator-curated
 
 This operator-curated-healthy-baseline pattern is consistent with industry standard for deploy-gate analysis tools — Spinnaker Kayenta, Argo Rollouts, Flagger, Harness Continuous Verification, LaunchDarkly Release Guardian, Datadog Watchdog, and Dynatrace Quality Gates all rely on operator-curated healthy traffic as calibration input. The same pattern applies to LLM-observability tools (Fiddler Guardrails, Arize Phoenix, WhyLabs LangKit) for their reference distributions. Adding automated incident-window exclusion (e.g., as a D11 decision in the baseline curation pipeline, or operator-supplied incident-timestamp manifest) is a possible future extension.
 
+## Performance
+
+Per-tick gate-evaluation latency on the full 5-family detector portfolio:
+
+| Scenario | Median | p99 | Max | Sample size |
+|---|---|---|---|---|
+| Healthy path (no fires; full evaluation) | 29.8 μs | 62.8 μs | 0.194 ms | 5,000 ticks |
+| Regression path (C+E co-fire at t=11) | 27.8 μs | 60.8 μs | 0.167 ms | 5,000 ticks |
+
+Measured 2026-04-20 on `darwin-arm64` (Apple Silicon), Node.js v25.9, against the `v4-fusion-novelty` compiled config in portfolio fusion topology with all five detector families active. 1,000-tick warm-up before measurement.
+
+Raw measurements: `runs/benchmarks/tick-latency-baseline.json`. Methodology: `tools/benchmark-tick-latency.ts`.
+
+### Per-family complexity
+
+Calibration is heavy at compile time; runtime is arithmetic against precomputed structures (no matrix factorization at runtime; no threshold recalibration at runtime).
+
+| Family | Per-tick cost |
+|---|---|
+| A — mixture-supermartingale Page-CUSUM + betting e-process | O(p) per signal |
+| B — structural patterns | O(1) lookup against compiled thresholds |
+| C — Hotelling T² | O(p²) — one Cholesky solve against precomputed Σ⁻¹ |
+| C — Sequential MMD with RFF | O(D · p) where D = 256 RFF dimension; ~2,800 flops/tick at p = 11 |
+| D — spectral ACF + BOCPD | O(p · log b) where b = buffer size |
+| E — weighted-conformal Mahalanobis | O(B) where B = bootstrap sample count |
+
+### Staleness note
+
+The above measurements predate Phase D architectural changes (Q66 mixture-supermartingale Page-CUSUM; Q67 betting e-process for Sequential MMD; Q72 RFF construction). Post-Phase-D projection: median ~35–50 μs, p99 ~100–150 μs — still sub-millisecond, modest increase from the 2026-04-20 baseline. Benchmark refresh tracked as a separate cycle.
+
+For context: a typical LLM token-generation step is 10–100 ms. DeploySignal adds well under 1% overhead on a typical inference-request budget.
+
 ## Status
 
 Reference implementation. Not packaged for production deployment as-is — the engine is shipped as runtime-exercised TypeScript modules with a deterministic test substrate; integration with a specific deployment platform (Argo Rollouts, Flagger, custom Kubernetes operators, etc.) is work that wraps this engine. See [`ORCHESTRATION-ADAPTERS.md`](ORCHESTRATION-ADAPTERS.md) for the architectural seam where that integration plugs in.
