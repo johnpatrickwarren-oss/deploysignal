@@ -1,0 +1,67 @@
+{
+  "measured_at": "2026-04-20T22:19:14.549Z",
+  "node_version": "v25.9.0",
+  "platform": "darwin-arm64",
+  "compiled_config_version": "v4-fusion-novelty",
+  "compiler_version": "0.2.0",
+  "fusion_topology": "portfolio",
+  "surface": {
+    "family_A": [
+      "page_cusum",
+      "betting_e_process"
+    ],
+    "family_B": [
+      "structural_signatures"
+    ],
+    "family_C": [
+      "hotelling_t2",
+      "sequential_mmd",
+      "mcd_mrcd_lw_covariance"
+    ],
+    "family_D": [
+      "spectral_acf",
+      "bocpd"
+    ],
+    "family_E": [
+      "weighted_conformal"
+    ]
+  },
+  "warmup_ticks": 1000,
+  "measured_ticks": 5000,
+  "scenarios": [
+    {
+      "scenario": "demo-clean",
+      "n_warmup": 1000,
+      "n_measured": 5000,
+      "median_ns": 29792,
+      "p95_ns": 44459,
+      "p99_ns": 62792,
+      "p999_ns": 101000,
+      "max_ns": 194208,
+      "min_ns": 3583,
+      "mean_ns": 26015.3382,
+      "stddev_ns": 13149.94134206761,
+      "median_us": 29.792,
+      "p99_us": 62.792,
+      "max_ms": 0.194,
+      "short_circuits_during_measured": 0
+    },
+    {
+      "scenario": "demo-anthropic-2025",
+      "n_warmup": 1000,
+      "n_measured": 5000,
+      "median_ns": 27750,
+      "p95_ns": 36667,
+      "p99_ns": 60833,
+      "p999_ns": 93916,
+      "max_ns": 167333,
+      "min_ns": 3208,
+      "mean_ns": 23882.9466,
+      "stddev_ns": 13072.511706391746,
+      "median_us": 27.75,
+      "p99_us": 60.833,
+      "max_ms": 0.167,
+      "short_circuits_during_measured": 0
+    }
+  ]
+}
