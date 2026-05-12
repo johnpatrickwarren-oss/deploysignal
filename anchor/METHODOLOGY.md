@@ -157,6 +157,79 @@ The discipline catches TPM-side errors at the source rather than at downstream c
 
 ---
 
+## Automated TPM routing (T1 — pipeline variant)
+
+The TPM role as described above assumes a human reads every coordination artifact
+and writes routing decisions between sessions. In automated pipeline deployments,
+the TPM routing function is replaced by a file-driven state machine — but the
+underlying discipline (T1) is unchanged. The anchors still apply; what changes is
+who or what applies them.
+
+### NEXT-ROLE.md as the routing contract
+
+In automated mode, each role writes its routing decision to `coordination/NEXT-ROLE.md`
+on completion rather than waiting for a human TPM to route it. The file carries:
+
+```
+CURRENT-ROUND: R01
+NEXT-ROLE: IMPLEMENTER
+STATUS: READY | ESCALATE | MERGE-READY | ROUND-COMPLETE | BLOCKED
+
+## Inputs for next role
+- coordination/specs/Q-R01-SPEC.md
+
+## Escalation items
+(bounded question if STATUS = ESCALATE)
+
+## Routing notes
+(sequencing context, if any)
+```
+
+`STATUS: READY` means the role completed its work and the next session can open.
+`STATUS: ESCALATE` is the automated equivalent of the human TPM halting and asking
+for input — it surfaces a bounded question that requires operator judgment, pauses
+the pipeline, and waits for resolution before continuing.
+
+### T1 discipline in automated mode
+
+The TPM grilling checklist (verifying filenames, versions, line numbers, test counts
+are current before routing) runs as part of each role's pre-emit grilling rather
+than as a separate TPM session. The Architect's grilling output includes canonical
+version verification. The Reviewer's pre-emit grilling includes audit-state currency
+verification (confirming it is reviewing the artifact that would actually merge).
+
+This preserves the T1 discipline without requiring a dedicated TPM session for
+every handoff — appropriate when the human operator has validated the methodology
+and trusts the role-level grilling to catch routing errors.
+
+### Escalation as the human gate
+
+In automated mode, the human operator is not absent — they are present at escalations.
+An escalation is set when a role encounters a condition it cannot resolve without a
+design decision that belongs to the operator:
+
+- Spec ambiguity with two valid interpretations (Architect → operator)
+- Spec claim contradicts codebase reality (Implementer → operator)
+- CRITICAL finding with no clear resolution path (Reviewer → operator)
+
+The escalation item is always a bounded question — not "what should I do" but
+"option A does X (consequence Y), option B does Z (consequence W), which?" The
+operator reads the question, resolves it, sets `STATUS: READY`, and the pipeline
+continues. This is the minimum viable human-in-the-loop pattern: present at
+decisions, absent from execution.
+
+### What automated mode does not replace
+
+The four-anchor defense (T0/T1/T2/T3) is fully preserved in automated mode.
+What changes is the mechanism of T1, not its substance. The disciplines that
+require human judgment — priority adjudication, architectural direction, accepting
+or rejecting Reviewer findings — remain with the operator. The disciplines that
+are mechanically verifiable — file existence, version currency, role boundary
+adherence, TDD sequence — are enforced by the role prompts and escalation rules.
+
+See [`integrations/superpowers-claude-code/`](integrations/superpowers-claude-code/)
+for a complete reference implementation of automated mode.
+
 ## Pre-route checklist (T1)
 
 Before forwarding ANY routing artifact to the implementer, verify:
