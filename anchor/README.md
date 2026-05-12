@@ -1,6 +1,6 @@
 # anchor
 
-**A multi-role agent orchestration discipline for high-stakes software builds, distilled from running a 14-week production-grade reference implementation as a 4-role multi-agent project.**
+**A multi-role agent orchestration discipline for high-stakes software builds, distilled from running a production-grade reference implementation as a 5-role multi-agent project.**
 
 The name comes from the **four-anchor pre-merge defense** — the structural backbone of this methodology. Each anchor is a discipline checkpoint; together they catch what single-pass review misses.
 
@@ -16,6 +16,55 @@ This pack adds four disciplines those frameworks do not:
 2. **Pre-emit grilling** — adversarial review of artifacts BEFORE they are forwarded to the next role, separate from post-merge review. Catches structural issues at the source rather than at the audit.
 3. **Audit-trail file discipline** — coordination as durable artifacts (one file per round, one file per disposition, one file per investigation) rather than ephemeral chat. The trail is the source of truth.
 4. **Role anchoring across multiple chat instances** — canonical session-ID-to-role mapping, anti-drift rule prohibiting "THIS session = X" self-claims in shared documents, per-chat project instructions as absolute role-identity source. Prevents the most common failure mode of multi-chat AI coordination: chats confusing or overlapping their roles. Includes a fillable template for projects to drop into their coordination folder.
+
+## Usage modes
+
+Anchor is a methodology, not a runtime. It can be applied in two distinct modes depending on your context, team size, and how much pipeline visibility you want.
+
+### Mode 1 — Manual coordination (original pattern)
+
+The pattern Anchor was developed from. One chat instance per role, a human TPM in the middle routing between them via copy-paste or routing pasteables. The human reads every coordination artifact, notices when work is churning, and intervenes before cycles are wasted.
+
+**When to use this:**
+- You're learning the methodology and want full visibility into every handoff
+- You're onboarding a new team to Anchor disciplines
+- The project is high enough stakes that you want a human reading every artifact before it routes
+- You want to stay in the loop on exactly what each role produces
+
+**How it works:** Each role runs in a separate chat window with per-chat project instructions setting role identity. The human TPM reads Architect output, verifies it against the pre-route checklist, and pastes the routing artifact into the Implementer chat. The same human reads Reviewer output and decides what routes back for rework. The `templates/` directory provides fillable scaffolds for each role's primary artifact.
+
+**Reference:** [`case-studies/deploysignal/`](case-studies/) — the full worked example that produced this methodology, run entirely in this mode.
+
+---
+
+### Mode 2 — Automated pipeline (solo operator pattern)
+
+The evolved pattern for operators who have validated the methodology and want throughput without continuous supervision. An orchestration script opens and closes Claude Code sessions in sequence, passing role identity and context via files. The human operator writes the PRD once, runs the pipeline, and intervenes only at explicit escalation points.
+
+**When to use this:**
+- You're building solo or with a small team and are the only human in the loop
+- You've already run several projects in Mode 1 and understand what each role should produce
+- You want the pipeline to run for hours unattended and surface decisions when genuinely needed
+- Speed and throughput matter as much as visibility
+
+**How it works:** A shell script (`run-pipeline.sh`) opens headless Claude Code sessions in sequence — Architect → Implementer → Reviewer → Memorial Updater. Each session reads only the artifacts appropriate to its role (context isolation). Roles write routing state to `NEXT-ROLE.md` rather than waiting for a human to route them. The pipeline stops and surfaces a bounded question when a role hits a condition it cannot resolve autonomously. The cross-project memorial (`~/.claude/CROSS-PROJECT-MEMORIAL.md`) accumulates discipline violations and confirmations across projects, injecting reinforcement rules into every new project's CLAUDE.md automatically.
+
+**Reference:** [`integrations/superpowers-claude-code/`](integrations/superpowers-claude-code/) — a complete, tested implementation of this pattern using Claude Code and Superpowers.
+
+---
+
+### Choosing a mode
+
+The modes are not mutually exclusive. A common pattern is to start a project in Mode 1 to understand the problem space, then switch to Mode 2 for execution rounds once the Architect spec is solid. The coordination file structure (`coordination/specs/`, `coordination/reviews/`, `NEXT-ROLE.md`, `MEMORIAL.md`) is identical in both modes — switching between them mid-project requires no migration.
+
+| | Manual (Mode 1) | Automated (Mode 2) |
+|---|---|---|
+| Human involvement | Every handoff | Escalations only |
+| Context visibility | Full — human reads everything | Log files + final artifacts |
+| Throughput | Limited by human availability | Runs unattended for hours |
+| Best for | Learning, high-stakes oversight | Production velocity |
+| Gate on churning | Human notices in real time | Halt discipline + escalation |
+| Setup | Per-chat project instructions | `run-pipeline.sh` + `CLAUDE.md` |
 
 ## Origin
 
