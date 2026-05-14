@@ -24,6 +24,8 @@ The TPM role specifically distinguishes this pack from most agent frameworks. Mo
 
 The Implementer role can be one or many parallel instances. When work scopes are independent (e.g., two features touching different file trees), running parallel Implementer sessions on isolated `git worktree` branches scales throughput without coordination overhead. See [`skills/07-round-numbering-convention.md`](./skills/07-round-numbering-convention.md) for cross-instance referential discipline.
 
+For multi-cluster parallel execution at the program level (rather than feature level), a sixth role — **Coordinator** — sits above all clusters and owns PRD decomposition, dependency-graph construction, wave sequencing, and wave-gate quality control. The Coordinator is additive to TPM, not a replacement: TPM handles routing inside each cluster (or is collapsed into `NEXT-ROLE.md` state in the automated pipeline); the Coordinator handles which clusters run, in what order, and how their outputs reconcile at wave boundaries. See [`skills/12-coordinator-role.md`](./skills/12-coordinator-role.md) for the full discipline (DAG construction tests, work-unit classification, wave-gate checklist).
+
 ### Templates for coordination-heavy roles
 
 Each of the four coordination-heavy roles (PM, Architect, TPM, Reviewer) has a fillable scaffold under [`templates/`](./templates/). The scaffolds encode the relevant disciplines (pre-emit grilling, anti-scope, P3 axes, severity triage) structurally so the role's output captures discipline by construction rather than by memory.
