@@ -65,6 +65,14 @@ Every non-trivial change passes through four discipline anchors. Each catches wh
 
 See [`skills/03-four-anchor-defense.md`](./skills/03-four-anchor-defense.md) for application detail.
 
+> **Naming note:** the four anchors (`T0` / `T1` / `T2` / `T3`) are
+> *temporally-ordered discipline checkpoints*. A separate concept —
+> **round scaling**, which decides how many roles run for a given
+> round — uses verbal names (`solo` / `audit` / `full`) precisely to
+> avoid collision with the four-anchor letter+number names. See
+> [`skills/11-round-scaling.md`](./skills/11-round-scaling.md) for
+> when each tier applies.
+
 ---
 
 ## Architect six practices (T0)
