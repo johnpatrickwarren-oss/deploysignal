@@ -6,6 +6,48 @@ The name comes from the **four-anchor pre-merge defense** — the structural bac
 
 This is a methodology pack, not a framework. It is a set of explicit disciplines you (and your agents) apply at specific moments in a project — not a runtime, not a library, not a platform. It can be applied alongside [Superpowers](https://github.com/obra/superpowers), [CrewAI](https://github.com/crewaiinc/crewai), [LangGraph](https://github.com/langchain-ai/langgraph), [Claude Code](https://docs.claude.com/en/docs/claude-code/overview), or any other agent runtime. It can also be applied with a single agent or no agents at all.
 
+## Quick start
+
+Two minutes of setup, then write a PRD and run a round. Full setup details
+in the [integration README](integrations/superpowers-claude-code/README.md).
+
+**Prerequisites:**
+- [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) — `npm install -g @anthropic-ai/claude-code` then `claude login`
+- [Superpowers](https://github.com/obra/superpowers) — `claude mcp add superpowers` (Anchor inlines Superpowers' phase disciplines, so this is recommended but not strictly required for the headless pipeline)
+- [GitHub CLI](https://cli.github.com/) — optional, for `new-project.sh` to auto-create a private repo
+
+```bash
+# 1. Clone anchor and put the pipeline scripts on your PATH (via symlinks
+#    so that `git pull` in ~/anchor auto-updates the scripts you run).
+git clone https://github.com/johnpatrickwarren-oss/anchor.git ~/anchor
+mkdir -p ~/anchor-pipeline
+ln -sf ~/anchor/integrations/superpowers-claude-code/{CLAUDE.md.template,new-project.sh,run-pipeline.sh,finalize-round.sh,anchor-update-project.sh} ~/anchor-pipeline/
+echo 'export PATH="$HOME/anchor-pipeline:$PATH"' >> ~/.zshrc && source ~/.zshrc
+
+# 2. Scaffold a new project (creates directory structure + optional private GitHub repo)
+new-project.sh my-project-name
+cd my-project-name
+
+# 3. Write your PRD — the only artifact you author by hand
+$EDITOR coordination/PRD.md
+
+# 4. Run the first round
+./run-pipeline.sh --round R01
+```
+
+The pipeline runs four roles (Architect → Implementer → Reviewer → Memorial-Updater)
+against your PRD and pauses only on genuine decisions. For smaller rounds you can
+skip layers with the tier dial:
+
+```bash
+./run-pipeline.sh --round R02 --tier audit   # skip Architect — Implementer self-specs
+./run-pipeline.sh --round R03 --tier solo    # solo Implementer for mechanical work
+```
+
+See the tier-selection rubric (decision tree + worked examples) in
+[`skills/11-round-scaling.md`](skills/11-round-scaling.md)
+for when each tier fits. **When in doubt, pick `full` (the default).**
+
 ## What problem this solves
 
 Single-agent code generation systems hallucinate, drift, and produce work that "passes the tests the same agent wrote" but fails in production. Multi-agent systems often add coordination overhead without proportional quality lift. Existing methodology frameworks (Superpowers, BMAD, Spec Kit) enforce phase gates and skill compliance but treat each project as starting from zero discipline.
@@ -16,6 +58,50 @@ This pack adds four disciplines those frameworks do not:
 2. **Pre-emit grilling** — adversarial review of artifacts BEFORE they are forwarded to the next role, separate from post-merge review. Catches structural issues at the source rather than at the audit.
 3. **Audit-trail file discipline** — coordination as durable artifacts (one file per round, one file per disposition, one file per investigation) rather than ephemeral chat. The trail is the source of truth.
 4. **Role anchoring across multiple chat instances** — canonical session-ID-to-role mapping, anti-drift rule prohibiting "THIS session = X" self-claims in shared documents, per-chat project instructions as absolute role-identity source. Prevents the most common failure mode of multi-chat AI coordination: chats confusing or overlapping their roles. Includes a fillable template for projects to drop into their coordination folder.
+
+## Anchor + Superpowers — how they compose
+
+Anchor was developed independently from the worked example in
+[`case-studies/deploysignal/`](case-studies/) before its author encountered
+[Superpowers](https://github.com/obra/superpowers). The decision to compose
+the two — rather than reinvent the phase-level disciplines Superpowers
+already covers — is what produced the integration that ships in this repo.
+The methodology has been refined across the integration's reference
+implementation since.
+
+Anchor and Superpowers operate at two different layers and are designed to
+compose, not compete.
+
+| Layer | What it provides | Owned by |
+|---|---|---|
+| **Role-level** | Which role runs when (Architect / Implementer / Reviewer / Memorial-Updater), routing between roles via `NEXT-ROLE.md`, cross-project accumulated reinforcements in `MEMORIAL.md` and `~/.claude/CROSS-PROJECT-MEMORIAL.md`, tier dial (`solo` / `audit` / `full`) to scale role count to round complexity (see [`skills/11-round-scaling.md`](skills/11-round-scaling.md)) | **Anchor** |
+| **Phase-level** | What each role does inside its session — brainstorm (3 approaches with tradeoffs), design (component sketch), execute (TDD red-green-refactor), review (re-read as next role, mark assumptions) | **Superpowers** |
+
+In Mode 2 (the automated pipeline), each role's prompt embeds the
+Superpowers phase disciplines as inlined prose, so they fire reliably even
+in headless `claude -p` sessions where the Superpowers MCP plugin may not
+load. Interactive sessions get both the MCP slash commands (`/brainstorm`,
+`/execute-plan`, etc.) AND the inlined prose — they compose without conflict.
+
+**Mental model:** Superpowers tells the agent *how to think within a role*.
+Anchor decides *which roles run* and *what gets remembered between rounds*.
+
+Two of Anchor's load-bearing contributions are not in Superpowers:
+
+- **The compounding-learning loop.** Superpowers is stateless per session;
+  Anchor's `MEMORIAL.md` and `CROSS-PROJECT-MEMORIAL.md` accumulate
+  failure-driven reinforcements across rounds and projects. Each violation
+  becomes a `REINFORCED` line that future role-sessions read at start-time.
+- **The cold-eye Reviewer.** Superpowers has a self-review phase, but
+  Anchor's Reviewer is a separate cold-context session that audits the
+  Implementer's output adversarially. In practice this has caught real
+  CRITICALs that the Implementer's own self-review missed.
+
+For the Mode 2 integration that wires these together — pipeline orchestrator,
+role prompts, helper scripts — see
+[`integrations/superpowers-claude-code/`](integrations/superpowers-claude-code/).
+
+---
 
 ## Usage modes
 
