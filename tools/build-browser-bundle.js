@@ -67,17 +67,31 @@ const PUBLIC_EXPORTS = [
 function resolveModule(fromFile, spec) {
   if (!spec.startsWith('.')) return null;
   const fromDir = path.dirname(fromFile);
-  let p = path.resolve(fromDir, spec);
-  if (!p.endsWith('.js')) p += '.js';
-  return p;
+  const base = path.resolve(fromDir, spec);
+  // 1. Literal `.js` form
+  const directFile = base.endsWith('.js') ? base : base + '.js';
+  if (fs.existsSync(directFile)) return directFile;
+  // 2. Directory-style import (`./types` → `./types/index.js`)
+  const indexFile = path.join(base, 'index.js');
+  if (fs.existsSync(indexFile)) return indexFile;
+  // Fall through to the original behavior so downstream errors stay
+  // useful (the bundler will throw ENOENT pointing at directFile).
+  return directFile;
 }
 
 // Single regex covering both `import { ... } from '...'` and `import * as X from '...'`.
 // Capture groups: 1 = named clause body (between {}), 2 = namespace alias, 3 = specifier.
 const IMPORT_RE = /^import\s+(?:\{([^}]*)\}|\*\s+as\s+(\w+))\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/gm;
 
+// `export * from './x'` is a re-export, not an import — but for graph
+// walking purposes it pulls a dependency edge: the re-exported module
+// must be bundled BEFORE this one so its symbols are in __NS__ when any
+// downstream importer destructures them. We discover those edges via a
+// separate regex and record them as relImports with no destructure.
+const REEXPORT_STAR_RE = /^export\s+\*\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/gm;
+
 function parseImports(source, fromFile) {
-  // Returns [{ kind: 'rel'|'node', spec, resolved, names: [{imported, local}] | null, ns: string | null }]
+  // Returns [{ kind: 'rel'|'node', spec, resolved, names: [...], ns: ..., reexport: bool }]
   const out = [];
   let m;
   IMPORT_RE.lastIndex = 0;
@@ -88,14 +102,26 @@ function parseImports(source, fromFile) {
     const kind = spec.startsWith('.') ? 'rel' : 'node';
     const resolved = kind === 'rel' ? resolveModule(fromFile, spec) : null;
     if (nsAlias) {
-      out.push({ kind, spec, resolved, names: null, ns: nsAlias });
+      out.push({ kind, spec, resolved, names: null, ns: nsAlias, reexport: false });
     } else {
       const names = namedClause.split(',').map(s => s.trim()).filter(Boolean).map(piece => {
         const parts = piece.split(/\s+as\s+/);
         return { imported: parts[0].trim(), local: (parts[1] || parts[0]).trim() };
       });
-      out.push({ kind, spec, resolved, names, ns: null });
+      out.push({ kind, spec, resolved, names, ns: null, reexport: false });
     }
+  }
+  // `export * from './x'` — record as dependency edge so the topo walk
+  // visits the re-exported module. Q74 fix: pre-fix the bundler skipped
+  // these and downstream symbols (e.g. resolveTenantTier from
+  // types/config.js, isWeightedEValueConformal from types/families/e.js)
+  // never reached __NS__, silently breaking Family C/E dispatch.
+  REEXPORT_STAR_RE.lastIndex = 0;
+  while ((m = REEXPORT_STAR_RE.exec(source)) !== null) {
+    const spec = m[1];
+    if (!spec.startsWith('.')) continue;  // bare-specifier re-export (none expected)
+    const resolved = resolveModule(fromFile, spec);
+    out.push({ kind: 'rel', spec, resolved, names: null, ns: null, reexport: true });
   }
   return out;
 }
@@ -184,6 +210,7 @@ function buildImportPrelude(imports) {
   const lines = [];
   for (const imp of imports) {
     if (imp.kind === 'node') continue; // shim provides via outer scope
+    if (imp.reexport) continue;         // graph-edge only; no local binding needed
     if (imp.ns) {
       // `import * as ns from './x'` — not used in current sources, but
       // handled for safety: bind ns to the whole namespace.
@@ -289,7 +316,10 @@ function build() {
     path.join(SRC_DIR, 'audit.js'),
     path.join(SRC_DIR, 'verdict.js'),
     path.join(SRC_DIR, 'l0', 'schema-continuity.js'),
-    path.join(SRC_DIR, 'detectors', 'mSPRT.js'),
+    // Family A detectors — Page-CUSUM (renamed from mSPRT 2026-04-20) +
+    // its co-shipped betting e-process counterpart per Addition #17.
+    path.join(SRC_DIR, 'detectors', 'page-cusum.js'),
+    path.join(SRC_DIR, 'detectors', 'betting-e-process.js'),
     path.join(SRC_DIR, 'detectors', 'hotelling.js'),
     path.join(SRC_DIR, 'detectors', 'spectral.js'),
     path.join(SRC_DIR, 'detectors', 'conformal.js'),
