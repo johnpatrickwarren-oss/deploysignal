@@ -675,6 +675,190 @@ const QUALITY_EXTEND_DEFS = [
 })();
 
 // ══════════════════════════════════════════════════════════════════════
+// From: engine/types/primitives.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/primitives.ts — Atomic type unions + keys.
+//
+// Zero-dep leaf module. Every other submodule imports from here; this
+// file imports nothing from the types surface.
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/metrics.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/metrics.ts — Live signal values, baseline, flags, trend
+// buffer contract, multi-scale snapshots.
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/families/a.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/families/a.ts — Family A (Page-CUSUM + betting e-process)
+// per-signal params + states.
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/families/b.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/families/b.ts — Family B (structural signatures).
+//
+// Family B ships its config inline on CompiledConfig.family_B (see
+// config.ts) and carries no per-cell detector state — structural
+// signatures fire on absolute-threshold ratios, not cumulative or
+// baseline-relative statistics. This file is intentionally empty
+// type-wise; it exists to mirror the Family A/C/D/E layout for
+// future extension (e.g., Family B per-cell tunings for follow-on).
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/families/c.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/families/c.ts — Family C (Hotelling T² + Sequential MMD).
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/families/d.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/families/d.ts — Family D (spectral ACF + BOCPD).
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/families/e.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/families/e.ts — Family E (conformal novelty).
+/** Type guard: true iff `p` is the Addition #19 weighted variant. */
+function isWeightedConformal(p) {
+    return p.kind === 'weighted';
+}
+/** Type guard: true iff `p` is the Addition #22 weighted-e-value variant. */
+function isWeightedEValueConformal(p) {
+    return p.kind === 'weighted_e_value';
+}
+/** Sample count across all variants of `ConformalParams`. Used by the
+ *  detector's underpowered guard and by tests that want a variant-
+ *  agnostic size. */
+function conformalSampleCount(p) {
+    if (isWeightedConformal(p) || isWeightedEValueConformal(p))
+        return p.scores.length;
+    return p.calibration_scores.length;
+}
+  __NS__.isWeightedConformal = isWeightedConformal;
+  __NS__.isWeightedEValueConformal = isWeightedEValueConformal;
+  __NS__.conformalSampleCount = conformalSampleCount;
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/agent.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/agent.ts — Addition #27 agent configuration + audit
+// artifacts. Structural interfaces only; the real AgentProposer class
+// lives at advisory/agent/proposer.ts (advisory layer is outside
+// engine/ rootDir per R4 2026-04-22).
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/verdict.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/verdict.ts — Scenario, orchestrator return, fusion
+// output, detector-verdict, verdict-group + topology overlay artifacts.
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/policy.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/policy.ts — Policy context, thresholds, warmup,
+// gate-result interfaces, health-result provenance.
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/audit.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/audit.ts — Audit writer contract, v1+v2 record shapes,
+// detector registry, per-trip provenance, audit-event payloads.
+// ── Audit schema v2 registry + types (W4 §4.1.h) ──────────────────
+//
+// Per audit/SCHEMA.md v2. Shipped-in-W4 canonical detector_ids only; reserved
+// entries live in the spec but aren't emitted. Readers that see an
+// unknown_detector_id emit a warning and preserve the record.
+/** Canonical detector_ids per family, as shipped in W4. Normative —
+ *  audit writers pull from here; readers validate against it. */
+const DETECTOR_REGISTRY = {
+    A: [
+        // Legacy `mSPRT_*` ids — Page-CUSUM's canonical emission path
+        // through W5. ARCHITECT-REPLY-34 D2 rewrites to `page_cusum_*` at
+        // the REPLY-36 cleanup alongside demo expected_outcome updates;
+        // kept as read-time aliases indefinitely for v1 replay compat.
+        'mSPRT_p99_latency', 'mSPRT_ttft', 'mSPRT_eval_score',
+        'mSPRT_tool_success_rate', 'mSPRT_downstream_err', 'mSPRT_cost_req',
+        // Addition #17 (ARCHITECT-REPLY-34 D2) — forward-compat aliases
+        // for the Page-CUSUM detector. Reserved for the REPLY-36 emission-
+        // side rename; not produced by the audit writer in this PR.
+        'page_cusum_p99_latency', 'page_cusum_ttft', 'page_cusum_eval_score',
+        'page_cusum_tool_success_rate', 'page_cusum_downstream_err', 'page_cusum_cost_req',
+        // Addition #17 — betting-based e-processes (Waudby-Smith & Ramdas
+        // 2024 GRAPA + ONS fallback). Co-shipped alongside Page-CUSUM
+        // under a 50/50 per-signal α split; fires emit
+        // `betting_e_process_{signal}` in audit records.
+        'betting_e_process_p99_latency', 'betting_e_process_ttft',
+        'betting_e_process_eval_score', 'betting_e_process_tool_success_rate',
+        'betting_e_process_downstream_err', 'betting_e_process_cost_req',
+    ],
+    B: [
+        'kv_saturation', 'hbm_elevation', 'hbm_spill_roll', 'mfu_collapse',
+        'slowbleed', 'collective', 'capacity', 'gpu_eff', 'compound_lat',
+        'tok_econ', 'behavioral', 'eval_quality_drop', 'refusal_spike',
+        'output_len_drift', 'tool_call_degradation', 'quality_warning',
+    ],
+    C: ['hotelling_t2_joint_vector', 'sequential_mmd', 'hotelling_t2_safe', 'sequential_mmd_e_process'],
+    D: ['spectral_peak_acf_kv_cache', 'spectral_e_detector_kv_cache'],
+    E: ['mahalanobis_conformal_baseline'],
+};
+  __NS__.DETECTOR_REGISTRY = DETECTOR_REGISTRY;
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/config.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/config.ts — CompiledConfig, CompilerOptions, baseline
+// bundle shapes, workload-profile types, tenant-tier configuration,
+// compile-phase instrumentation.
+/** Addition #23 — resolve a request's tenant_id to a tenant_tier using
+ *  the compiled config's `tenant_tier_map`. Returns `'aggregate'` when
+ *  no tenant_id is supplied, when the map is absent (pre-#23 configs),
+ *  or when the tenant is unknown to the map — matches runtime fallback
+ *  semantics in the detector cell-lookup path. */
+function resolveTenantTier(cfg, tenantId) {
+    if (!tenantId || !cfg?.tenant_tier_map)
+        return 'aggregate';
+    return cfg.tenant_tier_map[tenantId] ?? 'aggregate';
+}
+  __NS__.resolveTenantTier = resolveTenantTier;
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// From: engine/types/orchestration.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/orchestration.ts — OrchestrateParams (evaluate() inputs).
+//
+// Depends on almost every other submodule; isolated here so the cross-
+// cutting Metrics/Scenario/AuditWriter/CompiledConfig surface stays
+// co-located with its one big consumer.
+})();
+
+// ══════════════════════════════════════════════════════════════════════
 // From: engine/types/index.js
 // ══════════════════════════════════════════════════════════════════════
 (function () {
