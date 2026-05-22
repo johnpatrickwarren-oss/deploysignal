@@ -388,6 +388,7 @@ function buildFamilyVerdictsV2(
   const mapSuppression = (codes: string[]): FamilyVerdictV2['suppression_reason'] => {
     if (codes.indexOf('observability_stack_deploy') >= 0) return 'observability_stack_deploy';
     if (codes.indexOf('schema_continuity_breaking') >= 0) return 'schema_continuity_breaking';
+    if (codes.indexOf('expected_failure_pattern') >= 0) return 'expected_failure_pattern';
     if (codes.indexOf('ignore_threshold') >= 0) return 'ignore_threshold';
     return 'bake_profile';
   };

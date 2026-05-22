@@ -162,6 +162,27 @@
         "auto_rollback_enabled": { "type": "boolean" },
         "default_risk_tier": { "enum": ["low", "medium", "high"] }
       }
+    },
+    "expected_failure_pattern_defaults": {
+      "type": "object",
+      "description": "Anvil (Addition #29) — profile-level defaults for ExpectedFailurePattern, applied when a chaos adapter does not supply per-experiment overrides. Optional; absent → no profile-level defaults; the chaos adapter must supply the full pattern per experiment.",
+      "additionalProperties": false,
+      "properties": {
+        "default_suppress_families": {
+          "type": "array",
+          "items": { "enum": ["A", "B", "C", "D", "E"] },
+          "description": "Detector families suppressed by default during chaos fault windows when no per-experiment override is provided."
+        },
+        "default_recovery_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Default recovery window in seconds; adapter may override per experiment."
+        },
+        "default_magnitude_unit": {
+          "enum": ["relative_fraction", "absolute", "sigma"],
+          "description": "Default unit for ExpectedFailurePattern.magnitude."
+        }
+      }
     }
   }
 }

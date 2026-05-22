@@ -147,6 +147,24 @@ export interface OrchestrateParams {
    *  classification is a deploy-level property (not tick-mutable). */
   reversibilityClassification?: ReversibilityClassification;
 
+  /** Anvil (Addition #29 / PRD-29 / Q29) — operator-declared
+   *  expected-failure pattern for a chaos experiment. When set, the
+   *  orchestrator suppresses the detector families named in
+   *  `suppress_families` during the fault window
+   *  `[fault_start_unix, fault_start_unix + recovery_seconds]` with
+   *  `suppression_reason: 'expected_failure_pattern'`. Outside the
+   *  fault window, normal detector eligibility applies. When absent
+   *  (or when `DeployContext.strategy !== 'chaos_experiment'`), the
+   *  orchestrator behaves byte-identically to pre-Anvil — back-compat
+   *  hard gate per PRD-29 NFR-2 / AC-11.
+   *
+   *  Transitional stand-in until Addition #9 materializes the typed
+   *  `DeployContext` interface with `expected_failure_pattern` per
+   *  NORTH-STAR-ARCHITECTURE.md Addition #29 contract block. Mirrors
+   *  the precedent Addition #10 used for `expectedCanaryWeight`
+   *  (see line 86 above). */
+  expectedFailurePattern?: import('../o0/anvil/types').ExpectedFailurePattern;
+
   // ── Consolidated activation slice: #25 / #26 / #27 wiring ──────────
   //
   // Per-deploy instances. Caller owns construction at deploy-start and

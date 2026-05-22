@@ -158,6 +158,35 @@ At brief-drafting time, for every new spec:
 
 ---
 
+### Q29 Anvil chaos-verdict packaging (PRD-29 + Q29-ANVIL-CHAOS-VERDICT-SPEC; 2026-05-21)
+
+**Status:** Spec emitted; v1 stub-implementation landed (PRD-29 AC-1 through AC-11 closed at this PR). Active.
+
+**Anti-scope clauses (6):**
+
+1. **NO per-experiment detector retraining or online calibration of `expected_failure_pattern`.** Anvil v1 declares the pattern at experiment-start. Learning the pattern from experiment history is L5 learning-loop scope (future PRD).
+2. **NO chaos-platform authoring UX.** DS does not own the Gremlin / Chaos Mesh / AWS FIS / Litmus UI surface. Anvil reads experiment definitions; it does not author them.
+3. **NO live customer-tenancy chaos runs.** Enterprise-infrastructure boundary (cross-tenant data; SOC2). Anvil ships against public-tier substrates + synthetic chaos definitions only.
+4. **NO fifth chaos platform at v1** (Steadybit, ChaosToolkit, Powerfulseal, etc.). Scope-discipline; deferred to a Slice 2.
+5. **NO continuous-chaos verdict streaming.** Anvil v1 is per-experiment-bounded. Always-on chaos verdicting depends on L5 learning-loop.
+6. **NO new detector family for chaos-specific signals.** Preserves Q2.B.6.4 ADR (no `engine/detectors/*` runtime code beyond Phase D batch). Anvil reuses the five existing families with chaos-aware suppression at the orchestrator layer.
+
+**Carry-forward verification at Q29 spec-emit:**
+
+- **Q2.B.6.4 ADR clauses 1–5:** preserved (no `engine/detectors/*` touch; Family E source unchanged; no row-pool data structure; no TrendBuffer/orchestrator refactor beyond an O(1) suppression-window check gated on `expectedFailurePattern !== undefined`).
+- **Phase 2.4 demo-substrate carve-out:** preserved (Anvil doesn't touch demo substrate).
+- **Q57 carry-forward:** preserved.
+- **Q60 V2 clauses 1–8:** clauses 1, 2, 4, 5, 6, 7, 8 trivially preserved (no substrate/detector/synthetic-calibration touch); clause 3 (NO live customer telemetry) explicitly preserved per Anvil anti-scope clause 3.
+- **Q66 Phase-3.d.A and downstream:** preserved.
+- **Enterprise-infrastructure boundary** (John's Q1 disposition 2026-04-30): preserved.
+- **No-skip policy:** preserved (Ville-bound tests under chaos profile must continue to assert; Q29 tests under `test/q29-*` are illustrative-deferred but the regression suite under `expectedFailurePattern === undefined` remains byte-identical per PRD-29 AC-11).
+
+**Architectural mechanism summary:** verdict-vocabulary translation at adapter boundary (Q29.2); family-suppression at orchestrator layer (gated on `expectedFailurePattern !== undefined` to preserve back-compat); typed contracts under `engine/o0/anvil/`; reference profile `anvil-chaos-experiment@1.0.0` under `profiles/` extending `generic-microservice@1.0.0`. Wedge is positioning + audit substrate; adapter network-call implementations follow-on.
+
+**Memorialized at:** `coordination/PRD-29-anvil.md` § Out-of-Scope + `coordination/Q29-ANVIL-CHAOS-VERDICT-SPEC.md` § Anti-scope + `NORTH-STAR-ARCHITECTURE.md` Addition #29 section + `ORCHESTRATION-ADAPTERS.md` Chaos-experiment adapter family section + `COMPETITIVE-GAPS-ADDITIONS.md` GAP-29.
+
+---
+
 ## TAGGED-future commitments (anti-scope on activation)
 
 ### Phase-3.c.2 — Compile-time substrate extension for substrate-anchored validation-methodology

@@ -11,6 +11,14 @@ A statistically-rigorous answer to one operational question: **given a new deplo
 - **Calibration compiler.** `tools/calibrate.ts` compiles a healthy-baseline trace into a `CompiledConfig` with per-(hour-of-day × day-of-week × tenant-tier) cells. Per-cell mean vectors, covariance matrices (Ledoit-Wolf / MCD / MRCD), Cholesky factors, AR(1) phi coefficients, mixture-supermartingale priors, betting-e-process baseline pools, conformal calibration scores. The compile is deterministic; same input → same output → same fire decisions on replay.
 - **Audit substrate.** Every detector evaluation emits a structured `DetectorVerdict` with provenance (cell_key, baseline_version, schema_continuity), α consumption, fire reason. Audit records replay-clean: the same compiled config + the same metric stream produces the same verdict, supporting post-incident reconstruction.
 
+## DS-Anvil — chaos-engineering verdicts
+
+DeploySignal's verdict substrate also runs the inverse direction: chaos experiments. **Anvil** (Addition #29) is the chaos-verdict packaging — four chaos-platform O0 adapters (Gremlin, Chaos Mesh, AWS FIS, Litmus), an `expected_failure_pattern` contract that lets the operator declare what the injected fault should do, and an `anvil-chaos-experiment@1.0.0` reference profile — that turns the same Ville-bounded multi-family portfolio into a principled chaos-engineering verdict layer. Targets Verica-style buyers who today have weak verdict surfaces on their chaos investment; the chaos-engineering market injects faults well but leaves the pass/fail call to operators eyeballing dashboards.
+
+**The "DS-Anvil" buyer bundle.** Anvil-the-product packages three components: (1) the DeploySignal engine (Ville-bounded portfolio + audit substrate) at the verdict layer; (2) [Tessera](https://github.com/johnpatrickwarren-oss/tessera) at the per-shard observation layer — Tessera is a sibling product that vendors the DS engine and ships per-shard residual semantics + hierarchical e-value combination + e-BH FDR control for cluster scope, which lines up exactly with shard-targeted chaos experiments (pod-kill, latency-injection on rack-N); (3) the chaos-platform adapter family (`engine/o0/anvil/`) that lands in this repo. The Anvil capability lands inside DS as a docs-only positioning addition + typed contracts + adapter stubs; cluster-scope chaos runs consume Tessera's per-shard feed via the existing [`engine/ds-integration/`](https://github.com/johnpatrickwarren-oss/tessera/tree/main/engine/ds-integration) HTTP contract.
+
+See [`coordination/PRD-29-anvil.md`](coordination/PRD-29-anvil.md) and [`coordination/Q29-ANVIL-CHAOS-VERDICT-SPEC.md`](coordination/Q29-ANVIL-CHAOS-VERDICT-SPEC.md) for the PRD + spec, [`engine/o0/anvil/`](engine/o0/anvil/) for the adapter contracts and stubs, and [`profiles/anvil-chaos-experiment.yaml`](profiles/anvil-chaos-experiment.yaml) for the reference profile.
+
 ## Quick start
 
 ```bash

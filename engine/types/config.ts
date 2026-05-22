@@ -685,6 +685,15 @@ export interface WorkloadProfile {
     auto_rollback_enabled: boolean;
     default_risk_tier: 'low' | 'medium' | 'high';
   };
+  /** Addition #29 / Q29 — Anvil profile-level defaults for chaos runs.
+   *  Optional; absent → adapter must supply full ExpectedFailurePattern
+   *  per experiment. Present → adapter may supply partial overrides;
+   *  unspecified fields fall back to these defaults. */
+  expected_failure_pattern_defaults?: {
+    default_suppress_families?: Array<'A' | 'B' | 'C' | 'D' | 'E'>;
+    default_recovery_seconds?: number;
+    default_magnitude_unit?: 'relative_fraction' | 'absolute' | 'sigma';
+  };
 }
 
 /** Customer-side override layer per REPLY-51 D8. `overrides` is a
