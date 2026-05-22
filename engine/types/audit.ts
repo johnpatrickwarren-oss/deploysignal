@@ -137,6 +137,7 @@ export interface FamilyVerdictV2 {
     | 'observability_stack_deploy'
     | 'structural_mismatch'
     | 'ignore_threshold'
+    | 'expected_failure_pattern'
     | null;
 }
 

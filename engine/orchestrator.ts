@@ -22,6 +22,7 @@ import {
 import type {
   LifecycleEventEmitter, LifecycleDeployState,
 } from './o0/lifecycle-events';
+import { applyExpectedFailurePatternSuppression } from './o0/anvil/suppression';
 
 import type {
   OrchestrateParams, VerdictResult, GateResults, PolicyContext, AuditWriter, AuditOpts, CompiledConfig,
@@ -269,7 +270,7 @@ export function evaluate(params: OrchestrateParams): VerdictResult {
   const ignoredSignals = classifyIgnoredSignals(params.ignoreThresholds, live);
   const failFastState: FailFastState = ffResult.newState;
 
-  const healthResult = evaluateHealth(live, sc.baseline, sc.flags || {}, policyCtx, tb, {
+  const rawHealthResult = evaluateHealth(live, sc.baseline, sc.flags || {}, policyCtx, tb, {
     compiledConfig:    params.compiledConfig,
     currentHourOfDay:  params.currentHourOfDay,
     currentDayOfWeek:  params.currentDayOfWeek,
@@ -279,6 +280,19 @@ export function evaluate(params: OrchestrateParams): VerdictResult {
     ignoredSignals,
     tenantId:          params.tenantId,
   });
+  // Addition #29 / Q29 — Anvil expected-failure-pattern suppression. Gated
+  // on params.expectedFailurePattern !== undefined so the pre-Anvil path
+  // is byte-identical (PRD-29 NFR-2 / AC-11). The pattern declares which
+  // detector families the operator expects to fire because of the injected
+  // fault; those families are rewritten to suppressed during the fault
+  // window. Non-suppressed families still fire on unexpected blast.
+  const healthResult = params.expectedFailurePattern
+    ? applyExpectedFailurePatternSuppression(
+        rawHealthResult,
+        params.expectedFailurePattern,
+        params.nowSeconds ?? Date.now() / 1000,
+      )
+    : rawHealthResult;
   gateResults.health = healthResult;
 
   // Week 4 fusion: always emit the portfolio verdict for audit + promote

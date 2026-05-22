@@ -98,6 +98,28 @@ These are quick architectural additions that strengthen the pitch and aren't loa
 
 **Recommendation:** Already on the post-phase list per REPLY-13; surface in pitch as "v2.1 work alongside first customer-service flag-integration." No runway action.
 
+### GAP-29 — Chaos-engineering verdict surface (Anvil, Addition #29)
+
+- **Source:** Verica + the broader chaos-engineering ecosystem (Gremlin, Chaos Mesh, AWS FIS, Litmus, ChaosToolkit).
+- **What they do:** Inject faults principally and well; the *verdict* (did the system behave acceptably under the injected fault?) is left to operators eyeballing dashboards. Per-platform "experiment results" surfaces today are descriptive (here's the metric trace) rather than evaluative (here's the verdict, with FP control). The chaos-engineering market today has no principled FP-controlled verdict surface.
+- **Architectural placement:** O0 adapter layer (Addition #9) — four new modules under `engine/o0/anvil/`. New `expected_failure_pattern` field on `DeployContext` (Addition #29 contract extension; transitional stand-in via `OrchestrateParams.expectedFailurePattern`). New reference profile `anvil-chaos-experiment@1.0.0` under `profiles/` (joins Addition #28 v1 profile inventory). Verdict vocabulary translation at adapter boundary (Q29.2 architect-pick) — engine emits its native vocabulary, adapter renames per `DeployContext.strategy === 'chaos_experiment'`.
+- **Scope:** Runway (positioning play; ~1 cycle of spec + typed contracts + profile + four adapter stubs + five doc updates).
+- **Effort:** Small to Medium.
+- **Pitch impact:** Material. Re-brands the bundle `DS engine + Tessera + chaos-adapter family` as a packaged chaos-engineering verdict product targeted at Verica-style buyers. Targets buyers who today have weak verdict surfaces on their chaos investment. The bundle leverages a sibling product (Tessera, https://github.com/johnpatrickwarren-oss/tessera) for the per-shard observation layer — chaos experiments commonly target specific shards / pods / nodes, and Tessera's per-shard residual semantics + e-BH FDR control + topology-aware freeze-hook line up exactly with that scope. No new product builds; existing pieces compose.
+
+**Recommendation:** Land as Architecture Addition #29 per PRD-29 and Q29-ANVIL-CHAOS-VERDICT-SPEC.md. Stub adapter implementations are sufficient at v1 — the wedge is the typed contract surface + the audit substrate, not the network-call implementations. Q2.B.6.4 ADR clauses 1–5 preserved (no `engine/detectors/*` runtime touch). Tessera-side contract amendment (chaos-event-class extension to `engine/ds-integration/event-contract.ts`) is cross-repo future work, not Anvil v1 scope.
+
+### GAP-30 — Structured RCA / postmortem attribution (Cairn, Addition #30)
+
+- **Source:** SRE postmortems across every team; Dynatrace Smartscape does topology RCA; Datadog Service Map does dependency tracing; nobody does statistically-rigorous attribution that combines deploy verdicts + cluster observations + incident timelines + (optional) chaos experiment results into a probabilistic root-cause distribution.
+- **What they do:** When a regression escapes deploy-gate and steady-state observation and lands in prod, the postmortem RCA today is *manual and unstructured* — an SRE reads dashboards, scrolls audit logs, eyeballs deploy timelines, and writes a narrative as rigorous as the author's pattern-matching that week. Existing topology-RCA tools (Smartscape, Service Map) provide dependency graphs but don't rank candidates by timing-alignment with the incident under statistical control.
+- **Architectural placement:** New module `engine/cairn/` (scoring layer + ingest helpers); CLI at `tools/cairn.js`. Consumes existing wire shapes: DS audit JSONL, Tessera VerdictGroupPayload, Anvil ExpectedFailurePattern, and a generic external-event JSON shape (incident-mgmt webhook payloads, env-change feeds). No new detector family — Q2.B.6.4 ADR preserved.
+- **Scope:** Runway-substantive — has real attribution math (Gaussian timestamp-alignment kernel × per-kind prior × evidence-quality boost; mechanistic-inconsistency suppression; engine-inferred onset preference), not a stub-only positioning play. ~1 cycle.
+- **Effort:** Medium (typed contracts + scoring algorithm + 4 ingest helpers + CLI + 26 tests + walkthrough doc + 5 positioning-doc updates).
+- **Pitch impact:** Material. Closes the lifecycle loop. The bundle pitch: "**DeploySignal catches before promotion. Tessera observes during steady state. Cairn attributes when something escapes both — statistically, not by eyeballing dashboards.**" Strong Verica/Casey adjacency: chaos engineering finds weaknesses *before* they cause incidents; Cairn ranks them *after*. Two halves of the same methodology.
+
+**Recommendation:** Land as Architecture Addition #30 per PRD-30 and Q30-CAIRN-ATTRIBUTION-SPEC.md. Honesty discipline (PRD-30 AS-3): Cairn does **alignment-based ranked attribution**, not Pearl-style causal inference. The output document language uses "ranked attribution of timing-consistent candidates," never "root cause." Live PagerDuty / Opsgenie / incident.io webhook adapters are Slice 2, paired with first buyer conversation.
+
 ---
 
 ## Tier 2 — First 90 days for follow-on (real-data-dependent or integration-heavy)

@@ -158,6 +158,65 @@ At brief-drafting time, for every new spec:
 
 ---
 
+### Q29 Anvil chaos-verdict packaging (PRD-29 + Q29-ANVIL-CHAOS-VERDICT-SPEC; 2026-05-21)
+
+**Status:** Spec emitted; v1 stub-implementation landed (PRD-29 AC-1 through AC-11 closed at this PR). Active.
+
+**Anti-scope clauses (6):**
+
+1. **NO per-experiment detector retraining or online calibration of `expected_failure_pattern`.** Anvil v1 declares the pattern at experiment-start. Learning the pattern from experiment history is L5 learning-loop scope (future PRD).
+2. **NO chaos-platform authoring UX.** DS does not own the Gremlin / Chaos Mesh / AWS FIS / Litmus UI surface. Anvil reads experiment definitions; it does not author them.
+3. **NO live customer-tenancy chaos runs.** Enterprise-infrastructure boundary (cross-tenant data; SOC2). Anvil ships against public-tier substrates + synthetic chaos definitions only.
+4. **NO fifth chaos platform at v1** (Steadybit, ChaosToolkit, Powerfulseal, etc.). Scope-discipline; deferred to a Slice 2.
+5. **NO continuous-chaos verdict streaming.** Anvil v1 is per-experiment-bounded. Always-on chaos verdicting depends on L5 learning-loop.
+6. **NO new detector family for chaos-specific signals.** Preserves Q2.B.6.4 ADR (no `engine/detectors/*` runtime code beyond Phase D batch). Anvil reuses the five existing families with chaos-aware suppression at the orchestrator layer.
+
+**Carry-forward verification at Q29 spec-emit:**
+
+- **Q2.B.6.4 ADR clauses 1–5:** preserved (no `engine/detectors/*` touch; Family E source unchanged; no row-pool data structure; no TrendBuffer/orchestrator refactor beyond an O(1) suppression-window check gated on `expectedFailurePattern !== undefined`).
+- **Phase 2.4 demo-substrate carve-out:** preserved (Anvil doesn't touch demo substrate).
+- **Q57 carry-forward:** preserved.
+- **Q60 V2 clauses 1–8:** clauses 1, 2, 4, 5, 6, 7, 8 trivially preserved (no substrate/detector/synthetic-calibration touch); clause 3 (NO live customer telemetry) explicitly preserved per Anvil anti-scope clause 3.
+- **Q66 Phase-3.d.A and downstream:** preserved.
+- **Enterprise-infrastructure boundary** (John's Q1 disposition 2026-04-30): preserved.
+- **No-skip policy:** preserved (Ville-bound tests under chaos profile must continue to assert; Q29 tests under `test/q29-*` are illustrative-deferred but the regression suite under `expectedFailurePattern === undefined` remains byte-identical per PRD-29 AC-11).
+
+**Architectural mechanism summary:** verdict-vocabulary translation at adapter boundary (Q29.2); family-suppression at orchestrator layer (gated on `expectedFailurePattern !== undefined` to preserve back-compat); typed contracts under `engine/o0/anvil/`; reference profile `anvil-chaos-experiment@1.0.0` under `profiles/` extending `generic-microservice@1.0.0`. Wedge is positioning + audit substrate; adapter network-call implementations follow-on.
+
+**Memorialized at:** `coordination/PRD-29-anvil.md` § Out-of-Scope + `coordination/Q29-ANVIL-CHAOS-VERDICT-SPEC.md` § Anti-scope + `NORTH-STAR-ARCHITECTURE.md` Addition #29 section + `ORCHESTRATION-ADAPTERS.md` Chaos-experiment adapter family section + `COMPETITIVE-GAPS-ADDITIONS.md` GAP-29.
+
+---
+
+### Q30 Cairn structured-RCA / postmortem attribution (PRD-30 + Q30-CAIRN-ATTRIBUTION-SPEC; 2026-05-21)
+
+**Status:** Spec emitted; v1 implementation landed (PRD-30 AC-1 through AC-10 closed at this PR). Active.
+
+**Anti-scope clauses (7):**
+
+1. **NO new detector family for attribution.** Cairn is a scoring layer atop the existing engine; Q2.B.6.4 ADR clauses 1–5 preserved (no `engine/detectors/*` runtime touch).
+2. **NO causal-inference framing** (Pearl-style counterfactuals / do-calculus). Cairn does **alignment-based ranked attribution** of timing-consistent candidates; framing the output as "causal" would invite scrutiny the v1 algorithm can't survive (honesty discipline; PRD-30 AS-3).
+3. **NO live incident-management webhook adapters at v1** (PagerDuty / Opsgenie / incident.io / Statuspage). Generic `candidatesFromExternalEvents` ingest helper only; production-grade adapters are Slice 2.
+4. **NO multi-incident batch RCA at v1.** Cairn v1 is one-incident-at-a-time; cross-incident pattern detection is a future PRD.
+5. **NO narrative auto-generation.** Cairn outputs structured ranked data; narrative synthesis is advisory-layer scope (Addition #27).
+6. **NO web UI dashboard for Cairn at v1.** CLI + JSON output is the v1 surface.
+7. **NO real-time / streaming attribution.** Postmortems are batch-mode; in-incident "live root-cause" indicator is a candidate Slice 2.
+
+**Carry-forward verification at Q30 spec-emit:**
+
+- **Q2.B.6.4 ADR clauses 1–5:** preserved (Cairn lives at `engine/cairn/`, no `engine/detectors/*` touch).
+- **Q29 ADR Anvil clauses 1–6:** preserved (Cairn consumes Anvil's `ExpectedFailurePattern` records as candidate events; doesn't extend Anvil semantics; ingests via minimal local interface to stay loosely coupled).
+- **Q60 V2 clause 3** (no live customer telemetry): preserved (Cairn ships against synthetic fixtures + existing DS demos at v1).
+- **Phase 2.4 demo-substrate carve-out:** preserved (Cairn doesn't touch demo substrate).
+- **Q57 / Q66 / Phase D batch:** preserved (Cairn doesn't touch detector/substrate code).
+- **Enterprise-infrastructure boundary** (John's Q1 disposition 2026-04-30): preserved.
+- **No-skip policy:** preserved (26 Q30 tests all assert; no skips).
+
+**Architectural mechanism summary:** scoring layer atop existing engine; Gaussian timestamp-alignment kernel × per-cause-kind prior × evidence-quality boost; mechanistic-inconsistency suppression for post-incident timestamps; engine-inferred onset preference when available; replay-clean CLI driver.
+
+**Memorialized at:** `coordination/PRD-30-cairn.md` § Out-of-Scope + `coordination/Q30-CAIRN-ATTRIBUTION-SPEC.md` § Anti-scope + `NORTH-STAR-ARCHITECTURE.md` Addition #30 section + `COMPETITIVE-GAPS-ADDITIONS.md` GAP-30.
+
+---
+
 ## TAGGED-future commitments (anti-scope on activation)
 
 ### Phase-3.c.2 — Compile-time substrate extension for substrate-anchored validation-methodology

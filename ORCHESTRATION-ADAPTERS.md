@@ -274,6 +274,36 @@ Folding into the platform-mapping doc (deleted) as a new section (will land in t
 - **Flagger adapter.** Same contract surface, different provider syntax. Follow-on work once the Argo adapter is proven.
 - **Multi-cluster orchestration.** The adapter assumes a single orchestrator instance per deploy. Federation / multi-cluster Argo deployments are a later concern.
 
+## Chaos-experiment adapter family (Anvil, Addition #29)
+
+The canary-direction adapter contract above also serves the inverse direction: chaos engineering. Where the canary path asks "should we proceed with this deploy given the telemetry," the chaos path asks "did the system behave acceptably under the injected fault." Same engine, same verdict portfolio, same audit substrate — different verdict vocabulary at the adapter boundary.
+
+Four target platforms ship under `engine/o0/anvil/`:
+
+| Platform | Module | Experiment-ref surface |
+|---|---|---|
+| Gremlin | `engine/o0/anvil/gremlin.ts` | REST API (`api.gremlin.com/v1/attacks/{id}`) |
+| Chaos Mesh | `engine/o0/anvil/chaos-mesh.ts` | K8s CRDs (`PodChaos`, `NetworkChaos`, `IOChaos`, `StressChaos`) |
+| AWS FIS | `engine/o0/anvil/aws-fis.ts` | FIS experiment-template ARN |
+| Litmus | `engine/o0/anvil/litmus.ts` | K8s CRDs (`ChaosEngine` + `ChaosExperiment`) |
+
+Each implements `ChaosOrchestrationAdapter` — the base `OrchestrationAdapter` plus `fetchExpectedFailurePattern(experiment_ref) → Promise<ExpectedFailurePattern>`. The adapter reads the source platform's experiment definition and translates it into the canonical shape declared in `engine/o0/anvil/types.ts`.
+
+**Verdict vocabulary inversion.** Inside the engine the verdict is `proceed | extend | rollback | suppressed_insufficient_samples` — same as the canary direction. The chaos adapter renames on `emitVerdict` per `DeployContext.strategy === 'chaos_experiment'`:
+
+| Engine verdict | Chaos verdict | Semantic |
+|---|---|---|
+| `proceed` | `experiment_passed` | The fault produced its expected effect (and possibly nothing else). |
+| `rollback` | `experiment_failed_unexpectedly` | Something fired. Audit annotation `firing_family_in_suppress_set: bool` distinguishes "fault produced its expected signal" from "unexpected blast on signal Y." |
+| `extend` | `experiment_still_running` | Bake window not yet closed; resample. |
+| `suppressed_insufficient_samples` | `experiment_inconclusive` | Not enough samples in the fault window to make a defensible claim. |
+
+**Expected-fault suppression.** The operator declares `expected_failure_pattern.suppress_families` at experiment-start (e.g., `['A']` for a latency-injection experiment that is *supposed* to perturb p99). During the fault window `[fault_start_unix, fault_start_unix + recovery_seconds]`, those families return `verdict: 'suppressed'` with `suppression_reason: 'expected_failure_pattern'`. Non-suppressed families still fire normally — that's the unexpected-blast catcher.
+
+**Why this matters for the pitch.** The chaos-engineering market has weak verdict surfaces today: every platform injects faults well, then relies on operators eyeballing dashboards to render the pass/fail call. A principled FP-controlled verdict layer is a real gap. Anvil ships that layer on top of DS's existing Ville-bounded portfolio — and the audit substrate makes every chaos verdict replay-clean, so post-mortem review reconstructs the firing detector family, α consumption, and baseline-cell reference exactly as for the canary direction.
+
+**Scope at v1.** Typed contracts + four adapter stubs + profile + docs (per PRD-29 priority). The adapter network-call implementations are deferred; the v1 wedge is the verdict-surface positioning + the audit substrate, not the chaos-platform integrations themselves. The stub `throw new Error('… v1 stub …')` bodies make the contract explicit and grep-friendly; an integrator landing one of the four platforms reads the stub for the canonical translation pattern and implements against it.
+
 ## Shipping plan
 
 - **End of Week 1 (2026-04-22):** Architecture addition #9 section in `NORTH-STAR-ARCHITECTURE.md` points to this doc. No engine changes.

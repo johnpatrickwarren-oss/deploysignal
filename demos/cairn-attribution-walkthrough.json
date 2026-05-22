@@ -1,0 +1,115 @@
+{
+  "cairn_report_version": "v1",
+  "incident": {
+    "incident_id": "INC-2026-05-19-001",
+    "onset_time_unix": 1747700400,
+    "affected_signals": [
+      "p99_latency",
+      "downstream_err"
+    ],
+    "regression_magnitude_unit": "relative_fraction",
+    "regression_magnitude": 0.42
+  },
+  "ranked": [
+    {
+      "candidate": {
+        "cause_id": "deploy:model-weights-v2026-05-19-001",
+        "cause_kind": "deploy",
+        "timestamp_unix": 1747699320,
+        "evidence_ref": "ds-audit:model-weights-v2026-05-19-001@1747699320#v2026-05-19-mosaic",
+        "metadata": {
+          "ds_verdict": "extend",
+          "ds_alpha_consumed_ratio": 0.8999999999999999
+        }
+      },
+      "posterior": 0.8068004188797583,
+      "raw_score": 0.4385168609909178,
+      "kernel_value": 0.835270211411272,
+      "kind_prior": 0.35,
+      "evidence_boost": 1.5
+    },
+    {
+      "candidate": {
+        "cause_id": "external:infra-cluster-rolling-restart-2026-05-19",
+        "cause_kind": "env_change",
+        "timestamp_unix": 1747686000,
+        "evidence_ref": "infra-ops:infra-cluster-rolling-restart-2026-05-19",
+        "metadata": {
+          "extra": {
+            "description": "K8s cluster rolling node restart (autoscaler-driven)",
+            "source": "infra-ops"
+          }
+        }
+      },
+      "posterior": 0.1473227895105613,
+      "raw_score": 0.08007374029168081,
+      "kernel_value": 0.8007374029168081,
+      "kind_prior": 0.1,
+      "evidence_boost": 1
+    },
+    {
+      "candidate": {
+        "cause_id": "tessera-shard:shard-04:tessera-vg-2026-05-19-22-shard-04",
+        "cause_kind": "shard_event",
+        "timestamp_unix": 1747698900,
+        "evidence_ref": "tessera-verdict-group:tessera-vg-2026-05-19-22-shard-04",
+        "metadata": {
+          "extra": {
+            "tessera_verdict": "rollback",
+            "shard_id": "shard-04"
+          }
+        }
+      },
+      "posterior": 0.04587679160968046,
+      "raw_score": 0.02493522087772962,
+      "kernel_value": 0.24935220877729616,
+      "kind_prior": 0.1,
+      "evidence_boost": 1
+    }
+  ],
+  "suppressed": [
+    {
+      "candidate": {
+        "cause_id": "chaos:anvil-chaos-2026-05-19-3pm",
+        "cause_kind": "chaos_experiment",
+        "timestamp_unix": 1747695000,
+        "evidence_ref": "anvil-experiment:anvil-chaos-2026-05-19-3pm",
+        "metadata": {
+          "expected_failure_kind": "network_delay",
+          "extra": {
+            "affected_signals": [
+              "p99_latency"
+            ],
+            "recovery_seconds": 60
+          }
+        }
+      },
+      "suppression_reason": "kernel_underflow"
+    }
+  ],
+  "config_used": {
+    "kernel_sigma_seconds": {
+      "deploy": 1800,
+      "chaos_experiment": 300,
+      "dependency_change": 7200,
+      "env_change": 21600,
+      "shard_event": 900,
+      "generic": 3600
+    },
+    "kind_prior": {
+      "deploy": 0.35,
+      "chaos_experiment": 0.2,
+      "dependency_change": 0.15,
+      "env_change": 0.1,
+      "shard_event": 0.1,
+      "generic": 0.1
+    },
+    "grace_seconds": 60,
+    "evidence_boost": {
+      "proceed": 0.5,
+      "extend": 1.5,
+      "rollback": 2,
+      "baking": 1
+    }
+  }
+}
