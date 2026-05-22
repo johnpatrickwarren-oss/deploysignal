@@ -13,6 +13,7 @@ import type {
   ExpectedFailurePattern,
   ChaosExperimentContext,
 } from './types';
+import { translateChaosMeshSpec, type ChaosMeshCRD } from './chaos-mesh-translate';
 
 export class ChaosMeshAdapter implements ChaosOrchestrationAdapter {
   constructor(
@@ -22,9 +23,21 @@ export class ChaosMeshAdapter implements ChaosOrchestrationAdapter {
 
   /** Live impl: K8s API watch on the named CRD; maps .spec.action
    *  (delay, abort, kill, partition, stress, etc.) → ExpectedFailurePattern.kind;
-   *  .spec.duration (Go duration string, e.g. "60s") → recovery_seconds. */
+   *  .spec.duration (Go duration string, e.g. "60s") → recovery_seconds.
+   *  v1 stub: the K8s-API client call stays unimplemented (integrator
+   *  wires @kubernetes/client-node or equivalent). The translation
+   *  logic is testable via translateChaosMeshSpec() exported from
+   *  ./chaos-mesh-translate. */
   async fetchExpectedFailurePattern(_experiment_ref: string): Promise<ExpectedFailurePattern> {
-    throw new Error('ChaosMeshAdapter.fetchExpectedFailurePattern not yet implemented (v1 stub per Q29)');
+    throw new Error('ChaosMeshAdapter.fetchExpectedFailurePattern not yet implemented (v1 stub per Q29); use translateChaosMeshSpec for offline-fixture translation');
+  }
+
+  /** Q29 SLICE 2 (proof-of-life) — translate an already-fetched CRD
+   *  object to ExpectedFailurePattern. Useful for offline fixtures
+   *  and tests; integrators wiring a real K8s client can compose
+   *  `await k8sApi.get(...)` → `translateFromCRD(...)`. */
+  translateFromCRD(crd: ChaosMeshCRD, nowUnixSeconds: number): ExpectedFailurePattern {
+    return translateChaosMeshSpec(crd, nowUnixSeconds);
   }
 
   async fetchChaosExperimentContext(_experiment_ref: string): Promise<ChaosExperimentContext> {

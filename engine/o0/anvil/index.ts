@@ -18,3 +18,9 @@ export { GremlinChaosAdapter } from './gremlin';
 export { ChaosMeshAdapter } from './chaos-mesh';
 export { AwsFisChaosAdapter } from './aws-fis';
 export { LitmusChaosAdapter } from './litmus';
+export {
+  translateChaosMeshSpec,
+  parseGoDurationSeconds,
+} from './chaos-mesh-translate';
+export type { ChaosMeshCRD } from './chaos-mesh-translate';
+export { applyExpectedFailurePatternSuppression } from './suppression';
