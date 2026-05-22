@@ -187,9 +187,9 @@ At brief-drafting time, for every new spec:
 
 ---
 
-### Q30 Cairn structured-RCA / postmortem attribution (PRD-30 + Q30-CAIRN-ATTRIBUTION-SPEC; 2026-05-21)
+### Q30 Cairn structured-RCA / postmortem attribution (PRD-30 + Q30-CAIRN-ATTRIBUTION-SPEC; 2026-05-21; extracted to sibling repo 2026-05-22)
 
-**Status:** Spec emitted; v1 implementation landed (PRD-30 AC-1 through AC-10 closed at this PR). Active.
+**Status:** Spec emitted; v1 implementation landed (PRD-30 AC-1 through AC-10 closed in DS PR #21 2026-05-21). **Extracted 2026-05-22 to sibling repo at https://github.com/johnpatrickwarren-oss/cairn** for architectural consistency with the rest of the bundle (DS / Tessera / Cairn — three sibling products on the shared `deploysignal-engine` substrate). DS-side artifacts (engine/cairn/*, tools/cairn.js, test/q30-cairn-*, demos/cairn-*, coordination/PRD-30/Q30-spec) removed via the extraction PR; Cairn's PRD + spec + tests now live in the Cairn repo's `coordination/` + `test/`. The Q30 anti-scope clauses below carry forward as governing Cairn-repo discipline. Active.
 
 **Anti-scope clauses (7):**
 
