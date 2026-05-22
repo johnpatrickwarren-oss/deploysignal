@@ -1129,6 +1129,55 @@ Config-layer template library (§L0b above). Three v1 profiles live at `profiles
 
 `CompilerOptions.profile_ref?: string` (format `<id>@<semver>`) + `CompilerOptions.customer_override_ref?: string` (optional path to customer override YAML) drive the compile. Both propagate to `CompiledConfig` for audit provenance. Legacy compiles (no profile refs) keep existing constants — byte-identical to pre-#28 main. Profile-routed compiles with `llm-inference-streaming@1.0.0` are byte-identical to legacy (backward-compat anchor — verified by `test/profile-v1-set-smoke.test.ts`).
 
+### Addition #29 — Anvil chaos-verdict packaging (PRD-29, Q29)
+
+The DS substrate already produces FP-controlled verdicts on the forward direction (deploy → telemetry → verdict). **Anvil** packages that same substrate as a chaos-engineering-verdict product targeting Verica-style buyers. Four chaos-platform O0 adapters (`engine/o0/anvil/{gremlin,chaos-mesh,aws-fis,litmus}.ts`) implement `ChaosOrchestrationAdapter` (extends `OrchestrationAdapter` from Addition #9 with `fetchExpectedFailurePattern`). One reference profile `anvil-chaos-experiment@1.0.0` (extends `generic-microservice@1.0.0`) ships under `profiles/`. No `engine/detectors/*` runtime touch — Q2.B.6.4 ADR clauses 1–5 preserved.
+
+**`DeployContext` contract extension (PRD-29 FR-1).** The Addition #9 `DeployContext` interface gains an optional `expected_failure_pattern` field:
+
+```ts
+interface DeployContext {
+  // ... existing fields ...
+  expected_failure_pattern?: {
+    kind: string;                       // 'latency_injection' | 'cpu_stress' | …
+    affected_signals: string[];
+    magnitude: number;
+    magnitude_unit: 'relative_fraction' | 'absolute' | 'sigma';
+    recovery_seconds: number;
+    suppress_families: ('A' | 'B' | 'C' | 'D' | 'E')[];
+    fault_start_unix: number;
+  };
+}
+```
+
+Transitional stand-in until Addition #9 materializes the typed `DeployContext` interface: `OrchestrateParams.expectedFailurePattern?: ExpectedFailurePattern` (mirrors Addition #10's `expectedCanaryWeight`).
+
+**Verdict vocabulary mapping (Q29.2 architect-pick: adapter-boundary, not engine).** Engine native vocabulary → chaos adapter renames on `emitVerdict` per `DeployContext.strategy === 'chaos_experiment'`:
+
+| Engine verdict | Chaos verdict |
+|---|---|
+| `proceed` | `experiment_passed` |
+| `rollback` | `experiment_failed_unexpectedly` (audit annotation `firing_family_in_suppress_set: bool` distinguishes "expected fault produced expected signal" from "unexpected blast on non-suppressed family") |
+| `extend` | `experiment_still_running` |
+| `suppressed_insufficient_samples` | `experiment_inconclusive` |
+
+**Expected-fault family suppression.** When the current tick lies within `[fault_start_unix, fault_start_unix + recovery_seconds]` and `suppress_families` is populated, the named families return `verdict: 'suppressed'` with `suppression_reason: 'expected_failure_pattern'`. Outside the window, normal detector eligibility applies. The check is O(1) per tick and gated on `expectedFailurePattern !== undefined`, so the pre-Anvil path is byte-identical (PRD-29 AC-11).
+
+**Reference profile `anvil-chaos-experiment@1.0.0`.** Family A + Family C default (Q29.3 architect-pick); B/D/E off. Profile-level `expected_failure_pattern_defaults` block carries `default_suppress_families`, `default_recovery_seconds`, `default_magnitude_unit` for chaos runs whose adapter doesn't supply per-experiment overrides. α split: A=7·10⁻⁴ + C=3·10⁻⁴, total 1·10⁻³.
+
+**Scope.** Spec + typed-contract surface + four adapter stubs + profile + docs. Adapter network-call implementations + end-to-end demo are follow-on per PRD-29 priority. Anvil's v1 wedge is the verdict-surface positioning + the audit substrate (replay-clean per FR-6), not the chaos-platform integrations themselves (those are commodity).
+
+**Interaction with other additions:**
+
+- **Addition #9 (O0 adapter layer):** Anvil's four adapters live alongside the canary-direction adapters and share the `OrchestrationAdapter` contract.
+- **Addition #10 (SRM):** chaos experiments have no canary fraction; SRM check is a no-op when `DeployContext.strategy === 'chaos_experiment'` (no `expectedCanaryWeight` populated).
+- **Addition #11 (`suppressed_insufficient_samples`):** maps cleanly to chaos vocab `experiment_inconclusive`.
+- **Addition #28 (profile library):** `anvil-chaos-experiment@1.0.0` joins the v1 profile inventory as the fourth reference profile.
+
+**Interaction with Tessera (sibling product).** [Tessera](https://github.com/johnpatrickwarren-oss/tessera) vendors the DS engine at SHA `5a72371` and ships per-shard observation primitives + topology-aware freeze-hook + e-BH FDR control for cluster scope. Tessera's per-shard surface lines up exactly with shard-targeted chaos experiments (pod-kill on shard-04, network-partition on rack-2, latency-injection on a tenant subset). The DS-Anvil **buyer bundle** comprises three components: (a) the DS engine (this repo — verdict layer); (b) Tessera (sibling repo — per-shard observation layer); (c) the chaos-adapter family (`engine/o0/anvil/`, this addition). Cluster-scope chaos runs consume Tessera's per-shard feed via the existing Tessera-side HTTP contract at `engine/ds-integration/` (`POST /v1/tessera/verdict-groups` Tessera→DS; `POST /v1/tessera/deploy-events` DS→Tessera). No new contract surfaces required at Anvil v1 — the existing Tessera↔DS contract carries the per-shard verdict observations cleanly; Anvil's chaos adapters populate `DeployContext.expected_failure_pattern` at experiment-start so the per-shard verdicts on Tessera's side suppress correctly for the duration of the fault window. Tessera-side `engine/ds-integration/event-contract.ts` already carries the `event_class` closed-set; chaos-experiment event-class extension to that contract is a future cross-repo amendment (Tessera-side R63+ design cycle), not Anvil v1 scope.
+
+**Anti-scope (per PRD-29 + ANTI-SCOPE-LEDGER Q29 entry):** no per-experiment detector retraining (L5 scope); no chaos-platform authoring UX (DS doesn't own those surfaces); no live customer-tenancy chaos runs (enterprise-infrastructure boundary); no fifth platform at v1; no continuous-chaos streaming; no new chaos-specific detector family; no Tessera-side contract amendment (cross-repo, deferred to Tessera Phase 4 design cycle). Q2.B.6.4 ADR clauses 1–5 verified preserved.
+
 ### Addition #Q2.B — Calibration coherence (Phase-2 commitment per ARCHITECT-REPLY-52gk)
 
 Single-source per-cell μ_vec across all detectors at compile time; Σ_C regularization via shrinkage to aggregate (Ledoit-Wolf 2004 style); μ stays per-cell always. Closes the calibration-source incoherence between Family A's per-cell `baseline_mean` and Family C's aggregate-fallback `mean_vector` surfaced by post-Cholesky parametric H₀ test (REPLY-52gi → 52gk). Family D kv_cache miscalibration investigation absorbed in same Phase-2 batch (may share root cause). Family D autocorrelation-aware parametric methodology (AR(1)/VAR(1)) deferred to same batch. Q2.A signal-class registry (logit-transform for bounded-probability) remains separate Phase-2 commitment. Architect to draft full implementation brief; reference: ARCHITECT-REPLY-52gk Q2.B.4 mechanism.

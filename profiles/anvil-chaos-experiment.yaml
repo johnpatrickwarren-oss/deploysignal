@@ -1,0 +1,102 @@
+# profiles/anvil-chaos-experiment.yaml
+#
+# Anvil (Addition #29 / PRD-29 / Q29) reference profile for chaos-
+# engineering verdict runs. Family A (per-signal mean shift) + Family C
+# (multivariate drift) enabled; B, D, E default-off (insufficient signal
+# richness / calibration history at v1; see Q29.3 architect-pick).
+#
+# Suppression for declared expected_failure_pattern is routed via
+# OrchestrateParams.expectedFailurePattern (transitional stand-in until
+# Addition #9 materializes the typed DeployContext); profile-level
+# defaults in expected_failure_pattern_defaults below apply when the
+# chaos adapter does not supply per-experiment overrides.
+
+id: anvil-chaos-experiment
+version: "1.0.0"
+extends: generic-microservice
+description: >
+  Anvil chaos-engineering verdict profile. Family A + Family C only at
+  v1; sequenced over the existing DeploySignal Ville-bounded portfolio
+  with chaos-aware suppression keyed against the operator-declared
+  expected_failure_pattern. Targets Verica-style buyers.
+
+sli_list:
+  - signal: p99_latency
+    direction_of_better: lower
+    δ_min: 0.01
+  - signal: downstream_err
+    direction_of_better: lower
+    δ_min: 0.05
+  - signal: cost_req
+    direction_of_better: lower
+    δ_min: 0.01
+
+structural_detectors:
+  # Family B (LLM-inference-specific structural signatures) doesn't
+  # transfer to generic chaos targets.
+  enabled: false
+  dependencies: []
+
+joint_vector:
+  # Family C enabled — catches unexpected-blast (the injected fault was
+  # supposed to perturb signal X, but signal Y co-moved unexpectedly).
+  signals:
+    - p99_latency
+    - downstream_err
+  include_in_family_c: true
+  include_in_family_e: false
+
+alpha_allocation:
+  # 70/30 split A/C per Q29.3; B/D/E default-off.
+  per_family:
+    A: 7.0e-4
+    B: 0.0
+    C: 3.0e-4
+    D: 0.0
+    E: 0.0
+  total: 1.0e-3
+
+cell_dimensions:
+  # hour-of-day + day-of-week dimensions for cell stratification; the
+  # other dimensions require customer-side data plumbing not yet wired
+  # to chaos platforms at v1.
+  hour_of_day: true
+  day_of_week: true
+  workload_class: false
+  tenant_tier: false
+  region: false
+
+bake_profiles:
+  # Chaos experiments have short windows (typically 30–120s); ticks-
+  # before-eligible tightened vs generic-microservice so the verdict
+  # fires within the typical chaos fault window.
+  - signal: p99_latency
+    min_ticks_before_eligible: 2
+    min_observation_window: 2
+    max_deploy_window_days: 1
+  - signal: downstream_err
+    min_ticks_before_eligible: 3
+    min_observation_window: 3
+    max_deploy_window_days: 1
+  - signal: cost_req
+    min_ticks_before_eligible: 6
+    min_observation_window: 6
+    max_deploy_window_days: 1
+
+policy_defaults:
+  # Chaos experiments default to advisory mode (auto_rollback_enabled:
+  # false). Promoting to auto-rollback is operator-policy per chaos
+  # platform; default-off matches industry expectation.
+  reversibility_threshold_minutes: 5
+  auto_rollback_enabled: false
+  default_risk_tier: medium
+
+expected_failure_pattern_defaults:
+  # Profile-level defaults that apply when the adapter doesn't supply
+  # per-experiment overrides. Family A is the typical suppression target
+  # because chaos experiments overwhelmingly inject signal-shift faults
+  # (latency, CPU stress, network delay) that Family A would otherwise
+  # fire on by design.
+  default_suppress_families: ["A"]
+  default_recovery_seconds: 60
+  default_magnitude_unit: "relative_fraction"
