@@ -160,7 +160,7 @@ At brief-drafting time, for every new spec:
 
 ### Q29 Anvil chaos-verdict packaging (PRD-29 + Q29-ANVIL-CHAOS-VERDICT-SPEC; 2026-05-21)
 
-**Status:** Spec emitted; v1 stub-implementation landed (PRD-29 AC-1 through AC-11 closed at this PR). Active.
+**Status:** Spec emitted; v1 stub-implementation landed (PRD-29 AC-1 through AC-11 closed at this PR). SLICE 2 (Chaos Mesh translation + CLI demo + walkthrough) landed via DS PR #19. Cross-repo `chaos_experiment` event_class extension merged into `deploysignal-engine` PR #1 (2026-05-22) — originally targeted Tessera but redirected to `deploysignal-engine` after R94's engine-repo extraction moved the contract files there. The stale local patch artifacts (`coordination/TESSERA-CHAOS-EXPERIMENT-EVENT-CLASS*.patch`) deleted post-merge. Active.
 
 **Anti-scope clauses (6):**
 
