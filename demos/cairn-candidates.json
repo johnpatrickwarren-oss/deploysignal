@@ -1,0 +1,38 @@
+{
+  "ds_records": [
+    {
+      "deploy_id": "model-weights-v2026-05-19-001",
+      "ts": 1747699320,
+      "verdict": "extend",
+      "alpha_consumed": 0.0009,
+      "alpha_budget": 0.001,
+      "config_version": "v2026-05-19-mosaic"
+    }
+  ],
+  "anvil_experiments": [
+    {
+      "experiment_id": "anvil-chaos-2026-05-19-3pm",
+      "fault_start_unix": 1747695000,
+      "kind": "network_delay",
+      "affected_signals": ["p99_latency"],
+      "recovery_seconds": 60
+    }
+  ],
+  "external_events": [
+    {
+      "event_id": "infra-cluster-rolling-restart-2026-05-19",
+      "timestamp_unix": 1747686000,
+      "event_kind": "env_change",
+      "description": "K8s cluster rolling node restart (autoscaler-driven)",
+      "source": "infra-ops"
+    }
+  ],
+  "tessera_payloads": [
+    {
+      "group_id": "tessera-vg-2026-05-19-22-shard-04",
+      "shard_id": "shard-04",
+      "event_ts": 1747698900,
+      "verdict": "rollback"
+    }
+  ]
+}
