@@ -1,0 +1,7 @@
+{
+  "incident_id": "INC-2026-05-19-001",
+  "onset_time_unix": 1747700400,
+  "affected_signals": ["p99_latency", "downstream_err"],
+  "regression_magnitude_unit": "relative_fraction",
+  "regression_magnitude": 0.42
+}

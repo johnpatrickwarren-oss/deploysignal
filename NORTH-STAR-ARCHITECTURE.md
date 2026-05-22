@@ -1178,6 +1178,41 @@ Transitional stand-in until Addition #9 materializes the typed `DeployContext` i
 
 **Anti-scope (per PRD-29 + ANTI-SCOPE-LEDGER Q29 entry):** no per-experiment detector retraining (L5 scope); no chaos-platform authoring UX (DS doesn't own those surfaces); no live customer-tenancy chaos runs (enterprise-infrastructure boundary); no fifth platform at v1; no continuous-chaos streaming; no new chaos-specific detector family; no Tessera-side contract amendment (cross-repo, deferred to Tessera Phase 4 design cycle). Q2.B.6.4 ADR clauses 1–5 verified preserved.
 
+### Addition #30 — Cairn structured-RCA / postmortem attribution (PRD-30, Q30)
+
+The DS substrate produces verdicts at gate-time (DS proper) and packages them for chaos experiments (Anvil, Addition #29); the sibling [Tessera](https://github.com/johnpatrickwarren-oss/tessera) observes per-shard during steady state. **Cairn** closes the lifecycle loop: when a regression escapes both deploy-gate and steady-state observation and lands in prod, Cairn is the postmortem attribution layer that ranks candidate cause-events against the incident's onset.
+
+**Lifecycle-loop framing (load-bearing pitch beat):**
+
+> DeploySignal catches before promotion. Tessera observes during steady state. Cairn attributes when something escapes both — statistically, not by eyeballing dashboards.
+
+Strong Verica/Casey adjacency: chaos engineering's whole point is "find weaknesses before they cause incidents"; Cairn is the complement: "when an incident does happen, attribute it to specific weaknesses rigorously."
+
+**Mechanism (Q30 §2).** Cairn is a scoring layer atop the existing engine — no `engine/detectors/*` runtime change (Q2.B.6.4 ADR clauses 1–5 preserved). Given an `IncidentDefinition` (onset time + affected signals + optional engine-inferred onset distribution) and a set of `AttributionCandidate`s ingested from audit streams (DS audit JSONL, Tessera VerdictGroupPayload, Anvil ExpectedFailurePattern records, generic external events), Cairn computes a per-candidate alignment score:
+
+```
+s(c) = K(Δt, σ_kind) × π(kind) × e(c)
+```
+
+- **`K(Δt, σ_kind)`** — Gaussian timestamp-alignment kernel; σ defaults per cause-kind (deploys 30min; chaos 5min; dependency changes 2hr; env changes 6hr; shard events 15min; generic 1hr). Operator-tunable per call.
+- **`π(kind)`** — per-kind prior (deploys 0.35; chaos 0.20; dependency 0.15; env 0.10; shard 0.10; generic 0.10).
+- **`e(c)`** — evidence-quality boost driven by DS verdict adjacent to the candidate. `proceed` → 0.5 (negative evidence — engine emitted clean); `extend` → 1.5 (engine was concerned); `rollback` overridden by operator → 2.0 (strongest attribution signal); `baking` → 1.0 (neutral). Negative-evidence sharpening: a `proceed` with very low α-consumed-ratio (<5% of budget) multiplies boost by 0.75.
+
+Posterior is `p(c) = s(c) / Σ s(c')`. Mechanistic-inconsistency suppression: candidates with `timestamp > onset + grace_seconds` (default 60s) are excluded from the posterior with `suppression_reason: 'post_incident_timestamp'`. Engine-inferred onset preference (Q30.1): when `incident.engine_onset_estimate` is supplied, it supersedes the operator-supplied point onset; kernel σ combines engine uncertainty with per-kind kernel via quadrature.
+
+**Architectural surfaces.** `engine/cairn/types.ts` (typed contracts), `engine/cairn/score.ts` (scoring algorithm — load-bearing math), `engine/cairn/ingest.ts` (four ingest helpers covering the existing audit-stream wire shapes), `tools/cairn.js` (CLI driver, replay-clean), 26 tests, walkthrough at `demos/CAIRN-DEMO.md`.
+
+**Interaction with other additions:**
+
+- **Addition #9 (O0 adapter layer):** Cairn consumes the audit records the orchestrator emits — no schema change.
+- **Addition #25 (VerdictGroup):** Cairn's per-incident candidate-grouping rides on the L3b VerdictGroup primitive.
+- **Addition #28 (profile library):** profile-level kernel/prior overrides are Slice 2 (PRD-30 OQ-30.2); v1 is per-call config.
+- **Addition #29 (Anvil):** Cairn ingests `ExpectedFailurePattern` records as `chaos_experiment` candidates. The full lifecycle: Anvil declares the experiment → DS+Tessera observe under the declared fault window → if a regression escapes, Cairn ranks the chaos experiment among the candidate causes.
+
+**Bundle interaction with Tessera (sibling product).** Cairn consumes the `VerdictGroupPayload` wire format Tessera emits via `engine/ds-integration/feed-contract.ts`. No Tessera-side change required at Cairn v1. The full **DS / Tessera / Cairn bundle** is the three-stage incident-management story; Anvil packages a chaos overlay across all three.
+
+**Anti-scope (per PRD-30 + ANTI-SCOPE-LEDGER Q30 entry):** no new detector family (Q2.B.6.4 preserved); no causal-inference framing (Cairn does alignment-based attribution, not Pearl-style counterfactuals); no live incident-mgmt webhook adapters (PagerDuty / Opsgenie / incident.io are Slice 2); no multi-incident batch RCA; no narrative auto-gen (advisory layer scope per Addition #27); no web UI; no streaming. Q2.B.6.4 ADR clauses 1–5 + Q29 ADR clauses 1–6 verified preserved.
+
 ### Addition #Q2.B — Calibration coherence (Phase-2 commitment per ARCHITECT-REPLY-52gk)
 
 Single-source per-cell μ_vec across all detectors at compile time; Σ_C regularization via shrinkage to aggregate (Ledoit-Wolf 2004 style); μ stays per-cell always. Closes the calibration-source incoherence between Family A's per-cell `baseline_mean` and Family C's aggregate-fallback `mean_vector` surfaced by post-Cholesky parametric H₀ test (REPLY-52gi → 52gk). Family D kv_cache miscalibration investigation absorbed in same Phase-2 batch (may share root cause). Family D autocorrelation-aware parametric methodology (AR(1)/VAR(1)) deferred to same batch. Q2.A signal-class registry (logit-transform for bounded-probability) remains separate Phase-2 commitment. Architect to draft full implementation brief; reference: ARCHITECT-REPLY-52gk Q2.B.4 mechanism.

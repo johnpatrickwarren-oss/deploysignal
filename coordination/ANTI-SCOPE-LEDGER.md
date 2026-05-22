@@ -187,6 +187,36 @@ At brief-drafting time, for every new spec:
 
 ---
 
+### Q30 Cairn structured-RCA / postmortem attribution (PRD-30 + Q30-CAIRN-ATTRIBUTION-SPEC; 2026-05-21)
+
+**Status:** Spec emitted; v1 implementation landed (PRD-30 AC-1 through AC-10 closed at this PR). Active.
+
+**Anti-scope clauses (7):**
+
+1. **NO new detector family for attribution.** Cairn is a scoring layer atop the existing engine; Q2.B.6.4 ADR clauses 1–5 preserved (no `engine/detectors/*` runtime touch).
+2. **NO causal-inference framing** (Pearl-style counterfactuals / do-calculus). Cairn does **alignment-based ranked attribution** of timing-consistent candidates; framing the output as "causal" would invite scrutiny the v1 algorithm can't survive (honesty discipline; PRD-30 AS-3).
+3. **NO live incident-management webhook adapters at v1** (PagerDuty / Opsgenie / incident.io / Statuspage). Generic `candidatesFromExternalEvents` ingest helper only; production-grade adapters are Slice 2.
+4. **NO multi-incident batch RCA at v1.** Cairn v1 is one-incident-at-a-time; cross-incident pattern detection is a future PRD.
+5. **NO narrative auto-generation.** Cairn outputs structured ranked data; narrative synthesis is advisory-layer scope (Addition #27).
+6. **NO web UI dashboard for Cairn at v1.** CLI + JSON output is the v1 surface.
+7. **NO real-time / streaming attribution.** Postmortems are batch-mode; in-incident "live root-cause" indicator is a candidate Slice 2.
+
+**Carry-forward verification at Q30 spec-emit:**
+
+- **Q2.B.6.4 ADR clauses 1–5:** preserved (Cairn lives at `engine/cairn/`, no `engine/detectors/*` touch).
+- **Q29 ADR Anvil clauses 1–6:** preserved (Cairn consumes Anvil's `ExpectedFailurePattern` records as candidate events; doesn't extend Anvil semantics; ingests via minimal local interface to stay loosely coupled).
+- **Q60 V2 clause 3** (no live customer telemetry): preserved (Cairn ships against synthetic fixtures + existing DS demos at v1).
+- **Phase 2.4 demo-substrate carve-out:** preserved (Cairn doesn't touch demo substrate).
+- **Q57 / Q66 / Phase D batch:** preserved (Cairn doesn't touch detector/substrate code).
+- **Enterprise-infrastructure boundary** (John's Q1 disposition 2026-04-30): preserved.
+- **No-skip policy:** preserved (26 Q30 tests all assert; no skips).
+
+**Architectural mechanism summary:** scoring layer atop existing engine; Gaussian timestamp-alignment kernel × per-cause-kind prior × evidence-quality boost; mechanistic-inconsistency suppression for post-incident timestamps; engine-inferred onset preference when available; replay-clean CLI driver.
+
+**Memorialized at:** `coordination/PRD-30-cairn.md` § Out-of-Scope + `coordination/Q30-CAIRN-ATTRIBUTION-SPEC.md` § Anti-scope + `NORTH-STAR-ARCHITECTURE.md` Addition #30 section + `COMPETITIVE-GAPS-ADDITIONS.md` GAP-30.
+
+---
+
 ## TAGGED-future commitments (anti-scope on activation)
 
 ### Phase-3.c.2 — Compile-time substrate extension for substrate-anchored validation-methodology
