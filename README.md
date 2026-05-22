@@ -11,13 +11,21 @@ A statistically-rigorous answer to one operational question: **given a new deplo
 - **Calibration compiler.** `tools/calibrate.ts` compiles a healthy-baseline trace into a `CompiledConfig` with per-(hour-of-day × day-of-week × tenant-tier) cells. Per-cell mean vectors, covariance matrices (Ledoit-Wolf / MCD / MRCD), Cholesky factors, AR(1) phi coefficients, mixture-supermartingale priors, betting-e-process baseline pools, conformal calibration scores. The compile is deterministic; same input → same output → same fire decisions on replay.
 - **Audit substrate.** Every detector evaluation emits a structured `DetectorVerdict` with provenance (cell_key, baseline_version, schema_continuity), α consumption, fire reason. Audit records replay-clean: the same compiled config + the same metric stream produces the same verdict, supporting post-incident reconstruction.
 
-## DS-Cairn — structured RCA / postmortem attribution
+## DS bundle — sibling products
 
-When a regression escapes deploy-gate and steady-state observation and lands in prod, the postmortem RCA today is *manual and unstructured* — an SRE reads dashboards, scrolls audit logs, eyeballs deploy timelines, and writes a narrative. **Cairn** (Addition #30) is the postmortem attribution layer of the DS bundle. It consumes audit streams from DeploySignal + [Tessera](https://github.com/johnpatrickwarren-oss/tessera) + the customer's incident-management system + optional chaos-platform output (Anvil), and produces a ranked attribution report keyed against the incident's onset.
+DeploySignal is one product in a multi-product bundle. The shared statistical engine lives at [`deploysignal-engine`](https://github.com/johnpatrickwarren-oss/deploysignal-engine); products consume it via git-dep:
 
-**The lifecycle-loop frame:** DeploySignal catches before promotion. Tessera observes during steady state. Cairn attributes when something escapes both — statistically, not by eyeballing dashboards. Strong Verica/Casey adjacency: chaos engineering finds weaknesses *before* they cause incidents; Cairn ranks them *after*. Two halves of the same methodology.
+| Repo | Stage | What it does |
+|---|---|---|
+| [`deploysignal`](https://github.com/johnpatrickwarren-oss/deploysignal) (this repo) | Pre-promotion | Gate-time verdict for the deploy under analysis. Also packages Anvil (Addition #29) inside this repo as a chaos-experiment overlay. |
+| [`tessera`](https://github.com/johnpatrickwarren-oss/tessera) | Steady state | Per-shard cluster observation; per-shard residual semantics + e-BH FDR control + topology-aware freeze-hook. |
+| [`cairn`](https://github.com/johnpatrickwarren-oss/cairn) | Postmortem | Structured RCA / attribution — ranks candidate cause-events against incident onset. Closes the lifecycle loop. |
 
-Cairn does **alignment-based ranked attribution** (Gaussian timestamp-alignment kernel × per-kind prior × evidence-quality boost), not Pearl-style causal inference. Output is a ranked list of candidates with posterior probabilities + cited audit-trail evidence; the postmortem narrative is still the human's job. Replay-clean: same inputs → byte-identical output. See [`coordination/PRD-30-cairn.md`](coordination/PRD-30-cairn.md), [`coordination/Q30-CAIRN-ATTRIBUTION-SPEC.md`](coordination/Q30-CAIRN-ATTRIBUTION-SPEC.md), [`engine/cairn/`](engine/cairn/), [`tools/cairn.js`](tools/cairn.js), and [`demos/CAIRN-DEMO.md`](demos/CAIRN-DEMO.md).
+The lifecycle-loop frame:
+
+> **DeploySignal catches before promotion. Tessera observes during steady state. Cairn attributes when something escapes both — statistically, not by eyeballing dashboards.**
+
+Strong Verica/Casey adjacency on Cairn: chaos engineering finds weaknesses *before* they cause incidents; Cairn ranks them *after*. Two halves of the same methodology.
 
 ## DS-Anvil — chaos-engineering verdicts
 
