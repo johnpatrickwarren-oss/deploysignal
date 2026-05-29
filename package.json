@@ -31,6 +31,6 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@johnpatrickwarren-oss/deploysignal-engine": "github:johnpatrickwarren-oss/deploysignal-engine#v0.1.0-pre"
+    "@johnpatrickwarren-oss/deploysignal-engine": "github:johnpatrickwarren-oss/deploysignal-engine#v0.3.1-pre"
   }
 }
