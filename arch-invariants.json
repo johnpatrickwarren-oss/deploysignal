@@ -21,5 +21,21 @@
     "check": { "kind": "module_fanin", "maxFanin": 12 },
     "mode": "ratchet",
     "severity": "block"
+  },
+  {
+    "id": "no-time-bomb-tests",
+    "intent": "No test pinned to a frozen git ref/SHA (git diff <ref>..HEAD, --name-only, git show <sha>) — such tests can only rot as HEAD moves. Round/PR-scoped scope checks belong in a gate, not the permanent suite. (Library tenet L2; universal.)",
+    "check": { "kind": "time_bomb_tests", "dirs": ["test"] },
+    "max": 0,
+    "mode": "ratchet",
+    "severity": "block"
+  },
+  {
+    "id": "product-not-read-process",
+    "intent": "Product code (engine/, tools/, test/) must not read process/working-state under coordination/ (removed from this repo; this guards against the fused product+process pattern re-forming). (Library tenet L1; per-project.)",
+    "check": { "kind": "forbid_path", "dirs": ["engine", "tools", "test"], "path": "coordination/" },
+    "max": 0,
+    "mode": "ratchet",
+    "severity": "block"
   }
 ]
