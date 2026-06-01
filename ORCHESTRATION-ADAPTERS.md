@@ -103,7 +103,7 @@ Return shape from our service (minimal viable — richer provenance on a separat
   "verdict": "proceed",
   "tick": 12,
   "total_ticks": 32,
-  "config_version": "v2026-04-28-mosaic",
+  "config_version": "v2026-04-28-platform",
   "alpha_consumed": 0.00041,
   "fires": []
 }
@@ -148,7 +148,7 @@ metrics:
     provider:
       plugin:
         deploysignal:
-          configRef: "mosaic-inference-gate"
+          configRef: "inference-gate"
 ```
 
 Our operator watches Rollout events, starts `DeploymentSignalRun` at the right rollout steps, runs the gate loop, updates AnalysisRun with final verdict.
@@ -183,7 +183,7 @@ Probably architecturally wrong. The gate should advise; the orchestrator should 
 
 **Runway (Weeks 5–6):** Level 1 + a minimal demo-scale Kubernetes stand-up. Specifically: a `kind` (Kubernetes-in-Docker) cluster with Argo Rollouts installed, our gate running as a `Deployment` with a small REST layer, one example AnalysisTemplate that references our gate via web provider. One of the three canned demos (the correlated-noise catch or the novelty catch) runs end-to-end through Argo. The demo artifact is a recording of Argo Rollouts promoting / rolling back in response to our verdicts.
 
-**Days 1–30 at production scale:** Level 1 against real Mosaic Rollouts in shadow mode. No CRDs yet; gate runs as a sidecar or off-cluster service.
+**Days 1–30 at production scale:** Level 1 against real platform Rollouts in shadow mode. No CRDs yet; gate runs as a sidecar or off-cluster service.
 
 **Days 31–90:** Level 2 (Job adapter) if operational experience suggests the polling / latency / credential-handling benefits are worth the image-management overhead. Decision gate at day 30.
 
@@ -225,7 +225,7 @@ metadata:
     deploysignal.io/change-type: "serving_code"           # model_weights | serving_code | config | infrastructure | documentation
     deploysignal.io/author-class: "human"                 # human | agent
     deploysignal.io/risk-level: "medium"                  # low | medium | high | critical
-    deploysignal.io/config-ref: "mosaic-inference-gate"   # points at DeploymentSignalConfig (Level 3) or config file (Levels 1-2)
+    deploysignal.io/config-ref: "inference-gate"   # points at DeploymentSignalConfig (Level 3) or config file (Levels 1-2)
 ```
 
 Missing annotations: the gate uses conservative defaults (highest risk, forward-only, requires human approval) and emits a warning to the audit log. Never silently defaults to permissive.
@@ -255,12 +255,12 @@ Also: if the target platform teams have been using Kayenta-in-Argo or hand-rolle
 
 Folding into the platform-mapping doc (deleted) as a new section (will land in the next revision):
 
-- Mosaic's Argo Rollouts (assumed) become the first target orchestrator.
+- The platform's Argo Rollouts (assumed) become the first target orchestrator.
 - Per-deploy-class Argo strategies: model-weight deploys likely use extended canary with many steps and long pauses; serving-code deploys likely use fewer-step canary with shorter analysis windows; infrastructure deploys likely use cluster-by-cluster rolling with our gate running advisory-only.
-- Reversibility annotations get a Mosaic-specific default table: model-weight deploys default `reversible` (can rotate back), schema migrations on the serving side are `forward_only`, config changes are `reversible`.
-- Day-1 questions about Kayenta usage and current AnalysisTemplate patterns added to the Mosaic mapping's "open questions" section.
+- Reversibility annotations get a platform-specific default table: model-weight deploys default `reversible` (can rotate back), schema migrations on the serving side are `forward_only`, config changes are `reversible`.
+- Day-1 questions about Kayenta usage and current AnalysisTemplate patterns added to the platform mapping's "open questions" section.
 
-## Day-1 questions for production deployment (added to Mosaic mapping open-questions list)
+## Day-1 questions for production deployment (added to platform mapping open-questions list)
 
 - Is Argo Rollouts the canonical progressive-delivery layer, or are multiple tools in play (Argo, Spinnaker, internal)?
 - Is Kayenta already integrated as an AnalysisTemplate provider? If so, what's its current usage pattern?
@@ -307,10 +307,10 @@ Each implements `ChaosOrchestrationAdapter` — the base `OrchestrationAdapter` 
 ## Shipping plan
 
 - **End of Week 1 (2026-04-22):** Architecture addition #9 section in `NORTH-STAR-ARCHITECTURE.md` points to this doc. No engine changes.
-- **End of Week 2:** Mosaic mapping updated with Argo integration section.
+- **End of Week 2:** platform mapping updated with Argo integration section.
 - **Week 5:** Demo-scale Argo integration. `kind` cluster + Argo Rollouts + minimal web-provider adapter against one canned demo. TPM routes the Week 5 scope implication in `ARCHITECT-REPLY-02`.
-- **Week 6:** Pitch includes Argo integration as an explicit beat: "here's the the target platform deployment story, here's what plugs in where."
-- **Follow-on Q1:** Level 1 in production shadow on real Mosaic Rollouts.
+- **Week 6:** Pitch includes Argo integration as an explicit beat: "here's the target-platform deployment story, here's what plugs in where."
+- **Follow-on Q1:** Level 1 in production shadow on real platform Rollouts.
 - **Follow-on Q2:** Level 2 (Job adapter) or Level 3 (operator + CRDs), depending on platform-team appetite.
 
 — Architect

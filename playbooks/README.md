@@ -59,5 +59,5 @@ Field reference: see [`schema/playbook.schema.json`](./schema/playbook.schema.js
 ## Follow-on migration paths
 
 - **Fine-tuned FM:** v1 is zero-shot with structured-output. Once production verdict + operator-accept/reject data accumulates, fine-tuned version reuses the playbook schema + safety rail set unchanged (per D1).
-- **Real MLflow/UC wiring:** v1 ships integration contracts + StubAdapter that logs to local audit. Real Mosaic-native + Claude-via-Bedrock adapters are for follow-on per D5.
+- **Real model-lifecycle/governance wiring:** v1 ships integration contracts + StubAdapter that logs to local audit. Real platform-native + Claude-via-Bedrock adapters are for follow-on per D5.
 - **Per-customer playbook catalogs:** v1 ships only DS-managed playbooks. Q3 lean: v2 opens a customer catalog surface similar to #28's profile library; v1 scope remains DS-curated.

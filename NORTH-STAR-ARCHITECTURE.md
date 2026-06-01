@@ -58,7 +58,7 @@ A deployment decision engine should be a **statistical monitoring system with ex
            │
            ▼
   L4 — Audit + observability
-        (provenance on every verdict, shadow comparison, MLflow tracking)
+        (provenance on every verdict, shadow comparison, the model-lifecycle tooling tracking)
            │
            ▼
   L5 — Learning loop
@@ -270,11 +270,11 @@ storytelling substrate post-Q57.
 
 **Positioning (ARCHITECT-REPLY-53 R4 — FINAL text).**
 
-> `advisory/agent/` is a POST-DECISION advisory layer. The gate (`engine/`) decides rollback vs proceed via statistical e-processes with Ville-bounded false-alarm. The advisor (`advisory/`) proposes recovery actions referencing the gate's decision + playbook + audit provenance. The advisor never overrides the gate's decision; never auto-executes in v1; safety rail (e) binds FM-input playbook-filter to deploy reversibility deterministically. Advisor is a separable system; operators can disable (default) or connect to any FM vendor (Mosaic-native / Claude-Bedrock / stub).
+> `advisory/agent/` is a POST-DECISION advisory layer. The gate (`engine/`) decides rollback vs proceed via statistical e-processes with Ville-bounded false-alarm. The advisor (`advisory/`) proposes recovery actions referencing the gate's decision + playbook + audit provenance. The advisor never overrides the gate's decision; never auto-executes in v1; safety rail (e) binds FM-input playbook-filter to deploy reversibility deterministically. Advisor is a separable system; operators can disable (default) or connect to any FM vendor (platform-native / Claude-Bedrock / stub).
 
 **Directory relocation (REPLY-53 R4 D4b).** The advisory module lives at `advisory/agent/` at repo root — parallel to `engine/`, `profiles/`, `playbooks/`, `regression-profiles/`, `runs/` — relocated out of the `engine/` subtree as part of this addition. The directory name signals semantic separation at 30-second first-impression speed for code-reading reviewers; the `engine/` subtree now strictly contains statistical-decision code, while `advisory/` contains the FM-backed proposer + playbook loader + safety rails. `CompilerOptions.agent` stays in `engine/types.ts` (cross-module configuration, not agent-internal).
 
-**Dormancy.** Addition #27 remains dormant per the activation gate: `CompilerOptions.agent.enabled = false` by default, and the orchestrator post-VerdictGroup-close hook that would invoke `AgentProposer.propose()` is not wired in v1. Operators opting in must configure an FM vendor (`mosaic_native` / `claude_bedrock` / `stub`); `auto_execute_enabled: false` is schema-enforced in v1 — narrow-auto gate is deferred.
+**Dormancy.** Addition #27 remains dormant per the activation gate: `CompilerOptions.agent.enabled = false` by default, and the orchestrator post-VerdictGroup-close hook that would invoke `AgentProposer.propose()` is not wired in v1. Operators opting in must configure an FM vendor (`vendor_native` / `claude_bedrock` / `stub`); `auto_execute_enabled: false` is schema-enforced in v1 — narrow-auto gate is deferred.
 
 ### L4 — Audit + observability
 
@@ -282,8 +282,8 @@ storytelling substrate post-Q57.
 
 - Extends today's audit log (WS2 Phase 1 is the ancestor) with per-family verdicts, per-detector statistics, and α-consumption per tick. Schema version bump required.
 - Shadow comparison is a first-class view: what did the current-engine verdict look like vs the new-system verdict? Surfaced in the demo dashboard.
-- MLflow integration: every detector configuration (calibration compiler output) is a versioned artifact. Every verdict logs its config version. Rollbacks traceable to the exact compiled threshold set.
-- Unity Catalog (or equivalent governance layer) controls who sees what — tenant-level and team-level ACLs on verdicts and provenance.
+- The model-lifecycle tooling integration: every detector configuration (calibration compiler output) is a versioned artifact. Every verdict logs its config version. Rollbacks traceable to the exact compiled threshold set.
+- A platform governance layer controls who sees what — tenant-level and team-level ACLs on verdicts and provenance.
 
 ### L5 — Learning loop
 
@@ -545,7 +545,7 @@ type Reversibility = 'reversible' | 'forward_only' | 'conditional'
 
 **Default when missing.** If no reversibility tag is set, G0 applies the conservative default: `forward_only`. This matches the platform-wide invariant from addition #9 ("missing annotations default to conservative values"). Surfaces a warning in the audit log. Never silently defaults to `reversible` — silent permissive defaults are how automated-rollback-on-forward-only-deploy incidents happen.
 
-**Per-deploy-class defaults (policy table for production deployment Mosaic, extracted from the platform-mapping doc (deleted)).** When the platform team sets annotations by deploy class rather than per-deploy, these are starting defaults:
+**Per-deploy-class defaults (policy table for production deployment the target platform, extracted from the platform-mapping doc (deleted)).** When the platform team sets annotations by deploy class rather than per-deploy, these are starting defaults:
 
 | Change pattern | Default `reversibility` |
 |---|---|
@@ -576,7 +576,7 @@ L3 verdict=proceed  | advance             | advance             | advance
 
 **Interaction with addition #9 (orchestration adapter).** O0 is the layer that actually maps `rollback` verdicts to orchestrator actions. The reversibility tag is consumed there, not inside the engine. This keeps the engine orchestrator-agnostic (the engine's job is to emit verdicts; the consequences of a verdict depend on the orchestrator and the deploy metadata).
 
-**Scope.** Implementation shipped 2026-04-20 (ARCHITECT-REPLY-32). G0 classifier (`engine/g0/reversibility-classifier.ts`) runs once per deploy at deploy start against a `ReversibilityAnnotationSource` (runway ships three: `NoReversibilitySource` / `InlineReversibilitySource` / `ScenarioReversibilitySource`). O0 translator (`engine/o0/reversibility-translator.ts`) is a pure function mapping verdict × reversibility to the concrete orchestrator action (`rollback` / `pause_and_alarm` / `human_confirmation_required` / passthrough for non-rollback verdicts). Audit records carry `reversibility` + `reversibility_source` on every v2 record — constant across all ticks of a deploy. Default-fallback is `'forward_only'` (conservative; missing annotations must NOT auto-rollback). L3 continues to emit `rollback` regardless of reversibility; the translator handles action derivation post-verdict so L3 semantics stay orthogonal to downstream action selection. Real-orchestrator annotation sources (Argo Rollouts resource annotation reader, Spinnaker pipeline parameter reader, MLflow tag reader) remain for follow-on.
+**Scope.** Implementation shipped 2026-04-20 (ARCHITECT-REPLY-32). G0 classifier (`engine/g0/reversibility-classifier.ts`) runs once per deploy at deploy start against a `ReversibilityAnnotationSource` (runway ships three: `NoReversibilitySource` / `InlineReversibilitySource` / `ScenarioReversibilitySource`). O0 translator (`engine/o0/reversibility-translator.ts`) is a pure function mapping verdict × reversibility to the concrete orchestrator action (`rollback` / `pause_and_alarm` / `human_confirmation_required` / passthrough for non-rollback verdicts). Audit records carry `reversibility` + `reversibility_source` on every v2 record — constant across all ticks of a deploy. Default-fallback is `'forward_only'` (conservative; missing annotations must NOT auto-rollback). L3 continues to emit `rollback` regardless of reversibility; the translator handles action derivation post-verdict so L3 semantics stay orthogonal to downstream action selection. Real-orchestrator annotation sources (Argo Rollouts resource annotation reader, Spinnaker pipeline parameter reader, the model-lifecycle tooling tag reader) remain for follow-on.
 
 ---
 
@@ -621,7 +621,7 @@ interface MetricRegistry {
   slisForService(service_id: string): Array<MetricSpec>             // Tier 1
   structuralSignalsForDetectors(detector_ids: string[]): Array<MetricSpec>  // Tier 2
   predictiveRankings(service_id: string): Array<{ metric_id: string, rank_score: number }>  // Tier 3 (post-L5)
-  accessControl(actor_id: string, service_id: string): 'read' | 'write' | 'none'  // Unity Catalog ACL
+  accessControl(actor_id: string, service_id: string): 'read' | 'write' | 'none'  // platform governance-layer ACL
 }
 
 interface MetricSpec {
@@ -633,7 +633,7 @@ interface MetricSpec {
 }
 ```
 
-**Governance.** Registry entries are versioned; promotion from Tier 3 → Tier 1 is a PR-style change requiring service-team approval. Unity Catalog (at production scale) controls who can read/write the registry. Audit log captures registry version alongside `compiled_config_version` so verdicts are traceable to both.
+**Governance.** Registry entries are versioned; promotion from Tier 3 → Tier 1 is a PR-style change requiring service-team approval. The platform governance layer (at production scale) controls who can read/write the registry. Audit log captures registry version alongside `compiled_config_version` so verdicts are traceable to both.
 
 **Pre-L5 behavior.** The Tier 3 ranking stays empty; registry is operator-configured (Tier 1 + Tier 2 only). This is sufficient for the first 6 months for follow-on — metric selection is handled by service teams with the detector library's structural auto-additions, same pattern operators use today, just formalized and governed.
 
@@ -719,13 +719,13 @@ interface DeployContext {
 
 **Honest framing for the pitch.** "Current architecture handles predictable covariate bias via CUPAC. For adversarial assignment (canary is a systematically different population), propensity-score matching identifies the closest baseline cell; switchback rotation is available where services tolerate it. For services where neither works (strong session affinity + inherently biased canary assignment), the gate honestly reports `structural_mismatch` and falls back to Family B structural signatures only. We do not pretend statistical comparison works in all canary-assignment topologies." This is exactly the calibrated-confidence stance the PM critique coaches for.
 
-**Scope.** Docs-only. Full propensity-score matching requires per-service covariate engineering; switchback requires platform-team wiring in the routing layer. Both are for follow-on Q1/Q2 work, targeted at service adoption waves 2 and 3 (after Mosaic inference is running in advisory mode).
+**Scope.** Docs-only. Full propensity-score matching requires per-service covariate engineering; switchback requires platform-team wiring in the routing layer. Both are for follow-on Q1/Q2 work, targeted at service adoption waves 2 and 3 (after platform inference is running in advisory mode).
 
 ---
 
 ## Architecture additions — competitive-research integration (W6+1 batch, docs-only)
 
-Five sections added 2026-04-19 from the competitive-landscape analysis in `COMPETITIVE-LANDSCAPE.md` and the capability-additions review in `COMPETITIVE-GAPS-ADDITIONS.md`. These close visible pitch gaps where commercial competitors (LaunchDarkly Guarded Rollouts, Harness Continuous Verification, Dynatrace Site Reliability Guardian) ship capabilities DS didn't specify. All five are **docs-only in the project**; implementation is deferred Q1 when real Mosaic telemetry, real orchestrator integration, and real routing-layer data surface. Specifying them architecturally closes the gap in the pitch while keeping implementation scope bounded.
+Five sections added 2026-04-19 from the competitive-landscape analysis in `COMPETITIVE-LANDSCAPE.md` and the capability-additions review in `COMPETITIVE-GAPS-ADDITIONS.md`. These close visible pitch gaps where commercial competitors (LaunchDarkly Guarded Rollouts, Harness Continuous Verification, Dynatrace Site Reliability Guardian) ship capabilities DS didn't specify. All five are **docs-only in the project**; implementation is deferred Q1 when real platform telemetry, real orchestrator integration, and real routing-layer data surface. Specifying them architecturally closes the gap in the pitch while keeping implementation scope bounded.
 
 The pattern follows the PM-critique batches (W1–W3 additions #1–#9): name the capability, describe the gap, specify contract surfaces and behavior, flag as docs-only, and document the follow-on implementation path. The runway's the pitch draft (deleted) updates to reference these additions in Part 2 ("what's in flight") and Part 5 (honest-gaps) so the pitch audience sees a complete architectural claim, not a partial one.
 
@@ -809,7 +809,7 @@ Per-family `min_samples_for_evaluation` field added to `BakeProfile`: below this
 
 **Contract surface change:** `SignalStream` adds optional `pod_id?: string`. `CompiledConfig.baseline_cells.dimensions` may include `'pod_id'`. `AuditRecord` gains `granularity: 'per_pod' | 'cohort'` field; per-pod records reference their `pod_id`. Per-pod verdicts surface as child records under the cohort verdict in the audit trail.
 
-**Scope.** Docs-only. Implementation in follow-on Q1 (medium; depends on Mosaic telemetry granularity). Needs real K8s pod labels; synthetic data doesn't carry `pod_id`.
+**Scope.** Docs-only. Implementation in follow-on Q1 (medium; depends on platform telemetry granularity). Needs real K8s pod labels; synthetic data doesn't carry `pod_id`.
 
 ### Addition #13 — Fail-Fast / Ignore threshold contract surface
 
@@ -856,13 +856,13 @@ Per-family `min_samples_for_evaluation` field added to `BakeProfile`: below this
 - **Argo Rollouts (Level 1 adapter):** events emit as Kubernetes Events on the Rollout resource (`kubectl describe rollout` surfaces them).
 - **Spinnaker (for follow-on adapter):** events emit as Spinnaker pipeline notifications on the parent pipeline.
 - **Custom (for follow-on):** webhook POST to operator-configured URL with standard payload shape.
-- **MLflow integration (production-specific, for follow-on):** events emit as MLflow tags on the deploy run; `evaluation.finished` also writes a structured result artifact.
+- **The model-lifecycle tooling integration (production-specific, for follow-on):** events emit as the model-lifecycle tooling tags on the deploy run; `evaluation.finished` also writes a structured result artifact.
 
 **Why this matters architecturally.** Matches the industry pattern for CD/CI lifecycle integration (Dynatrace Guardian, Argo events, Spinnaker stages all use structured events at scale). Downstream tooling integration — incident-management systems reacting to `evaluation.finished`, dashboards subscribing to `evaluation.tick`, audit log consumers listening for `evaluation.suppressed` — becomes a webhook subscription rather than a custom polling loop. Closes a visible integration-surface gap.
 
 **Contract surface change:** `OrchestrationAdapter` interface gains `emitLifecycleEvent(event_type: LifecycleEventType, payload: LifecycleEventPayload): Promise<void>` method. New typed `LifecycleEventType` enum and `LifecycleEventPayload` union types in `engine/types.ts`. Adapters implement per-orchestrator delivery; the engine emits the events to the adapter; the adapter routes to the orchestrator's native event surface.
 
-**Scope.** Implementation shipped 2026-04-20 (ARCHITECT-REPLY-31). Runway ships the `LifecycleEventEmitter` contract plus two reference implementations (`NoOpLifecycleEventEmitter` as default zero-side-effect backward-compat gate; `InMemoryLifecycleEventEmitter` as test fixture with per-listener error isolation and registration-order delivery). Real-orchestrator adapters (Argo Rollouts Kubernetes Events, Spinnaker pipeline notifications, MLflow run tags, webhook POSTs) remain for follow-on — the engine emits `LifecycleEvent` objects; adapters translate.
+**Scope.** Implementation shipped 2026-04-20 (ARCHITECT-REPLY-31). Runway ships the `LifecycleEventEmitter` contract plus two reference implementations (`NoOpLifecycleEventEmitter` as default zero-side-effect backward-compat gate; `InMemoryLifecycleEventEmitter` as test fixture with per-listener error isolation and registration-order delivery). Real-orchestrator adapters (Argo Rollouts Kubernetes Events, Spinnaker pipeline notifications, the model-lifecycle tooling run tags, webhook POSTs) remain for follow-on — the engine emits `LifecycleEvent` objects; adapters translate.
 
 **Follow-up enhancements unlocked.** Additions #10 (SRM short-circuit) and #13 (fail-fast trip) can emit lifecycle events via the new contract in a 1–2 hour follow-up pass (not retrofitted in this PR per brief anti-scope). #10 would emit `evaluation.suppressed` per family + `evaluation.finished` on short-circuit; #13 would emit `evaluation.suppressed` per family + `evaluation.finished` on trip. No sixth event type needed for either.
 
@@ -1333,10 +1333,10 @@ These are the boundaries that don't change when layers are rewritten. Everything
 - **`OrchestrationAdapter`** (O0 interface, addition #9): `{emitVerdict(verdict, deploy) → EmitResult, fetchDeployContext(deploy) → DeployContext, emitLifecycleEvent(event_type, payload) → Promise<void>}`. Last method added per addition #14. Implemented per orchestrator (Argo Rollouts first; Flagger, Spinnaker for follow-on). Addition #5 specifies how the adapter interprets `rollback` verdicts per `DeployContext.reversibility`; addition #11 specifies how adapters translate `suppressed_insufficient_samples` to orchestrator-specific actions.
 - **`DeployContext`** (O0 → G1 input, additions #9, #1, #7): `{deploy_id, deploy_ref, strategy, current_step, total_steps, canary_weight, reversibility, change_type, risk_level, author, labels, annotations, reference_cell_ref, propensity_score_match, switchback_policy}`. `canary_weight` is the comparison basis for SRM checks per addition #10. Populated by the adapter from orchestrator state; consumed by G1 policy gate.
 - **`BakeProfile`** (per-signal, additions #4 + #11): `{signal_id, min_ticks_before_eligible, min_observation_window, max_deploy_window_days, min_samples_for_evaluation}`. Last field added per addition #11. Consumed by detector eligibility gating at each tick.
-- **`MetricRegistry`** (M0 read-only surface, addition #3): `{slisForService, structuralSignalsForDetectors, predictiveRankings, accessControl}`. Pre-L5: operator-configured Tier 1 + detector-library-driven Tier 2. Post-L5: outcome-labeled Tier 3 ranking surfaces. Governance via Unity Catalog ACL at production scale.
+- **`MetricRegistry`** (M0 read-only surface, addition #3): `{slisForService, structuralSignalsForDetectors, predictiveRankings, accessControl}`. Pre-L5: operator-configured Tier 1 + detector-library-driven Tier 2. Post-L5: outcome-labeled Tier 3 ranking surfaces. Governance via platform governance-layer ACL at production scale.
 - **`IncidentState`** (G1 policyContext input, addition #6): `{mode, active_incidents, cooldown_remaining_hours, source}`. Four modes: `clear`, `active_sev_2`, `active_sev_1`, `recent_incident_cooldown`. Sourced from PagerDuty / Opsgenie / internal system; platform-team wiring required.
 - **`PolicyContext`** (G1 policyContext, additions #6 + #13): includes `incident_state` (addition #6), `fail_fast_thresholds: Record<signal_id, number>` (addition #13), `ignore_thresholds: Record<signal_id, {min?, max?}>` (addition #13). Operator-set per service.
-- **`LifecycleEventType`** and **`LifecycleEventPayload`** (O0 emission, addition #14): five event types `evaluation.triggered | .started | .tick | .suppressed | .finished` with typed payload per type. Adapters route to orchestrator-native event surfaces (Kubernetes Events for Argo Rollouts, pipeline notifications for Spinnaker, webhook POST for custom, MLflow tags for production deployment). Addition #15 extends with six recalibration event types (`recalibration.proposed | .shadow_validated | .operator_approved | .operator_rejected | .auto_promoted | .timeout_rejected`).
+- **`LifecycleEventType`** and **`LifecycleEventPayload`** (O0 emission, addition #14): five event types `evaluation.triggered | .started | .tick | .suppressed | .finished` with typed payload per type. Adapters route to orchestrator-native event surfaces (Kubernetes Events for Argo Rollouts, pipeline notifications for Spinnaker, webhook POST for custom, the model-lifecycle tooling tags for production deployment). Addition #15 extends with six recalibration event types (`recalibration.proposed | .shadow_validated | .operator_approved | .operator_rejected | .auto_promoted | .timeout_rejected`).
 - **`RecalibrationCandidate`** and **`RecalibrationOutcome`** (baseline-maintenance loop, addition #15): `{proposed_baseline_version, current_baseline_version, direction_classification, per_signal_direction, suggested_reason_codes, shadow_mode_validated_at, timeout_at}` plus outcome enum `'auto_promoted' | 'operator_approved' | 'operator_rejected' | 'timeout_rejected' | 'shadow_mode_failed'`. `AuditRecord` gains optional `recalibration_event` field.
 - **`SLOSuggestions`** (new compiler output, sibling to `CompiledConfig`, addition #16): `{compiled_at, compiled_config_version, baseline_ref, per_signal: Record<signal_id, {suggestions: Array<{tightness, target_threshold, compliance_percent, measurement_window_days, error_budget_minutes, derivation_rationale}>, operator_selected?: SuggestionID}>}`. Monthly measurement window default.
 - **`SLODefinition`** (M0 Tier 0, addition #16): `{signal_id, target_threshold, compliance_percent, measurement_window_days, error_budget_minutes, accepted_by, accepted_at, source}`. Populated via SRE review of `SLOSuggestions`. `MetricRegistry` gains `slosForService` accessor for Tier 0 access.
@@ -1365,23 +1365,23 @@ Versioning: each contract is semver'd. Breaking changes require a schema migrati
 
 ---
 
-## the target platform fit
+## The target platform fit
 
 The architecture is generic, but it's tuned for the shape of what production scale actually runs.
 
-**Two workload planes, one engine.** Data plane (Spark, Delta, Unity Catalog — failure signatures around shuffle skew, concurrency, plan regressions, query-cost drift) and serving plane (Mosaic AI, DBRX inference, training — the AI-inference signatures DeploySignal already handles). The structural-signature family (B) has different detector shapes per plane, but the statistical families (A, C, D, E) and the calibration compiler are shared. One engine, two detector libraries.
+**Two workload planes, one engine.** Data plane (a distributed-compute engine, the table-storage layer, the platform governance layer — failure signatures around shuffle skew, concurrency, plan regressions, query-cost drift) and serving plane (the managed AI platform, large-model inference, training — the AI-inference signatures DeploySignal already handles). The structural-signature family (B) has different detector shapes per plane, but the statistical families (A, C, D, E) and the calibration compiler are shared. One engine, two detector libraries.
 
 **Multi-tenancy.** L0 disaggregates per tenant where cardinality supports it. Family C's covariance estimation respects tenant slices — you don't want a single noisy tenant to shift the covariance estimate for everyone. The α budget has a per-tenant slice so a single-tenant regression doesn't consume the platform's overall budget.
 
-**MLflow as the artifact backbone.** CC's compiled configs live as MLflow models. Every deploy's verdict references the MLflow artifact version. Rollback from a bad detector config is a model rollback.
+**The model-lifecycle tooling as the artifact backbone.** CC's compiled configs live as the model-lifecycle tooling models. Every deploy's verdict references the model-lifecycle tooling artifact version. Rollback from a bad detector config is a model rollback.
 
-**Unity Catalog for governance.** Who sees which verdict, which provenance, which tenant slice. Table-level ACLs on the audit stream.
+**Platform governance layer.** Who sees which verdict, which provenance, which tenant slice. Table-level ACLs on the audit stream.
 
 **Three clouds.** L0 abstracts cloud-specific telemetry. AWS-flavored CloudWatch, Azure Monitor, GCP Cloud Monitoring all land in the canonical SignalStream shape. Family B's structural signatures are workload-specific but cloud-agnostic.
 
-**Scale implications.** At production scale, L1's characterization stream is high-throughput. The multi-scale-window design is meant to be implementable in streaming frameworks (Spark Structured Streaming, Flink) rather than in-process memory. CC can run on clusters of the same scale as Mosaic training.
+**Scale implications.** At production scale, L1's characterization stream is high-throughput. The multi-scale-window design is meant to be implementable in streaming frameworks (a streaming framework such as Flink) rather than in-process memory. CC can run on clusters of the same scale as platform-scale training.
 
-**Pitch-framing note:** the architecture is also intentionally open-sourceable. the target platform has a strong track record on this (DBRX, MLflow, Delta Lake, Mosaic components). Nothing in the design depends on proprietary telemetry or internal infrastructure. Publishing a reference implementation would be a plausible follow-on — either as a the target platform-open artifact or as an academic-venue paper (MLSys, SRECon, SOSP workshops).
+**Pitch-framing note:** the architecture is also intentionally open-sourceable. The target platform has a strong track record on this (the platform's open-source components). Nothing in the design depends on proprietary telemetry or internal infrastructure. Publishing a reference implementation would be a plausible follow-on — either as a target-platform open-source artifact or as an academic-venue paper (MLSys, SRECon, SOSP workshops).
 
 ---
 
@@ -1389,11 +1389,11 @@ The architecture is generic, but it's tuned for the shape of what production sca
 
 Things this doc doesn't answer and that need real decisions before any of it gets built.
 
-1. **Does the target platform' current deployment tooling have this gap, or is this a greenfield/platform play?** Shapes whether this is an extension (slot into existing Argo/internal tooling) or a standalone platform.
+1. **Does the target platform's current deployment tooling have this gap, or is this a greenfield/platform play?** Shapes whether this is an extension (slot into existing Argo/internal tooling) or a standalone platform.
 2. **Per-deploy α budget — what's the right number?** `10⁻³` is a starting guess. The answer depends on deploy frequency (if you deploy 1000×/day, FP rate of 10⁻³ is one false rollback per day — maybe acceptable, maybe not).
 3. **Conformal novelty (Family E) — which baseline model?** Autoencoder, density estimator, or foundation-model-based forecaster (the ICLR 2026 ACAD-TSFM approach). Different training-cost / interpretability / accuracy trade-offs.
 4. **Ground-truth labeling pipeline.** The learning loop depends on reliable incident labels. Who attaches "this deploy caused an incident" to an audit record, and how fast? Without this, the loop degrades to heuristic feedback.
-5. **Data-plane detector library (structural signatures for Spark/Delta).** The AI-inference detector set from DeploySignal is one library; the data-plane library is a new piece of work. Scoping it is a project of its own.
+5. **Data-plane detector library (structural signatures for a distributed-compute engine/the table-storage layer).** The AI-inference detector set from DeploySignal is one library; the data-plane library is a new piece of work. Scoping it is a project of its own.
 6. **How aggressively to retire current numeric cutoffs.** The `1.20` ratios and `4-of-9` votes live in code today. Do we compile them immediately on ship (riskier, clean) or run a period of "compiled thresholds in shadow, hand-tuned in prod" (safer, slower)?
 
 ---

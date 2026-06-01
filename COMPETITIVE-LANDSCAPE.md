@@ -2,7 +2,7 @@
 
 _Author: TPM (laptop Cowork session), 2026-04-19. Companion to the pitch one-pager (deleted), `NORTH-STAR-ARCHITECTURE.md`, the PM-critique response (deleted)._
 
-_Purpose: grounded comparison of DeploySignal against commercial products, public FAANG writeups, observability-adjacent tools, and the the target platform / ML-platform lens. Structured for a Claude-based TPM agent (or human) to consume in one pass and extract talking points, pitch rebuttals, and follow-on gap work._
+_Purpose: grounded comparison of DeploySignal against commercial products, public FAANG writeups, observability-adjacent tools, and the target platform / ML-platform lens. Structured for a Claude-based TPM agent (or human) to consume in one pass and extract talking points, pitch rebuttals, and follow-on gap work._
 
 _Methodology: two-pass research. Pass 1 (2026-04-19 AM): market-researcher agent with WebSearch + WebFetch. Pass 2 (2026-04-19 PM): direct primary-source verification via Claude-in-Chrome for the highest-value competitors whose docs were blocked at WebFetch on pass 1. Primary-source citations per claim. Remaining caveats (ACM Queue CAS article behind paywall; Datadog docs pages render partially; Meta Conveyor OSDI '23 PDF not re-fetched) at the bottom._
 
@@ -39,7 +39,7 @@ DeploySignal sits inside the analysis step of a progressive-delivery rollout (Ar
 - **Self-explaining verdicts.** Every verdict carries `family_id, detector_id, statistic, threshold, α spent, cell key, cell confidence, schema continuity, baseline version`.
 - **Second value prop: service-maturity dashboard** built from versioned baseline archive.
 
-Runway state: end-to-end on synthetic data; 158+ tests green; 6 canned demos. Live Argo wiring, MLflow / Unity Catalog, DID reference cells, propensity matching, incident-state input, metric registry, and recalibration automation loop are first-90-days-for follow-on work.
+Runway state: end-to-end on synthetic data; 158+ tests green; 6 canned demos. Live Argo wiring, model-lifecycle tooling / the platform governance layer, DID reference cells, propensity matching, incident-state input, metric registry, and recalibration automation loop are first-90-days-for follow-on work.
 
 ---
 
@@ -47,7 +47,7 @@ Runway state: end-to-end on synthetic data; 158+ tests green; 6 canned demos. Li
 
 Rows are comparison axes. Columns are the ~14 most important competitors grouped by lane. `DS=YES` unless noted on the axis row.
 
-| Axis | DS | Harness | LD Guardian | Argo Rollouts | Flagger | Kayenta | Google CAS | Meta Conveyor | Uber (Argos/uVitals) | Amazon Apollo | Datadog Watchdog | Dynatrace QG | the target platform LM | Arize/WhyLabs |
+| Axis | DS | Harness | LD Guardian | Argo Rollouts | Flagger | Kayenta | Google CAS | Meta Conveyor | Uber (Argos/uVitals) | Amazon Apollo | Datadog Watchdog | Dynatrace QG | the target platform monitoring | Arize/WhyLabs |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Is a deploy-verdict gate (not detect-and-alert) | YES | YES | YES | YES | YES | YES | YES | YES | YES | YES | no | YES | partial | no |
 | Anytime-valid / sequential tests | YES | ? | YES | no | no | no (fixed window) | ? | ? | ? | no | no | no | no | no |
@@ -57,9 +57,9 @@ Rows are comparison axes. Columns are the ~14 most important competitors grouped
 | Calibration-as-compile-step (thresholds derived from baseline + α, versioned artifact) | YES | no (auto-profile but no α contract) | no | no | no | no (defaults + operator overrides) | ? | ? | no (dynamic thresholds) | no | no | no | no | no |
 | Shared α budget across detector families | YES | no | ? | no | no | no | ? | ? | no | no | no | no | no | no |
 | Segmented baseline cells (time × workload × tenant × region) | YES | no | no | no | no | no (baseline cluster only) | ? | ? | seasonal only | no | no | no | no | no |
-| Schema-continuity check across deploy boundary | YES | no | no | no | no | no | ? | ? | ? | no | no | no | no (UC handles schema) | no |
-| Reversibility-aware verdict semantics (`pause_and_alarm` for forward-only) | YES | no | no | no | no | no | ? | partial (pipeline discipline) | ? | partial (operational) | no | partial (agentic-rollback preview) | no (UC governance) | no |
-| Per-verdict provenance (family, detector, stat, threshold, α, cell, schema, baseline version) | YES | partial (log clusters) | partial | YES (k8s CRD status) | YES (events) | YES (per-metric judge) | ? | ? | YES (uMonitor) | YES (which alarm) | YES (insights) | YES (Davis cards) | YES (UC) | YES (explainability) |
+| Schema-continuity check across deploy boundary | YES | no | no | no | no | no | ? | ? | ? | no | no | no | no (governance layer handles schema) | no |
+| Reversibility-aware verdict semantics (`pause_and_alarm` for forward-only) | YES | no | no | no | no | no | ? | partial (pipeline discipline) | ? | partial (operational) | no | partial (agentic-rollback preview) | no (platform governance-layer governance) | no |
+| Per-verdict provenance (family, detector, stat, threshold, α, cell, schema, baseline version) | YES | partial (log clusters) | partial | YES (k8s CRD status) | YES (events) | YES (per-metric judge) | ? | ? | YES (uMonitor) | YES (which alarm) | YES (insights) | YES (Davis cards) | YES (platform governance layer) | YES (explainability) |
 | Orchestrator-agnostic adapter | YES | no (in Harness CD) | no (in LD flag plane) | n/a (is the orchestrator) | n/a | YES (REST service) | n/a (Google-internal) | n/a | n/a | n/a | YES (metric provider) | YES (CLI/REST gates) | no | YES as monitor |
 | Incident-state input to gate (pauses on SEV-1) | specified for follow-on | partial (chat-agent input) | partial (PagerDuty) | no | no | no | partial (SRE freeze) | partial (site events) | partial | no | partial (DD Incidents) | YES (native) | no | partial (PD) |
 | Baseline-history → maturity dashboard | YES | no | no | no | no | no | no | no | no | no | no | partial (SLO trend) | partial (baseline tables) | partial (drift trend) |
@@ -297,25 +297,25 @@ One-line: Grafana ML adds metric forecasting and anomaly bands via recording rul
 
 ### Lane 4 — production-specific / ML-platform lens
 
-#### the target platform Lakehouse Monitoring / MLflow Model Monitoring
+#### The target platform's monitoring product + model-lifecycle tooling
 
-One-line: Lakehouse Monitoring tracks data/model drift over inference tables; MLflow + Mosaic AI Model Serving + Deployment Jobs cover model lifecycle; no first-class progressive-delivery decision engine for services.
+One-line: the platform's monitoring product tracks data/model drift over inference tables; the model-lifecycle tooling + the managed model-serving product + deployment jobs cover model lifecycle; no first-class progressive-delivery decision engine for services.
 
 **DS wins:** AI-inference structural detectors (kv_saturation, mfu_collapse, hbm_elevation, collective_ops, slowbleed) are exactly the gap the target platform does not fill; conformal novelty; sequential anytime-valid; multivariate Hotelling T²; reversibility-aware verdicts; orchestrator-agnostic; baseline-history → maturity dashboard; α-budget contract.
 
-**They win or match:** unified data + model platform; Unity Catalog governance; native to the Lakehouse pitch.
+**They win or match:** unified data + model platform; platform governance-layer governance; native to the data platform pitch.
 
-**DS needs work:** this is THE pitch audience. Frame as: "Lakehouse Monitoring covers the data/model drift side of the house; DeploySignal is the missing infrastructure-side and service-deploy-gate layer. Together they cover the full lifecycle." Not competitive; complementary. Mandatory pitch framing.
+**DS needs work:** this is THE pitch audience. Frame as: "the platform's monitoring product covers the data/model drift side of the house; DeploySignal is the missing infrastructure-side and service-deploy-gate layer. Together they cover the full lifecycle." Not competitive; complementary. Mandatory pitch framing.
 
-#### the target platform Asset Bundles / Deployment Jobs / IDE for DE
+#### The target platform's deployment bundles / Deployment Jobs / IDE for DE
 
-One-line: Asset Bundles + Deployment Jobs + new IDE for Data Engineering provide CI/CD for notebooks, jobs, pipelines; not a service-level canary judge.
+One-line: the platform's deployment bundles + deployment jobs + new IDE for Data Engineering provide CI/CD for notebooks, jobs, pipelines; not a service-level canary judge.
 
 **DS wins:** every deploy-judge dimension.
 
-**They win or match:** native to the target customers; Bundles are the GitOps pattern for the Lakehouse.
+**They win or match:** native to the target customers; deployment bundles are the GitOps pattern for the data platform.
 
-**DS needs work:** integration story with Bundles for triggering calibration-compiler runs from CI — architecture-specified, for follow-on.
+**DS needs work:** integration story with deployment bundles for triggering calibration-compiler runs from CI — architecture-specified, for follow-on.
 
 #### Snowflake DataOps
 
@@ -479,7 +479,7 @@ DS's portfolio fusion and α-budget framework doesn't care what statistic each f
 | Robust covariance (MCD / MRCD / OGK) | Ledoit-Wolf in Family C | Zero (same T² arithmetic) | 10-100× (iterative fit) | none |
 | Weighted-quantile conformal (Barber 2023) | Standard conformal in Family E | Same (p-value lookup) | ~same | none |
 | Neural CPD / score-based CPD | BOCPD in Family D | Medium (1-10ms with small NN) | Training (minutes-hours) | Model artifact + retrain cadence |
-| Foundation-model anomaly (ACAD-TSFM / TimeGPT / Moirai) | Conformal Mahalanobis in Family E | **High (10-100ms per tick, GPU recommended)** | Zero-shot: low; fine-tuned: hours on GPUs | MLflow + Unity Catalog + GPU quota + retrain |
+| Foundation-model anomaly (ACAD-TSFM / TimeGPT / Moirai) | Conformal Mahalanobis in Family E | **High (10-100ms per tick, GPU recommended)** | Zero-shot: low; fine-tuned: hours on GPUs | model-lifecycle tooling + governance layer + GPU quota + retrain |
 
 The boundary is sharp: **is there a neural forward pass in the runtime path?** If no, the upgrade is essentially free at runtime. If yes, DS's "arithmetic at runtime" principle is gone and the cost is real. Storage also scales with neural-detector embeddings per cell × history — gigabytes per service for a foundation-model Family E, versus megabytes for everything classical.
 
@@ -491,7 +491,7 @@ Three reasons:
 
 **2. The moat moves to where it always belonged.** DS's real defensibility is the calibration compiler + portfolio composition + reversibility/schema/cell/provenance contract, not any individual detector. Today's pitch is "principled classical stats, composed well." After SOTA upgrades, the pitch becomes "2026 SOTA detectors, composed well, with formal FP control and auditable gating" — strictly harder for competitors to match. LaunchDarkly / Dynatrace / Harness don't have the compiler + contract; foundation-model-based AIOps vendors don't have the gating contract + α budget. DS with SOTA inside is a unique combination.
 
-**3. Operational burden lands in the target platform' sweet spot.** Neural detectors need MLflow, Unity Catalog, GPU quota, retrain cadence — which the target platform provides as platform. Foundation-model Family E at production scale is *easier* to operate than at any other potential home. Pitch-positive.
+**3. Operational burden lands in the target platform's sweet spot.** Neural detectors need the model-lifecycle tooling, the platform governance layer, GPU quota, retrain cadence — which the target platform provides as platform. Foundation-model Family E at production scale is *easier* to operate than at any other potential home. Pitch-positive.
 
 **Important caveat:** The α budget gets **harder, not easier**, after SOTA upgrades. Neural detectors' null distributions are non-analytical, so α calibration depends entirely on bootstrap-from-healthy-baseline. That procedure needs more samples than synthetic-project scale to be trustworthy. So SOTA upgrades ship *after* the first follow-on period of real-production baseline accumulation — roughly months 3-6, not month 1.
 
@@ -511,7 +511,7 @@ TPM routing for Tier 1-SOTA (active as of 2026-04-20): **REVIEWER-REPORT-07 deli
 - Score-based CPD for Family D — compared in dashboard against BOCPD before promote
 - Zero-shot foundation-model novelty (Chronos / Moirai) for Family E — shadow-only, compared against conformal Mahalanobis in the maturity dashboard
 
-**Tier 3 — gated on first follow-on customer + MLflow/UC integration. High compute cost.**
+**Tier 3 — gated on first follow-on customer + model-lifecycle tooling / the platform governance layer integration. High compute cost.**
 - Fine-tuned foundation-model Family E (ACAD-TSFM style)
 - Transformer CPD in Family D
 - Possible new Family F (LLM-content guardrails) — addresses the gap Fiddler/Arize own today; requires partnership decision
@@ -536,7 +536,7 @@ _Active as of 2026-04-19 PM. Compressed timeline; Tier 1 is current work, not ro
 3. **Meta Conveyor (OSDI '23).** Full PDF not re-attempted in pass 2. Re-read offline before claiming Conveyor lacks specific anomaly-detection capability.
 4. **Google CAS algorithm internals.** ACM Queue article (Davidovic & Beyer 2018) is paywalled; full method was not reached. Obtain the article directly.
 5. **Dynatrace Davis agentic rollback (Preview).** Is the preview reversibility-aware? Could substantially narrow DS's edge on that axis.
-6. **the target platform internal deploy tooling.** Public docs cover Asset Bundles + MLflow + Lakehouse Monitoring; internal the target platform deploy-gate tooling (if any) is not surfaced. Worth asking during the the target audience directly.
+6. **The target platform's internal deploy tooling.** Public docs cover the platform's deployment bundles + the model-lifecycle tooling + the platform's monitoring product; internal target-platform deploy-gate tooling (if any) is not surfaced. Worth asking the target audience directly.
 7. **LinkedIn "Waterloo" and "Rainbow"** — verify whether these are real internal names or a memory error; EKG is the only public LinkedIn canary name.
 8. **Uber "Argus" disambiguation** — confirm the Uber system is "Argos" (no 'u'); "Argus" is Salesforce.
 
@@ -694,18 +694,18 @@ Grafana:
 ### Lane 4 — the target platform / ML-platform
 
 the target platform:
-- [Lakehouse Monitoring product](https://www.databricks.com/product/machine-learning/lakehouse-monitoring)
-- [MLflow on the target platform (AWS docs)](https://docs.databricks.com/aws/en/mlflow)
-- [Lakehouse Monitoring for GenAI](https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/monitoring)
-- [Quality Forecasts blog](https://www.databricks.com/blog/ensuring-quality-forecasts-databricks-lakehouse-monitoring)
-- [the target platform Labs CI/CD Templates blog](https://www.databricks.com/blog/2020/06/05/automate-continuous-integration-and-continuous-delivery-on-databricks-using-databricks-labs-ci-cd-templates.html)
-- [IDE for Data Engineering](https://www.databricks.com/blog/new-way-build-pipelines-databricks-introducing-ide-data-engineering)
-- [Notebook best practices](https://docs.databricks.com/aws/en/notebooks/best-practices)
+- Managed monitoring product (data/model drift over inference tables)
+- Managed model-lifecycle tooling docs
+- Platform monitoring for GenAI
+- Quality-forecasts product blog
+- Platform Labs CI/CD templates blog
+- IDE for data engineering
+- Notebook best-practices docs
 
-MLflow:
+the model-lifecycle tooling:
 - [Model Registry Workflows](https://mlflow.org/docs/latest/ml/model-registry/workflow/)
 - [Model Registry overview](https://mlflow.org/docs/latest/model-registry/)
-- [Workspace Model Registry (the target platform)](https://docs.databricks.com/aws/en/machine-learning/manage-model-lifecycle/workspace-model-registry)
+- Workspace Model Registry (the target platform)
 
 Snowflake:
 - [DevOps with Snowflake](https://docs.snowflake.com/en/developer-guide/builders/devops)

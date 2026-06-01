@@ -188,7 +188,7 @@ These either need real the target platform telemetry or surface area that doesn'
 - **Architectural placement:** L4 observability (overlay), not engine. Could be a new contract surface that consumes verdict streams + topology data and emits causal-RCA output.
 - **Scope:** First 90 days (needs real topology data) OR Cede (Datadog/Dynatrace own this category).
 - **Effort:** Large (topology engineering is its own product).
-- **Pitch impact:** Honestly weak DS surface today; cede or partner is the right framing. "Topology RCA is Datadog/Dynatrace's lane; DS verdicts emit structured fields that any topology overlay can consume; integration story is 1-week follow-on to bridge Mosaic dependency graph data into the verdict UI."
+- **Pitch impact:** Honestly weak DS surface today; cede or partner is the right framing. "Topology RCA is Datadog/Dynatrace's lane; DS verdicts emit structured fields that any topology overlay can consume; integration story is 1-week follow-on to bridge the platform dependency graph data into the verdict UI."
 
 **Recommendation:** Cede explicitly in pitch; offer integration-story rather than first-party feature. Frame as: "Verdicts are structured for topology overlays; we don't own the graph engineering."
 
@@ -240,17 +240,17 @@ These either need real the target platform telemetry or surface area that doesn'
 
 **Recommendation:** Document the degradation behavior explicitly. The architecture already supports it (suppress Family A/C/D/E when sample requirements aren't met; Family B always runs). Pitch language: "DS degrades gracefully — when sample requirements aren't met, statistical families suppress and the structural-signature family + operator-set fail-fast thresholds run alone. Same architecture, narrower active surface."
 
-### GAP-18 — Bundles-triggered calibration-compiler runs from CI
+### GAP-18 — deployment-bundles-triggered calibration-compiler runs from CI
 
-- **Source:** the target platform Asset Bundles + Deployment Jobs.
-- **What they do:** GitOps for the Lakehouse; CI runs that build / deploy data jobs.
-- **What DS needs:** Architectural integration — when a Bundles deploy ships, DS's calibration compiler can re-baseline against the new healthy traffic. Triggers via Bundles' webhook/event system.
-- **Architectural placement:** O0 orchestration adapter (Bundles becomes another supported orchestrator) + calibration compiler trigger surface.
+- **Source:** the target platform deployment bundles + Deployment Jobs.
+- **What they do:** GitOps for the data platform; CI runs that build / deploy data jobs.
+- **What DS needs:** Architectural integration — when a deployment bundles deploy ships, DS's calibration compiler can re-baseline against the new healthy traffic. Triggers via deployment bundles' webhook/event system.
+- **Architectural placement:** O0 orchestration adapter (deployment bundles becomes another supported orchestrator) + calibration compiler trigger surface.
 - **Scope:** First 90 days for follow-on.
 - **Effort:** Medium.
-- **Pitch impact:** Native-to-production integration; surfaces as "we plug into your existing Bundles CI cleanly."
+- **Pitch impact:** Native-to-production integration; surfaces as "we plug into your existing deployment bundles CI cleanly."
 
-**Recommendation:** Mention in pitch under production-specific-fit; specify in the platform-mapping doc as a follow-on integration. Currently the mapping doc covers Argo Rollouts as the orchestrator; Bundles is the data-plane sibling.
+**Recommendation:** Mention in pitch under production-specific-fit; specify in the platform-mapping doc as a follow-on integration. Currently the mapping doc covers Argo Rollouts as the orchestrator; deployment bundles is the data-plane sibling.
 
 ### GAP-19 — BubbleUp-style contribution analysis as post-verdict explanation UI
 
@@ -273,7 +273,7 @@ These are categories where competitors have material advantage and DS should not
 
 - **Source:** Arize / Fiddler / WhyLabs.
 - **What they do:** Prompt-injection detection, hallucination scoring, toxicity filtering, bias/fairness monitoring of LLM outputs.
-- **DS position:** Cede explicitly. DS addresses infrastructure-side AI signals (KV cache, MFU, HBM, eval_score, refusal_rate, tool_success_rate) — the operational substrate. LLM output-content quality is a different category with established players. Could be a future Family F if a the target customer demands it; not current scope.
+- **DS position:** Cede explicitly. DS addresses infrastructure-side AI signals (KV cache, MFU, HBM, eval_score, refusal_rate, tool_success_rate) — the operational substrate. LLM output-content quality is a different category with established players. Could be a future Family F if a target customer demands it; not current scope.
 
 ### GAP-CEDE-02 — Pre-deploy evaluation batteries
 
@@ -310,13 +310,13 @@ Total runway architect work: ~4 hours, all docs-only. **Recommend landing as Arc
 
 ### To commit to in pitch as first-90-days follow-on scope
 
-1. **GAP-08 — Auto-generated verification profiles**: Addition #11 (zero-config day-one onboarding via the target platform observability scan).
+1. **GAP-08 — Auto-generated verification profiles**: Addition #11 (zero-config day-one onboarding via the target platform's observability scan).
 2. **GAP-10 — Pre-deploy eval integration**: already specified; emphasize the integration story.
 3. **GAP-11 — Change-card dashboard rendering**: for follow-on UI work.
 4. **GAP-12 — Kayenta-compat API**: O0 Level 1.5 surface.
 5. **GAP-14 — Incident-chat ingestion**: extends Addition #6.
 6. **GAP-17 — Plain-threshold no-stats mode**: document graceful degradation explicitly.
-7. **GAP-18 — the target platform Bundles integration**: O0 sibling adapter.
+7. **GAP-18 — the target platform deployment bundles integration**: O0 sibling adapter.
 
 ### Q2+ follow-on commitments
 
