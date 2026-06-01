@@ -33,7 +33,7 @@ DeploySignal's verdict substrate also runs the inverse direction: chaos experime
 
 **The "DS-Anvil" buyer bundle.** Anvil-the-product packages three components: (1) the DeploySignal engine (Ville-bounded portfolio + audit substrate) at the verdict layer; (2) [Tessera](https://github.com/johnpatrickwarren-oss/tessera) at the per-shard observation layer — Tessera is a sibling product that vendors the DS engine and ships per-shard residual semantics + hierarchical e-value combination + e-BH FDR control for cluster scope, which lines up exactly with shard-targeted chaos experiments (pod-kill, latency-injection on rack-N); (3) the chaos-platform adapter family (`engine/o0/anvil/`) that lands in this repo. The Anvil capability lands inside DS as a docs-only positioning addition + typed contracts + adapter stubs; cluster-scope chaos runs consume Tessera's per-shard feed via the existing [`engine/ds-integration/`](https://github.com/johnpatrickwarren-oss/tessera/tree/main/engine/ds-integration) HTTP contract.
 
-See [`coordination/PRD-29-anvil.md`](coordination/PRD-29-anvil.md) and [`coordination/Q29-ANVIL-CHAOS-VERDICT-SPEC.md`](coordination/Q29-ANVIL-CHAOS-VERDICT-SPEC.md) for the PRD + spec, [`engine/o0/anvil/`](engine/o0/anvil/) for the adapter contracts and stubs, and [`profiles/anvil-chaos-experiment.yaml`](profiles/anvil-chaos-experiment.yaml) for the reference profile.
+See [`engine/o0/anvil/`](engine/o0/anvil/) for the adapter contracts and stubs, and [`profiles/anvil-chaos-experiment.yaml`](profiles/anvil-chaos-experiment.yaml) for the reference profile.
 
 ## Quick start
 
@@ -59,8 +59,6 @@ To open the interactive demo locally: open `demos/demo.html` in a browser.
 - **[`CHEAT-SHEET.md`](CHEAT-SHEET.md)** — quick-reference card across the system surface.
 - **[`DETECTOR-MATH-RESEARCH.md`](DETECTOR-MATH-RESEARCH.md)** — the statistical-literature anchors for each detector.
 - **[`audit/SCHEMA.md`](audit/SCHEMA.md)** — the audit-record schema (versioned).
-- **[`coordination/PROJECT-ROLES.md`](coordination/PROJECT-ROLES.md)** — the multi-role coordination structure this project was built under.
-- **[`coordination/ANTI-SCOPE-LEDGER.md`](coordination/ANTI-SCOPE-LEDGER.md)** — explicit ADR-anti-scope clauses and the discipline for preserving them across architectural cycles.
 
 ## Methodology
 
@@ -68,7 +66,7 @@ This codebase was built as a four-role multi-agent project (architect / TPM / im
 
 > **[`johnpatrickwarren-oss/anchor`](https://github.com/johnpatrickwarren-oss/anchor)** — the coordination methodology distilled from this project, with templates and worked-example case study. Independently usable on other software projects.
 
-The local [`anchor/`](anchor/) folder mirrors that public repo for in-repo access.
+The local [`anchor/`](anchor/) folder is a pointer to that canonical repo.
 
 ## License
 
