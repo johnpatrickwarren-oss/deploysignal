@@ -58,8 +58,6 @@ To open the interactive demo locally: open `demos/demo.html` in a browser.
 - **[`FAMILY-INTUITION.html`](FAMILY-INTUITION.html)** — visual walkthrough of the five detector families and how they compose.
 - **[`CHEAT-SHEET.md`](CHEAT-SHEET.md)** — quick-reference card across the system surface.
 - **[`DETECTOR-MATH-RESEARCH.md`](DETECTOR-MATH-RESEARCH.md)** — the statistical-literature anchors for each detector.
-- **[`COMPETITIVE-LANDSCAPE.md`](COMPETITIVE-LANDSCAPE.md)** — capability comparison vs adjacent tooling (Kayenta, LaunchDarkly, Harness, etc.).
-- **[`DEMO-SCRIPT-10MIN.md`](DEMO-SCRIPT-10MIN.md)** — narrated walkthrough of the 6 canned demos.
 - **[`audit/SCHEMA.md`](audit/SCHEMA.md)** — the audit-record schema (versioned).
 - **[`coordination/PROJECT-ROLES.md`](coordination/PROJECT-ROLES.md)** — the multi-role coordination structure this project was built under.
 - **[`coordination/ANTI-SCOPE-LEDGER.md`](coordination/ANTI-SCOPE-LEDGER.md)** — explicit ADR-anti-scope clauses and the discipline for preserving them across architectural cycles.

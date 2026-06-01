@@ -725,7 +725,7 @@ interface DeployContext {
 
 ## Architecture additions — competitive-research integration (W6+1 batch, docs-only)
 
-Five sections added 2026-04-19 from the competitive-landscape analysis in `COMPETITIVE-LANDSCAPE.md` and the capability-additions review in `COMPETITIVE-GAPS-ADDITIONS.md`. These close visible pitch gaps where commercial competitors (LaunchDarkly Guarded Rollouts, Harness Continuous Verification, Dynatrace Site Reliability Guardian) ship capabilities DS didn't specify. All five are **docs-only in the project**; implementation is deferred Q1 when real platform telemetry, real orchestrator integration, and real routing-layer data surface. Specifying them architecturally closes the gap in the pitch while keeping implementation scope bounded.
+Five sections added 2026-04-19 from a competitive-landscape analysis and capability-additions review. These close visible pitch gaps where commercial competitors (LaunchDarkly Guarded Rollouts, Harness Continuous Verification, Dynatrace Site Reliability Guardian) ship capabilities DS didn't specify. All five are **docs-only in the project**; implementation is deferred Q1 when real platform telemetry, real orchestrator integration, and real routing-layer data surface. Specifying them architecturally closes the gap in the pitch while keeping implementation scope bounded.
 
 The pattern follows the PM-critique batches (W1–W3 additions #1–#9): name the capability, describe the gap, specify contract surfaces and behavior, flag as docs-only, and document the follow-on implementation path. The runway's the pitch draft (deleted) updates to reference these additions in Part 2 ("what's in flight") and Part 5 (honest-gaps) so the pitch audience sees a complete architectural claim, not a partial one.
 
