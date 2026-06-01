@@ -70,13 +70,13 @@ export interface AgentResult {
 /** Abstract adapter for foundation-model invocation. Parallels
  *  REPLY-48's `TopologySource` interface pattern (new concrete impls
  *  land without AgentProposer changes). v1 concrete adapters:
- *  `StubAdapter` (tests + v1 acceptance), `MosaicNativeAdapter`
- *  (contract-only stub for MLflow/UC v1), `ClaudeBedrockAdapter`
+ *  `StubAdapter` (tests + v1 acceptance), `VendorNativeAdapter`
+ *  (contract-only stub for model-lifecycle/governance v1), `ClaudeBedrockAdapter`
  *  (contract-only stub for Bedrock v1). Real wiring is deferred
  *  per D5. */
 export interface FmAdapter {
   readonly id: string;
-  readonly vendor: 'mosaic_native' | 'claude_bedrock' | 'stub';
+  readonly vendor: 'vendor_native' | 'claude_bedrock' | 'stub';
   /** Invoke the FM with a system prompt + structured-output schema
    *  describing the `ProposedAction` contract. Returns the raw
    *  structured-output JSON (caller runs rail-f validation). */

@@ -40,7 +40,7 @@ OUT OF SCOPE for W5:
 - No authentication / ACL. Demo runs locally, single-user.
 - No live telemetry ingestion. Demos are canned JSON files.
 - No edit-threshold-in-UI interaction. Compiled config is read-only.
-- No multi-service view. Single service (mosaic-inference-sim), single deploy at a time.
+- No multi-service view. Single service (inference-sim), single deploy at a time.
 - No historical comparison beyond shadow-compare. Prior-deploy timeline is W6+ or post-phase.
 
 SEQUENCING:
@@ -339,7 +339,7 @@ Three canned demos. Each is a deterministic JSON file under `demos/scripts/` tha
 
 ```json
 {
-  "service": "mosaic-inference-sim",
+  "service": "inference-sim",
   "deploy_context": {
     "change_type": "serving_code",
     "risk_level": "high",
@@ -435,11 +435,11 @@ All three demos:
 ## 7. What's explicitly out of scope for W5
 
 - **Live telemetry ingestion.** Demo runs exclusively on canned JSON.
-- **Multi-service view.** Single service (`mosaic-inference-sim`).
+- **Multi-service view.** Single service (`inference-sim`).
 - **Edit-in-UI of thresholds.** Compiled config is read-only.
 - **Authentication / ACLs.** Demo runs locally.
 - **Historical prior-deploy comparison.** Only current-deploy shadow-compare.
-- **Follow-on integrations (MLflow, Unity Catalog, real Argo Rollouts).** Demo uses a mock orchestrator context in the canned JSON.
+- **Follow-on integrations (the model-lifecycle tooling, the platform governance layer, real Argo Rollouts).** Demo uses a mock orchestrator context in the canned JSON.
 - **Custom theming / white-labeling.** Default theme only.
 - **Mobile / responsive layouts.** Desktop-browser-first.
 - **Internationalization.** English only.
