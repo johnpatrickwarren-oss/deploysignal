@@ -5,8 +5,8 @@ coordination methodology (four-anchor pre-merge defense, role separation,
 memorial accretion, round scaling, multi-cluster coordination via the
 Coordinator role).
 
-Anchor was originally developed inside this project's predecessor
-(`deploysignal-private`) and later extracted to its own canonical repo:
+Anchor was originally developed inside this project and later
+extracted to its own canonical repo:
 
 → **https://github.com/johnpatrickwarren-oss/anchor**
 

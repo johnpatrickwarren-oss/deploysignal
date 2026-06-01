@@ -89,7 +89,7 @@ spec:
       inconclusiveCondition: result == -1
       provider:
         web:
-          url: "https://gate.internal/v1/verdict/{{args.deploy-ref}}"
+          url: "https://gate.example.com/v1/verdict/{{args.deploy-ref}}"
           method: GET
           timeoutSeconds: 5
           jsonPath: "{$.verdict_code}"

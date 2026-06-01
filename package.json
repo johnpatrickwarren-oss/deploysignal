@@ -18,7 +18,6 @@
   "files": [
     "engine/",
     "tools/",
-    "runner.js",
     "shared.js",
     "README.md",
     "ARCHITECTURE.md",
