@@ -309,7 +309,7 @@ Each implements `ChaosOrchestrationAdapter` — the base `OrchestrationAdapter` 
 - **End of Week 1 (2026-04-22):** Architecture addition #9 section in `NORTH-STAR-ARCHITECTURE.md` points to this doc. No engine changes.
 - **End of Week 2:** platform mapping updated with Argo integration section.
 - **Week 5:** Demo-scale Argo integration. `kind` cluster + Argo Rollouts + minimal web-provider adapter against one canned demo. TPM routes the Week 5 scope implication in `ARCHITECT-REPLY-02`.
-- **Week 6:** Pitch includes Argo integration as an explicit beat: "here's the the target platform deployment story, here's what plugs in where."
+- **Week 6:** Pitch includes Argo integration as an explicit beat: "here's the target-platform deployment story, here's what plugs in where."
 - **Follow-on Q1:** Level 1 in production shadow on real platform Rollouts.
 - **Follow-on Q2:** Level 2 (Job adapter) or Level 3 (operator + CRDs), depending on platform-team appetite.
 

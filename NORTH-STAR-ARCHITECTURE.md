@@ -1365,7 +1365,7 @@ Versioning: each contract is semver'd. Breaking changes require a schema migrati
 
 ---
 
-## the target platform fit
+## The target platform fit
 
 The architecture is generic, but it's tuned for the shape of what production scale actually runs.
 
@@ -1381,7 +1381,7 @@ The architecture is generic, but it's tuned for the shape of what production sca
 
 **Scale implications.** At production scale, L1's characterization stream is high-throughput. The multi-scale-window design is meant to be implementable in streaming frameworks (a streaming framework such as Flink) rather than in-process memory. CC can run on clusters of the same scale as platform-scale training.
 
-**Pitch-framing note:** the architecture is also intentionally open-sourceable. the target platform has a strong track record on this (the platform's open-source components). Nothing in the design depends on proprietary telemetry or internal infrastructure. Publishing a reference implementation would be a plausible follow-on — either as a the target platform-open artifact or as an academic-venue paper (MLSys, SRECon, SOSP workshops).
+**Pitch-framing note:** the architecture is also intentionally open-sourceable. The target platform has a strong track record on this (the platform's open-source components). Nothing in the design depends on proprietary telemetry or internal infrastructure. Publishing a reference implementation would be a plausible follow-on — either as a target-platform open-source artifact or as an academic-venue paper (MLSys, SRECon, SOSP workshops).
 
 ---
 
@@ -1389,7 +1389,7 @@ The architecture is generic, but it's tuned for the shape of what production sca
 
 Things this doc doesn't answer and that need real decisions before any of it gets built.
 
-1. **Does the target platform' current deployment tooling have this gap, or is this a greenfield/platform play?** Shapes whether this is an extension (slot into existing Argo/internal tooling) or a standalone platform.
+1. **Does the target platform's current deployment tooling have this gap, or is this a greenfield/platform play?** Shapes whether this is an extension (slot into existing Argo/internal tooling) or a standalone platform.
 2. **Per-deploy α budget — what's the right number?** `10⁻³` is a starting guess. The answer depends on deploy frequency (if you deploy 1000×/day, FP rate of 10⁻³ is one false rollback per day — maybe acceptable, maybe not).
 3. **Conformal novelty (Family E) — which baseline model?** Autoencoder, density estimator, or foundation-model-based forecaster (the ICLR 2026 ACAD-TSFM approach). Different training-cost / interpretability / accuracy trade-offs.
 4. **Ground-truth labeling pipeline.** The learning loop depends on reliable incident labels. Who attaches "this deploy caused an incident" to an audit record, and how fast? Without this, the loop degrades to heuristic feedback.

@@ -273,7 +273,7 @@ These are categories where competitors have material advantage and DS should not
 
 - **Source:** Arize / Fiddler / WhyLabs.
 - **What they do:** Prompt-injection detection, hallucination scoring, toxicity filtering, bias/fairness monitoring of LLM outputs.
-- **DS position:** Cede explicitly. DS addresses infrastructure-side AI signals (KV cache, MFU, HBM, eval_score, refusal_rate, tool_success_rate) — the operational substrate. LLM output-content quality is a different category with established players. Could be a future Family F if a the target customer demands it; not current scope.
+- **DS position:** Cede explicitly. DS addresses infrastructure-side AI signals (KV cache, MFU, HBM, eval_score, refusal_rate, tool_success_rate) — the operational substrate. LLM output-content quality is a different category with established players. Could be a future Family F if a target customer demands it; not current scope.
 
 ### GAP-CEDE-02 — Pre-deploy evaluation batteries
 
@@ -310,7 +310,7 @@ Total runway architect work: ~4 hours, all docs-only. **Recommend landing as Arc
 
 ### To commit to in pitch as first-90-days follow-on scope
 
-1. **GAP-08 — Auto-generated verification profiles**: Addition #11 (zero-config day-one onboarding via the target platform observability scan).
+1. **GAP-08 — Auto-generated verification profiles**: Addition #11 (zero-config day-one onboarding via the target platform's observability scan).
 2. **GAP-10 — Pre-deploy eval integration**: already specified; emphasize the integration story.
 3. **GAP-11 — Change-card dashboard rendering**: for follow-on UI work.
 4. **GAP-12 — Kayenta-compat API**: O0 Level 1.5 surface.

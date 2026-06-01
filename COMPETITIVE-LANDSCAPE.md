@@ -2,7 +2,7 @@
 
 _Author: TPM (laptop Cowork session), 2026-04-19. Companion to the pitch one-pager (deleted), `NORTH-STAR-ARCHITECTURE.md`, the PM-critique response (deleted)._
 
-_Purpose: grounded comparison of DeploySignal against commercial products, public FAANG writeups, observability-adjacent tools, and the the target platform / ML-platform lens. Structured for a Claude-based TPM agent (or human) to consume in one pass and extract talking points, pitch rebuttals, and follow-on gap work._
+_Purpose: grounded comparison of DeploySignal against commercial products, public FAANG writeups, observability-adjacent tools, and the target platform / ML-platform lens. Structured for a Claude-based TPM agent (or human) to consume in one pass and extract talking points, pitch rebuttals, and follow-on gap work._
 
 _Methodology: two-pass research. Pass 1 (2026-04-19 AM): market-researcher agent with WebSearch + WebFetch. Pass 2 (2026-04-19 PM): direct primary-source verification via Claude-in-Chrome for the highest-value competitors whose docs were blocked at WebFetch on pass 1. Primary-source citations per claim. Remaining caveats (ACM Queue CAS article behind paywall; Datadog docs pages render partially; Meta Conveyor OSDI '23 PDF not re-fetched) at the bottom._
 
@@ -297,7 +297,7 @@ One-line: Grafana ML adds metric forecasting and anomaly bands via recording rul
 
 ### Lane 4 — production-specific / ML-platform lens
 
-#### the target platform's monitoring product / model-lifecycle tooling Model Monitoring
+#### The target platform's monitoring product + model-lifecycle tooling
 
 One-line: the platform's monitoring product tracks data/model drift over inference tables; the model-lifecycle tooling + the managed model-serving product + deployment jobs cover model lifecycle; no first-class progressive-delivery decision engine for services.
 
@@ -307,7 +307,7 @@ One-line: the platform's monitoring product tracks data/model drift over inferen
 
 **DS needs work:** this is THE pitch audience. Frame as: "the platform's monitoring product covers the data/model drift side of the house; DeploySignal is the missing infrastructure-side and service-deploy-gate layer. Together they cover the full lifecycle." Not competitive; complementary. Mandatory pitch framing.
 
-#### the target platform's deployment bundles / Deployment Jobs / IDE for DE
+#### The target platform's deployment bundles / Deployment Jobs / IDE for DE
 
 One-line: the platform's deployment bundles + deployment jobs + new IDE for Data Engineering provide CI/CD for notebooks, jobs, pipelines; not a service-level canary judge.
 
@@ -491,7 +491,7 @@ Three reasons:
 
 **2. The moat moves to where it always belonged.** DS's real defensibility is the calibration compiler + portfolio composition + reversibility/schema/cell/provenance contract, not any individual detector. Today's pitch is "principled classical stats, composed well." After SOTA upgrades, the pitch becomes "2026 SOTA detectors, composed well, with formal FP control and auditable gating" — strictly harder for competitors to match. LaunchDarkly / Dynatrace / Harness don't have the compiler + contract; foundation-model-based AIOps vendors don't have the gating contract + α budget. DS with SOTA inside is a unique combination.
 
-**3. Operational burden lands in the target platform' sweet spot.** Neural detectors need the model-lifecycle tooling, the platform governance layer, GPU quota, retrain cadence — which the target platform provides as platform. Foundation-model Family E at production scale is *easier* to operate than at any other potential home. Pitch-positive.
+**3. Operational burden lands in the target platform's sweet spot.** Neural detectors need the model-lifecycle tooling, the platform governance layer, GPU quota, retrain cadence — which the target platform provides as platform. Foundation-model Family E at production scale is *easier* to operate than at any other potential home. Pitch-positive.
 
 **Important caveat:** The α budget gets **harder, not easier**, after SOTA upgrades. Neural detectors' null distributions are non-analytical, so α calibration depends entirely on bootstrap-from-healthy-baseline. That procedure needs more samples than synthetic-project scale to be trustworthy. So SOTA upgrades ship *after* the first follow-on period of real-production baseline accumulation — roughly months 3-6, not month 1.
 
@@ -536,7 +536,7 @@ _Active as of 2026-04-19 PM. Compressed timeline; Tier 1 is current work, not ro
 3. **Meta Conveyor (OSDI '23).** Full PDF not re-attempted in pass 2. Re-read offline before claiming Conveyor lacks specific anomaly-detection capability.
 4. **Google CAS algorithm internals.** ACM Queue article (Davidovic & Beyer 2018) is paywalled; full method was not reached. Obtain the article directly.
 5. **Dynatrace Davis agentic rollback (Preview).** Is the preview reversibility-aware? Could substantially narrow DS's edge on that axis.
-6. **the target platform internal deploy tooling.** Public docs cover the platform's deployment bundles + the model-lifecycle tooling + the platform's monitoring product; internal the target platform deploy-gate tooling (if any) is not surfaced. Worth asking during the the target audience directly.
+6. **The target platform's internal deploy tooling.** Public docs cover the platform's deployment bundles + the model-lifecycle tooling + the platform's monitoring product; internal target-platform deploy-gate tooling (if any) is not surfaced. Worth asking the target audience directly.
 7. **LinkedIn "Waterloo" and "Rainbow"** — verify whether these are real internal names or a memory error; EKG is the only public LinkedIn canary name.
 8. **Uber "Argus" disambiguation** — confirm the Uber system is "Argos" (no 'u'); "Argus" is Salesforce.
 
