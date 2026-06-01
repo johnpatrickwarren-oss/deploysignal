@@ -3,7 +3,7 @@
 // Composes FM adapter + playbook library + safety rails into a single
 // propose() entry point. Orchestrator integration (slice-2) calls
 // propose() async post-VerdictGroup-close; v1 adapter is StubAdapter
-// or the contract-only MosaicNative/ClaudeBedrock stubs.
+// or the contract-only VendorNative/ClaudeBedrock stubs.
 //
 // Rail ordering within propose():
 //   1. Caller pre-filters playbook via filterPlaybookByReversibility

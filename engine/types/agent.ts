@@ -14,9 +14,9 @@ export interface ConfiguredAgent {
    *  preserves pre-#27 behavior exactly. */
   enabled: boolean;
   /** FM vendor selector per D1. `'stub'` returns scripted responses
-   *  for tests + v1 acceptance; real Mosaic-native and Claude-via-
+   *  for tests + v1 acceptance; real platform-native and Claude-via-
    *  Bedrock wiring is deferred per D5. */
-  fm_vendor: 'mosaic_native' | 'claude_bedrock' | 'stub';
+  fm_vendor: 'vendor_native' | 'claude_bedrock' | 'stub';
   /** Directory holding playbook YAML files. Default `'playbooks/'`. */
   playbook_dir: string;
   /** Rail (c) threshold on FM-self-reported confidence. Proposals

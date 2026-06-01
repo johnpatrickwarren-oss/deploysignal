@@ -10,7 +10,7 @@ DeploySignal gates canary rollouts by composing five independent detector famili
 Telemetry ──► L0 ──► L1 ──► L2 ──► L3 ──► G0 ──► G1 ──► O0 ──► Orchestrator
             ingest  buffer  five  verdict  blast   policy  emit   (Argo /
             +CUPAC  per-   families fusion  radius  gate           Spinnaker /
-            +SRM    cell   in                                       MLflow /
+            +SRM    cell   in                                       model registry /
                            parallel                                 webhook)
 ```
 
@@ -59,7 +59,7 @@ Total family-level α is union-bounded ≤ α_total. Within-family signal-level 
 
 ## Honest Scope
 
-**Shipped today:** five detector families (Tier-1-SOTA complete as of 2026-04-20, including betting e-processes, MCD/MRCD robust covariance, Sequential MMD, weighted-quantile conformal); calibration compiler with formal α-accounting; six canned demos validating against synthetic trajectories; audit-schema v2.1+ classifier (v2.2 incremental for profile-block emission per Q60.4) with full provenance per verdict; Argo Rollouts / Spinnaker / MLflow / webhook orchestration adapters with structured lifecycle events.
+**Shipped today:** five detector families (Tier-1-SOTA complete as of 2026-04-20, including betting e-processes, MCD/MRCD robust covariance, Sequential MMD, weighted-quantile conformal); calibration compiler with formal α-accounting; six canned demos validating against synthetic trajectories; audit-schema v2.1+ classifier (v2.2 incremental for profile-block emission per Q60.4) with full provenance per verdict; Argo Rollouts / Spinnaker / the model-lifecycle tooling / webhook orchestration adapters with structured lifecycle events.
 
 **Specified, implementation-for follow-on:** real-production-baseline calibration (synthetic baseline today; needs >100K healthy prod runs for tight α calibration); live cluster integration against a running Argo deployment; Tier-2 neural detectors (foundation-model novelty, transformer CPD) gated on real-baseline accumulation; direction-aware baseline-maintenance automation loop; SLO substrate derivation from baselines.
 
