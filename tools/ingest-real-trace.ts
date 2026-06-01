@@ -42,8 +42,8 @@ export interface IngestReport {
 //
 // Q60 Slice 1 V1 architect-pick A1 (BurstGPT cost_req-only mapper
 // rewrite): actual public BurstGPT_1.csv schema (per Mac Claude 2
-// Phase 1.1 acquisition probe at `/Users/johnwarren/Desktop/q60-raw-
-// data/BurstGPT/data/BurstGPT_1.csv`) lacks `session_id` +
+// Phase 1.1 acquisition probe at `<external-dataset-dir>/
+// BurstGPT/data/BurstGPT_1.csv`) lacks `session_id` +
 // `elapsed_ms` + `model_version` fields; `Log Type` enum drifted to
 // `'API log'` / `'Conversation log'` (request types) from spec's
 // `'service_error'` / `'internal_error'` / `'upstream_5xx'` (error
@@ -166,7 +166,7 @@ export function mapBurstGPTRows(
 /** Q60 Slice 1 Phase-1.2 schema-drift normalization: actual Azure
  *  CSV header is `TIMESTAMP,ContextTokens,GeneratedTokens` (per Mac
  *  Claude 2 Phase 1.1 acquisition probe at
- *  `/Users/johnwarren/Desktop/q60-raw-data/AzurePublicDataset/data/
+ *  `<external-dataset-dir>/AzurePublicDataset/data/
  *  AzureLLMInferenceTrace_conv.csv`). Mapper accepts both
  *  canonical-normalized rows (the ingestion orchestrator's
  *  `tools/ingest-public-dataset.ts` does CSV-header translation)
@@ -249,7 +249,7 @@ export function mapAzureLLMRows(
  *  JSONL field names are `timestamp` (no `_ms` suffix; integer ms
  *  offset) + `hash_ids: number[]` (page-hash 64-bit ints, NOT
  *  strings) per Mac Claude 2 Phase 1.1 acquisition probe at
- *  `/Users/johnwarren/Desktop/q60-raw-data/Mooncake/FAST25-release/
+ *  `<external-dataset-dir>/Mooncake/FAST25-release/
  *  arxiv-trace/mooncake_trace.jsonl`. Mapper accepts both shapes via
  *  field-aliasing + hash_ids type widening. */
 export interface MooncakeRawRow {

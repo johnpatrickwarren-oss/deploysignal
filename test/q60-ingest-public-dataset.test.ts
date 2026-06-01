@@ -3,8 +3,8 @@
 // describe block 1.
 //
 // Sample fixtures inline (small CSVs/JSONL); full datasets stay
-// external (~50MB BurstGPT + ~720KB Azure + ~4.4MB Mooncake at
-// /Users/johnwarren/Desktop/q60-raw-data/) per spec § Anti-scope
+// external (~50MB BurstGPT + ~720KB Azure + ~4.4MB Mooncake in an
+// external dataset dir) per spec § Anti-scope
 // (NO bundled raw datasets in repo).
 
 import { test } from 'node:test';

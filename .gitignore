@@ -69,3 +69,20 @@ test/fixtures/pool-baseline-sparse/
 
 # TypeScript incremental compile markers (regenerated; build artifact)
 *.tsbuildinfo
+
+# Compiled .js from the engine/advisory/calibrator .ts sources. Like the
+# tools/*.js rule above, .ts is the source of truth; tsc emits these into
+# the source tree (tsconfig.test.json) and they should not be committed.
+# (Verified: every untracked .js here has a .ts sibling — no pure-JS sources.)
+engine/**/*.js
+advisory/**/*.js
+tools/calibrators/*.js
+# ...but keep the .js that are intentionally committed (a browser bundle and
+# two calibrator modules already in the tree; preserves current tracked state).
+!engine/index.browser.js
+!tools/calibrators/family-a.js
+!tools/calibrators/family-c.js
+
+# Scratch compiled-config outputs from local calibration runs (the tracked
+# v1–v9a configs are the intentional fixtures; test-* are throwaway runs).
+runs/compiled-configs/test-*.json

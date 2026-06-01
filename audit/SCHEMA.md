@@ -327,7 +327,7 @@ Optional field on `DetectorTrip` entries where `reason_code === 'ignore_threshol
 
 ### `DetectorTrip.provenance` — Family A effect-size CI
 
-Per GAP-06 in `COMPETITIVE-GAPS-ADDITIONS.md`, Family A's `DetectorTrip.provenance` block gains an optional field:
+Family A's `DetectorTrip.provenance` block gains an optional field, to surface an intuitive effect-size range alongside the formal Ville-bound statistic:
 
 - **`effect_size_ci`**: `{ lower: number, upper: number, confidence_level: number }`. Computed from Page-CUSUM state and the mixture prior at emission time. Derivation is O(1) per emission. Renders alongside `cusum_progress` in dashboard UIs so viewers see both the Ville-bound budget statistic (formal sequential-test value) and the intuitive effect-size range (what LaunchDarkly Guarded Rollouts surfaces as its primary statistical output).
 
