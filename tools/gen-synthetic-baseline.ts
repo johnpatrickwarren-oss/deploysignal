@@ -223,16 +223,10 @@ function generateRun(
   return { signal_series: series, hour_of_day: hourOfDay, day_of_week: dayOfWeek };
 }
 
-function main(): void {
-  const args = parseArgs(process.argv.slice(2));
-  const outDir = path.resolve(process.cwd(), args.out);
-  fs.mkdirSync(outDir, { recursive: true });
-
-  const rng = mulberry32(args.seed);
-
-  // Pre-compute tenant offsets deterministically before generating runs.
+// Pre-compute tenant offsets deterministically before generating runs.
+function computeTenantOffsets(rng: () => number, tenants: number): Record<string, Record<string, number>> {
   const tenantOffsets: Record<string, Record<string, number>> = {};
-  for (let t = 0; t < args.tenants; t++) {
+  for (let t = 0; t < tenants; t++) {
     const id = `tenant-${t}`;
     tenantOffsets[id] = {};
     for (const k of Object.keys(SIGNALS)) {
@@ -240,7 +234,19 @@ function main(): void {
       tenantOffsets[id][k] = (rng() - 0.5) * 0.016;
     }
   }
+  return tenantOffsets;
+}
 
+interface GeneratedRuns {
+  runs: BaselineBundle['runs'];
+  cellCounts: number[];
+}
+
+function generateRuns(
+  rng: () => number,
+  args: Args,
+  tenantOffsets: Record<string, Record<string, number>>,
+): GeneratedRuns {
   const runs: BaselineBundle['runs'] = [];
   // Per-cell sample counts so the generator can warn on sparse cells (W3
   // acceptance: warn if any of the 168 cells drops below 20 samples).
@@ -257,17 +263,10 @@ function main(): void {
       cellCounts[day_of_week[t] * 24 + hour_of_day[t]]++;
     }
   }
+  return { runs, cellCounts };
+}
 
-  const bundle: BaselineBundle = {
-    version: 'synthetic-v1',
-    generated_at: new Date(0).toISOString(), // fixed; seed-determinism means
-                                              // we deliberately drop wall-clock
-                                              // time from the output
-    seed: args.seed,
-    cell_dim: 'hour_of_day_x_day_of_week',
-    runs,
-  };
-
+function writeBundle(outDir: string, bundle: BaselineBundle): void {
   const bundlePath = path.join(outDir, 'bundle.jsonl');
   // Stream one run per line so large bundles don't blow RAM on the compiler side.
   const fd = fs.openSync(bundlePath, 'w');
@@ -276,7 +275,9 @@ function main(): void {
   } finally {
     fs.closeSync(fd);
   }
+}
 
+function writeManifest(outDir: string, bundle: BaselineBundle, args: Args, cellCounts: number[]): void {
   // Manifest = header minus runs (small, one file, human-readable).
   const manifest = {
     version: bundle.version,
@@ -305,7 +306,9 @@ function main(): void {
     console.warn(`WARN: ${sparseCount}/168 cells below 20 samples (min=${minCell}). Compiler will pool or fall back for these.`);
   }
   fs.writeFileSync(path.join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+}
 
+function writeReadme(outDir: string, args: Args): void {
   // Short README documenting the output format. Keeps the compiler's
   // assumptions about structure in one place alongside the data.
   const readme =
@@ -324,6 +327,32 @@ Seeded with \`--seed ${args.seed}\` → identical bytes on re-run. Verify with \
 \`tools/calibrate.ts\` loads \`bundle.jsonl\` line-by-line and reconstructs a \`BaselineBundle\` (see \`engine/types.ts\`).
 `;
   fs.writeFileSync(path.join(outDir, 'README.md'), readme);
+}
+
+function main(): void {
+  const args = parseArgs(process.argv.slice(2));
+  const outDir = path.resolve(process.cwd(), args.out);
+  fs.mkdirSync(outDir, { recursive: true });
+
+  const rng = mulberry32(args.seed);
+
+  const tenantOffsets = computeTenantOffsets(rng, args.tenants);
+
+  const { runs, cellCounts } = generateRuns(rng, args, tenantOffsets);
+
+  const bundle: BaselineBundle = {
+    version: 'synthetic-v1',
+    generated_at: new Date(0).toISOString(), // fixed; seed-determinism means
+                                              // we deliberately drop wall-clock
+                                              // time from the output
+    seed: args.seed,
+    cell_dim: 'hour_of_day_x_day_of_week',
+    runs,
+  };
+
+  writeBundle(outDir, bundle);
+  writeManifest(outDir, bundle, args, cellCounts);
+  writeReadme(outDir, args);
 
   console.log(`Wrote ${bundle.runs.length} runs × ${args.ticks} ticks × ${Object.keys(SIGNALS).length} signals → ${outDir}`);
 }

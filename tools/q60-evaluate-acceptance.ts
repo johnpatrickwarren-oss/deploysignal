@@ -149,17 +149,10 @@ function loadCheckpoints(sweepDir: string): Map<string, SweepCheckpoint> {
   return cps;
 }
 
-function evaluate(sweepDir: string, outPath: string): void {
-  const cards = loadReportCards(sweepDir);
-  const checkpoints = loadCheckpoints(sweepDir);
-  const diffPath = path.join(sweepDir, 'shadow-compare-cross-substrate.json');
-  const diff: CrossSubstrateDiff = fs.existsSync(diffPath)
-    ? JSON.parse(fs.readFileSync(diffPath, 'utf8'))
-    : { reference_substrate: 'synthetic_v1', per_profile_diffs: {} };
-
-  // Build per-(substrate × scenario) exemption map from any one of the
-  // 8 seed checkpoints (exemptions are uniform across seeds for a given
-  // substrate per L2 (D) Step 0 design).
+// Build per-(substrate × scenario) exemption map from any one of the
+// 8 seed checkpoints (exemptions are uniform across seeds for a given
+// substrate per L2 (D) Step 0 design).
+function buildExemptionsByProfile(checkpoints: Map<string, SweepCheckpoint>): Map<string, Record<string, string>> {
   const exemptionsByProfile = new Map<string, Record<string, string>>();
   for (const cp of checkpoints.values()) {
     if (cp.status !== 'completed') continue;
@@ -168,8 +161,14 @@ function evaluate(sweepDir: string, outPath: string): void {
       exemptionsByProfile.set(key, cp.detector_exemptions ?? {});
     }
   }
+  return exemptionsByProfile;
+}
 
-  // Criterion 9 — per-profile FPR ≤ α × 1.2 (per-detector × per-profile).
+// Criterion 9 — per-profile FPR ≤ α × 1.2 (per-detector × per-profile).
+function evaluateCriterion9(
+  cards: Map<string, ReportCard>,
+  exemptionsByProfile: Map<string, Record<string, string>>,
+): CriterionEval[] {
   const c9Evals: CriterionEval[] = [];
   for (const [key, card] of cards.entries()) {
     const [substrate, scenario] = key.split('--');
@@ -188,8 +187,14 @@ function evaluate(sweepDir: string, outPath: string): void {
       });
     }
   }
+  return c9Evals;
+}
 
-  // Criterion 12 — cross-substrate ΔFPR ≤ 0.5 × α × 1.2.
+// Criterion 12 — cross-substrate ΔFPR ≤ 0.5 × α × 1.2.
+function evaluateCriterion12(
+  diff: CrossSubstrateDiff,
+  exemptionsByProfile: Map<string, Record<string, string>>,
+): CriterionEval[] {
   const c12Evals: CriterionEval[] = [];
   for (const [key, block] of Object.entries(diff.per_profile_diffs)) {
     const [substrate, scenario] = key.split('--');
@@ -208,8 +213,14 @@ function evaluate(sweepDir: string, outPath: string): void {
       });
     }
   }
+  return c12Evals;
+}
 
-  // Build pitch claim table per substrate.
+// Build pitch claim table per substrate.
+function buildPitchTable(
+  cards: Map<string, ReportCard>,
+  exemptionsByProfile: Map<string, Record<string, string>>,
+): AcceptanceReport['pitch_claim_table'] {
   const substrateNames = new Set<string>();
   for (const key of cards.keys()) substrateNames.add(key.split('--')[0]);
   const pitchTable: AcceptanceReport['pitch_claim_table'] = {};
@@ -227,7 +238,16 @@ function evaluate(sweepDir: string, outPath: string): void {
       n_per_profile_pairs: nPairs,
     };
   }
+  return pitchTable;
+}
 
+function buildAcceptanceReport(
+  sweepDir: string,
+  diff: CrossSubstrateDiff,
+  c9Evals: CriterionEval[],
+  c12Evals: CriterionEval[],
+  pitchTable: AcceptanceReport['pitch_claim_table'],
+): AcceptanceReport {
   const c9Failed = c9Evals.filter((e) => !e.passed);
   const c12Failed = c12Evals.filter((e) => !e.passed);
   const c9ExemptedCount = c9Evals.filter((e) => e.exempted).length;
@@ -262,6 +282,22 @@ function evaluate(sweepDir: string, outPath: string): void {
       phase_3_acceptance_overall: c9Failed.length === 0 && c12Failed.length === 0,
     },
   };
+  return report;
+}
+
+function evaluate(sweepDir: string, outPath: string): void {
+  const cards = loadReportCards(sweepDir);
+  const checkpoints = loadCheckpoints(sweepDir);
+  const diffPath = path.join(sweepDir, 'shadow-compare-cross-substrate.json');
+  const diff: CrossSubstrateDiff = fs.existsSync(diffPath)
+    ? JSON.parse(fs.readFileSync(diffPath, 'utf8'))
+    : { reference_substrate: 'synthetic_v1', per_profile_diffs: {} };
+
+  const exemptionsByProfile = buildExemptionsByProfile(checkpoints);
+  const c9Evals = evaluateCriterion9(cards, exemptionsByProfile);
+  const c12Evals = evaluateCriterion12(diff, exemptionsByProfile);
+  const pitchTable = buildPitchTable(cards, exemptionsByProfile);
+  const report = buildAcceptanceReport(sweepDir, diff, c9Evals, c12Evals, pitchTable);
 
   fs.writeFileSync(outPath, JSON.stringify(report, null, 2) + '\n');
   console.log(`[q60-evaluate-acceptance] wrote ${outPath}`);
