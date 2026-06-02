@@ -21,6 +21,15 @@ import {
   computePerSignalAr1Phi,
   deriveMixtureSupermartingaleParams,
 } from '../../engine/detectors/family-a-mixture-supermartingale';
+import { mulberry32Local } from './_family-a-rng';
+import {
+  makeBettingBetSelectors,
+  simulateNullMaxWealth,
+  summarizeBootstrapMaxStatistics,
+} from './_family-a-betting-bootstrap';
+
+// Re-export RNG helpers so existing `family-a.ts` import sites keep working.
+export { mulberry32Local, standardNormalLocal } from './_family-a-rng';
 
 /** τ² = δ_min² / TAU_SQUARED_DIV per ARCHITECT-REPLY-05.md.
  *  Page-CUSUM mixture-prior variance: prior concentrates around
@@ -217,25 +226,6 @@ export function buildFamilyAPerSignal(
  *  deterministic. Mirrors Family D / Family C bootstrap-seed pattern. */
 export const FAMILY_A_BETTING_BOOTSTRAP_SEED = 0xFA03B >>> 0;
 
-/** Mulberry32 deterministic uniform RNG. Inlined here for self-
- *  containment relative to dist/ layout (matches family-c.ts pattern). */
-function mulberry32Local(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6D2B79F5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function standardNormalLocal(rng: () => number): number {
-  const u1 = Math.max(rng(), 1e-12);
-  const u2 = rng();
-  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-}
-
 /** Mirror engine/detectors/betting-e-process.ts:boundedZ + GRAPA/ONS
  *  bet selection + wealth update. Inlined here so the calibrator stays
  *  self-contained relative to dist/ layout (matches family-c.ts
@@ -272,97 +262,27 @@ export function bootstrapBettingSlidingBufferThreshold(
   const sigma = Math.sqrt(Math.max(sigmaSquared, 0));
   const epsScale = Math.sqrt(Math.max(0, 1 - rho * rho));
   // Match runtime constants from engine/detectors/betting-e-process.ts.
-  const BOUNDED_SCALE_B = 3;
   const WEALTH_FLOOR = 1e-12;
-  const BET_CLIP = 1 - 1e-6;
 
-  // Inline runtime betting state for the bootstrap simulation. State
-  // tracks wealth M, current bet, running first/second moments of z,
-  // and tick count n. Mirrors freshBettingState exactly.
-  type State = {
-    M: number; bet: number; n: number;
-    runningMean: number; runningSecondMoment: number;
-  };
-
-  const grapaBet = (mean: number, second: number): number => {
-    if (!(second > 0)) return 0;
-    return mean / second;
-  };
-  const onsBet = (mean: number, second: number, prev: number): number => {
-    const denomInner = 1 + prev * mean;
-    if (!(second > 0) || Math.abs(denomInner) < 1e-9) return 0;
-    const grad = -mean / denomInner;
-    const step = grad / Math.max(second, 1e-6);
-    const proposed = prev - step;
-    if (proposed > BET_CLIP) return BET_CLIP;
-    if (proposed < -BET_CLIP) return -BET_CLIP;
-    return proposed;
-  };
-  const pickBet = (mean: number, second: number, prev: number): number => {
-    const g = grapaBet(mean, second);
-    if (Math.abs(g) <= BET_CLIP && Number.isFinite(g)) return g;
-    return onsBet(mean, second, prev);
-  };
-  const boundedZ = (xRaw: number): number => {
-    const denom = BOUNDED_SCALE_B * sigma;
-    if (!(denom > 0)) return 0;
-    const v = (xRaw - baselineMean) / denom;
-    if (v > 1) return 1;
-    if (v < -1) return -1;
-    return v;
-  };
+  const { pickBet, boundedZ } = makeBettingBetSelectors(baselineMean, sigma);
 
   const rng = mulberry32Local(seed);
   const maxStatistics = new Array<number>(N_BOOTSTRAPS);
 
   for (let traj = 0; traj < N_BOOTSTRAPS; traj++) {
-    // AR(1) generation in standardized z-space:
-    //   z_t = ρ·z_{t-1} + √(1−ρ²)·ε_t,  ε_t ~ N(0, 1).
-    // Stationary marginal Var(z_t) = 1 in both iid (ρ=0) and AR(1) cases.
-    let zPrev = standardNormalLocal(rng);
-    for (let i = 0; i < BURN_IN; i++) {
-      zPrev = rho * zPrev + epsScale * standardNormalLocal(rng);
-    }
-    const state: State = {
-      M: 1, bet: 0, n: 0, runningMean: 0, runningSecondMoment: 0,
-    };
-    let trajMax = 1;
-    for (let t = 0; t < N_TICKS; t++) {
-      const zRaw = rho * zPrev + epsScale * standardNormalLocal(rng);
-      zPrev = zRaw;
-      // Map standardized z back to raw observation: x = μ + z · σ.
-      const live = baselineMean + zRaw * sigma;
-      // updateBettingState mirror: z = boundedZ(live), pick bet, advance.
-      const z = boundedZ(live);
-      const bet = pickBet(state.runningMean, state.runningSecondMoment, state.bet);
-      const factor = 1 + bet * z;
-      state.M = Math.max(WEALTH_FLOOR, state.M * Math.max(0, factor));
-      state.bet = bet;
-      const n1 = state.n + 1;
-      state.runningMean = state.runningMean + (z - state.runningMean) / n1;
-      state.runningSecondMoment = state.runningSecondMoment
-        + (z * z - state.runningSecondMoment) / n1;
-      state.n = n1;
-      if (state.M > trajMax) trajMax = state.M;
-    }
-    maxStatistics[traj] = trajMax;
+    maxStatistics[traj] = simulateNullMaxWealth(
+      rng, baselineMean, sigma, rho, epsScale,
+      N_TICKS, BURN_IN, WEALTH_FLOOR, pickBet, boundedZ,
+    );
   }
 
-  // Mean + std + (1 − α) quantile.
-  let sum = 0;
-  for (const m of maxStatistics) sum += m;
-  const mean = sum / N_BOOTSTRAPS;
-  let sqSum = 0;
-  for (const m of maxStatistics) { const d = m - mean; sqSum += d * d; }
-  const std = Math.sqrt(sqSum / N_BOOTSTRAPS);
-  maxStatistics.sort((a, b) => a - b);
-  const qIdx = Math.min(N_BOOTSTRAPS - 1, Math.floor((1 - alpha) * N_BOOTSTRAPS));
-  const threshold = maxStatistics[qIdx];
+  const { threshold, null_max_mean, null_max_std } =
+    summarizeBootstrapMaxStatistics(maxStatistics, N_BOOTSTRAPS, alpha);
 
   return {
     threshold,
     bootstrap_n: N_BOOTSTRAPS,
-    null_max_mean: mean,
-    null_max_std: std,
+    null_max_mean,
+    null_max_std,
   };
 }
