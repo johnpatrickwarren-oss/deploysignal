@@ -69,19 +69,7 @@ function readCellSamples(bundlePath, manifestPath) {
   return cellSamples;
 }
 
-function main() {
-  console.log('[v1.h1-grep] reading v5 compiled config...');
-  const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
-  const allCells = cfg.baseline_cells.cells;
-  console.log(`[v1.h1-grep]   ${allCells.length} cells in v5`);
-
-  console.log('[v1.h1-grep] reading bundle samples...');
-  const cellSamples = readCellSamples(BUNDLE_PATH, MANIFEST_PATH);
-  console.log(`[v1.h1-grep]   ${cellSamples.size} distinct cells in bundle`);
-
-  fs.mkdirSync(OUT_DIR, { recursive: true });
-
-  // ── LAYER 1 ──────────────────────────────────────────────────────
+function computePerSignalRecords(allCells) {
   // Per-signal CSV + summary stats.
   const perSignalRecords = {};   // signal → [{cell_key, mu, sigma_squared, cv_squared, cv}]
   for (const sig of FAMILY_A_SIGNALS) perSignalRecords[sig] = [];
@@ -104,7 +92,10 @@ function main() {
       });
     }
   }
+  return perSignalRecords;
+}
 
+function runLayer1(perSignalRecords) {
   console.log('\n[v1.h1-grep] LAYER 1 — per-signal CV distribution:');
   console.log('  signal               n_cells  cv_min     cv_p25     cv_median  cv_p75     cv_p99     cv_max');
   for (const sig of FAMILY_A_SIGNALS) {
@@ -131,8 +122,9 @@ function main() {
     fs.writeFileSync(csvPath, lines.join('\n') + '\n');
   }
   console.log(`[v1.h1-grep] wrote 6 per-signal CSVs to ${path.relative(ROOT, OUT_DIR)}/`);
+}
 
-  // ── LAYER 2 ──────────────────────────────────────────────────────
+function runLayer2(perSignalRecords, allCells) {
   // RED flags: cv < 1e-3 → would trigger P1 floor.
   console.log('\n[v1.h1-grep] LAYER 2 — RED flag identification (cv < 1e-3):');
   console.log('  signal               RED_count / total_cells   RED_pct');
@@ -162,8 +154,10 @@ function main() {
     sumLines.push(`${sig.padEnd(20)} | ${String(red.length).padStart(9)} | ${String(recs.length).padStart(11)} | ${pct.padStart(6)}%`);
   }
   fs.writeFileSync(sumPath, sumLines.join('\n') + '\n');
+  return redFlagsBySignal;
+}
 
-  // ── LAYER 3 ──────────────────────────────────────────────────────
+function runLayer3(redFlagsBySignal, cellSamples) {
   // Post-P1-floor predicted clipping rate. For each RED (signal, cell),
   // simulate σ_postfloor = max(σ_empirical, sqrt(VARIANCE_FLOOR_COEFF · μ²))
   // and count what fraction of baseline samples lie outside ±3·σ_postfloor
@@ -228,7 +222,9 @@ function main() {
   console.log(`  ${path.relative(ROOT, OUT_DIR)}/signal-distribution-<signal>.csv (×6)`);
   console.log(`  ${path.relative(ROOT, OUT_DIR)}/red-flags-summary.txt`);
   console.log(`  ${path.relative(ROOT, OUT_DIR)}/p1-insufficient-cells.txt`);
+}
 
+function runArchitectComparison(redFlagsBySignal, perSignalRecords) {
   // Architect-prediction comparison
   console.log('\n[v1.h1-grep] architect prediction comparison:');
   const predicted = {
@@ -243,6 +239,31 @@ function main() {
     const tag = (dev > 50 || (pred < 50 && observed > 50)) ? 'DEVIATION' : 'in-line';
     console.log(`  ${sig.padEnd(20)} predicted=${String(pred).padStart(4)}  observed=${String(observed).padStart(4)} / ${total}  ${tag}`);
   }
+}
+
+function main() {
+  console.log('[v1.h1-grep] reading v5 compiled config...');
+  const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
+  const allCells = cfg.baseline_cells.cells;
+  console.log(`[v1.h1-grep]   ${allCells.length} cells in v5`);
+
+  console.log('[v1.h1-grep] reading bundle samples...');
+  const cellSamples = readCellSamples(BUNDLE_PATH, MANIFEST_PATH);
+  console.log(`[v1.h1-grep]   ${cellSamples.size} distinct cells in bundle`);
+
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+
+  // ── LAYER 1 ──────────────────────────────────────────────────────
+  const perSignalRecords = computePerSignalRecords(allCells);
+  runLayer1(perSignalRecords);
+
+  // ── LAYER 2 ──────────────────────────────────────────────────────
+  const redFlagsBySignal = runLayer2(perSignalRecords, allCells);
+
+  // ── LAYER 3 ──────────────────────────────────────────────────────
+  runLayer3(redFlagsBySignal, cellSamples);
+
+  runArchitectComparison(redFlagsBySignal, perSignalRecords);
 }
 
 main();
