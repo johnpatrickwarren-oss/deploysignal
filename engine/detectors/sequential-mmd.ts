@@ -281,20 +281,25 @@ export function freshEMmdState(): EMmdState {
  *  Pattern mirrors `evaluateSequentialMMD` for cell lookup + guards;
  *  shares the same tier-aware `lookupFamilyCParams` and same
  *  pseudo-baseline pool generator. */
-export function evaluateEMmd(
+/** Context shape shared by `evaluateEMmd` and its extracted helpers. */
+interface EMmdCtx {
+  hourOfDay: number;
+  dayOfWeek?: number;
+  ticksSinceDeploy: number;
+  deployAgeDays: number;
+  trafficPct: number;
+  schemaContinuityClass?: SchemaContinuityRecord['schema_continuity'];
+  tenantId?: string;
+}
+
+/** Resolve the per-cell params + e-MMD threshold for `evaluateEMmd`.
+ *  Returns null when the detector must early-return null (no baseline
+ *  cells, no cell match, missing params, or Q67 v2 supersession).
+ *  Extracted verbatim from `evaluateEMmd`'s lookup/guard prologue. */
+function resolveEMmdParams(
   cfg: CompiledConfig,
-  liveMetrics: Record<string, number | undefined>,
-  states: Record<string, EMmdState | number[][] | unknown>,
-  ctx: {
-    hourOfDay: number;
-    dayOfWeek?: number;
-    ticksSinceDeploy: number;
-    deployAgeDays: number;
-    trafficPct: number;
-    schemaContinuityClass?: SchemaContinuityRecord['schema_continuity'];
-    tenantId?: string;
-  },
-): DetectorVerdict | null {
+  ctx: EMmdCtx,
+): { params: FamilyCPerCell; eMmd: NonNullable<FamilyCPerCell['e_mmd_params']>; mmd: NonNullable<FamilyCPerCell['mmd_params']>; tier: ReturnType<typeof resolveTenantTier>; threshold: number } | null {
   if (!cfg.baseline_cells) return null;
   const tier = resolveTenantTier(cfg, ctx.tenantId);
   const lookup = lookupFamilyCParams(cfg, {
@@ -316,7 +321,17 @@ export function evaluateEMmd(
   if (params.betting_e_process_params) return null;
 
   const threshold = 1 / eMmd.alpha;
+  return { params, eMmd, mmd, tier, threshold };
+}
 
+/** Schema-continuity + bake-profile + traffic-gate suppression checks.
+ *  Returns a suppressed `DetectorVerdict` when any gate trips, else null
+ *  (detector proceeds). Extracted verbatim from `evaluateEMmd`. */
+function eMmdSuppression(
+  cfg: CompiledConfig,
+  ctx: EMmdCtx,
+  threshold: number,
+): DetectorVerdict | null {
   if (ctx.schemaContinuityClass && shouldSuppress(ctx.schemaContinuityClass, 'C')) {
     return {
       verdict: 'suppressed', statistic: null, threshold,
@@ -353,6 +368,21 @@ export function evaluateEMmd(
       signal: 'sequential_mmd_e_process',
     };
   }
+  return null;
+}
+
+export function evaluateEMmd(
+  cfg: CompiledConfig,
+  liveMetrics: Record<string, number | undefined>,
+  states: Record<string, EMmdState | number[][] | unknown>,
+  ctx: EMmdCtx,
+): DetectorVerdict | null {
+  const resolved = resolveEMmdParams(cfg, ctx);
+  if (!resolved) return null;
+  const { params, eMmd, mmd, tier, threshold } = resolved;
+
+  const suppressed = eMmdSuppression(cfg, ctx, threshold);
+  if (suppressed) return suppressed;
 
   const v = liveVector(liveMetrics, params.mean_vector, cfg.family_c_signals ?? FAMILY_C_SIGNALS);
   if (v === null) return null;

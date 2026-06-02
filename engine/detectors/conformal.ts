@@ -50,9 +50,11 @@ import type {
 // to reuse when it threads x_t through to evaluateConformalWeightedEValue
 // via evaluateFamilyE's dispatch branch.
 import { isWeightedConformal, isWeightedEValueConformal, conformalSampleCount, resolveTenantTier } from '../types';
-import { FAMILY_C_SIGNALS } from './hotelling';
 import { shouldSuppress } from '../l0/schema-continuity';
 import { cholesky, forwardSolve, weightedQuantile, findFirstGE } from './_linalg';
+import {
+  collectLiveVector, checkBakeAndTrafficGates, checkConformalPreGuards,
+} from './_conformal-gates';
 
 // Default α_family_E = 10% of 1e-3 per handoff §4.1.c.
 const DEFAULT_ALPHA_E = 1e-4;
@@ -170,92 +172,20 @@ export function evaluateFamilyE(
   const { params, famC } = lookup;
   const alphaE = cfg.alpha_budget.per_family.E ?? DEFAULT_ALPHA_E;
 
-  // Addition #8 runtime consumer (W5 §S6): calibration is parametric
-  // under the baseline's schema; a breaking continuity change invalidates
-  // the assumed null distribution, so the threshold / conformal p-value
-  // is meaningless and we suppress pending rebaseline.
-  if (ctx.schemaContinuityClass && shouldSuppress(ctx.schemaContinuityClass, 'E')) {
-    return {
-      verdict: 'suppressed', statistic: null, threshold: alphaE,
-      alpha_consumed: 0, alpha_spent: 0,
-      reason_code: ctx.schemaContinuityClass === 'observability_stack'
-        ? 'observability_stack_deploy' : 'schema_continuity_breaking',
-      family: 'E',
-    };
-  }
+  const preGuard = checkConformalPreGuards(
+    ctx.schemaContinuityClass,
+    !!(ctx.schemaContinuityClass && shouldSuppress(ctx.schemaContinuityClass, 'E')),
+    conformalSampleCount(params),
+    alphaE,
+  );
+  if (preGuard) return preGuard;
 
-  // Addition #13 (per ARCHITECT-REPLY-31 correction): Family E evaluates the
-  // full joint vector regardless of `ignore_thresholds`. An in-band signal's
-  // contribution to the Mahalanobis nonconformity score is near-zero
-  // naturally, so explicit suppression would silence Family E on genuine
-  // other-signal novelty the operator didn't intend to ignore.
+  const vec = collectLiveVector(cfg, liveMetrics);
+  if (!vec) return null;
+  const { x, cSignals } = vec;
 
-  // Minimum-calibration guard: need at least 1/α_E calibration samples so
-  // the smallest observable p-value can actually fall below α. If we have
-  // too few, emit suppressed — a runway-pitch acceptable behavior.
-  // Addition #19: guard applies to raw sample count (not ESS). The
-  // weighted variant tightens the *threshold* rather than the discrete
-  // p-value staircase, so the underpowered-for-α check stays on n.
-  if (conformalSampleCount(params) + 1 < Math.ceil(1 / alphaE)) {
-    return {
-      verdict: 'suppressed', statistic: null, threshold: alphaE,
-      alpha_consumed: 0, alpha_spent: 0,
-      reason_code: 'calibration_underpowered', family: 'E',
-    };
-  }
-
-  // Collect live vector in joint-vector order — identical to Family C
-  // so calibration scores are comparable at query time. REPLY-51b v2
-  // R4-1: reads from cfg.family_c_signals when profile is active,
-  // otherwise falls back to hardcoded.
-  const cSignals = cfg.family_c_signals ?? FAMILY_C_SIGNALS;
-  const x: number[] = new Array(cSignals.length);
-  for (let i = 0; i < cSignals.length; i++) {
-    const v = liveMetrics[cSignals[i]];
-    if (v === undefined) return null;
-    x[i] = v;
-  }
-
-  // Same bake/traffic gates as Family C — Family E inherits joint-detector
-  // eligibility since it's a nonconformity scorer over the same vector.
-  // (Signal-level bake profiles aren't per-signal here because the test
-  // is multivariate; most-constrained across signals.)
-  const bakeProfiles = cfg.bake_profiles ?? {};
-  let maxMinTicks = 0;
-  let maxMaxDays = Infinity;
-  let anyProfile = false;
-  for (const sig of cSignals) {
-    const p = bakeProfiles[sig];
-    if (!p) continue;
-    anyProfile = true;
-    if (p.min_ticks_before_eligible > maxMinTicks) maxMinTicks = p.min_ticks_before_eligible;
-    if (p.max_deploy_window_days < maxMaxDays) maxMaxDays = p.max_deploy_window_days;
-  }
-  if (!anyProfile) { maxMinTicks = 3; maxMaxDays = 1; }
-
-  if (ctx.ticksSinceDeploy < maxMinTicks) {
-    return {
-      verdict: 'suppressed', statistic: null, threshold: alphaE,
-      alpha_consumed: 0, alpha_spent: 0,
-      reason_code: 'bake_profile_not_met', family: 'E',
-    };
-  }
-  if (ctx.deployAgeDays > maxMaxDays) {
-    return {
-      verdict: 'suppressed', statistic: null, threshold: alphaE,
-      alpha_consumed: 0, alpha_spent: 0,
-      reason_code: 'bake_profile_not_met', family: 'E',
-    };
-  }
-
-  const trafficGate = cfg.traffic_pct_gate?.min_traffic_pct_for_fire ?? 0;
-  if (ctx.trafficPct < trafficGate) {
-    return {
-      verdict: 'suppressed', statistic: null, threshold: alphaE,
-      alpha_consumed: 0, alpha_spent: 0,
-      reason_code: 'traffic_pct_below_gate', family: 'E',
-    };
-  }
+  const gate = checkBakeAndTrafficGates(cfg, cSignals, ctx, alphaE);
+  if (gate) return gate;
 
   const r = relativeDeviation(x, famC.mean_vector);
   const s = mahalanobisDistance(r, famC.covariance);
