@@ -7,9 +7,18 @@
     "severity": "block"
   },
   {
+    "id": "no-complex-functions",
+    "intent": "PRIMARY function-health gate: no NEW function with cyclomatic complexity over 12 (1 + decision points + &&/||). The less-arbitrary signal than length — flags BRANCHY hard-to-test functions, not merely long ones (McCabe ~10; 12 is forgiving). Ratchet grandfathers today's complex functions and blocks any new one.",
+    "check": { "kind": "max_complexity", "maxComplexity": 12 },
+    "mode": "ratchet",
+    "severity": "block",
+    "lang": "ts",
+    "engine": "ast-grep"
+  },
+  {
     "id": "no-god-functions",
-    "intent": "No NEW function over 100 lines (God function). The statistical detectors legitimately run 100-200 lines; the ratchet freezes today's count and blocks adding more. calibrate.ts's 917/581-line functions are the priority decomposition targets.",
-    "check": { "kind": "max_function_lines", "maxLines": 100 },
+    "intent": "Coarse BACKSTOP: no NEW function over 150 lines. Complexity (above) is the primary gate; this only catches huge-but-flat functions complexity misses (long sequential builders, big literal/data tables). Set high so it doesn't flag clean ~100-line functions. Ratchet.",
+    "check": { "kind": "max_function_lines", "maxLines": 150 },
     "mode": "ratchet",
     "severity": "block",
     "lang": "ts",
