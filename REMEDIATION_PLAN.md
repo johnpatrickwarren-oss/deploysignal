@@ -136,9 +136,9 @@ The repository is in strong overall health: it compiles cleanly (`tsc` engine + 
 - [x] **M2** Replace empty `catch(e) {}` in `evaluateSignals` with logged/audited detector-error surfacing. (`shared.js:702-708`)
 - [x] **M1** Fix the remaining hoisted-var dead guards (`tr` at `shared.js:132`; `p99R`/`_tp99Tok`/`tickEstTok` at `:210`; `tHbm` at `:260`); add `no-use-before-define` linting for `shared.js`. *(Also fixed `_hbmRp99` at `:132`, found by the new lint test; lint implemented as `test/shared-no-use-before-define.test.ts` using the TypeScript parser — no new dependencies.)*
 - [x] **M3** Resolve `effectiveThreshold` strength² question: confirm intent, then either fix to `baseThreshold - discount` + re-run adversarial sweeps, or rename/document the quadratic ramp. (`engine/core.ts:171-172`) *(Fixed to apply strength exactly once — matches the intended fix for the same bug in the sibling deploysignal-engine repo; replay/parity/canned-demo suites re-run clean.)*
-- [ ] **M4** Remove the broken `npm run loop` script; correct ARCHITECTURE.md's `loop.js` / `scenario_results.json` sections. (`package.json:16`, `ARCHITECTURE.md:99,138`)
-- [ ] **M5** Mark package `private: true` or ship `dist/` (+ `prepare` build, `main` field). (`package.json`)
-- [ ] **M6** Raise `engines.node` to match the real test requirement (≥23.6 / 24), or spawn compiled `.js` in tests. (`package.json:7-9`)
+- [x] **M4** Remove the broken `npm run loop` script; correct ARCHITECTURE.md's `loop.js` / `scenario_results.json` sections. (`package.json:16`, `ARCHITECTURE.md:99,138`)
+- [x] **M5** Mark package `private: true` or ship `dist/` (+ `prepare` build, `main` field). (`package.json`) *(Marked `private: true` — README states it is a reference implementation, not packaged for production.)*
+- [x] **M6** Raise `engines.node` to match the real test requirement (≥23.6 / 24), or spawn compiled `.js` in tests. (`package.json:7-9`) *(engines.node → `>=23.6`, matching the CI comment and native-.ts test subprocesses.)*
 - [ ] **L1** Bind `claude-proxy.js` to `127.0.0.1`. (`tools/claude-proxy.js:150`)
 - [ ] **L2** `unref()` the audit-writer flush timer; fix midnight-rotation file attribution. (`engine/_audit-writer.ts:44,54-66`)
 - [ ] **L3** Add `push: branches: [main]` trigger to the test workflow. (`.github/workflows/test.yml`)
