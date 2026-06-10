@@ -142,7 +142,7 @@ The repository is in strong overall health: it compiles cleanly (`tsc` engine + 
 - [x] **L1** Bind `claude-proxy.js` to `127.0.0.1`. (`tools/claude-proxy.js:150`) *(Verified empirically: loopback connects, LAN interface refused.)*
 - [x] **L2** `unref()` the audit-writer flush timer; fix midnight-rotation file attribution. (`engine/_audit-writer.ts:44,54-66`) *(Records now date-stamped at write() time and flushed grouped per day-file.)*
 - [x] **L3** Add `push: branches: [main]` trigger to the test workflow. (`.github/workflows/test.yml`)
-- [ ] **L4** Regenerate `package-lock.json` from a clean clone (drops the extraneous `../tessera/engine` entry and the `git+ssh` resolution).
+- [x] **L4** Regenerate `package-lock.json` from a clean clone (drops the extraneous `../tessera/engine` entry and the `git+ssh` resolution). *(Extraneous entry dropped; dep spec switched to explicit `git+https://`. Note: npm 11 canonicalizes the lockfile `resolved` field for GitHub git deps to `git+ssh://` regardless of spec — fetches still go via the https codeload tarball, and the https spec ensures any git-clone fallback is unauthenticated-https, which was the actual risk.)*
 - [ ] **L5** Clean up dead `coordination/` and `runs/validation-reports/` references in CHEAT-SHEET.md / NORTH-STAR-ARCHITECTURE.md.
 - [ ] **L6** Track the §C1/§C2 right-reasons TODO tests to closure (architect-scope `cell_patch`).
 - [ ] **L7** Thread abort signal through `TopologyEnricher.enrich`; align interval-event overlap docstring. (`engine/topology-overlay.ts:213,327-340`)
