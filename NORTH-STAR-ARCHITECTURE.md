@@ -331,7 +331,7 @@ The keystone component. Takes three inputs, emits one output.
 
 ## Architecture additions — PM-critique integration (W1 batch)
 
-Three sections added 2026-04-18 in response to the 2026-04-16 external PM review (full triage in the PM-critique response (deleted)). These modify or extend the layers already specified above — they are not replacements. Remaining PM-critique additions (#1 DID / reference cells, #3 metric registry, #4 per-signal bake profile, #5 reversibility classification, #6 incident-state input, #7 propensity matching) land in subsequent W2–W3 batches per the architect deliverable calendar in `coordination/ARCHITECT-REPLY-03.md`.
+Three sections added 2026-04-18 in response to the 2026-04-16 external PM review (full triage in the PM-critique response (deleted)). These modify or extend the layers already specified above — they are not replacements. Remaining PM-critique additions (#1 DID / reference cells, #3 metric registry, #4 per-signal bake profile, #5 reversibility classification, #6 incident-state input, #7 propensity matching) land in subsequent W2–W3 batches per the architect deliverable calendar in `coordination/ARCHITECT-REPLY-03.md` (internal coordination doc, not included in this public repo).
 
 ### Addition #2 — Segmented baselines (baseline cell matrix)
 
@@ -386,7 +386,7 @@ interface CompiledConfig {
 
 **Covariance in sparse cells.** Related Week 3 concern flagged by TPM: at 2-D granularity the per-cell sample count (~95 samples for the demo baseline) is marginal for stable covariance estimation on the 11-signal vector. Mitigation: Ledoit-Wolf shrinkage toward the aggregate covariance is applied automatically when `n_samples_in_cell / n_signals² < 2`. The shrinkage intensity is recorded in the compiled config so verdicts can reference it in their provenance.
 
-**Sequencing.** W2 ships 1-D (hour-of-day) cells in the compiler; W3 extends to 2-D (hour × day-of-week). Addition #23 (2026-04-20) ships the 3-D `tenant_tier` extension as the multi-tenancy-closure surface for PM #4 — full implementation, not docs-only. Workload-class and region dimensions remain architecture-complete-in-docs for the project, implementation in follow-on. This matches the schedule compensation in `coordination/TPM-REPLY-03.md` after Week 1 shipped before this spec landed.
+**Sequencing.** W2 ships 1-D (hour-of-day) cells in the compiler; W3 extends to 2-D (hour × day-of-week). Addition #23 (2026-04-20) ships the 3-D `tenant_tier` extension as the multi-tenancy-closure surface for PM #4 — full implementation, not docs-only. Workload-class and region dimensions remain architecture-complete-in-docs for the project, implementation in follow-on. This matches the schedule compensation in `coordination/TPM-REPLY-03.md` (internal coordination doc, not included in this public repo) after Week 1 shipped before this spec landed.
 
 ### Addition #8 — Metric schema continuity check
 
@@ -471,7 +471,7 @@ The `extend → Inconclusive` mapping matches Argo Rollouts' built-in retry-afte
 
 ## Architecture additions — PM-critique integration (W2 batch)
 
-Two sections added 2026-04-18 (W2-batch, brought forward from end-of-W2 calendar). Remaining PM-critique additions (#1 DID / reference cells, #3 metric registry, #6 incident-state input, #7 propensity matching) land in the W3 batch at end-of-W3 per the architect deliverable calendar in `coordination/ARCHITECT-REPLY-09.md`.
+Two sections added 2026-04-18 (W2-batch, brought forward from end-of-W2 calendar). Remaining PM-critique additions (#1 DID / reference cells, #3 metric registry, #6 incident-state input, #7 propensity matching) land in the W3 batch at end-of-W3 per the architect deliverable calendar in `coordination/ARCHITECT-REPLY-09.md` (internal coordination doc, not included in this public repo).
 
 ### Addition #4 — Per-signal bake profile
 
@@ -1308,7 +1308,7 @@ Seven sub-axes formalized through Phase-2 work:
   designed for parametric H₀; iid_bootstrap-shared-pool methodology
   produces 24/131 FPR because shared-pool samples lack spatial-
   correlation structure Family E calibrated against. Phase-3 commitment
-  per ADR `coordination/ARCHITECT-REPLY-Q2-B-6-4-PATH-A-HALT-DISPOSITION.md`:
+  per ADR `coordination/ARCHITECT-REPLY-Q2-B-6-4-PATH-A-HALT-DISPOSITION.md` (internal coordination doc, not included in this public repo):
   per-detector iid_bootstrap pool restructure (~150 LOC) for clean
   closure of methodology-stress class.
 
@@ -1402,7 +1402,7 @@ Things this doc doesn't answer and that need real decisions before any of it get
 
 The current DeploySignal engine is the reference implementation of roughly L2 Family B (structural signatures) plus a crude proxy for L2 Family A (per-signal regression, via `effectiveThreshold + trendStrength`). It has no L0 variance reduction, no L1 multi-scale or BOCPD, no Families C/D/E, no calibration compiler, and no explicit α budget.
 
-The path to the north star is _not_ a rewrite. It's a sequence of in-place layer additions, each independently sweepable against the existing adversarial suite as a regression guard. See the project roadmap (deleted) (strategic shape) and the project schedule (deleted) (execution shape) for the first increment; weekly briefs live under `coordination/handoffs/` (`coordination/handoffs/WEEK1-HANDOFF.md`, future `WEEK2-HANDOFF.md` etc.; `coordination/handoffs/WS2-PHASE2-HANDOFF.md` is shelved for the project). The longer-term sequencing is approximately:
+The path to the north star is _not_ a rewrite. It's a sequence of in-place layer additions, each independently sweepable against the existing adversarial suite as a regression guard. See the project roadmap (deleted) (strategic shape) and the project schedule (deleted) (execution shape) for the first increment; weekly briefs live under `coordination/handoffs/` (internal coordination tree, not included in this public repo; `coordination/handoffs/WEEK1-HANDOFF.md`, future `WEEK2-HANDOFF.md` etc.; `coordination/handoffs/WS2-PHASE2-HANDOFF.md` is shelved for the project). The longer-term sequencing is approximately:
 
 1. Calibration compiler as a build-time tool that reproduces today's hand-tuned thresholds from a healthy baseline (proves the compiler architecture; no behavior change).
 2. Multi-scale windows in L1 (enables richer detectors without changing fusion).
