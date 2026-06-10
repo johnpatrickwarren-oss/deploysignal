@@ -206,11 +206,16 @@ export class TopologyEnricher {
   async enrich(
     group: VerdictGroup,
     events: TopologyCandidateEvent[] = [],
+    ctx?: FetchContext,
   ): Promise<VerdictGroupWithTopology> {
     const enrichedAt = this.now();
     let snapshot: TopologySnapshot;
     try {
-      snapshot = await this.source.fetchSnapshot();
+      // Thread the caller's FetchContext through so abort signals
+      // (timeout / orchestrator shutdown) propagate to the source —
+      // previously the context was dropped here, making the interface's
+      // AbortSignal support unreachable (remediation L7).
+      snapshot = await this.source.fetchSnapshot(ctx);
     } catch (err) {
       return {
         group_id: group.group_id,
@@ -320,10 +325,14 @@ export class TopologyEnricher {
     return out;
   }
 
-  /** Intersection-over-union for interval events; linear proximity
-   *  decay for point events within the correlation buffer. Returns 0
-   *  when the event falls outside `[group.window_start_ts -
-   *  corrWindow, group.window_end_ts + corrWindow]`. */
+  /** Interval events: pure intersection-over-union against the group
+   *  window — no corrWindow buffer is applied, so a disjoint interval
+   *  scores 0 regardless of proximity. Point events: 1.0 inside
+   *  `[group.window_start_ts, group.window_end_ts]`, linear decay to 0
+   *  across the corrWindow buffer on either side, 0 beyond
+   *  `[window_start - corrWindow, window_end + corrWindow]`. (The
+   *  corrWindow buffer applies to point events only — remediation L7
+   *  docstring alignment; the math is the load-bearing contract.) */
   private temporalOverlap(group: VerdictGroup, ev: TopologyCandidateEvent): number {
     const gs = group.window_start_ts;
     const ge = group.window_end_ts;
