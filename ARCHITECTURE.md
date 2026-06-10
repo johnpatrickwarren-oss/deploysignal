@@ -98,6 +98,11 @@ The orchestrator has four verdict return points (policy short-circuit, approval 
 
 ## The tuning harness (`loop.js`)
 
+> **Note:** the tuning harness itself (`loop.js`, `run_loop.sh`) is **not
+> included** in this public repository — this repo is a curated reference
+> subset, and there is no `npm run loop` here. This section documents how
+> the shipped detector code was produced.
+
 DeploySignal's detectors were not hand-tuned. They were evolved by a loop that pairs **Opus** (plans what to change and why) with **Sonnet** (writes the code patches), validated each iteration against the adversarial suite.
 
 The loop has a **two-layer guardrail**:
@@ -131,6 +136,11 @@ Three scenario patterns are not catchable with the current detector architecture
 These are documented structural gaps. The covariance signal in the next-cycle queue targets #3 and possibly #2.
 
 ## Runs and artifacts
+
+> **Note:** these are artifacts of the (not-included) tuning harness; per-run
+> outputs and `analyze_iterations.py` are not part of this public subset.
+> The curated inputs that *are* shipped live under `runs/` (e.g.
+> `runs/adversarial-scenarios.json`, `runs/compiled-configs/`).
 
 Per-run outputs land in `runs/<run-id>/`. Each contains:
 

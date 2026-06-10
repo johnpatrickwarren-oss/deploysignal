@@ -7,6 +7,11 @@ concurrency:
 
 on:
   pull_request:
+  # Also run on direct pushes / merge commits to the default branch —
+  # PR-only triggers let a broken merge land undetected until the next PR
+  # (remediation L3).
+  push:
+    branches: [main]
 
 jobs:
   # Compile job — single tsc pass produces dist/ + test/*.test.js + tools/**/*.js
