@@ -697,15 +697,26 @@ function evaluateSignals(live, sc, hoursElapsed, tb) {
   }
   var rollbackFired = [];
   var extendFired   = [];
+  // Detector crashes must never be silent: a crashed detector is
+  // indistinguishable from "did not fire" (fail-open), which is how the
+  // gpu_eff use-before-declaration TypeError stayed hidden (see
+  // REMEDIATION_PLAN.md H1/M2). Log with detector id and surface a
+  // detector_errors entry so replay/audit can tell "clean" from "errored".
+  var detectorErrors = [];
+  function recordDetectorError(kind, d, e) {
+    var msg = e && e.message ? e.message : String(e);
+    detectorErrors.push({ id: d.id, kind: kind, error: msg });
+    console.error('[deploysignal] detector error (' + kind + ':' + d.id + '): ' + msg);
+  }
   ROLLBACK_DEFS.forEach(function(d) {
     if (sup.indexOf(d.id) >= 0 && !bypass[d.id]) return;
     try { if (d.check(live, sc.baseline, flags, ctx, tb)) rollbackFired.push({id:d.id,label:d.label}); }
-    catch(e) {}
+    catch(e) { recordDetectorError('rollback', d, e); }
   });
   EXTEND_DEFS.forEach(function(d) {
     if (sup.indexOf(d.id) >= 0) return;
     try { if (d.check(live, sc.baseline, flags, ctx, tb)) extendFired.push({id:d.id,label:d.label}); }
-    catch(e) {}
+    catch(e) { recordDetectorError('extend', d, e); }
   });
   var healthResult = { rollback: rollbackFired, extend: extendFired, warmup: warmup };
 
@@ -725,7 +736,7 @@ function evaluateSignals(live, sc, hoursElapsed, tb) {
 
   var allExtends = healthResult.extend.concat(approvalExtend).concat(zetaExtend);
 
-  return { rollback: allRollbacks, extend: allExtends, warmup: healthResult.warmup };
+  return { rollback: allRollbacks, extend: allExtends, warmup: healthResult.warmup, detector_errors: detectorErrors };
 }
 
 module.exports = {
