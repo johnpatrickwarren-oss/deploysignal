@@ -126,7 +126,7 @@ The repository is in strong overall health: it compiles cleanly (`tsc` engine + 
 
 - [x] **H1** Fix `shared.js` `gpu_eff` use-before-declaration (move `var tm` above the warmup guard); add a no-throw regression test over all `ROLLBACK_DEFS`/`EXTEND_DEFS` checks. (`shared.js:285-286`)
 - [x] **M2** Replace empty `catch(e) {}` in `evaluateSignals` with logged/audited detector-error surfacing. (`shared.js:702-708`)
-- [ ] **M1** Fix the remaining hoisted-var dead guards (`tr` at `shared.js:132`; `p99R`/`_tp99Tok`/`tickEstTok` at `:210`; `tHbm` at `:260`); add `no-use-before-define` linting for `shared.js`.
+- [x] **M1** Fix the remaining hoisted-var dead guards (`tr` at `shared.js:132`; `p99R`/`_tp99Tok`/`tickEstTok` at `:210`; `tHbm` at `:260`); add `no-use-before-define` linting for `shared.js`. *(Also fixed `_hbmRp99` at `:132`, found by the new lint test; lint implemented as `test/shared-no-use-before-define.test.ts` using the TypeScript parser — no new dependencies.)*
 - [ ] **M3** Resolve `effectiveThreshold` strength² question: confirm intent, then either fix to `baseThreshold - discount` + re-run adversarial sweeps, or rename/document the quadratic ramp. (`engine/core.ts:171-172`)
 - [ ] **M4** Remove the broken `npm run loop` script; correct ARCHITECTURE.md's `loop.js` / `scenario_results.json` sections. (`package.json:16`, `ARCHITECTURE.md:99,138`)
 - [ ] **M5** Mark package `private: true` or ship `dist/` (+ `prepare` build, `main` field). (`package.json`)
