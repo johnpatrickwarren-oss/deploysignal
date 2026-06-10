@@ -144,7 +144,7 @@ The repository is in strong overall health: it compiles cleanly (`tsc` engine + 
 - [x] **L3** Add `push: branches: [main]` trigger to the test workflow. (`.github/workflows/test.yml`)
 - [x] **L4** Regenerate `package-lock.json` from a clean clone (drops the extraneous `../tessera/engine` entry and the `git+ssh` resolution). *(Extraneous entry dropped; dep spec switched to explicit `git+https://`. Note: npm 11 canonicalizes the lockfile `resolved` field for GitHub git deps to `git+ssh://` regardless of spec — fetches still go via the https codeload tarball, and the https spec ensures any git-clone fallback is unauthenticated-https, which was the actual risk.)*
 - [x] **L5** Clean up dead `coordination/` and `runs/validation-reports/` references in CHEAT-SHEET.md / NORTH-STAR-ARCHITECTURE.md. *(Annotated all 6 `coordination/` citations as internal-only; `report-card-v1.json` noted as a gitignored generated artifact.)*
-- [ ] **L6** Track the §C1/§C2 right-reasons TODO tests to closure (architect-scope `cell_patch`).
+- [ ] **L6** Track the §C1/§C2 right-reasons TODO tests to closure (architect-scope `cell_patch`). `[deferred: requires the architect-scope cell_patch design for inline scenarios — a detector-family product decision, not a code defect; §C3's lock test already flags when it lands]`
 - [x] **L7** Thread abort signal through `TopologyEnricher.enrich`; align interval-event overlap docstring. (`engine/topology-overlay.ts:213,327-340`) *(enrich now takes an optional `FetchContext` third arg, passed verbatim to `fetchSnapshot`; docstring aligned to the math — corrWindow buffer applies to point events only.)*
 
 ---
@@ -158,4 +158,19 @@ tsc -p tsconfig.test.json → OK
 node --test test/*.test.js:
   tests 988 | pass 980 | fail 0 | skipped 2 | todo 6 | duration ~223s | exit 0
   (2 todo tests fail-as-expected: right-reasons §C1/§C2 — known architect-scope gap)
+```
+
+## Test-suite results (post-remediation, 2026-06-10)
+
+```
+npm run build   → OK (tsc, no errors)
+tsc -p tsconfig.test.json → OK
+node tools/build-browser-bundle.js --check → OK (bundle fresh)
+node --test test/*.test.js:
+  tests 1000 | pass 992 | fail 0 | skipped 2 | todo 6 | duration ~192s | exit 0
+  (+12 tests from the 6 new remediation regression suites; the 2 fail-as-
+   expected todo tests are the L6 right-reasons §C1/§C2 gap, unchanged.
+   Note: test/orchestrator-parallel-fanout.test.js has a wall-clock
+   assertion that can flake under full-suite parallel load — it passed in
+   this run and 3/3 in isolation.)
 ```
