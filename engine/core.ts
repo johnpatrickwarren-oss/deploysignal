@@ -167,9 +167,12 @@ export function effectiveThreshold(
 ): number {
   if (!t || t.n < 4 || t.insufficient) return baseThreshold;
   if (rocBypass != null && Math.abs(t.roc) >= rocBypass) return baseThreshold;
+  // Strength is applied exactly once: a refactor slip previously computed
+  // `discount = trendDiscount * strength` and then subtracted
+  // `discount * strength`, quadratically weakening the discount
+  // (remediation M3; fixed identically in deploysignal-engine).
   const strength = trendStrength(t, direction || 'rise');
-  const discount = trendDiscount * strength;
-  return baseThreshold - discount * strength;
+  return baseThreshold - trendDiscount * strength;
 }
 
 // ── WARMUP_CONFIG ─────────────────────────────────────────────────
