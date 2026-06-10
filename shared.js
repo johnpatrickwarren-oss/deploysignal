@@ -281,10 +281,10 @@ var ROLLBACK_DEFS = [
   { id:'gpu_eff', label:'GPU Efficiency Regression',
     check: function(m,b,f,ctx,tb) {
       if (!ctx || ctx.changeType !== 'model_weights') return false;
-      // Warmup guard: if MFU is improving or flat, skip (not degradation)
-      if (tm.slopeNorm !== undefined && tm.slopeNorm > -0.001 && tm.n >= 4 && !((b.mfu - m.mfu) / b.mfu > 0.08)) return false;
       var tm = tb ? tb.get('mfu') : null;
       if (!tm || tm.n < 4 || tm.insufficient) return false;
+      // Warmup guard: if MFU is improving or flat, skip (not degradation)
+      if (tm.slopeNorm !== undefined && tm.slopeNorm > -0.001 && tm.n >= 4 && !((b.mfu - m.mfu) / b.mfu > 0.08)) return false;
       var tHbm = tb ? tb.get('hbm_spill') : null;
       var mfuR  = b.mfu > 0 ? m.mfu / b.mfu : 1;
       var hbmR  = (tHbm && !tHbm.insufficient && b.hbm_spill > 0) ? m.hbm_spill / b.hbm_spill : 1;
