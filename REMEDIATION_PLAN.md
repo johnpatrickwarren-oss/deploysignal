@@ -120,6 +120,14 @@ The repository is in strong overall health: it compiles cleanly (`tsc` engine + 
 - **File:** `engine/topology-overlay.ts:213` — `this.source.fetchSnapshot()` is called without a `FetchContext`, so abort signals can never propagate despite the interface supporting them; `:327-340` — the docstring says events outside `[window_start - corrWindow, window_end + corrWindow]` return 0, but interval events use pure IoU with no corrWindow buffer (only point events get the buffer).
 - **Remediation:** Thread an optional `AbortSignal` through `enrich()`; align the docstring (or the math) for interval events.
 
+### Found during remediation (2026-06-10)
+
+#### R1. Browser bundle was unregenerable: builder mishandled named re-export barrels
+
+- **File:** `tools/build-browser-bundle.js` (no handling for `export { A } from './x'`), `engine/index.browser.js`, `demos/demo.html`.
+- **Problem:** The PR #31 god-file decomposition split modules into `_`-prefixed implementation files re-exported via `export { X } from './_x'` barrels. The bundler handled `export * from` and bare `export { }` but not named re-exports: it neither recorded the dependency edge nor stripped the line, so regenerating produced a syntactically invalid bundle (raw `export` inside an IIFE → "Unexpected token 'export'"). The committed bundle had been stale since #31; `node tools/build-browser-bundle.js --check` failed on a pristine clone.
+- **Fix:** Named re-exports now contribute a topo-sort dependency edge and are stripped + re-published via `__NS__.<exported> = __NS__.<source>` in the module epilogue. Bundle and demos/demo.html regenerated; browser-parity, bundle-syntax, and Q74 tests pass.
+
 ---
 
 ## Prioritized remediation checklist
