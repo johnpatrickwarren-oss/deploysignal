@@ -39,9 +39,17 @@ export function createAuditWriter(opts?: AuditWriterOpts): AuditWriter {
   const serviceDir = path.join(dir, service);
   fs.mkdirSync(serviceDir, { recursive: true });
 
-  let buffer: Array<AuditRecord | AuditRecordV2> = [];
-  let currentDate = utcDate();
+  // Each buffered record is stamped with the UTC date observed at write()
+  // time so daily rotation attributes it to the day it was produced — a
+  // flush that crosses midnight must not drag pre-midnight records into
+  // the new day's file (remediation L2).
+  let buffer: Array<{ rec: AuditRecord | AuditRecordV2; date: string }> = [];
+  const fixedDate = utcDate();
   let flushTimer: ReturnType<typeof setInterval> | null = setInterval(flush, 500);
+  // The flush timer is a convenience, not a liveness requirement: it must
+  // not keep a CLI/tool process alive when close() is forgotten
+  // (remediation L2). unref is absent in browser-ish runtimes, hence `?.`.
+  flushTimer.unref?.();
 
   function utcDate(): string {
     return new Date().toISOString().slice(0, 10);
@@ -53,24 +61,29 @@ export function createAuditWriter(opts?: AuditWriterOpts): AuditWriter {
 
   function flush(): void {
     if (buffer.length === 0) return;
-    const today = rotate ? utcDate() : currentDate;
-    if (today !== currentDate) currentDate = today;
-    let lines = '';
+    // Group serialized lines by their write-time date, preserving order
+    // within each file (records only ever move forward in time, so at most
+    // two groups exist per flush in practice).
+    const linesByDate: { [date: string]: string } = {};
     for (let i = 0; i < buffer.length; i++) {
-      const rec = _finalize(buffer[i]);
+      const rec = _finalize(buffer[i].rec);
       const replacer = rec.schema_version === '2' ? _schemaV2Replacer : _schemaV1Replacer;
-      lines += JSON.stringify(rec, replacer) + '\n';
+      const date = buffer[i].date;
+      linesByDate[date] = (linesByDate[date] || '') + JSON.stringify(rec, replacer) + '\n';
     }
     buffer = [];
-    try {
-      fs.appendFileSync(filePath(currentDate), lines, 'utf8');
-    } catch (_e) {
-      // Best-effort — don't crash the decision path
+    const dates = Object.keys(linesByDate);
+    for (let d = 0; d < dates.length; d++) {
+      try {
+        fs.appendFileSync(filePath(dates[d]), linesByDate[dates[d]], 'utf8');
+      } catch (_e) {
+        // Best-effort — don't crash the decision path
+      }
     }
   }
 
   function write(record: AuditRecord | AuditRecordV2): void {
-    buffer.push(record);
+    buffer.push({ rec: record, date: rotate ? utcDate() : fixedDate });
   }
 
   function close(): void {
