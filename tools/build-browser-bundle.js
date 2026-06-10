@@ -90,6 +90,15 @@ const IMPORT_RE = /^import\s+(?:\{([^}]*)\}|\*\s+as\s+(\w+))\s+from\s+['"]([^'"]
 // separate regex and record them as relImports with no destructure.
 const REEXPORT_STAR_RE = /^export\s+\*\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/gm;
 
+// `export { A, B as C } from './x'` — NAMED re-export barrel. The god-file
+// decomposition (#31) split modules into `_`-prefixed implementation files
+// re-exported through their original module path with this form, so it is
+// now load-bearing: it carries a dependency edge (the source module must
+// publish into __NS__ first) and an export registration (rewriteExports).
+// Pre-fix the bundler left these lines verbatim inside the module IIFEs,
+// producing a syntactically invalid bundle (`export` inside a function).
+const REEXPORT_NAMED_RE = /^export\s+\{([^}]*)\}\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/gm;
+
 function parseImports(source, fromFile) {
   // Returns [{ kind: 'rel'|'node', spec, resolved, names: [...], ns: ..., reexport: bool }]
   const out = [];
@@ -120,6 +129,15 @@ function parseImports(source, fromFile) {
   while ((m = REEXPORT_STAR_RE.exec(source)) !== null) {
     const spec = m[1];
     if (!spec.startsWith('.')) continue;  // bare-specifier re-export (none expected)
+    const resolved = resolveModule(fromFile, spec);
+    out.push({ kind: 'rel', spec, resolved, names: null, ns: null, reexport: true });
+  }
+  // `export { A } from './x'` — same dependency-edge treatment as the
+  // star form; the export registration itself happens in rewriteExports.
+  REEXPORT_NAMED_RE.lastIndex = 0;
+  while ((m = REEXPORT_NAMED_RE.exec(source)) !== null) {
+    const spec = m[2];
+    if (!spec.startsWith('.')) continue;
     const resolved = resolveModule(fromFile, spec);
     out.push({ kind: 'rel', spec, resolved, names: null, ns: null, reexport: true });
   }
@@ -169,6 +187,7 @@ function stripImportLines(source) {
  *  publish epilogue. */
 function rewriteExports(source) {
   const exports = [];
+  const reexports = [];
   let out = source;
 
   // `export type X ...` — drop entirely (tsc usually erases, but defensive).
@@ -180,6 +199,21 @@ function rewriteExports(source) {
   // __NS__, so the shim is effectively a no-op once bundled — strip the
   // line so it doesn't leak an illegal `export` into the wrapped IIFE body.
   out = out.replace(/^export\s+\*\s+from\s+['"][^'"]+['"]\s*;?\s*$/gm, '');
+
+  // `export { A, B as C } from './x';` — named re-export barrel (#31
+  // decomposition shims). The source module already published the symbols
+  // into __NS__ (the parseImports dependency edge guarantees it runs
+  // first), so strip the line and register {source→exported} pairs; the
+  // epilogue re-publishes via `__NS__.C = __NS__.B` (no-op unless renamed).
+  // MUST run before the bare `export { ... };` rule below, whose regex
+  // would otherwise not match but is kept ordered for clarity.
+  out = out.replace(/^export\s+\{([^}]*)\}\s+from\s+['"][^'"]+['"]\s*;?\s*$/gm, (_, inner) => {
+    inner.split(',').map(s => s.trim()).filter(Boolean).forEach(piece => {
+      const parts = piece.split(/\s+as\s+/);
+      reexports.push({ source: parts[0].trim(), exported: (parts[1] || parts[0]).trim() });
+    });
+    return '';
+  });
 
   // `export { A, B as C };` — drop, register {A→A, B→C}.
   out = out.replace(/^export\s+\{([^}]*)\}\s*;?\s*$/gm, (_, inner) => {
@@ -200,7 +234,7 @@ function rewriteExports(source) {
     }
   );
 
-  return { rewritten: out, exports };
+  return { rewritten: out, exports, reexports };
 }
 
 /** Build the IIFE prelude that destructures imported names from `__NS__`.
@@ -226,9 +260,14 @@ function buildImportPrelude(imports) {
   return lines.join('\n');
 }
 
-function buildExportEpilogue(exports) {
-  if (exports.length === 0) return '';
-  return exports.map(e => `  __NS__.${e.exported} = ${e.local};`).join('\n');
+function buildExportEpilogue(exports, reexports) {
+  const lines = exports.map(e => `  __NS__.${e.exported} = ${e.local};`);
+  // Named re-exports: the symbol lives in __NS__ (published by its source
+  // module, bundled earlier in topo order), not in this IIFE's scope.
+  for (const r of (reexports || [])) {
+    lines.push(`  __NS__.${r.exported} = __NS__.${r.source};`);
+  }
+  return lines.join('\n');
 }
 
 // ── Browser shim block ──────────────────────────────────────────────
@@ -357,9 +396,9 @@ function build() {
     const mod = cache.get(file);
     const rel = path.relative(SRC_DIR, file);
     const stripped = stripImportLines(mod.source);
-    const { rewritten, exports } = rewriteExports(stripped);
+    const { rewritten, exports, reexports } = rewriteExports(stripped);
     const prelude = buildImportPrelude(mod.imports);
-    const epilogue = buildExportEpilogue(exports);
+    const epilogue = buildExportEpilogue(exports, reexports);
 
     body += '// ══════════════════════════════════════════════════════════════════════\n';
     body += '// From: engine/' + rel.replace(/\\/g, '/') + '\n';
