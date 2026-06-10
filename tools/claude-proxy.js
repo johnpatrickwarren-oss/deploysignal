@@ -147,7 +147,11 @@ const server = http.createServer(function (req, res) {
   });
 });
 
-server.listen(PORT, function () {
+// Bind loopback only: the proxy relays prompts through ANTHROPIC_API_KEY,
+// so listening on all interfaces would let anyone on the local network
+// spend against the key (CORS is wildcard for the file:// demo). The demo
+// only ever calls http://localhost:8787.
+server.listen(PORT, '127.0.0.1', function () {
   console.error('DeploySignal Claude proxy listening on http://localhost:' + PORT);
   console.error('  Model:    ' + MODEL);
   console.error('  Endpoint: POST /situation');
