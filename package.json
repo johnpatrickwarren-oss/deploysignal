@@ -29,6 +29,6 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@johnpatrickwarren-oss/deploysignal-engine": "git+https://github.com/johnpatrickwarren-oss/deploysignal-engine.git#v0.6.0-pre"
+    "@johnpatrickwarren-oss/deploysignal-engine": "git+https://github.com/johnpatrickwarren-oss/deploysignal-engine.git#v0.6.1-pre"
   }
 }
