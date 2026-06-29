@@ -19,6 +19,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { DEPLOY_EVENT_CLASSES } from '@johnpatrickwarren-oss/deploysignal-engine/ds-integration';
 import type {
   DeployEventPayload,
   DsToTesseraEventRequest,
@@ -57,15 +58,15 @@ test('R92-PoC-2: DsToTesseraEventRequest wraps payload with contract_version v1'
   assert.ok(request.emitted_at_ts >= request.event.event_ts);
 });
 
-test('R92-PoC-3: event_class union restricts to 5 documented values', () => {
-  const validClasses: DeployEventPayload['event_class'][] = [
-    'firmware_push',
-    'model_redeploy',
-    'env_change',
-    'config_change',
-    'capacity_change',
-  ];
-  assert.equal(validClasses.length, 5);
+test('R92-PoC-3: event_class closed-set is the 6 documented values, derived from DEPLOY_EVENT_CLASSES', () => {
+  // Self-validating against the engine's single source of truth rather than a
+  // hand-maintained list: the contract grew from 5 → 6 classes when
+  // `chaos_experiment` was added (engine H1 remediation 2026-06-10) so DS-side
+  // Anvil chaos runs activate Tessera's freeze-hook. Asserting against the
+  // exported const means this PoC can never silently drift from the union again.
+  const validClasses: DeployEventPayload['event_class'][] = [...DEPLOY_EVENT_CLASSES];
+  assert.equal(validClasses.length, 6);
+  assert.ok(validClasses.includes('chaos_experiment'));
   for (const cls of validClasses) {
     const payload: DeployEventPayload = {
       event_id: `r92-poc-${cls}`,
