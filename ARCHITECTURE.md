@@ -46,7 +46,7 @@ The bulk of the detection logic. Each detector consumes a trend snapshot and ret
 
 ### Current detectors
 
-The six detectors documented here are the architecturally distinctive ones — they encode the patterns specific to AI inference workloads. The engine runs 22 rollback detectors and 9 extend detectors in total; the remaining 16 rollback and 8 extend detectors are threshold checks on individual signals. Full list: see `engine/gates/health.ts` and `engine/signals/quality.ts`.
+The eight detectors documented here are the architecturally distinctive ones — they encode the patterns specific to AI inference workloads. The engine runs 24 rollback detectors and 9 extend detectors in total; the remaining 16 rollback detectors and all 9 extend detectors are threshold checks on individual signals or flags. Full list: see `engine/gates/health.ts` and `engine/signals/quality.ts`.
 
 **`slowbleed`** — four or more metrics drifting simultaneously at low magnitude.
 _Catches:_ correlated sub-threshold drift across the signal set. The individual metric movements are each too small to trip their own detector, but the joint pattern is distinctive. Triggers when slopeNorm is in the 0.001–0.010 range with trendStrength > 0 and ratio > 2% off baseline, across 4+ of 9 tracked signals.

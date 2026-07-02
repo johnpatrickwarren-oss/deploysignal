@@ -59,7 +59,7 @@ Total family-level α is union-bounded ≤ α_total. Within-family signal-level 
 
 ## Honest Scope
 
-**Shipped today:** five detector families (Tier-1-SOTA complete as of 2026-04-20, including betting e-processes, MCD/MRCD robust covariance, Sequential MMD, weighted-quantile conformal); calibration compiler with formal α-accounting; six canned demos validating against synthetic trajectories; audit-schema v2.1+ classifier (v2.2 incremental for profile-block emission per Q60.4) with full provenance per verdict; Argo Rollouts / Spinnaker / the model-lifecycle tooling / webhook orchestration adapters with structured lifecycle events.
+**Shipped today:** five detector families (Tier-1-SOTA complete as of 2026-04-20, including betting e-processes, MCD/MRCD robust covariance, Sequential MMD, weighted-quantile conformal); calibration compiler with formal α-accounting; six canned demos validating against synthetic trajectories; audit-schema v2 classifier (shipped records remain `schema_version: '2'`; v2.1 is a planned strict-additive post-phase extension — profile-block emission per Q60.4 is queued there; see `audit/SCHEMA.md`) with full provenance per verdict; Argo Rollouts / Spinnaker / the model-lifecycle tooling / webhook orchestration adapters with structured lifecycle events.
 
 **Specified, implementation-for follow-on:** real-production-baseline calibration (synthetic baseline today; needs >100K healthy prod runs for tight α calibration); live cluster integration against a running Argo deployment; Tier-2 neural detectors (foundation-model novelty, transformer CPD) gated on real-baseline accumulation; direction-aware baseline-maintenance automation loop; SLO substrate derivation from baselines.
 
@@ -158,6 +158,6 @@ Pitch-narrative discipline arc: methodology-surface-divergence as diagnostic; fr
 
 ---
 
-*DeploySignal — compiler 0.2.0, audit schema v2.2, 874 tests on main (869 pass / 0 fail / 5 skipped+todo; post-Q65 SPEC-5 close 2026-05-04; Phase C BATCH PARTIALLY CLOSED — Q61 + Q63 + Q65 closed; Q62 Phase 2 closed, Phase 1 in HALT; Q64 in flight).*
+*DeploySignal — compiler 0.3.0, audit schema v2 (v2.1 planned; see `audit/SCHEMA.md`), 874 tests on main (as of 2026-05-04) (869 pass / 0 fail / 5 skipped+todo; post-Q65 SPEC-5 close 2026-05-04; Phase C BATCH PARTIALLY CLOSED — Q61 + Q63 + Q65 closed; Q62 Phase 2 closed, Phase 1 in HALT; Q64 in flight).*
 
 *Test count methodology: test-runner output (`npm test` summary line counting all `test()` + `it()` blocks across `test/*.test.ts`) is canonical. Grep-based count of top-level `^test(` invocations yields a lower number (excludes nested `it()` blocks within `describe()` blocks); use test-runner output to avoid divergence.*
