@@ -13,7 +13,7 @@ A statistically-rigorous answer to one operational question: **given a new deplo
 
 ## DS bundle — sibling products
 
-DeploySignal is one product in a multi-product bundle. The shared statistical engine lives at [`deploysignal-engine`](https://github.com/johnpatrickwarren-oss/deploysignal-engine); products consume it via git-dep:
+DeploySignal is one product in a multi-product bundle. Within this repo, the canonical engine source is the local [`engine/`](engine/) tree — all code and tests here import it directly. [`deploysignal-engine`](https://github.com/johnpatrickwarren-oss/deploysignal-engine) (`@johnpatrickwarren-oss/deploysignal-engine`) is the extracted, Tessera-evolved npm package that **external** products consume via git-dep; in this repo it is exercised only by the r92 engine-package POC test:
 
 | Repo | Stage | What it does |
 |---|---|---|
@@ -39,7 +39,7 @@ See [`engine/o0/anvil/`](engine/o0/anvil/) for the adapter contracts and stubs, 
 
 ```bash
 npm ci
-npm test           # runs the full suite (~970 tests)
+npm test           # runs the full suite (see the CHEAT-SHEET.md status line for the live suite count)
 npm run build      # tsc compile
 ```
 
