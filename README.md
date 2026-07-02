@@ -1,5 +1,8 @@
 # DeploySignal
 
+> **Repo status:** active development happens in a private working repository
+> (`deploysignal-private`); this public repo is the published snapshot and may lag it.
+
 **Statistical deploy-gate decision engine for AI inference workloads.** A reference architecture and reference implementation: Ville-bounded detector portfolio, calibration compiler that compiles healthy-baseline traces into per-cell threshold parameters, audit substrate that emits structured DetectorTrip records, and a worked-example demo surface (6 canned scenarios including a reconstruction of a publicly-disclosed AI inference regression).
 
 ## What this is
