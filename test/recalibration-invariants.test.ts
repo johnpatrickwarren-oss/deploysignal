@@ -57,12 +57,27 @@ function seedActive(store: RecalibrationStore, pointer: ActivePointer): void {
 
 // ── degraded / improved candidate config builders ────────────────────
 //
-// Both mutate v4's aggregate_fallback family_A per_signal + family_C
+// Mutate v4's aggregate_fallback family_A per_signal + family_C
 // mean_vector consistently (same multiplier applied wherever a signal
-// appears in either block — compareCandidateVsActive's extractSignalMeans
+// appears in either block — compareCandidateVsActive's extraction
 // prefers family_C on overlap, but family_A-only signals like eval_score/
 // tool_success_rate must move too) so classification is deterministic
-// regardless of which extraction path wins. Verified empirically against
+// regardless of which extraction path wins.
+//
+// ALSO mutate every one of v4's 168 per-cell entries (all
+// confidence:'strict' with their own family_A/family_C blocks) by the
+// same multiplier. This matters post-per-cell-weighted-extraction
+// (engine/recalibration/compare.ts's extractSignalMeansPerCellWeighted,
+// the default `compareCandidateVsActive`/classification extraction as
+// of the per-cell-weighted follow-up): with all-strict-confidence cells,
+// that extraction reads ONLY the per-cell values, never touching
+// aggregate_fallback — so mutating aggregate_fallback alone (the
+// pre-follow-up shape of this helper) would produce a byte-identical
+// per-cell-weighted mean and a spurious 'mixed'/'unchanged'
+// classification instead of the intended degradation/improvement. A
+// genuinely degraded/improved recalibration candidate has per-cell
+// values that moved too, not just its aggregate fallback, so mutating
+// both is also the more realistic fixture. Verified empirically against
 // the real classify.ts/compare.ts modules before being locked in here:
 // the degraded builder yields direction_classification 'degradation'
 // with zero 'improved' signals; the improved builder yields 'improvement'
@@ -93,16 +108,34 @@ function mutatedCandidateConfig(
 ): CompiledConfig {
   const cfg = JSON.parse(JSON.stringify(active)) as CompiledConfig;
   cfg.version = version;
-  const famA = cfg.baseline_cells!.aggregate_fallback.family_A!.per_signal as Record<string, { baseline_mean: number }>;
+  const bc = cfg.baseline_cells!;
+  const famA = bc.aggregate_fallback.family_A!.per_signal as Record<string, { baseline_mean: number }>;
   for (const sig of Object.keys(famA)) {
     const mult = multipliers[sig];
     if (mult !== undefined) famA[sig].baseline_mean *= mult;
   }
-  const mv = cfg.baseline_cells!.aggregate_fallback.family_C!.mean_vector;
+  const mv = bc.aggregate_fallback.family_C!.mean_vector;
   FAMILY_C_ORDER.forEach((sig, idx) => {
     const mult = multipliers[sig];
     if (mult !== undefined) mv[idx] *= mult;
   });
+  // Per-cell mirror of the above — see the header comment on this
+  // section for why this is required post-per-cell-weighted-extraction.
+  for (const cell of bc.cells) {
+    if (cell.family_A) {
+      for (const sig of Object.keys(cell.family_A.per_signal)) {
+        const mult = multipliers[sig];
+        if (mult !== undefined) cell.family_A.per_signal[sig].baseline_mean *= mult;
+      }
+    }
+    if (cell.family_C) {
+      const cellMv = cell.family_C.mean_vector;
+      FAMILY_C_ORDER.forEach((sig, idx) => {
+        const mult = multipliers[sig];
+        if (mult !== undefined && cellMv[idx] !== undefined) cellMv[idx] *= mult;
+      });
+    }
+  }
   return cfg;
 }
 

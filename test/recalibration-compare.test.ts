@@ -1,8 +1,9 @@
 // test/recalibration-compare.test.ts — Addition #15 baseline-maintenance
-// lifecycle, Task 4.
+// lifecycle, Task 4 + the per-cell-weighted-extraction follow-up.
 //
 // Exercises engine/recalibration/compare.ts: extractSignalMeans,
-// compareCandidateVsActive, evaluateReadinessGates.
+// extractSignalMeansPerCellWeighted, compareCandidateVsActive,
+// evaluateReadinessGates.
 //
 // Synthetic mini-configs shaped like runs/compiled-configs/v4-fusion-
 // novelty.json's baseline_cells block (aggregate_fallback.family_A.
@@ -14,8 +15,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  extractSignalMeans, compareCandidateVsActive, evaluateReadinessGates,
+  extractSignalMeans, extractSignalMeansPerCellWeighted, compareCandidateVsActive, evaluateReadinessGates,
 } from '../engine/recalibration/compare';
+import { classifyRecalibration } from '../engine/recalibration/classify';
 import type { CompiledConfig } from '../engine/types';
 import { DRIFT_SAMPLE_WINDOW_MAX } from '../engine/drift/baseline-drift-detector';
 
@@ -103,6 +105,183 @@ test('extractSignalMeans: divergent family_A vs family_C values on an overlappin
   });
   const means = extractSignalMeans(cfg);
   assert.equal(means.p99_latency, 200, 'family_C mean_vector must win over the divergent family_A baseline_mean');
+});
+
+// ── extractSignalMeansPerCellWeighted ─────────────────────────────────
+
+/** 3-cell fixture: two 'strict' cells with their OWN family_A/family_C
+ *  values + n_samples, plus a third 'aggregate'-confidence cell (no
+ *  family data of its own — routes to aggregate_fallback exactly like
+ *  runtime's buildMSPRTParams does when cell.confidence is 'aggregate').
+ *  family_A signal ('p99_latency') and family_C signal ('mfu') are kept
+ *  disjoint (family_c_signals: ['mfu']) so this exercises both
+ *  averaging code paths independently, with no family_C-wins-on-overlap
+ *  tie-break in play. */
+function makeWeightedConfig(): CompiledConfig {
+  return {
+    version: 'v-weighted@seed=1',
+    compiler_version: '0.3.0',
+    compiled_at: '2026-07-01T00:00:00.000Z',
+    baseline_ref: 'synthetic-v1@seed=1',
+    alpha_budget: { total: 1e-3, per_family: { A: 4e-4, C: 2e-4 } },
+    family_c_signals: ['mfu'],
+    baseline_cells: {
+      dimensions: ['hour_of_day'],
+      cells: [
+        {
+          key: { hour_of_day: 0 }, n_samples: 100, confidence: 'strict',
+          family_A: { per_signal: { p99_latency: { baseline_mean: 100, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5 } } },
+          family_C: { mean_vector: [100], covariance: [[10]] },
+        },
+        {
+          key: { hour_of_day: 1 }, n_samples: 300, confidence: 'strict',
+          family_A: { per_signal: { p99_latency: { baseline_mean: 300, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5 } } },
+          family_C: { mean_vector: [300], covariance: [[10]] },
+        },
+        // 'aggregate' confidence, no per-cell family data of its own —
+        // contributes aggregate_fallback's value (500), weighted by ITS
+        // OWN n_samples (200), same as runtime would consult for this
+        // cell/signal.
+        { key: { hour_of_day: 2 }, n_samples: 200, confidence: 'aggregate' },
+      ],
+      aggregate_fallback: {
+        family_A: {
+          per_signal: {
+            p99_latency: { baseline_mean: 500, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5 },
+          },
+        },
+        family_C: { mean_vector: [500], covariance: [[10]] },
+      },
+    },
+  } as CompiledConfig;
+}
+
+test('extractSignalMeansPerCellWeighted: weighted average across strict + aggregate-confidence cells matches hand computation exactly', () => {
+  const cfg = makeWeightedConfig();
+  const means = extractSignalMeansPerCellWeighted(cfg);
+  // (100*100 + 300*300 + 500*200) / (100+300+200) = 200000/600 = 333.333...
+  const expected = 200000 / 600;
+  assert.ok(Math.abs(means.p99_latency - expected) < 1e-9, `p99_latency: got ${means.p99_latency}, want ${expected}`);
+  assert.ok(Math.abs(means.mfu - expected) < 1e-9, `mfu: got ${means.mfu}, want ${expected}`);
+  // Sanity: this must differ from the old aggregate-only extraction,
+  // which would report the aggregate_fallback value (500) untouched by
+  // any per-cell weighting.
+  const oldMeans = extractSignalMeans(cfg);
+  assert.equal(oldMeans.p99_latency, 500);
+  assert.equal(oldMeans.mfu, 500);
+  assert.notEqual(means.p99_latency, oldMeans.p99_latency);
+});
+
+test('extractSignalMeansPerCellWeighted: cell missing per-cell data for a signal contributes nothing (falls through to remaining cells, not to aggregate)', () => {
+  const cfg = makeWeightedConfig();
+  // Strip cell 1's family_A block entirely — a 'strict' cell with no
+  // per-signal data at all is a legacy/malformed shape; runtime's
+  // buildMSPRTParams returns null for it (no fallback to aggregate,
+  // since confidence isn't 'aggregate'/'none'), so this extraction must
+  // likewise just skip it rather than substituting the aggregate value.
+  delete cfg.baseline_cells!.cells[0].family_A;
+  const means = extractSignalMeansPerCellWeighted(cfg);
+  // Only cell 1 (n=300, value=300) and cell 2 (aggregate-routed, n=200,
+  // value=500) contribute now: (300*300 + 500*200) / (300+200) = 190000/500 = 380.
+  const expected = (300 * 300 + 500 * 200) / (300 + 200);
+  assert.ok(Math.abs(means.p99_latency - expected) < 1e-9, `got ${means.p99_latency}, want ${expected}`);
+});
+
+test('extractSignalMeansPerCellWeighted: no baseline_cells -> empty map (same as extractSignalMeans)', () => {
+  const cfg = makeWeightedConfig();
+  cfg.baseline_cells = undefined;
+  assert.deepEqual(extractSignalMeansPerCellWeighted(cfg), {});
+});
+
+test('extractSignalMeansPerCellWeighted: cells carry no per-cell family data at all -> degenerates exactly to the aggregate value', () => {
+  // Shape used throughout this file's other fixtures and the CLI/
+  // invariant test suites: bare key/n_samples/confidence cells, no
+  // family_A/family_C blocks of their own. No cell has anything to
+  // contribute, so every signal's mean falls through to the aggregate
+  // value untouched — identical output to extractSignalMeans.
+  const cfg = makeConfig();
+  const weighted = extractSignalMeansPerCellWeighted(cfg);
+  const aggregate = extractSignalMeans(cfg);
+  assert.deepEqual(weighted, aggregate);
+});
+
+test('compareCandidateVsActive: extraction_basis is per_cell_weighted when either config carries real per-cell data', () => {
+  const active = makeConfig(); // bare cells, no per-cell family data
+  const candidate = makeWeightedConfig();
+  const result = compareCandidateVsActive(active, candidate);
+  assert.equal(result.extraction_basis, 'per_cell_weighted');
+});
+
+test('compareCandidateVsActive: extraction_basis is aggregate_fallback_only when neither config carries per-cell data', () => {
+  const active = makeConfig();
+  const candidate = makeConfig({ version: 'v-candidate@seed=42' });
+  const result = compareCandidateVsActive(active, candidate);
+  assert.equal(result.extraction_basis, 'aggregate_fallback_only');
+});
+
+// ── divergent per-cell vs aggregate: proving the fix matters ──────────
+
+test('per-cell-weighted extraction flips the direction classification vs the old aggregate-only extraction when they disagree', () => {
+  // active: single 'strict' cell and aggregate_fallback AGREE at 100
+  // (nothing to diverge on for active).
+  const active: CompiledConfig = {
+    version: 'v-active@seed=1',
+    compiler_version: '0.3.0',
+    compiled_at: '2026-07-01T00:00:00.000Z',
+    baseline_ref: 'synthetic-v1@seed=1',
+    alpha_budget: { total: 1e-3, per_family: { A: 4e-4, C: 0 } },
+    baseline_cells: {
+      dimensions: ['hour_of_day'],
+      cells: [{
+        key: { hour_of_day: 0 }, n_samples: 100, confidence: 'strict',
+        family_A: { per_signal: { p99_latency: { baseline_mean: 100, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5 } } },
+      }],
+      aggregate_fallback: {
+        family_A: { per_signal: { p99_latency: { baseline_mean: 100, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5 } } },
+      },
+    },
+  } as CompiledConfig;
+
+  // candidate: the 'strict' cell's OWN value is WORSE (150, +50% —
+  // p99_latency is lower-is-better) but aggregate_fallback is
+  // deliberately engineered to look BETTER (50, -50%) — a hand-built
+  // divergence exercising exactly the gap the per-cell-weighted follow-
+  // up closes. Real compiled configs shouldn't diverge this starkly,
+  // but the whole point of this test is that when they do, the two
+  // extractions must disagree.
+  const candidate: CompiledConfig = {
+    ...active,
+    version: 'v-candidate@seed=2',
+    baseline_cells: {
+      dimensions: ['hour_of_day'],
+      cells: [{
+        key: { hour_of_day: 0 }, n_samples: 100, confidence: 'strict',
+        family_A: { per_signal: { p99_latency: { baseline_mean: 150, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5 } } },
+      }],
+      aggregate_fallback: {
+        family_A: { per_signal: { p99_latency: { baseline_mean: 50, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5 } } },
+      },
+    },
+  } as CompiledConfig;
+
+  const oldActiveMeans = extractSignalMeans(active);
+  const oldCandidateMeans = extractSignalMeans(candidate);
+  const oldClassification = classifyRecalibration(oldActiveMeans, oldCandidateMeans);
+  assert.equal(oldClassification.per_signal_direction.p99_latency, 'improved',
+    'sanity: the old aggregate-only extraction reads the engineered aggregate_fallback improvement');
+
+  const newActiveMeans = extractSignalMeansPerCellWeighted(active);
+  const newCandidateMeans = extractSignalMeansPerCellWeighted(candidate);
+  const newClassification = classifyRecalibration(newActiveMeans, newCandidateMeans);
+  assert.equal(newClassification.per_signal_direction.p99_latency, 'degraded',
+    'the per-cell-weighted extraction reads the real per-cell degradation instead');
+
+  // And compareCandidateVsActive (the actual production entry point)
+  // reflects the new per-cell-weighted numbers, not the old ones.
+  const result = compareCandidateVsActive(active, candidate);
+  assert.equal(result.per_signal_deltas.p99_latency.active_mean, 100);
+  assert.equal(result.per_signal_deltas.p99_latency.candidate_mean, 150);
+  assert.equal(result.extraction_basis, 'per_cell_weighted');
 });
 
 // ── compareCandidateVsActive ────────────────────────────────────────

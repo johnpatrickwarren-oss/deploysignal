@@ -24,7 +24,7 @@ import type { CompiledConfig } from '../../engine/types';
 import { transition } from '../../engine/recalibration/state-machine';
 import { classifyRecalibration } from '../../engine/recalibration/classify';
 import {
-  compareCandidateVsActive, evaluateReadinessGates, extractSignalMeans,
+  compareCandidateVsActive, evaluateReadinessGates, extractSignalMeansPerCellWeighted,
   type ReadinessGateResult, type ExclusionWindow,
 } from '../../engine/recalibration/compare';
 import { computeTimeoutAt } from '../../engine/recalibration/timeout';
@@ -154,6 +154,12 @@ function classifyCandidate(
   }
 }
 
+/** Feeds `classifyRecalibration` — uses the per-cell-weighted extraction
+ *  (engine/recalibration/compare.ts's `extractSignalMeansPerCellWeighted`)
+ *  so the CandidateRecord's operator-facing `direction_classification` /
+ *  `per_signal_direction` reflect the same per-cell-aware view as
+ *  `comparison.per_signal_deltas`, not the older aggregate-only
+ *  approximation. */
 function buildSignalMeans(cfg: CompiledConfig): Record<string, number> {
-  return extractSignalMeans(cfg);
+  return extractSignalMeansPerCellWeighted(cfg);
 }
