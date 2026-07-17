@@ -84,6 +84,14 @@ export interface VerdictHistoryEntry {
   fires: string[];
   shadow: boolean;
   recorded_at: string;
+  // Task 6 (WS4 session-durability-argo plan) — strict-additive. Set when
+  // GateSessionRuntime.ingestTick()'s evaluate() call threw: the tick is
+  // still recorded durably (never lost) with the fail-policy-derived
+  // verdict/verdict_code, plus the original error message here.
+  // `degraded` is set only on the fail_open branch (verdict forced to
+  // 'proceed' despite the underlying evaluation failure).
+  error?: string;
+  degraded?: boolean;
 }
 
 /** Input to SessionStore.beginSession(): everything a caller (Task 6's

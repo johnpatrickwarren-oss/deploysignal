@@ -24,6 +24,19 @@
 //
 // service/ depends on engine/, never the other way (mirrors advisory/'s
 // doctrine, engine/types/orchestration.ts:186-188).
+//
+// SINGLE-WRITER ASSUMPTION (Tasks 3-5 review, folded into Task 6): index.json
+// is read-modify-write (readIndex() then atomicWriteJson()) — safe only
+// under a single writer per <rootDir>/<service_id> store root. Concurrent
+// SessionStore instances (e.g. two GateSessionRuntime processes pointed at
+// the same store dir) can race and drop an index update; this is a
+// single-writer guard, not a distributed lock. Task 6's GateSessionRuntime
+// enforces the single-writer invariant at the store-root level via a pid
+// lockfile (`<storeDir>/.gate-runtime.lock`, acquired in the runtime's
+// constructor, released on close()) — SessionStore itself performs no
+// locking. Do not point two live GateSessionRuntime instances at the same
+// storeDir; the lockfile makes that a loud startup error instead of a
+// silent index race.
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -253,14 +266,19 @@ export class SessionStore {
    *  currently-active session, leaving finished/already-void sessions
    *  untouched. */
   voidAllActive(reason: string): SessionRecord[] {
-    const voided: SessionRecord[] = [];
+    return this.listActive().map((rec) => this.voidSession(rec.session_id, reason));
+  }
+
+  /** Task 6 — every session currently `status: 'active'`. Used by
+   *  GateSessionRuntime.sweepExpired() to find TTL-expiring sessions
+   *  without a second index file to keep in sync. */
+  listActive(): SessionRecord[] {
+    const out: SessionRecord[] = [];
     for (const id of this.listSessionIds()) {
       const rec = this.getSession(id);
-      if (rec && rec.status === 'active') {
-        voided.push(this.voidSession(id, reason));
-      }
+      if (rec && rec.status === 'active') out.push(rec);
     }
-    return voided;
+    return out;
   }
 
   private listSessionIds(): string[] {
