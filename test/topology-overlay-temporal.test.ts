@@ -46,6 +46,8 @@ function group(window_start_ts: number, window_end_ts: number): VerdictGroup {
     per_family_verdicts: { A: null, B: null, C: null, D: null, E: null },
     total_alpha_spent: 1e-4, fusion_topology: 'portfolio',
     tick: 0, deploy_ref: 'A',
+    verdict_rationale: 'Rollback triggered: Family A fired.',
+    evidence_outlook: [],
   };
   return {
     group_id: `group-A-${window_start_ts}`, deploy_id: 'A',

@@ -24,7 +24,18 @@
     "tools/curate-baseline-pipeline.ts",
     "tools/per-tick-detector-trace.ts",
     "tools/nab-scoring.ts",
-    "tools/run-nab-validation.ts"
+    "tools/run-nab-validation.ts",
+    "tools/_comparator-baseline-types.ts",
+    "tools/_comparator-baseline-stats.ts",
+    "tools/_comparator-baseline-threshold.ts",
+    "tools/_comparator-baseline-canary.ts",
+    "tools/_comparator-baseline-driver.ts",
+    "tools/_comparator-baseline-tune.ts",
+    "tools/run-comparator-baseline.ts"
   ],
-  "exclude": ["node_modules", "dist", "engine"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "engine"
+  ]
 }
