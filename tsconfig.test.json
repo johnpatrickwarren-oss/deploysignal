@@ -12,8 +12,10 @@
   },
   "include": [
     "test/**/*.ts",
+    "service/gate-http/server.ts",
     "tools/calibrate.ts",
     "tools/calibrators/**/*.ts",
+    "tools/build-guarantee-manifest.ts",
     "tools/benchmark-tick-latency.ts",
     "tools/profile-loader.ts",
     "tools/bundle-loader.ts",

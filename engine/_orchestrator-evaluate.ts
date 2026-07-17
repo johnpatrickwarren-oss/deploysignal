@@ -111,7 +111,7 @@ function runAdmissionGates(
     } };
   }
 
-  const stateResult = evaluateState(params.deployId || 'default', params.targetCloud || 'primary');
+  const stateResult = evaluateState(params.deployId || 'default', params.targetCloud || 'primary', params.stateContext);
   gateResults.state = stateResult;
   if (!stateResult.allow) {
     return { kind: 'shortCircuit', draft: {

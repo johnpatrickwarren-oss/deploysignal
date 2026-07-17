@@ -2,7 +2,7 @@
 
 *An AI-inference deployment decision engine with formal false-positive control.*
 
-DeploySignal gates canary rollouts by composing five independent detector families, each with formal statistical guarantees, against a segmented baseline derived from recent healthy traffic. The gate emits one of four verdicts — `proceed`, `extend`, `rollback`, or `suppressed_insufficient_samples` — under a per-deploy false-positive budget `α_total = 10⁻³` allocated across families via Bonferroni correction (`40/20/20/10/10` across A/B/C/D/E). Family B is non-α-consuming structural (R2 disposition: 16 hand-designed absolute-threshold patterns, not statistical tests; the 2·10⁻⁴ Family B allocation is reserved-but-not-spent in the Ville claim). The α-participating portfolio (A+C+D+E) sums to `α_total_participating = 8·10⁻⁴` and partitions per ARCHITECT-REPLY-52g into a **Ville-bounded portion** (anytime-valid e-processes — Family A's betting co-ship component, Family C's safe-Hotelling, Family C's e-MMD-betting when calibrated, Family D's spectral e-detector, Family E's weighted-conformal hedged-indicator; `α_ville ≈ 5·10⁻⁴`, no union-bound correction over tick count) and a **classical-epoch-α portion** (per-deploy Bonferroni-corrected via excursion theory — Family A's Page-CUSUM co-ship component, Family C's MMD-bootstrap-null fallback; `α_classical ≈ 3·10⁻⁴`, valid only at canary boundaries). Calibration happens at compile time; runtime arithmetic is cheap. Baseline history across recalibrations doubles as a service/engineering/product-maturity substrate.
+DeploySignal gates canary rollouts by composing five independent detector families, each with formal statistical guarantees, against a segmented baseline derived from recent healthy traffic. The gate emits one of three surfaced verdicts — `proceed`, `extend`, or `rollback` (a fourth internal state, `baking`, marks in-window insufficient evidence and is never surfaced; per-family suppression — shipped reasons include `bake_profile`, `cell_confidence_none`, `ignore_threshold` — is recorded in the audit block, not as a top-level verdict; the Addition #11 `insufficient_samples` reason is planned v2.1, see `audit/SCHEMA.md`) — under a per-deploy false-positive budget `α_total = 10⁻³` allocated across families via Bonferroni correction (`40/20/20/10/10` across A/B/C/D/E). Family B is non-α-consuming structural (R2 disposition: 16 hand-designed absolute-threshold patterns, not statistical tests; the 2·10⁻⁴ Family B allocation is reserved-but-not-spent in the Ville claim). The α-participating portfolio (A+C+D+E) sums to `α_total_participating = 8·10⁻⁴`. The Ville-vs-classical partition originally documented at ARCHITECT-REPLY-52g has since shifted; verified against runtime dispatch 2026-07-17: the **Ville-bounded portion** is Family A's betting e-process AND its mixture-supermartingale Page-CUSUM (the classical Page-CUSUM path retired at Q68), Family C's safe-Hotelling and MMD betting e-process where a cell's baseline supports it (`α_ville ≈ 7·10⁻⁴`; sparse cells get **no MMD coverage** — the bootstrap-null fallback is retired, so sparseness costs coverage, not validity), and Family D's spectral e-detector. The **classical-epoch-α portion** as actually compiled in the committed configs is Family E's conformal detector: the compiler's auto-selector emits the classical `unweighted` kind when the baseline span / effective-sample-size gate isn't met (`α_classical ≈ 1·10⁻⁴`, valid only at canary boundaries; the weighted anytime-valid Family E variant compiles only when its span/ESS gate passes). Per-config ground truth lives in the generated guarantee manifest. Calibration happens at compile time; runtime arithmetic is cheap. Baseline history across recalibrations doubles as a service/engineering/product-maturity substrate.
 
 ## Architecture
 
@@ -59,11 +59,19 @@ Total family-level α is union-bounded ≤ α_total. Within-family signal-level 
 
 ## Honest Scope
 
-**Shipped today:** five detector families (Tier-1-SOTA complete as of 2026-04-20, including betting e-processes, MCD/MRCD robust covariance, Sequential MMD, weighted-quantile conformal); calibration compiler with formal α-accounting; six canned demos validating against synthetic trajectories; audit-schema v2 classifier (shipped records remain `schema_version: '2'`; v2.1 is a planned strict-additive post-phase extension — profile-block emission per Q60.4 is queued there; see `audit/SCHEMA.md`) with full provenance per verdict; Argo Rollouts / Spinnaker / the model-lifecycle tooling / webhook orchestration adapters with structured lifecycle events.
+Status buckets below use the repo-wide taxonomy (see `README.md § Implementation status at a glance`): **[runtime]** implemented in the per-tick engine path · **[offline-tool]** implemented as a repo tool, run manually · **[stub]** typed contract with inert/throwing implementation · **[spec-only]** exists in architecture docs only · **[future]** intended control-plane work, not yet specified in full.
 
-**Specified, implementation-for follow-on:** real-production-baseline calibration (synthetic baseline today; needs >100K healthy prod runs for tight α calibration); live cluster integration against a running Argo deployment; Tier-2 neural detectors (foundation-model novelty, transformer CPD) gated on real-baseline accumulation; direction-aware baseline-maintenance automation loop; SLO substrate derivation from baselines.
+**Shipped today [runtime]:** five detector families (Tier-1-SOTA complete as of 2026-04-20, including betting e-processes, MCD/MRCD robust covariance, Sequential MMD, weighted-quantile conformal); audit-schema v2 classifier (shipped records remain `schema_version: '2'`; v2.1 is a planned strict-additive post-phase extension — profile-block emission per Q60.4 is queued there; see `audit/SCHEMA.md`) with full provenance per verdict; structured lifecycle-event contract (`triggered`/`started`/`tick`/`suppressed`/`finished`) with in-process emitters (NoOp default + in-memory test emitter — no durable transport yet).
+
+**Shipped today [offline-tool]:** calibration compiler with formal α-accounting (`tools/calibrate.ts`); six canned demos validating against synthetic trajectories; regression-injection + real-trace ingestion harnesses.
+
+**Orchestration adapters [spec-only / stub]:** `ORCHESTRATION-ADAPTERS.md` is an architecture spec — the Argo Rollouts / Spinnaker / model-lifecycle / webhook adapters it describes are **not shipped as code**. The only adapter code today is the Anvil chaos family (`engine/o0/anvil/`), whose network methods deliberately throw pending implementation. (An earlier revision of this line listed the adapters under "shipped"; that was wrong — the lifecycle-event *contract* they would consume is shipped, the adapters are not.)
+
+**Specified, implementation-for follow-on [spec-only]:** real-production-baseline calibration (synthetic baseline today; needs >100K healthy prod runs for tight α calibration); live cluster integration against a running Argo deployment; Tier-2 neural detectors (foundation-model novelty, transformer CPD) gated on real-baseline accumulation; direction-aware baseline-maintenance automation loop (North-Star Addition #15); SLO substrate derivation from baselines.
 
 **Deliberately out of scope:** LLM content-safety (owned by Arize / Fiddler / WhyLabs); pre-deploy model evaluation (W&B, Hugging Face); full CD pipeline UX (Harness, Spinnaker); topology-graph root-cause analysis (Dynatrace, Datadog).
+
+**Which paths are actually Ville-bounded for a given compiled config, not just in prose:** see the generated [guarantee manifest](README.md#guarantee-manifest) (`engine/guarantees.ts` + `tools/build-guarantee-manifest.ts`, `<config>.guarantee-manifest.json` sidecar emitted by every `tools/calibrate.ts` run) — it joins the per-detector validity-class table against the compiled config's actual variant selections (Hotelling chi_square/safe_test, MMD coverage, spectral bootstrap_null/e_detector, Family E conformal kind) instead of asserting one guarantee for the whole system.
 
 ## Real-Data Validation (REPLY-52 partial)
 
@@ -73,7 +81,9 @@ Total family-level α is union-bounded ≤ α_total. Within-family signal-level 
 
 **Caveat filters baked in:** BurstGPT log_type → service-error class only (`content_filter_rejection` + `context_length_overrun` excluded); Azure ContextTokens is arrival-only, never cost_req; Mooncake scoped to Family B KV-cache (not Family D spectral — 1-hour window insufficient for multi-cycle ACF/BOCPD); grounded-synthetic cost_req stamped with `grounded_synthetic:cost_req_via_tokens_times_pricing`.
 
-**Deferred (for follow-on):** actual dataset ingestion runs, shadow-compare loop (synthetic vs. real-baseline configs on the 5 profiles), audit-emitted report cards per profile, NAB firewall for Families A/D structural-validity floor.
+**Shipped since this section was first written [offline-tool]:** dataset ingestion runs for four real traces — BurstGPT, Azure LLM Inference, Mooncake (v8a–c, Q60 Slice 1 V2 close 2026-05-02) and HuggingFace/LMSYS Arena (v9a, 2026-05-04) — with baseline bundles under `runs/baselines/real-*/` and compiled configs under `runs/compiled-configs/`.
+
+**Deferred (for follow-on):** runs of the shadow-compare CLI against the 5 profiles (the CLI itself, `tools/run-shadow-compare.ts`, is shipped [offline-tool]; the synthetic-vs-real-baseline comparison runs are not), audit-emitted report cards per profile, NAB firewall for Families A/D structural-validity floor, v9b/v9c ingestion (AlpaServe, DeepSpeed-FastGen — not yet acquired).
 
 **α-path validation report card (REPLY-52g U2+U4 scope-split):** `tools/build-report-card.js` emits `runs/validation-reports/report-card-v1.json` (generated artifact, gitignored — run `node tools/build-report-card.js` to produce it) under compile-substrate bootstrap (E3) + dual-surface FPR scope-split (Ville-bounded vs classical-epoch-α per ARCHITECT-REPLY-52g). Validation substrate: `runs/compiled-configs/v5-sequential-e-process.json` (compiled from synthetic-v1 under current main with `hotelling_variant=safe_test` 840/840, `spectral_variant=e_detector`, `family_E.kind=weighted_e_value`, `mmd_variant=betting_e_process` on 20/840 cells + `bootstrap_null` on 820/840 — synthetic-v1's median 95 samples/cell sits below the lowered MMD_MIN=100 threshold; the U2+U4 framework explicitly permits MMD-bootstrap-null fallback under classical-epoch-α). v4-fusion-novelty.json retained for canned-demo role.
 
@@ -116,12 +126,15 @@ Total family-level α is union-bounded ≤ α_total. Within-family signal-level 
   Sparse-signal substrate scoped to Family B kv_cache via Q60 V2
   caveat; family_D_kv_cache exempted by L3b β.1 parametric_ar1 PASS
   skip.
-- **v9a-real-huggingface-lmsys-arena-v1.json** (TBD post-Q62 Phase 1
-  acquisition close): pending architect Q62.1-disposition.
-- **v9b-real-alpaserve-v1.json** (TBD post-Q62 Phase 1 acquisition
-  close): pending architect Q62.1-disposition.
-- **v9c-real-deepspeed-fastgen-v1.json** (TBD post-Q62 Phase 1
-  acquisition close): pending architect Q62.1-disposition.
+- **v9a-real-huggingface-lmsys-arena-v1.json** (shipped 2026-05-04):
+  canonical real-trace substrate for HuggingFace/LMSYS Arena
+  (eval_score + tokens_turn + cost_req signal coverage; 39,712 ticks;
+  caveat filters: synthetic_timestamp_derivation,
+  chars_div_4 token-count heuristic, reject_judge_disagreement).
+- **v9b-real-alpaserve-v1.json** (NOT SHIPPED — dataset not acquired;
+  pending architect Q62.1-disposition).
+- **v9c-real-deepspeed-fastgen-v1.json** (NOT SHIPPED — dataset not
+  acquired; pending architect Q62.1-disposition).
 
 Synthetic-v1 × v5 sweep (131 healthy windows × 100-tick canary; injection at tick 30):
 
