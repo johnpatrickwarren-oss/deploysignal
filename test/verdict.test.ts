@@ -53,6 +53,14 @@ function fireC(alpha = 2e-4): DetectorVerdict {
   };
 }
 
+function suppressedD(reasonCode: string): DetectorVerdict {
+  return {
+    verdict: 'suppressed', statistic: null, threshold: null,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: reasonCode, family: 'D',
+  };
+}
+
 // ────────────────────────────────────────────────────────────────────
 // Outcome: proceed
 test('fuseVerdict: proceed when all families clean (last tick, no extend)', () => {
@@ -195,4 +203,129 @@ test('fuseVerdict: injected Family E indeterminate drives extend', () => {
   };
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test', familyE });
   assert.equal(v.verdict, 'extend');
+});
+
+// ────────────────────────────────────────────────────────────────────
+// WS5 verdict explainability: verdict_rationale + evidence_outlook.
+// Every FusedVerdict carries a fixed A<B<C<D<E evidence_outlook array
+// and a mechanically-generated rationale string, derived only from data
+// already flowing into fuseVerdict (no new statistics, no FM calls).
+
+test('evidence_outlook: always emits exactly 5 entries in A<B<C<D<E order', () => {
+  const h = emptyHealth();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 0, totalTicks: 32, deployRef: 'test' });
+  assert.deepEqual(v.evidence_outlook.map((e) => e.family_id), ['A', 'B', 'C', 'D', 'E']);
+});
+
+test('verdict_rationale: rollback names the firing family and signal', () => {
+  const h = emptyHealth();
+  h.rollback = [{ id: 'family_A_p99_latency', label: 'Family A p99_latency' }];
+  h.family_A_shadow = [fireA('p99_latency'), cleanA('ttft')];
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
+  assert.equal(v.verdict, 'rollback');
+  assert.match(v.verdict_rationale, /^Rollback triggered:/);
+  assert.ok(v.verdict_rationale.includes('Family A fired on p99_latency'),
+    `expected fired-signal clause; got: ${v.verdict_rationale}`);
+  const famA = v.evidence_outlook.find((e) => e.family_id === 'A')!;
+  assert.equal(famA.state, 'fired');
+  assert.equal(famA.note, 'Family A fired on p99_latency');
+});
+
+test('verdict_rationale: rollback with two firing families names both', () => {
+  const h = emptyHealth();
+  h.rollback = [
+    { id: 'family_A_p99_latency', label: 'Family A p99_latency' },
+    { id: 'family_C', label: 'Family C (multivariate)' },
+  ];
+  h.family_A_shadow = [fireA('p99_latency'), cleanA('ttft')];
+  h.family_C_verdict = fireC();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
+  assert.ok(v.verdict_rationale.includes('Family A fired on p99_latency'));
+  assert.ok(v.verdict_rationale.includes('Family C fired on Hotelling T²'),
+    `expected Family C fire clause; got: ${v.verdict_rationale}`);
+  const famC = v.evidence_outlook.find((e) => e.family_id === 'C')!;
+  assert.equal(famC.state, 'fired');
+});
+
+test('verdict_rationale + evidence_outlook: extend reports accumulating progress from statistic/threshold', () => {
+  const h = emptyHealth();
+  // statistic 4 / threshold 9.6 => 41.66...% => rounds to 42%.
+  h.family_A_shadow = [indeterminateA('p99_latency'), cleanA('ttft')];
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test' });
+  assert.equal(v.verdict, 'extend');
+  const famA = v.evidence_outlook.find((e) => e.family_id === 'A')!;
+  assert.equal(famA.state, 'accumulating');
+  assert.ok(famA.progress !== null);
+  assert.ok(Math.abs((famA.progress as number) - 4 / 9.6) < 1e-9);
+  assert.equal(famA.note, 'Family A accumulating evidence at 42% of fire threshold');
+  assert.ok(v.verdict_rationale.includes('Family A accumulating evidence at 42% of fire threshold'),
+    `expected accumulating clause; got: ${v.verdict_rationale}`);
+});
+
+test('verdict_rationale + evidence_outlook: extend reports a suppressed family with suppression_reason alongside accumulating evidence', () => {
+  const h = emptyHealth();
+  h.family_A_shadow = [indeterminateA('p99_latency')];
+  const familyD = suppressedD('ignore_threshold');
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test', familyD });
+  assert.equal(v.verdict, 'extend');
+  const famD = v.evidence_outlook.find((e) => e.family_id === 'D')!;
+  assert.equal(famD.state, 'suppressed');
+  assert.equal(famD.progress, null);
+  assert.equal(famD.note, 'Family D suppressed (ignore_threshold)');
+  assert.ok(v.verdict_rationale.includes('Family D suppressed (ignore_threshold)'),
+    `expected suppressed clause; got: ${v.verdict_rationale}`);
+  assert.ok(v.verdict_rationale.includes('Family A accumulating evidence'));
+});
+
+test('evidence_outlook: progress is null when statistic/threshold are unavailable, even mid-accumulation', () => {
+  const h = emptyHealth();
+  const familyE: DetectorVerdict = {
+    verdict: 'indeterminate', statistic: 1.5, threshold: null,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: 'conformal_marginal', family: 'E',
+  };
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test', familyE });
+  const famE = v.evidence_outlook.find((e) => e.family_id === 'E')!;
+  assert.equal(famE.state, 'accumulating');
+  assert.equal(famE.progress, null);
+  assert.equal(famE.note, 'Family E accumulating evidence');
+});
+
+test('evidence_outlook: Family B progress is always null (FiredSignal carries no statistic/threshold)', () => {
+  const h = emptyHealth();
+  h.rollback = [{ id: 'slowbleed', label: 'Slow Bleed (Multi-Metric Drift)' }];
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
+  const famB = v.evidence_outlook.find((e) => e.family_id === 'B')!;
+  assert.equal(famB.state, 'fired');
+  assert.equal(famB.progress, null);
+});
+
+test('verdict_rationale: proceed reports all-clean at final tick', () => {
+  const h = emptyHealth();
+  h.family_A_shadow = [cleanA('p99_latency'), cleanA('ttft')];
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 31, totalTicks: 32, deployRef: 'test' });
+  assert.equal(v.verdict, 'proceed');
+  assert.equal(v.verdict_rationale,
+    'Proceed: observation window closed with no rollback signals across all families.');
+  assert.ok(v.evidence_outlook.every((e) => e.state !== 'fired' && e.state !== 'suppressed'));
+});
+
+test('verdict_rationale: baking reports all-clean mid-window', () => {
+  const h = emptyHealth();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 5, totalTicks: 32, deployRef: 'test' });
+  assert.equal(v.verdict, 'baking');
+  assert.equal(v.verdict_rationale,
+    'Baking: all families clean so far; continuing observation within the window.');
+  assert.ok(v.evidence_outlook.every((e) => e.state === 'clean'));
+});
+
+test('verdict_rationale: is deterministic across repeated calls on identical input', () => {
+  const h = emptyHealth();
+  h.rollback = [{ id: 'family_A_p99_latency', label: 'Family A p99_latency' }];
+  h.family_A_shadow = [fireA('p99_latency'), cleanA('ttft')];
+  const opts = { topology: 'portfolio' as const, tick: 15, totalTicks: 32, deployRef: 'test' };
+  const v1 = fuseVerdict(h, opts);
+  const v2 = fuseVerdict(h, opts);
+  assert.equal(v1.verdict_rationale, v2.verdict_rationale);
+  assert.deepEqual(v1.evidence_outlook, v2.evidence_outlook);
 });

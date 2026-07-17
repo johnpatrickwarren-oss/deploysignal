@@ -6302,6 +6302,175 @@ function anyIndeterminate(vs) {
 function isFamilyDSyntheticId(id) {
     return id.startsWith('family_D_');
 }
+/** `statistic / threshold` for one detector verdict. `null` when either
+ *  is unavailable or threshold isn't positive. Same formula the audit
+ *  layer uses for Family A's `cusum_progress`
+ *  (engine/_audit-families.ts `tripFromVerdict`), applied here to any
+ *  family — see `EvidenceOutlookEntry.progress` doc for why. */
+function detectorProgress(v) {
+    if (v.statistic === null || v.threshold === null || v.threshold <= 0)
+        return null;
+    return v.statistic / v.threshold;
+}
+/** Max per-detector progress across a family; `null` when none report one. */
+function maxProgress(vs) {
+    let best = null;
+    for (const v of vs) {
+        const p = detectorProgress(v);
+        if (p !== null && (best === null || p > best))
+            best = p;
+    }
+    return best;
+}
+/** True when a non-empty detector list is entirely `suppressed`. */
+function allSuppressed(vs) {
+    return vs.length > 0 && vs.every((v) => v.verdict === 'suppressed');
+}
+/** Map suppressed `reason_code`s to a stable vocabulary. Mirrors
+ *  `mapSuppression` in engine/_audit-families.ts (kept local here to
+ *  avoid a fusion-layer → audit-layer import; both read the same
+ *  `DetectorVerdict.reason_code` values). */
+function suppressionReasonFor(codes) {
+    if (codes.indexOf('observability_stack_deploy') >= 0)
+        return 'observability_stack_deploy';
+    if (codes.indexOf('schema_continuity_breaking') >= 0)
+        return 'schema_continuity_breaking';
+    if (codes.indexOf('expected_failure_pattern') >= 0)
+        return 'expected_failure_pattern';
+    if (codes.indexOf('ignore_threshold') >= 0)
+        return 'ignore_threshold';
+    return 'bake_profile';
+}
+/** Summarize a per-signal detector family (A/D/E-shaped: a flat array
+ *  of DetectorVerdicts, each optionally naming its `.signal`). */
+function summarizeSignalFamily(id, vs) {
+    const fired = vs.filter((v) => v.verdict === 'fire');
+    const state = fired.length > 0 ? 'fired'
+        : allSuppressed(vs) ? 'suppressed'
+            : anyIndeterminate(vs) ? 'accumulating'
+                : 'clean';
+    return {
+        family_id: id,
+        state,
+        progress: maxProgress(vs),
+        firedSignals: fired.map((v) => v.signal ?? 'unknown'),
+        suppressionReason: state === 'suppressed' ? suppressionReasonFor(vs.map((v) => v.reason_code)) : null,
+    };
+}
+/** Family B — structural rules from FiredSignal[]. No statistic /
+ *  threshold, no suppression or indeterminate concept (see header
+ *  comment: "Family B doesn't spend Ville budget"); binary
+ *  fired-or-clean this tick. */
+function summarizeFamilyB(familyB) {
+    return {
+        family_id: 'B',
+        state: familyB.length > 0 ? 'fired' : 'clean',
+        progress: null,
+        firedSignals: familyB.map((s) => s.label),
+        suppressionReason: null,
+    };
+}
+/** Family C — two independent detectors (Hotelling T², Sequential MMD)
+ *  rather than a per-signal array; labeled positionally since neither
+ *  carries a metric-signal name on `.signal`. */
+function summarizeFamilyC(famC, famCMmd) {
+    const entries = [];
+    if (famC)
+        entries.push({ v: famC, label: 'Hotelling T²' });
+    if (famCMmd)
+        entries.push({ v: famCMmd, label: 'Sequential MMD' });
+    const vs = entries.map((e) => e.v);
+    const fired = entries.filter((e) => e.v.verdict === 'fire');
+    const state = fired.length > 0 ? 'fired'
+        : allSuppressed(vs) ? 'suppressed'
+            : anyIndeterminate(vs) ? 'accumulating'
+                : 'clean';
+    return {
+        family_id: 'C',
+        state,
+        progress: maxProgress(vs),
+        firedSignals: fired.map((e) => e.label),
+        suppressionReason: state === 'suppressed' ? suppressionReasonFor(vs.map((v) => v.reason_code)) : null,
+    };
+}
+function formatPct(p) {
+    return `${Math.round(p * 100)}%`;
+}
+/** Render an `EvidenceOutlookEntry.note` from a family's raw summary. */
+function renderNote(r) {
+    if (r.state === 'fired') {
+        return r.firedSignals.length > 0
+            ? `Family ${r.family_id} fired on ${r.firedSignals.join(', ')}`
+            : `Family ${r.family_id} fired`;
+    }
+    if (r.state === 'accumulating') {
+        return r.progress !== null
+            ? `Family ${r.family_id} accumulating evidence at ${formatPct(r.progress)} of fire threshold`
+            : `Family ${r.family_id} accumulating evidence`;
+    }
+    if (r.state === 'suppressed') {
+        return `Family ${r.family_id} suppressed (${r.suppressionReason ?? 'unknown'})`;
+    }
+    return `Family ${r.family_id} clean`;
+}
+function toEvidenceOutlook(raw) {
+    return raw.map((r) => ({
+        family_id: r.family_id, state: r.state, progress: r.progress, note: renderNote(r),
+    }));
+}
+/** `rollback` rationale: which families fired, on which signals; a
+ *  trailing clause names any concurrently-suppressed family. */
+function rationaleRollback(raw) {
+    const fired = raw.filter((r) => r.state === 'fired');
+    const suppressed = raw.filter((r) => r.state === 'suppressed');
+    let s = `Rollback triggered: ${fired.map(renderNote).join('; ')}.`;
+    if (suppressed.length > 0)
+        s += ` ${suppressed.map(renderNote).join('; ')}.`;
+    return s;
+}
+/** `extend` rationale: which families are accumulating evidence
+ *  (indeterminate) and/or which rule-based extend signals fired,
+ *  followed by any suppressed families with `suppression_reason`. */
+function rationaleExtend(raw, extendSignalLabels) {
+    const accumulating = raw.filter((r) => r.state === 'accumulating');
+    const suppressed = raw.filter((r) => r.state === 'suppressed');
+    const parts = [];
+    if (accumulating.length > 0)
+        parts.push(accumulating.map(renderNote).join('; '));
+    if (extendSignalLabels.length > 0)
+        parts.push(`extend signal(s): ${extendSignalLabels.join(', ')}`);
+    const first = parts.length > 0
+        ? `Extending observation: ${parts.join('; ')}.`
+        : 'Extending observation: evidence accumulating below the fire threshold.';
+    const second = suppressed.length > 0 ? ` ${suppressed.map(renderNote).join('; ')}.` : '';
+    return first + second;
+}
+/** `proceed` / `baking` rationale: all families clean / in-window.
+ *  `proceed` additionally flags evidence that was still accumulating
+ *  when the window closed (indeterminate collapses to the `proceed`
+ *  verdict per the header comment, but evidence_outlook keeps the
+ *  honest per-family state, so the rationale stays consistent with it). */
+function rationaleSettled(verdict, raw) {
+    const suppressed = raw.filter((r) => r.state === 'suppressed');
+    const accumulating = raw.filter((r) => r.state === 'accumulating');
+    let base;
+    if (verdict === 'proceed') {
+        base = accumulating.length > 0
+            ? 'Proceed: observation window closed with no rollback signals; some evidence remained below the fire threshold.'
+            : 'Proceed: observation window closed with no rollback signals across all families.';
+    }
+    else {
+        base = 'Baking: all families clean so far; continuing observation within the window.';
+    }
+    return suppressed.length > 0 ? `${base} ${suppressed.map(renderNote).join('; ')}.` : base;
+}
+function buildRationale(verdict, raw, extendSignalLabels) {
+    if (verdict === 'rollback')
+        return rationaleRollback(raw);
+    if (verdict === 'extend')
+        return rationaleExtend(raw, extendSignalLabels);
+    return rationaleSettled(verdict, raw);
+}
 /** Portfolio fusion over the health gate's per-family outputs. */
 function fuseVerdict(health, opts) {
     const famA = extractFamilyA(health);
@@ -6383,6 +6552,17 @@ function fuseVerdict(health, opts) {
         famDArr[0] ??
         famDInjected ??
         null;
+    // ── WS5 verdict explainability ──
+    const famDAll = famDInjected ? [...famDArr, famDInjected] : famDArr;
+    const evidenceRaw = [
+        summarizeSignalFamily('A', famA ?? []),
+        summarizeFamilyB(familyB),
+        summarizeFamilyC(famC, famCMmd),
+        summarizeSignalFamily('D', famDAll),
+        summarizeSignalFamily('E', famE ? [famE] : []),
+    ];
+    const evidence_outlook = toEvidenceOutlook(evidenceRaw);
+    const verdict_rationale = buildRationale(verdict, evidenceRaw, health.extend.map((s) => s.label));
     return {
         verdict,
         firing_families: firing,
@@ -6397,6 +6577,8 @@ function fuseVerdict(health, opts) {
         fusion_topology: opts.topology,
         tick: opts.tick,
         deploy_ref: opts.deployRef,
+        verdict_rationale,
+        evidence_outlook,
     };
 }
   __NS__.fuseVerdict = fuseVerdict;
