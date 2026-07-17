@@ -5,6 +5,19 @@ _Companion docs: the project roadmap (deleted) (execution plan), the pitch draft
 
 This doc describes the system we'd build if we started clean today, knowing what we know about AI-inference workloads, what we know about the limits of hand-tuned detectors, and what the 2024–2026 literature on sequential testing, kernel two-sample tests, and conformal anomaly detection has made viable. It is the target architecture — not what exists, not a promise, but the shape everything should move toward.
 
+> **Internal-citation note.** This doc cites internal decision records by name —
+> `ARCHITECT-REPLY-NN`, `TPM-REPLY-NN`, `PRD-NN`, `Q-NN` specs, and the
+> `ANTI-SCOPE-LEDGER` (the project's ledger of deliberate scope exclusions,
+> e.g. the enterprise-infrastructure boundary: no live production traffic, no
+> real customer telemetry, no auth/SSO/RBAC infrastructure). Those records live
+> in a private coordination tree that is **not included in this public repo**;
+> the citations are kept for provenance, and wherever a cited decision is
+> load-bearing its substance is restated inline. Most `Addition #N` sections
+> carry a per-section **Scope** line stating what is implemented versus
+> docs-only; where a section has no Scope line, consult the repo-wide status
+> taxonomy in `README.md § Implementation status at a glance` — nothing in
+> this document should be read as implemented unless stated there.
+
 ---
 
 ## Thesis in one paragraph

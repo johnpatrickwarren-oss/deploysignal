@@ -63,6 +63,20 @@ To open the interactive demo locally: open `demos/demo.html` in a browser.
 - **[`DETECTOR-MATH-RESEARCH.md`](DETECTOR-MATH-RESEARCH.md)** — the statistical-literature anchors for each detector.
 - **[`audit/SCHEMA.md`](audit/SCHEMA.md)** — the audit-record schema (versioned).
 
+## Implementation status at a glance
+
+Docs in this repo mark components with a five-bucket status taxonomy so readers can tell what exists where. The buckets, and the headline components in each:
+
+| Status | Meaning | Currently includes |
+|---|---|---|
+| **[runtime]** | Implemented in the per-tick engine path, exercised by the test suite | Five detector families; gate cascade + SRM + fail-fast; portfolio/cascade fusion; audit v2; verdict grouping + advisory fan-out; Anvil suppression |
+| **[offline-tool]** | Implemented as a repo tool an operator runs manually | Calibration compiler; regression injection; real-trace ingestion (v8a–c, v9a); shadow-compare CLI; demo builders |
+| **[stub]** | Typed contract present, implementation inert or deliberately throwing | State-gate (G3) persistence; Anvil chaos-platform adapter network methods |
+| **[spec-only]** | Specified in `NORTH-STAR-ARCHITECTURE.md` / `ORCHESTRATION-ADAPTERS.md`, no code | Orchestrator adapters (Argo/Spinnaker/webhook); direction-aware baseline-maintenance loop (Addition #15); incident-aware gating; Metric Registry governance |
+| **[future]** | Intended production-control-plane work, not fully specified | Durable verdict service (sessions, idempotent verdict API); multi-region baseline consistency |
+
+The engine is also published as a separate shared library, [`deploysignal-engine`](https://github.com/johnpatrickwarren-oss/deploysignal-engine), consumed by this repo and by [Tessera](https://github.com/johnpatrickwarren-oss/tessera); a handful of statistical baseline primitives live there rather than here (see that repo's README for its charter).
+
 ## Methodology
 
 This codebase was built as a four-role multi-agent project (architect / TPM / implementer / reviewer). The methodology — including the four-anchor pre-merge defense, memorial accretion, pre-emit grilling, and role anchoring across multiple chat instances — is published as a standalone pack:
