@@ -1,7 +1,20 @@
 // engine/gates/state.ts — G3 deployment state gate
-// Stub for now; tracks deployment lifecycle and exposes evaluateState().
+//
+// In-memory deployment tracking (recordDeployment/updatePhase/
+// getDeployment/reset) is the pre-WS4 default — nothing reads it in
+// production; the durable, service-backed implementation lands in
+// Task 3 (service/session/session-store.ts SessionStore), which builds
+// a StateGateContext from its file-backed store and passes it into
+// evaluateState() per tick. This split keeps the engine itself free of
+// fs/session I/O (rootDir purity, browser-bundle safety).
+//
+// Task 2 (WS4 session-durability-argo plan): evaluateState() gains an
+// optional `ctx?: StateGateContext`. Absent ctx (or ctx===undefined) is
+// byte-identical to the original stub — hard backward-compat gate, same
+// precedent as `failFastState`/`lifecycleEmitter` in OrchestrateParams.
 
 import type { StateResult } from '../types';
+import type { StateGateContext } from '../types/session';
 
 interface DeploymentVerdict {
   ts?: number;
@@ -42,7 +55,17 @@ export function getDeployment(id: string): Deployment | null {
   return _state.deployments[id] || null;
 }
 
-export function evaluateState(_id: string, _cloud: string): StateResult {
+export function evaluateState(_id: string, _cloud: string, ctx?: StateGateContext): StateResult {
+  if (!ctx) return { allow: true, reason: null };
+  if (ctx.session_status === 'void') {
+    return { allow: false, reason: 'session_void: ' + (ctx.void_reason ?? 'unknown') };
+  }
+  if (ctx.session_status === 'finished') {
+    return { allow: false, reason: 'session_finished' };
+  }
+  if (ctx.deployment_phase === 'rolled_back' || ctx.deployment_phase === 'finished') {
+    return { allow: false, reason: 'deployment_terminal: ' + ctx.deployment_phase };
+  }
   return { allow: true, reason: null };
 }
 

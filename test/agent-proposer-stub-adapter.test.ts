@@ -36,6 +36,8 @@ function makeFusedVerdict(overrides: Partial<FusedVerdict> = {}): FusedVerdict {
     fusion_topology: 'portfolio',
     tick: 10,
     deploy_ref: 'test-deploy',
+    verdict_rationale: 'Rollback triggered: Family A fired.',
+    evidence_outlook: [],
     ...overrides,
   };
 }

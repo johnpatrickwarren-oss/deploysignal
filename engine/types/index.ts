@@ -23,5 +23,6 @@ export * from './verdict';
 export * from './policy';
 export * from './audit';
 export * from './config';
+export * from './session';
 export * from './orchestration';
 export * from './recalibration';

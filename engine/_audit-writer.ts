@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import type {
-  AuditWriter, AuditRecord, AuditRecordV2, TrendSnapshot,
+  AuditWriter, AuditWriterStatus, AuditRecord, AuditRecordV2, TrendSnapshot,
 } from './types';
 
 interface AuditWriterOpts {
@@ -21,23 +21,87 @@ interface AuditWriterOpts {
   rotateDaily?: boolean;
 }
 
+// Task 1 (WS4 session-durability plan) — the no-op writer (falsy `dir`)
+// is definitionally healthy: it never attempts an fs operation, so
+// `status()` always returns the zero-error shape. Shared by both the
+// early-return no-op path and per-call construction.
+function healthyStatus(): AuditWriterStatus {
+  return { errors: 0, last_error: null, last_error_at: null, healthy: true };
+}
+
+/** Mutable fail-loud counters for one createAuditWriter() instance.
+ *  Kept as a plain object (rather than closure-local `let`s) so the
+ *  recording logic below can live at module scope instead of nested
+ *  inside createAuditWriter — keeps the constructor's own branch count
+ *  low and the failure-accounting logic independently readable/testable. */
+interface WriterFailureState {
+  errors: number;
+  lastError: string | null;
+  lastErrorAt: string | null;
+}
+
+function newFailureState(): WriterFailureState {
+  return { errors: 0, lastError: null, lastErrorAt: null };
+}
+
+// Records one failed fs operation (mkdirSync at setup or appendFileSync
+// at flush) against `state`, never throwing. Rate-limited stderr signal
+// (OQ-9 default): first failure, then every 100th thereafter — never one
+// line per failed flush group.
+function recordWriterFailure(state: WriterFailureState, attemptedPath: string, e: unknown): void {
+  state.errors++;
+  state.lastError = e instanceof Error ? e.message : String(e);
+  state.lastErrorAt = new Date().toISOString();
+  if (state.errors === 1 || state.errors % 100 === 0) {
+    // eslint-disable-next-line no-console
+    console.error(
+      'deploysignal audit-writer: append failed for ' + attemptedPath
+        + ': ' + state.lastError + ' (' + state.errors + ' total)',
+    );
+  }
+}
+
+function statusFromFailureState(state: WriterFailureState): AuditWriterStatus {
+  return {
+    errors: state.errors, last_error: state.lastError, last_error_at: state.lastErrorAt,
+    healthy: state.errors === 0,
+  };
+}
+
+// Module-level (not nested in createAuditWriter, same rationale as
+// recordWriterFailure above) so this try/catch's branch doesn't add to
+// the constructor's own cyclomatic-complexity tally.
+function ensureServiceDir(serviceDir: string, failureState: WriterFailureState): void {
+  try {
+    fs.mkdirSync(serviceDir, { recursive: true });
+  } catch (e) {
+    recordWriterFailure(failureState, serviceDir, e);
+  }
+}
+
 /**
  * createAuditWriter({dir, service, rotateDaily})
  *
- * Returns {write(record), close()} for appending JSONL audit records.
- * Buffered — flushes every 500ms and on close().
- * Daily rotation by UTC date.
- * No-op if dir is falsy.
+ * Returns {write(record), close(), status()} for appending JSONL audit
+ * records. Buffered — flushes every 500ms and on close(). Daily rotation
+ * by UTC date. No-op if dir is falsy.
+ *
+ * Fail-loud (Task 1): fs failures (mkdirSync at setup, appendFileSync at
+ * flush) never throw out of the decision path — write()/close() are
+ * still best-effort — but every failure increments a counter and is
+ * surfaced via status(), plus a rate-limited console.error (first
+ * failure, then every 100th) so a wedged audit dir isn't silently lost.
  */
 export function createAuditWriter(opts?: AuditWriterOpts): AuditWriter {
-  if (!opts || !opts.dir) return { write: noop, close: noop };
+  if (!opts || !opts.dir) return { write: noop, close: noop, status: healthyStatus };
 
   const dir = opts.dir;
   const service = opts.service || 'default';
   const rotate = opts.rotateDaily !== false;
 
   const serviceDir = path.join(dir, service);
-  fs.mkdirSync(serviceDir, { recursive: true });
+  const failureState = newFailureState();
+  ensureServiceDir(serviceDir, failureState);
 
   // Each buffered record is stamped with the UTC date observed at write()
   // time so daily rotation attributes it to the day it was produced — a
@@ -74,10 +138,14 @@ export function createAuditWriter(opts?: AuditWriterOpts): AuditWriter {
     buffer = [];
     const dates = Object.keys(linesByDate);
     for (let d = 0; d < dates.length; d++) {
+      const fp = filePath(dates[d]);
       try {
-        fs.appendFileSync(filePath(dates[d]), linesByDate[dates[d]], 'utf8');
-      } catch (_e) {
-        // Best-effort — don't crash the decision path
+        fs.appendFileSync(fp, linesByDate[dates[d]], 'utf8');
+      } catch (e) {
+        // Fail-loud (Task 1): still never throws out of the decision
+        // path — but the failure is now counted + surfaced instead of
+        // silently discarded (was: empty catch, "best-effort").
+        recordWriterFailure(failureState, fp, e);
       }
     }
   }
@@ -92,7 +160,11 @@ export function createAuditWriter(opts?: AuditWriterOpts): AuditWriter {
     flush();
   }
 
-  return { write, close };
+  function status(): AuditWriterStatus {
+    return statusFromFailureState(failureState);
+  }
+
+  return { write, close, status };
 }
 
 /**
