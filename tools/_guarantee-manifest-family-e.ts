@@ -9,20 +9,20 @@
 // effective_validity needs.
 //
 // Ground truth (verified against engine/detectors/conformal.ts
-// lookupFamilyEParams, W5 REPLY-16 Q2, lines 97-141): the runtime ALWAYS
+// lookupFamilyEParams, W5 REPLY-16 Q2, lines 112-141): the runtime ALWAYS
 // dispatches on `aggregate_fallback.family_E` for the ConformalParams
 // (and therefore the `kind` this join cares about) — never a per-cell
-// `family_E` block, even when the matched cell compiles one. Only Family
-// C's per-cell mean/covariance is looked up per-cell for the Mahalanobis
-// distance; the conformal calibration_scores/kind are pooled-aggregate
-// only, for statistical-power reasons documented at that citation. So
-// every cell's EFFECTIVE kind is the one value carried by
-// `aggregate_fallback.family_E`. resolvedKindPerCell below still reads
-// `c.family_E ?? fallback` per cell — harmless (it resolves to the same
-// fallback value for every cell today, since no per-cell block is ever
-// consulted at runtime), but it is not what makes this join correct; a
-// per-cell `family_E` value here would silently diverge from what the
-// engine actually evaluates.
+// `family_E` block, even when the matched cell compiles one
+// (`match?.family_E` is never read there). Only Family C's per-cell
+// mean/covariance is looked up per-cell for the Mahalanobis distance; the
+// conformal calibration_scores/kind are pooled-aggregate only, for
+// statistical-power reasons documented at that citation. So every cell's
+// EFFECTIVE kind is the one value carried by `aggregate_fallback.family_E`.
+// resolvedKindPerCell below resolves aggregate-only, matching runtime
+// exactly — reading a per-cell `family_E` block first (as an earlier
+// version of this join did) would silently diverge from what the engine
+// actually evaluates whenever a per-cell block's `kind` differs from the
+// aggregate's.
 
 import type { CompiledConfig, ConformalParams } from '../engine/types';
 import { DETECTOR_GUARANTEES } from '../engine/guarantees';
@@ -36,9 +36,10 @@ function resolvedKindPerCell(cfg: CompiledConfig): string[] {
   const cells = cfg.baseline_cells?.cells ?? [];
   const fallback = cfg.baseline_cells?.aggregate_fallback.family_E;
   const out: string[] = [];
-  for (const c of cells) {
-    const p = c.family_E ?? fallback;
-    if (p) out.push(kindOf(p));
+  // Aggregate-only, per the file header: runtime never reads a per-cell
+  // `family_E` block, so this join must not either.
+  for (const _c of cells) {
+    if (fallback) out.push(kindOf(fallback));
   }
   return out;
 }
