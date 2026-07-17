@@ -98,6 +98,8 @@ This codebase was built as a four-role multi-agent project (architect / TPM / im
 
 The local [`anchor/`](anchor/) folder is a pointer to that canonical repo.
 
+Comparator-baseline validation against tuned threshold-gate and canary-vs-control alternatives is pre-registered in [`runs/comparator-baseline/ENDPOINTS.md`](runs/comparator-baseline/ENDPOINTS.md), with the committed registered run at [`runs/comparator-baseline/report-synthetic-v1.json`](runs/comparator-baseline/report-synthetic-v1.json) (see [`METHODOLOGY.md` §5](METHODOLOGY.md#5-empirical-validation-against-comparator-baselines)).
+
 ## License
 
 Apache 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
