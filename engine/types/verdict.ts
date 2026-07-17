@@ -176,7 +176,9 @@ export interface EvidenceOutlookEntry {
    *  1/α` (Family C e-MMD/betting always; Family C safe-Hotelling,
    *  Family D's spectral e-detector, and Family E's weighted e-value
    *  when that variant is active — see `engine/verdict.ts`
-   *  `progressScaleFor` for the per-evaluator citations). `M_t` starts
+   *  `progressScaleFor` (Family A/D/E) and `progressScaleForFamilyC`
+   *  (Family C, classified structurally with no magnitude fallback)
+   *  for the per-evaluator citations). `M_t` starts
    *  at 1 and compounds multiplicatively tick-over-tick, so it can sit
    *  at a small fraction of `threshold` for many ticks and then cross
    *  it within one or two — "N% of fire threshold" phrasing would read

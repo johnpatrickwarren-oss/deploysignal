@@ -6312,7 +6312,8 @@ function detectorProgress(v) {
         return null;
     return v.statistic / v.threshold;
 }
-// ── Scale-honest progress (Important-finding fix, 2026-07) ─────────
+// ── Scale-honest progress (Important-finding fix, 2026-07; corrected
+// 2026-07-17 re-review) ─────────────────────────────────────────────
 //
 // `statistic / threshold` is not one scale across all families. Two
 // mathematically distinct detector shapes both populate `statistic`/
@@ -6354,17 +6355,63 @@ function detectorProgress(v) {
 // (compare _page-cusum-core.ts's `state.S > 0 ? 'accumulating' : ...`
 // to betting-e-process.ts's `state.M > 1 ? 'accumulating' : ...`) — no
 // field on DetectorVerdict tags which produced a given indeterminate
-// entry. The analogous overlap exists on Family D/E's shared
-// `'below_threshold'` clean reason across their legacy/wealth variants.
-// For those cases only, this falls back to reading `threshold`'s own
-// magnitude: every wealth threshold cited above is 1/α and stays ≥100
-// at any α≤1e-2 configured in this codebase; every linear threshold
-// (-log(α) down to α=1e-8, Wilson-Hilferty χ² up to 30 joint signals at
-// α=1e-5, ACF/p-value/Mahalanobis quantiles) stays under 50. See
-// WEALTH_THRESHOLD_FLOOR.
-const WEALTH_THRESHOLD_FLOOR = 50;
+// entry. For that case, and ONLY that case, this falls back to reading
+// `threshold`'s own magnitude via MAGNITUDE_FALLBACK_THRESHOLD_FLOOR.
+// Family C no longer reaches this fallback at all — see the header
+// comment on `progressScaleForFamilyC` below for why (2026-07-17
+// re-review finding: the old comment here claimed "Wilson-Hilferty χ²
+// up to 30 joint signals at α=1e-5 stays under 50", which is false —
+// χ²(df=30, 1-1e-5) ≈ 75, and even χ²(df=20, 1-1e-4) ≈ 52.4 already
+// clears the floor. A future profile widening Family C's joint vector
+// to ~15-20 signals would have silently mislabeled the legacy χ²
+// Hotelling test 'wealth').
+//
+// The TRUE margin analysis for the one case this floor is actually
+// load-bearing for (Family A's shared 'accumulating' reason_code):
+//   - CUSUM: threshold = -log(α) (natural log; `_page-cusum-core.ts`
+//     line 96). Crosses the floor of 50 only when -log(α) ≥ 50, i.e.
+//     α ≤ e^-50 ≈ 1.9e-22 — this codebase configures α down to 1e-8
+//     (threshold ≈ 18.4), nowhere near the floor.
+//   - Betting e-process: threshold = 1/α (or a sliding-buffer analog on
+//     the same scale). Drops below the floor of 50 only when α > 1/50
+//     = 0.02 — this codebase's smallest configured α is far below that
+//     (α ≤ 1e-2 per the design doc), so the threshold never drops below
+//     the floor either.
+//   CUSUM's threshold essentially never reaches 50; betting's threshold
+//   essentially never falls below 50 — the floor sits safely in the gap
+//   between the two ranges for every α this codebase configures.
+//
+// Two other call sites still reach this same floor as a defensive
+// fallback and remain safe for structural reasons specific to each,
+// NOT because of a wide α margin like Family A's:
+//   - Family D's legacy bootstrap-null path (`spectral.ts`
+//     evaluateSpectralBootstrapNull) and its e-detector wealth sibling
+//     share `reason_code: 'below_threshold'` on `clean`, and D's
+//     `signal` field is the metric name (e.g. `'kv_cache'`), not a
+//     detector-kind tag, so it can't disambiguate. Safe because the
+//     legacy threshold is `bootstrap_null_quantile` — a peak|ACF| value
+//     structurally bounded in [0, 1] — and can never approach 50,
+//     regardless of configuration, the way Family C's χ² threshold
+//     (which scales with joint-signal count / degrees of freedom) can.
+//   - Family E's `evaluateConformalWeightedEValue` covariance_singular
+//     suppression (`conformal.ts` line ~386) omits the `signal:
+//     'weighted_conformal_e_value'` tag its fire/clean siblings carry —
+//     a pre-existing detector-code gap, out of scope here. Still safe:
+//     that branch's `threshold` is unconditionally `1/α` (set before
+//     the null check), the same wealth-scale value its tagged siblings
+//     use, so the floor resolves it correctly today. Tracked as a
+//     follow-up to add the missing signal tag directly in conformal.ts.
+const MAGNITUDE_FALLBACK_THRESHOLD_FLOOR = 50;
 /** `reason_code`s that definitively mark a wealth-scale DetectorVerdict,
- *  independent of family — see header comment above for citations. */
+ *  independent of family — see header comment above for citations.
+ *  `emmd_wealth_exceeded`/`emmd_warming_moments` (sequential-mmd.ts
+ *  evaluateEMmd) and `family_c_betting_wealth_exceeded`
+ *  (_family-c-betting-eval.ts) are defense-in-depth here — Family C's
+ *  e-MMD/betting slot is already classified unconditionally 'wealth'
+ *  structurally by `progressScaleForFamilyC` and never reaches this
+ *  set via `progressScaleFor`, but listing them keeps this set an
+ *  accurate reason_code→scale map if `progressScaleFor` is ever reused
+ *  directly against a Family C verdict (2026-07-17 re-review). */
 const WEALTH_REASON_CODES = new Set([
     'betting_wealth_exceeded_threshold', 'at_initial_wealth',
     'safe_hotelling_wealth_exceeded', 'safe_hotelling_params_missing',
@@ -6372,6 +6419,8 @@ const WEALTH_REASON_CODES = new Set([
     'spectral_e_detector_wealth_exceeded', 'spectral_e_detector_params_missing',
     'spectral_null_std_nonpositive',
     'conformal_e_value_wealth_exceeded', 'weighted_e_value_state_missing',
+    'emmd_wealth_exceeded', 'emmd_warming_moments',
+    'family_c_betting_wealth_exceeded',
 ]);
 /** `reason_code`s that definitively mark a linear-ish DetectorVerdict. */
 const LINEAR_REASON_CODES = new Set([
@@ -6388,7 +6437,9 @@ const WEALTH_SIGNAL_NAMES = new Set([
 ]);
 /** Classify one DetectorVerdict's `statistic`/`threshold` scale. See the
  *  header comment above for the full evaluator-by-evaluator mapping and
- *  the documented last-resort magnitude fallback. */
+ *  the documented last-resort magnitude fallback. NOT used for Family C
+ *  — see `progressScaleForFamilyC`, which classifies Family C
+ *  structurally and never reaches the magnitude fallback below. */
 function progressScaleFor(v) {
     if (v.signal && WEALTH_SIGNAL_NAMES.has(v.signal))
         return 'wealth';
@@ -6397,7 +6448,36 @@ function progressScaleFor(v) {
     if (LINEAR_REASON_CODES.has(v.reason_code) || v.reason_code.startsWith('spectral_peak_at_lag_')) {
         return 'linear';
     }
-    return (v.threshold !== null && v.threshold >= WEALTH_THRESHOLD_FLOOR) ? 'wealth' : 'linear';
+    return (v.threshold !== null && v.threshold >= MAGNITUDE_FALLBACK_THRESHOLD_FLOOR) ? 'wealth' : 'linear';
+}
+/** Classify a Family C DetectorVerdict's scale structurally — no
+ *  magnitude fallback, ever (2026-07-17 re-review: this is exactly the
+ *  fallback path that could silently mislabel the legacy χ² Hotelling
+ *  test 'wealth' if a future profile widened the joint vector — see the
+ *  header comment above `MAGNITUDE_FALLBACK_THRESHOLD_FLOOR`).
+ *
+ *  `kind === 'e_mmd_betting'` (the `family_C_mmd_verdict` slot) is
+ *  unconditionally 'wealth': every evaluator that can produce it —
+ *  `evaluateEMmd` (sequential-mmd.ts, `signal:
+ *  'sequential_mmd_e_process'`) and `evaluateFamilyCBettingEProcess`
+ *  (_family-c-betting-eval.ts, `signal:
+ *  'sequential_mmd_betting_e_process'`) — is a Ville's-inequality
+ *  wealth process by construction (fires at `S_t ≥ 1/α`), on every
+ *  verdict state including `suppressed`.
+ *
+ *  `kind === 'hotelling'` (the `family_C_verdict` slot) co-ships two
+ *  variants selected per-cell (`_hotelling-dispatch.ts`
+ *  `hotellingVariantForDispatch`): the legacy χ² test
+ *  (`evaluateHotellingChiSquare`) is stateless and never sets `.signal`
+ *  — always 'linear'. The safe-Hotelling e-process
+ *  (`evaluateSafeHotelling`, _hotelling-safe.ts) sets `signal:
+ *  'hotelling_t2_safe'` on every verdict it returns — fire, clean, AND
+ *  suppressed — so that tag alone is a definitive, non-magnitude
+ *  discriminator for which variant produced a given `famC` verdict. */
+function progressScaleForFamilyC(v, kind) {
+    if (kind === 'e_mmd_betting')
+        return 'wealth';
+    return v.signal === 'hotelling_t2_safe' ? 'wealth' : 'linear';
 }
 /** Max per-detector progress among `vs` classified as `scale`; `null`
  *  when none report one. Scale-scoped so callers never average/max
@@ -6498,7 +6578,7 @@ function summarizeSingleCDetector(v, label, kind) {
         family_id: 'C',
         state,
         progress,
-        progress_scale: progress !== null ? progressScaleFor(v) : null,
+        progress_scale: progress !== null ? progressScaleForFamilyC(v, kind) : null,
         detector_kind: kind,
         firedSignals: state === 'fired' ? [label] : [],
         suppressionReason: state === 'suppressed' ? suppressionReasonFor([v.reason_code]) : null,
@@ -6507,8 +6587,8 @@ function summarizeSingleCDetector(v, label, kind) {
 /** Family C — two independent, numerically-incomparable detectors
  *  (Hotelling T² — χ² on the legacy path, a Ville's-inequality wealth
  *  process on the safe-Hotelling path; Sequential MMD/betting — always
- *  a wealth process, see `progressScaleFor` header comment). Emits ONE
- *  `FamilyEvidenceRaw` per detector that produced a verdict this tick
+ *  a wealth process, see `progressScaleForFamilyC` header comment).
+ *  Emits ONE `FamilyEvidenceRaw` per detector that produced a verdict this tick
  *  (never combines their `statistic`/`threshold` into a single
  *  `maxProgress` — that was the confirmed finding: Hotelling's χ²-scale
  *  ratio and e-MMD's wealth-scale ratio are not comparable numbers), or

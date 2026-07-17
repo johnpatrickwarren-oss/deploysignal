@@ -113,6 +113,44 @@ function indeterminateEWealth(): DetectorVerdict {
   };
 }
 
+// ── 2026-07-17 re-review regression fixtures ────────────────────────
+// The original scale-honest fix classified Family C via the same
+// generic `progressScaleFor` magnitude fallback (threshold >= 50) as
+// Family A/D/E. That's fragile for Family C specifically: the legacy
+// χ² Hotelling threshold is a Wilson-Hilferty quantile that GROWS with
+// the joint-signal count (degrees of freedom) and can clear 50 at
+// realistic df/α combinations (df=20, α=1e-4 → ≈52.4; df=30, α=1e-5 →
+// ≈75) — a widened future profile would silently relabel a linear χ²
+// test 'wealth'. Family C is now classified structurally
+// (`progressScaleForFamilyC` in engine/verdict.ts) and never reaches
+// the magnitude fallback at all; these two fixtures pin that.
+
+/** Family C legacy χ² Hotelling at df=20, α=1e-4 (χ²-quantile ≈ 52.4 —
+ *  ALREADY clears the old shared magnitude floor of 50). No `.signal`
+ *  field (the legacy evaluator never sets one) — must classify
+ *  'linear' from the structural kind rule, not from `threshold`. */
+function indeterminateCWideJointVector(): DetectorVerdict {
+  return {
+    verdict: 'indeterminate', statistic: 26.2, threshold: 52.4,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: 'accumulating', family: 'C',
+  };
+}
+
+/** Family C safe-Hotelling wealth e-process. `signal:
+ *  'hotelling_t2_safe'` is the real tag `evaluateSafeHotelling`
+ *  (engine/detectors/_hotelling-safe.ts) sets on every verdict it
+ *  returns, including non-fire states — a definitive, non-magnitude
+ *  discriminator from the legacy χ² variant sharing the same
+ *  `family_C_verdict` slot. */
+function indeterminateCSafeTest(): DetectorVerdict {
+  return {
+    verdict: 'indeterminate', statistic: 4000, threshold: 10000,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: 'accumulating', family: 'C', signal: 'hotelling_t2_safe',
+  };
+}
+
 // ────────────────────────────────────────────────────────────────────
 // Outcome: proceed
 test('fuseVerdict: proceed when all families clean (last tick, no extend)', () => {
@@ -263,7 +301,7 @@ test('fuseVerdict: injected Family E indeterminate drives extend', () => {
 // and a mechanically-generated rationale string, derived only from data
 // already flowing into fuseVerdict (no new statistics, no FM calls).
 
-test('evidence_outlook: always emits exactly 5 entries in A<B<C<D<E order', () => {
+test('evidence_outlook: always emits exactly 5 entries in A<B<C<D<E order (6 when Family C dual-reports)', () => {
   const h = emptyHealth();
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 0, totalTicks: 32, deployRef: 'test' });
   assert.deepEqual(v.evidence_outlook.map((e) => e.family_id), ['A', 'B', 'C', 'D', 'E']);
@@ -460,6 +498,26 @@ test('evidence_outlook: Family C never mixes scales — Hotelling (linear) and e
 
   assert.ok(v.verdict_rationale.includes('Family C (Hotelling T²) accumulating evidence at 50% of fire threshold'));
   assert.ok(v.verdict_rationale.includes('wealth at 0.72× fire threshold'));
+});
+
+test('evidence_outlook: Family C legacy χ² with a wide joint vector (threshold≈52.4, df=20/α=1e-4) stays linear — REGRESSION, 2026-07-17 re-review', () => {
+  const h = emptyHealth();
+  h.family_C_verdict = indeterminateCWideJointVector();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test' });
+  const hotelling = v.evidence_outlook.find((e) => e.family_id === 'C' && e.detector_kind === 'hotelling')!;
+  assert.equal(hotelling.state, 'accumulating');
+  assert.equal(hotelling.progress_scale, 'linear');
+  assert.ok(!hotelling.note.includes('×'));
+});
+
+test('evidence_outlook: Family C safe-Hotelling (hotelling_t2_safe signal tag) classifies wealth independent of threshold magnitude', () => {
+  const h = emptyHealth();
+  h.family_C_verdict = indeterminateCSafeTest();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test' });
+  const hotelling = v.evidence_outlook.find((e) => e.family_id === 'C' && e.detector_kind === 'hotelling')!;
+  assert.equal(hotelling.state, 'accumulating');
+  assert.equal(hotelling.progress_scale, 'wealth');
+  assert.ok(hotelling.note.includes('×'));
 });
 
 test('evidence_outlook: Family C emits a single clean entry (no detector_kind) when neither detector reports', () => {
