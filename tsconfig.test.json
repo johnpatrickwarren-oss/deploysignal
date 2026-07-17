@@ -25,6 +25,7 @@
     "tools/run-nab-validation.ts",
     "tools/_comparator-baseline-types.ts",
     "tools/_comparator-baseline-stats.ts",
+    "tools/_comparator-baseline-threshold.ts",
     "tools/run-comparator-baseline.ts"
   ],
   "exclude": [
