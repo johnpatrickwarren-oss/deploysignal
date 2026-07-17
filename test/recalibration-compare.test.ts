@@ -76,6 +76,35 @@ test('extractSignalMeans: family_c_signals absent falls back to FAMILY_C_SIGNALS
   assert.equal(means.p99_latency, 200);
 });
 
+test('extractSignalMeans: divergent family_A vs family_C values on an overlapping signal -> family_C wins', () => {
+  // Hand-built divergence (real compiled configs should agree to near
+  // float precision per Q2.B.4 coherence) — exercises the documented
+  // "Family C's mean_vector is the multivariate joint-calibration source
+  // of truth for cross-family-covered signals" tie-break explicitly.
+  const cfg = makeConfig({
+    baseline_cells: {
+      dimensions: ['hour_of_day'],
+      cells: [{ key: { hour_of_day: 0 }, n_samples: 200, confidence: 'strict' }],
+      aggregate_fallback: {
+        family_A: {
+          per_signal: {
+            p99_latency: {
+              baseline_mean: 999, baseline_sigma_squared: 100, tau_squared: 100, delta_min: 20,
+            },
+          },
+        },
+        family_C: {
+          mean_vector: [200],
+          covariance: [[100]],
+        },
+      },
+    },
+    family_c_signals: ['p99_latency'],
+  });
+  const means = extractSignalMeans(cfg);
+  assert.equal(means.p99_latency, 200, 'family_C mean_vector must win over the divergent family_A baseline_mean');
+});
+
 // ── compareCandidateVsActive ────────────────────────────────────────
 
 test('compareCandidateVsActive: per_signal_deltas + cell counts + alpha_budget_changed', () => {
@@ -114,6 +143,7 @@ test('compareCandidateVsActive: per_signal_deltas + cell counts + alpha_budget_c
   assert.equal(result.per_signal_deltas.p99_latency.candidate_mean, 150);
   assert.equal(result.per_signal_deltas.p99_latency.delta_absolute, -50);
   assert.ok(Math.abs(result.per_signal_deltas.p99_latency.delta_relative - -0.25) < 1e-9);
+  assert.equal(result.extraction_basis, 'aggregate_fallback_only');
 });
 
 test('compareCandidateVsActive: alpha_budget_changed true on total-budget delta', () => {
@@ -176,6 +206,37 @@ test('compareCandidateVsActive: predicted_fp_behavior "tighter" when delta_min a
 test('compareCandidateVsActive: predicted_fp_behavior "unchanged" when signals disagree / identical', () => {
   const active = makeConfig();
   const candidate = makeConfig(); // byte-identical family_A block
+  const result = compareCandidateVsActive(active, candidate);
+  assert.equal(result.predicted_fp_behavior, 'unchanged');
+});
+
+test('compareCandidateVsActive: predicted_fp_behavior "unchanged" on a genuine tie (1 looser + 1 tighter signal)', () => {
+  // dominantFpBehavior's tie-break path: one Family A signal moves
+  // strictly looser (delta_min + sigma^2 both rise), another moves
+  // strictly tighter (both fall) — a 1-1 count tie must resolve to the
+  // conservative 'unchanged' default, not pick either non-tied verdict.
+  const active = makeConfig();
+  const candidate = makeConfig({
+    baseline_cells: {
+      dimensions: ['hour_of_day'],
+      cells: [{ key: { hour_of_day: 0 }, n_samples: 200, confidence: 'strict' }],
+      aggregate_fallback: {
+        family_A: {
+          per_signal: {
+            // Looser: both delta_min and sigma^2 rise vs active's 20 / 100.
+            p99_latency: {
+              baseline_mean: 200, baseline_sigma_squared: 200, tau_squared: 200, delta_min: 40,
+            },
+            // Tighter: both delta_min and sigma^2 fall vs active's 0.05 / 0.01.
+            mfu: {
+              baseline_mean: 0.70, baseline_sigma_squared: 0.005, tau_squared: 0.001, delta_min: 0.02,
+            },
+          },
+        },
+        family_C: { mean_vector: [200, 0.70], covariance: [[200, 0], [0, 0.005]] },
+      },
+    },
+  });
   const result = compareCandidateVsActive(active, candidate);
   assert.equal(result.predicted_fp_behavior, 'unchanged');
 });

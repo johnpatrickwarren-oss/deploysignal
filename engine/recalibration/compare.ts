@@ -5,6 +5,23 @@
 // before it's allowed into pending_shadow (plan §C Task 4).
 //
 // D6 (engine/tools split): pure, no fs, no I/O.
+//
+// *** AGGREGATE-ONLY LIMITATION (Tasks 3-5 review addition; load-bearing,
+// *** read before touching classification/comparison call sites) ***
+// `extractSignalMeans` below reads `baseline_cells.aggregate_fallback`
+// ONLY. It never touches `baseline_cells.cells[]` (the per-cell
+// family_A/family_C params keyed by hour_of_day / day_of_week / etc).
+// The RUNTIME detectors (engine/detectors — Family A betting, Family C
+// Hotelling) do the opposite: they consult the matching cell's per-cell
+// params FIRST and fall back to `aggregate_fallback` only when a cell
+// lacks strict/adequate confidence. So `compareCandidateVsActive` and
+// the direction classification built on top of it
+// (engine/recalibration/classify.ts) are an AGGREGATE-VIEW
+// APPROXIMATION of what the runtime actually evaluates per cell — a
+// candidate that looks like an "improvement" in aggregate could still
+// diverge from a per-cell view. `ComparisonResult.extraction_basis =
+// 'aggregate_fallback_only'` carries this caveat machine-readably onto
+// every CandidateRecord.comparison so it survives past the code comment.
 
 import type { CompiledConfig } from '../types';
 import { FAMILY_C_SIGNALS } from '../detectors/hotelling';
@@ -17,12 +34,15 @@ import { relativeDelta } from './classify';
  *  `cfg.family_c_signals`, falling back to the hardcoded FAMILY_C_SIGNALS
  *  order the same way the runtime Hotelling detector does).
  *
- *  Reads `aggregate_fallback` specifically, not per-cell entries —
+ *  Reads `aggregate_fallback` specifically, not per-cell entries — see
+ *  this module's header AGGREGATE-ONLY LIMITATION note. In short:
  *  `BaselineCellsConfig.aggregate_fallback` is a required field on any
  *  compiled config that has `baseline_cells` at all, so it's always the
- *  well-defined single "one set of means per config" view; per-cell
- *  comparison is out of scope for the candidate-vs-active gate (which
- *  compares whole compiled baselines, not individual cells).
+ *  well-defined single "one set of means per config" view; but it is
+ *  NOT what the runtime consults first (per-cell params are), so this is
+ *  an approximation, not an equivalence. Per-cell comparison is out of
+ *  scope for this addition (which compares whole compiled baselines,
+ *  not individual cells).
  *
  *  On overlap between Family A and Family C for the same signal (e.g.
  *  p99_latency, ttft, downstream_err, cost_req), Family C's value wins
@@ -79,6 +99,19 @@ export interface ComparisonResult {
   alpha_budget_changed: boolean;
   cells_active: number;
   cells_candidate: number;
+  /** Machine-readable caveat (Tasks 3-5 review addition): this
+   *  comparison is built exclusively from `extractSignalMeans`, which
+   *  reads `baseline_cells.aggregate_fallback` only. Runtime Family A/C
+   *  detectors consult PER-CELL params first, falling back to the
+   *  aggregate only when a cell lacks strict/adequate confidence — so
+   *  this comparison (and the direction classification derived from it,
+   *  engine/recalibration/classify.ts) is an AGGREGATE-VIEW
+   *  APPROXIMATION of what the runtime actually evaluates per cell, not
+   *  a cell-by-cell equivalence. `'aggregate_fallback_only'` is
+   *  currently the module's only extraction basis — the field exists so
+   *  the operator-facing CandidateRecord.comparison carries this
+   *  limitation machine-readably rather than only in a code comment. */
+  extraction_basis: 'aggregate_fallback_only';
 }
 
 function perSignalFpBehavior(
@@ -143,6 +176,7 @@ export function compareCandidateVsActive(
     alpha_budget_changed: active.alpha_budget.total !== candidate.alpha_budget.total,
     cells_active: active.baseline_cells?.cells.length ?? 0,
     cells_candidate: candidate.baseline_cells?.cells.length ?? 0,
+    extraction_basis: 'aggregate_fallback_only',
   };
 }
 
