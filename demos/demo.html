@@ -3924,6 +3924,40 @@ function resolveTenantTier(cfg, tenantId) {
 })();
 
 // ══════════════════════════════════════════════════════════════════════
+// From: engine/types/recalibration.js
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+// engine/types/recalibration.ts — Addition #15 baseline-maintenance
+// lifecycle. Contract types for the candidate-recalibration flow: a
+// drift/calendar/operator trigger proposes a CANDIDATE baseline; it
+// moves through readiness -> shadow validation -> review before ever
+// touching the active baseline (plan §B D3 — triggers create
+// candidates, never mutate the active baseline directly).
+//
+// Types below are transcribed verbatim per the approved implementation
+// plan (deploysignal-addition-15-IMPLEMENTATION_PLAN.md §C Task 2) —
+// exact field names/shapes, not paraphrased. Pure type/const contract:
+// no fs, no I/O (D6 — engine/tools split; file I/O lives in
+// tools/recalibrate/ per a later task).
+//
+// See engine/recalibration/state-machine.ts for the pure lifecycle
+// transition function operating on CandidateRecord.
+/** Closed set of operator-facing reason codes for why a recalibration
+ *  is legitimate (approve/reject) or is suggested by degradation/mixed
+ *  classification (CandidateRecord.suggested_reason_codes). */
+const RECALIBRATION_REASON_CODES = [
+    'feature_complexity_growth',
+    'hardware_cohort_shift',
+    'traffic_mix_change',
+    'safety_check_addition',
+    'upstream_dependency',
+    'other_legitimate',
+    'regression',
+];
+  __NS__.RECALIBRATION_REASON_CODES = RECALIBRATION_REASON_CODES;
+})();
+
+// ══════════════════════════════════════════════════════════════════════
 // From: engine/types/index.js
 // ══════════════════════════════════════════════════════════════════════
 (function () {
