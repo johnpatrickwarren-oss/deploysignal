@@ -81,6 +81,7 @@ test/fixtures/pool-baseline-sparse/
 # (Verified: every untracked .js here has a .ts sibling — no pure-JS sources.)
 engine/**/*.js
 advisory/**/*.js
+service/**/*.js
 tools/calibrators/*.js
 # ...but keep the .js that are intentionally committed (a browser bundle and
 # two calibrator modules already in the tree; preserves current tracked state).
