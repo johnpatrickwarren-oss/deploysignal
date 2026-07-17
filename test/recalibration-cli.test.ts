@@ -13,7 +13,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 
 import {
-  runInit, runPropose, runList, runApprove, runReject, runCheck, runRollback, parseArgv,
+  runInit, runPropose, runShadow, runList, runApprove, runReject, runCheck, runRollback, parseArgv,
 } from '../tools/recalibrate/_recalibrate-cli';
 import { RecalibrationStore, type ActivePointer } from '../tools/recalibrate/_recalibrate-store';
 import { InMemoryLifecycleEventEmitter } from '../engine/o0/lifecycle-events';
@@ -251,6 +251,142 @@ test('check: an open candidate -> exit 0 (not due), even past a month rollover',
   const result = await runCheck(store, emitter, '2026-08-05T00:00:00.000Z');
   assert.equal(result.exitCode, 0);
   assert.ok(result.lines.some((l) => l.includes('not due')));
+});
+
+// ── Fix 2 (Tasks 6-8 review): calendar-due leaves a durable audit trace ─
+
+test('check: calendar-due appends an untyped recalibration.calendar_due event to events.jsonl', async () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  store.writeCandidate({
+    ...pendingShadowCandidate(), review_status: 'decided', status: 'active', outcome: 'auto_promoted', created_at: '2026-07-01T00:00:00.000Z',
+  });
+  const emitter = new InMemoryLifecycleEventEmitter();
+  const result = await runCheck(store, emitter, '2026-08-05T00:00:00.000Z');
+  assert.equal(result.exitCode, 3);
+
+  // No typed lifecycle event ('calendar_due' isn't one of Task 5's six
+  // recalibration.* members) — but the store's own events.jsonl still
+  // carries the decision durably.
+  assert.equal(emitter.getEvents().length, 0);
+  const storedEvents = store.readEvents();
+  const calendarDue = storedEvents.find((e) => e.type === 'recalibration.calendar_due');
+  assert.ok(calendarDue, 'expected a recalibration.calendar_due event in events.jsonl');
+  assert.equal(calendarDue!.at, '2026-08-05T00:00:00.000Z');
+});
+
+// ── Fix 1 (Tasks 6-8 review): OQ-5 stale-warning surfacing ──────────────
+
+test('list: surfaces a pending_shadow candidate past its own timeout_at as a STALE warning, without rejecting it', async () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  store.writeCandidate(pendingShadowCandidate({
+    candidate_id: 'cand-stale-1', timeout_at: '2026-07-10T00:00:00.000Z',
+  }));
+  const emitter = new InMemoryLifecycleEventEmitter();
+  const result = await runList(store, emitter, '2026-07-20T00:00:00.000Z');
+
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.staleCandidateIds, ['cand-stale-1']);
+  assert.ok(result.lines.some((l) => l.includes('STALE') && l.includes('cand-stale-1')));
+
+  // NOT auto-rejected — pending_shadow candidates are outside
+  // sweepTimeouts's remit (OQ-5); only 'reviewable' candidates time out.
+  const rec = store.readCandidate('cand-stale-1');
+  assert.equal(rec.review_status, 'pending_shadow');
+  assert.equal(rec.status, 'candidate');
+  assert.equal(rec.outcome, null);
+});
+
+test('check: also surfaces stale pending_readiness/pending_shadow candidates as warnings', async () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  // An open candidate keeps the calendar safety net itself from firing,
+  // isolating this test to the stale-warning behavior.
+  store.writeCandidate(pendingShadowCandidate({
+    candidate_id: 'cand-stale-2', review_status: 'pending_readiness', timeout_at: '2026-07-05T00:00:00.000Z', created_at: '2026-06-20T00:00:00.000Z',
+  }));
+  const emitter = new InMemoryLifecycleEventEmitter();
+  const result = await runCheck(store, emitter, '2026-07-20T00:00:00.000Z');
+
+  assert.equal(result.exitCode, 0, 'open candidate keeps calendar safety net from firing');
+  assert.deepEqual(result.staleCandidateIds, ['cand-stale-2']);
+  assert.ok(result.lines.some((l) => l.includes('STALE') && l.includes('cand-stale-2')));
+});
+
+test('list: reviewable candidates past timeout are swept (rejected), not reported as stale', async () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  store.writeCandidate(reviewableCandidate({ candidate_id: 'cand-swept-1', timeout_at: '2026-07-10T00:00:00.000Z' }));
+  const emitter = new InMemoryLifecycleEventEmitter();
+  const result = await runList(store, emitter, '2026-07-20T00:00:00.000Z');
+
+  assert.deepEqual(result.staleCandidateIds, []);
+  const rec = store.readCandidate('cand-swept-1');
+  assert.equal(rec.outcome, 'timeout_rejected');
+});
+
+// ── shadow (Task 9) ──────────────────────────────────────────────────
+
+test('shadow: dry-run happy path wired through the CLI dispatch -> reviewable + event', async () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  const activePath = writeConfig(root, 'active.json', makeConfig({ version: 'v6@seed=42' }));
+  seedActive(store, {
+    schema_version: '1', version_id: 'v6@seed=42', candidate_id: null, compiled_config_path: activePath,
+    baseline_ref: 'v6@seed=42', promoted_at: '2026-06-01T00:00:00.000Z', predecessor_version_id: null, promotion_history: [],
+  });
+  const candidatePath = writeConfig(root, 'candidate.json', makeConfig({ version: 'v7@seed=43' }));
+  store.writeCandidate(pendingShadowCandidate({
+    candidate_id: 'cand-shadow-cli', compiled_config_path: candidatePath, direction_classification: 'degradation',
+  }));
+
+  const emitter = new InMemoryLifecycleEventEmitter();
+  const result = await runShadow(store, emitter, {
+    candidateId: 'cand-shadow-cli',
+    scenarios: ['anthropic_tpu_output_corruption_step_2025_09'],
+    seeds: [42],
+    outputDir: path.join(store.dir, 'shadow-out'),
+    dryRun: true,
+    now: '2026-07-05T00:00:00.000Z',
+  });
+
+  assert.equal(result.exitCode, 0);
+  assert.ok(result.lines[0].includes('reviewable'));
+  const rec = store.readCandidate('cand-shadow-cli');
+  assert.equal(rec.review_status, 'reviewable');
+  assert.equal(emitter.getEvents().length, 1);
+  assert.equal(emitter.getEvents()[0].type, 'recalibration.shadow_validated');
+});
+
+test('shadow: candidate not pending_shadow -> exit 1 error', async () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  store.writeCandidate(reviewableCandidate({ candidate_id: 'cand-shadow-wrong-state', timeout_at: '2026-09-01T00:00:00.000Z' }));
+
+  const emitter = new InMemoryLifecycleEventEmitter();
+  const result = await runShadow(store, emitter, {
+    candidateId: 'cand-shadow-wrong-state',
+    scenarios: ['s1'],
+    seeds: [42],
+    outputDir: path.join(store.dir, 'shadow-out'),
+    dryRun: true,
+    now: '2026-07-05T00:00:00.000Z',
+  });
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.lines[0].includes('not pending_shadow'));
+});
+
+test('parseArgv: shadow flags parse, --dry-run is a bare boolean (no value consumed)', () => {
+  const { subcommand, flags } = parseArgv([
+    'shadow', '--service', 'svc-demo', '--candidate-id', 'cand-001',
+    '--scenarios', 's1,s2', '--seeds', '42,43', '--dry-run', '--output-dir', 'out/',
+  ]);
+  assert.equal(subcommand, 'shadow');
+  assert.equal(flags.scenarios, 's1,s2');
+  assert.equal(flags.seeds, '42,43');
+  assert.equal(flags['dry-run'], 'true');
+  assert.equal(flags['output-dir'], 'out/');
 });
 
 // ── rollback ─────────────────────────────────────────────────────────

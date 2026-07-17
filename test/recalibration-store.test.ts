@@ -310,6 +310,35 @@ test('JsonlLifecycleEventEmitter: emit + store.readEvents round-trip in order', 
   assert.equal(events[0].type, 'recalibration.proposed');
   assert.equal(events[1].type, 'recalibration.auto_promoted');
   assert.equal((events[0].payload as typeof base & { type: string }).candidate_id, 'cand-001');
+  // Fix 3 (Tasks 6-8 review) — the envelope's `at` must equal the
+  // deterministic payload `at` threaded from the caller, not a fresh
+  // wall-clock read at emit time.
+  assert.equal(events[0].at, base.at);
+  assert.equal(events[1].at, base.at);
+});
+
+test('JsonlLifecycleEventEmitter: envelope `at` falls back to wall clock only when payload has no `at`', async () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  const emitter = new JsonlLifecycleEventEmitter(store);
+
+  const before = Date.now();
+  // Cast past the typed payload contract to exercise the defensive
+  // fallback branch — every real LifecycleEventPayload variant does
+  // carry `at`, but the emitter must not crash if one somehow didn't.
+  await emitter.emit('recalibration.proposed', {
+    type: 'recalibration.proposed',
+    service_id: 'svc-demo',
+    candidate_id: 'cand-002',
+    proposed_baseline_version: 'v6@seed=42',
+    current_baseline_version: 'v5@seed=42',
+    direction_classification: 'improvement',
+  } as unknown as Parameters<typeof emitter.emit>[1]);
+  const after = Date.now();
+
+  const [event] = store.readEvents();
+  const atMs = new Date(event.at).getTime();
+  assert.ok(atMs >= before && atMs <= after, `expected wall-clock fallback 'at', got ${event.at}`);
 });
 
 test('appendEvent / readEvents: empty log before any events', () => {

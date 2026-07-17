@@ -381,11 +381,19 @@ export class RecalibrationStore {
 export class JsonlLifecycleEventEmitter implements LifecycleEventEmitter {
   constructor(private readonly store: RecalibrationStore) {}
 
+  /** Fix 3 (Tasks 6-8 review) — the envelope's `at` must align with the
+   *  payload's own `at` (every LifecycleEventPayload variant carries
+   *  one, itself threaded from the caller's deterministic `nowIso` —
+   *  see e.g. _recalibrate-cli.ts's `nowOrDefault`), not a fresh
+   *  `new Date()` wall-clock read at emit time. Falls back to wall
+   *  clock only when the payload has no usable `at` (defensive; every
+   *  current payload variant requires one). */
   async emit(event_type: LifecycleEventType, payload: LifecycleEventPayload): Promise<void> {
+    const payloadAt = (payload as { at?: unknown }).at;
     this.store.appendEvent({
       type: event_type,
       payload,
-      at: new Date().toISOString(),
+      at: typeof payloadAt === 'string' ? payloadAt : new Date().toISOString(),
     });
   }
 }

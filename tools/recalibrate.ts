@@ -10,6 +10,9 @@
 //     --creation-reason drift_detected|calendar_safety_net|operator_manual \
 //     --source-window-start <iso> --source-window-end <iso> \
 //     --source-window-samples <n> [--drift-output <path.json>] [--now <iso>]
+//   node tools/recalibrate.ts shadow --service <id> --candidate-id <id> \
+//     --scenarios <s1,s2,...> --seeds <42,43,...> [--output-dir <dir>] \
+//     [--dry-run] [--baseline-dir <dir>] [--now <iso>]
 //   node tools/recalibrate.ts list --service <id> [--now <iso>]
 //   node tools/recalibrate.ts show --service <id> --candidate-id <id>
 //   node tools/recalibrate.ts approve --service <id> --candidate-id <id> \
@@ -20,16 +23,16 @@
 //   node tools/recalibrate.ts rollback --service <id> --version <id> \
 //     --reviewer <id> --reason-code <code> [--now <iso>]
 //
-// `shadow` is not available here — plan §C Task 9
-// (tools/recalibrate/_recalibrate-shadow.ts) owns shadow-mode
-// validation; 'reviewable' is reachable ONLY via that path.
+// `shadow` (Task 9, tools/recalibrate/_recalibrate-shadow.ts) wraps the
+// EXISTING tools/run-shadow-compare.ts Q60 orchestrator with active +
+// candidate SubstrateRefs; 'reviewable' is reachable ONLY via that path.
 
 export {
-  runInit, runPropose, runList, runShow, runApprove, runReject, runCheck, runRollback,
+  runInit, runPropose, runShadow, runList, runShow, runApprove, runReject, runCheck, runRollback,
   parseArgv, main, USAGE_TEXT,
 } from './recalibrate/_recalibrate-cli';
 export type {
-  HandlerResult, InitArgs, ProposeArgs, DecisionArgs, RollbackArgs, ParsedArgv,
+  HandlerResult, InitArgs, ProposeArgs, ShadowArgs, DecisionArgs, RollbackArgs, ParsedArgv,
 } from './recalibrate/_recalibrate-cli';
 export {
   RecalibrationStore, JsonlLifecycleEventEmitter, RecalibrationStoreSchemaError,
@@ -41,10 +44,12 @@ export { sweepTimeouts, checkCalendarSafetyNet } from './recalibrate/_recalibrat
 export type { SweepResult, CalendarSafetyNetResult } from './recalibrate/_recalibrate-sweep';
 export { buildProposedCandidate } from './recalibrate/_recalibrate-candidate';
 export type { ProposeInput, ProposeOutcome, ProposeSourceWindow } from './recalibrate/_recalibrate-candidate';
+export { runCandidateShadow } from './recalibrate/_recalibrate-shadow';
+export type { RunCandidateShadowOptions, RunCandidateShadowResult } from './recalibrate/_recalibrate-shadow';
 
 import { main } from './recalibrate/_recalibrate-cli';
 
-const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'list', 'show', 'approve', 'reject', 'check', 'rollback'];
+const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'shadow', 'list', 'show', 'approve', 'reject', 'check', 'rollback'];
 if (RECALIBRATE_SUBCOMMANDS.includes(process.argv[2])) {
   main().catch((err) => {
     console.error(err instanceof Error ? (err.stack ?? err.message) : err);

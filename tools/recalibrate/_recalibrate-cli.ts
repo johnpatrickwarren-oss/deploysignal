@@ -17,26 +17,57 @@
 // RECALIBRATION_REASON_CODES by the state machine itself (Task 2); this
 // module doesn't re-validate it.
 //
-// `shadow` is deliberately ABSENT from the subcommand table below —
-// plan §C Task 9 (tools/recalibrate/_recalibrate-shadow.ts, not part of
-// this task) owns it; 'reviewable' is reachable ONLY via that path.
-// Listed in USAGE_TEXT for operator visibility, not dispatched here.
+// `shadow` (Task 9, tools/recalibrate/_recalibrate-shadow.ts) drives a
+// `pending_shadow` candidate through the Q60 shadow-compare orchestrator;
+// 'reviewable' is reachable ONLY via that path.
+//
+// Fix 1 (Tasks 6-8 review, OQ-5 stale-warning surfacing): `list` and
+// `check` surface pending_readiness/pending_shadow candidates whose
+// timeout_at has passed as STALE warnings — printed AND returned via
+// HandlerResult.staleCandidateIds — WITHOUT auto-rejecting them (the
+// state machine defines no legal 'timeout' transition out of those
+// review_status values; only `sweepTimeouts`-eligible 'reviewable'
+// candidates get auto-rejected, per OQ-5 / _recalibrate-sweep.ts).
 
 import * as path from 'node:path';
 
 import type { LifecycleEventEmitter } from '../../engine/o0/lifecycle-events';
-import type { CreationReason } from '../../engine/types/recalibration';
+import type { CandidateRecord, CreationReason } from '../../engine/types/recalibration';
 import { transition } from '../../engine/recalibration/state-machine';
+import { isTimedOut } from '../../engine/recalibration/timeout';
 import { sweepTimeouts, checkCalendarSafetyNet } from './_recalibrate-sweep';
 import { buildProposedCandidate, type ProposeSourceWindow } from './_recalibrate-candidate';
+import { runCandidateShadow } from './_recalibrate-shadow';
 import { RecalibrationStore, JsonlLifecycleEventEmitter, type InitOptions } from './_recalibrate-store';
 
-export const USAGE_TEXT = 'usage: recalibrate <init|propose|list|show|approve|reject|check|rollback> [flags] '
-  + '(shadow: not available in this build — plan §C Task 9)';
+export const USAGE_TEXT = 'usage: recalibrate <init|propose|shadow|list|show|approve|reject|check|rollback> [flags]';
 
 export interface HandlerResult {
   exitCode: number;
   lines: string[];
+  /** Fix 1 (Tasks 6-8 review) — candidate_ids surfaced as STALE by
+   *  `list`/`check` (see module header). Absent/empty on every other
+   *  handler and whenever nothing is stale. */
+  staleCandidateIds?: string[];
+}
+
+/** Fix 1 — pending_readiness/pending_shadow candidates whose timeout_at
+ *  has already passed. `sweepTimeouts` never touches these (OQ-5), so
+ *  without this surfacing they'd sit silently past their review deadline
+ *  forever; `list`/`check` print + return them as warnings instead. */
+function staleCandidateWarnings(
+  candidates: CandidateRecord[], nowIso: string,
+): { ids: string[]; lines: string[] } {
+  const stale = candidates.filter(
+    (c) => (c.review_status === 'pending_readiness' || c.review_status === 'pending_shadow')
+      && isTimedOut(c.timeout_at, nowIso),
+  );
+  return {
+    ids: stale.map((c) => c.candidate_id),
+    lines: stale.map((c) => `STALE: candidate '${c.candidate_id}' (review_status='${c.review_status}') `
+      + `timeout_at=${c.timeout_at} has passed but was NOT auto-rejected `
+      + '(OQ-5: only \'reviewable\' candidates time out; operator action required)'),
+  };
 }
 
 const ok = (lines: string[]): HandlerResult => ({ exitCode: 0, lines });
@@ -114,6 +145,55 @@ export async function runPropose(
   return ok([`candidate '${args.candidateId}' proposed (${outcome.record.direction_classification}); pending_shadow`]);
 }
 
+// ── shadow (Task 9) ──────────────────────────────────────────────────
+
+export interface ShadowArgs {
+  candidateId: string;
+  scenarios: string[];
+  seeds: number[];
+  outputDir: string;
+  dryRun?: boolean;
+  baselineDir?: string;
+  now?: string;
+}
+
+/** Drives a `pending_shadow` candidate through the Q60 shadow-compare
+ *  orchestrator (tools/recalibrate/_recalibrate-shadow.ts). Only legal
+ *  from `pending_shadow` — 'reviewable' is reachable ONLY via this
+ *  handler (plan §C Task 9), mirroring approve/reject's "not reviewable"
+ *  guard shape for the sibling "wrong review_status" error. */
+export async function runShadow(
+  store: RecalibrationStore, emitter: LifecycleEventEmitter, args: ShadowArgs,
+): Promise<HandlerResult> {
+  const nowIso = nowOrDefault(args.now);
+  await sweepTimeouts(store, emitter, nowIso);
+
+  const rec = store.readCandidate(args.candidateId);
+  if (rec.review_status !== 'pending_shadow') {
+    return { exitCode: 1, lines: [`candidate '${args.candidateId}' is not pending_shadow (review_status='${rec.review_status}')`] };
+  }
+
+  const result = await runCandidateShadow(store, emitter, rec, {
+    scenarios: args.scenarios,
+    seeds: args.seeds,
+    outputDir: args.outputDir,
+    dryRun: args.dryRun,
+    baselineDir: args.baselineDir,
+    nowIso,
+  });
+
+  if (!result.gatesPassed) {
+    return {
+      exitCode: 2,
+      lines: [`candidate '${args.candidateId}' failed shadow-mode acceptance gates; rejected (shadow_mode_failed)`],
+    };
+  }
+  if (result.autoPromoted) {
+    return ok([`candidate '${args.candidateId}' shadow-validated + auto-promoted (improvement); active baseline updated`]);
+  }
+  return ok([`candidate '${args.candidateId}' shadow-validated; reviewable (${result.record.direction_classification})`]);
+}
+
 // ── list / show ──────────────────────────────────────────────────────
 
 export async function runList(
@@ -121,10 +201,12 @@ export async function runList(
 ): Promise<HandlerResult> {
   const nowIso = nowOrDefault(now);
   await sweepTimeouts(store, emitter, nowIso);
-  const lines = store.listCandidates().map(
+  const candidates = store.listCandidates();
+  const lines = candidates.map(
     (c) => `${c.candidate_id}\t${c.status}\t${c.review_status}\t${c.direction_classification}`,
   );
-  return ok(lines);
+  const stale = staleCandidateWarnings(candidates, nowIso);
+  return { exitCode: 0, lines: [...lines, ...stale.lines], staleCandidateIds: stale.ids };
 }
 
 export async function runShow(
@@ -213,22 +295,50 @@ export async function runReject(
  *  lifecycle event is emitted here — Task 5 closed LifecycleEventType's
  *  recalibration.* set at exactly six members and 'calendar_due' isn't
  *  one of them (plan §C Task 5); the CLI's printed guidance + exit code
- *  IS the "emission" plan §B D2's prose refers to. */
+ *  IS the "emission" plan §B D2's prose refers to.
+ *
+ *  Fix 2 (Tasks 6-8 review) — calendar-due must still leave a DURABLE
+ *  audit trace, not just stdout: when due, an untyped StoredEvent (type
+ *  'recalibration.calendar_due') is appended straight to the store's
+ *  events.jsonl via `store.appendEvent`, mirroring rollback's
+ *  'recalibration.rolled_back' pattern (_recalibrate-store.ts header
+ *  note) — same mechanism Task 9's shadow-gate-failure path also uses. */
 export async function runCheck(
   store: RecalibrationStore, emitter: LifecycleEventEmitter, now?: string,
 ): Promise<HandlerResult> {
   const nowIso = nowOrDefault(now);
   await sweepTimeouts(store, emitter, nowIso);
+  const candidates = store.listCandidates();
+  const stale = staleCandidateWarnings(candidates, nowIso);
   const result = checkCalendarSafetyNet(store, nowIso);
   if (!result.due) {
-    return ok([`calendar safety net: not due (last_activity_at=${result.last_activity_at ?? 'none'}, open_candidate=${result.open_candidate_id ?? 'none'})`]);
+    return {
+      exitCode: 0,
+      lines: [
+        `calendar safety net: not due (last_activity_at=${result.last_activity_at ?? 'none'}, open_candidate=${result.open_candidate_id ?? 'none'})`,
+        ...stale.lines,
+      ],
+      staleCandidateIds: stale.ids,
+    };
   }
+
+  store.appendEvent({
+    type: 'recalibration.calendar_due',
+    payload: {
+      service_id: store.readMeta().service_id,
+      last_activity_at: result.last_activity_at,
+    },
+    at: nowIso,
+  });
+
   return {
     exitCode: 3,
     lines: [
       `calendar safety net: DUE — no recalibration activity since ${result.last_activity_at}`,
       `run: node tools/recalibrate.ts propose --creation-reason calendar_safety_net ...`,
+      ...stale.lines,
     ],
+    staleCandidateIds: stale.ids,
   };
 }
 
@@ -257,12 +367,18 @@ const KNOWN_FLAGS = new Set([
   '--source-window-start', '--source-window-end', '--source-window-samples',
   '--drift-output', '--now', '--reviewer', '--reason-code', '--timeout-days',
   '--unchanged-epsilon-rel', '--version',
+  '--scenarios', '--seeds', '--output-dir', '--dry-run', '--baseline-dir',
 ]);
 
 export interface ParsedArgv {
   subcommand: string;
   flags: Record<string, string>;
 }
+
+/** `--dry-run` is a bare boolean flag (Task 9's `shadow` subcommand,
+ *  mirroring tools/run-shadow-compare.ts's own `--dry-run`) — it doesn't
+ *  consume a following value like every other flag here. */
+const BOOLEAN_FLAGS = new Set(['--dry-run']);
 
 /** Flat `--flag value` parser shared by every subcommand (subcommand-
  *  specific requiredness is enforced by `requireFlag` at dispatch time,
@@ -276,6 +392,10 @@ export function parseArgv(argv: string[]): ParsedArgv {
     const k = rest[i];
     if (!k.startsWith('--')) throw new Error(`unexpected positional argument: '${k}'. ${USAGE_TEXT}`);
     if (!KNOWN_FLAGS.has(k)) throw new Error(`Unknown flag: ${k}. ${USAGE_TEXT}`);
+    if (BOOLEAN_FLAGS.has(k)) {
+      flags[k.slice(2)] = 'true';
+      continue;
+    }
     flags[k.slice(2)] = rest[i + 1];
     i += 1;
   }
@@ -317,6 +437,16 @@ async function dispatch(subcommand: string, flags: Record<string, string>): Prom
           end: requireFlag(flags, 'source-window-end'),
           n_samples: parseInt(requireFlag(flags, 'source-window-samples'), 10),
         },
+        now: flags.now,
+      });
+    case 'shadow':
+      return runShadow(store, emitter, {
+        candidateId: requireFlag(flags, 'candidate-id'),
+        scenarios: requireFlag(flags, 'scenarios').split(',').map((s) => s.trim()),
+        seeds: requireFlag(flags, 'seeds').split(',').map((s) => parseInt(s.trim(), 10)),
+        outputDir: flags['output-dir'] ?? 'runs/validation-reports/profile-report-cards/',
+        dryRun: flags['dry-run'] === 'true',
+        baselineDir: flags['baseline-dir'],
         now: flags.now,
       });
     case 'list':
