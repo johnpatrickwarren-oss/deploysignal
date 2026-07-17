@@ -22,7 +22,14 @@
     "tools/curate-baseline-pipeline.ts",
     "tools/per-tick-detector-trace.ts",
     "tools/nab-scoring.ts",
-    "tools/run-nab-validation.ts"
+    "tools/run-nab-validation.ts",
+    "tools/_comparator-baseline-types.ts",
+    "tools/_comparator-baseline-stats.ts",
+    "tools/run-comparator-baseline.ts"
   ],
-  "exclude": ["node_modules", "dist", "engine"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "engine"
+  ]
 }
