@@ -23,6 +23,7 @@
 import * as http from 'http';
 import * as path from 'path';
 
+import type { AuditWriter } from '../../engine/types';
 import { loadConfigFromEnv } from './_gate-config';
 import type { GateHttpConfig } from './_gate-config';
 import { GateSessionRuntime } from './_gate-session-runtime';
@@ -39,6 +40,7 @@ export interface GateServerHandle {
   server: http.Server;
   runtime: GateSessionRuntime;
   store: SessionStore;
+  auditWriter: AuditWriter;
   close(): Promise<void>;
 }
 
@@ -70,8 +72,10 @@ export function createGateServer(cfg: GateHttpConfig): GateServerHandle {
     server,
     runtime,
     store,
+    auditWriter,
     close: () => new Promise((resolve, reject) => {
       runtime.close();
+      auditWriter.close();
       server.close((err) => (err ? reject(err) : resolve()));
     }),
   };
