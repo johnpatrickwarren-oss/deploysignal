@@ -102,12 +102,15 @@ test('Family C: hotelling_t2_joint_vector is the classical chi_square fallback t
   assert.equal(ville.validity_class, 'ville_anytime_valid');
 });
 
-test('Family C: sequential_mmd and sequential_mmd_e_process are both ville_anytime_valid — '
-  + 'the classical bootstrap-null Sequential-MMD evaluator was retired from runtime '
-  + 'dispatch at Q68 close; both live MMD paths (Q67 v2 canonical betting and the '
-  + 'Option-B GRAPA/ONS betting) are Ville-bounded', () => {
+test('Family C: sequential_mmd, sequential_mmd_e_process, and '
+  + 'sequential_mmd_betting_e_process are all ville_anytime_valid — the classical '
+  + 'bootstrap-null Sequential-MMD evaluator was retired from runtime dispatch at Q68 '
+  + 'close; both live MMD paths (Q67 v2 canonical betting and the Option-B GRAPA/ONS '
+  + 'betting) are Ville-bounded, and the legacy sequential_mmd fallback id inherits the '
+  + 'same guarantee even though no live evaluator attributes to it today', () => {
   assert.equal(DETECTOR_GUARANTEES['sequential_mmd'].validity_class, 'ville_anytime_valid');
   assert.equal(DETECTOR_GUARANTEES['sequential_mmd_e_process'].validity_class, 'ville_anytime_valid');
+  assert.equal(DETECTOR_GUARANTEES['sequential_mmd_betting_e_process'].validity_class, 'ville_anytime_valid');
 });
 
 test('Family D: spectral_peak_acf_kv_cache is the classical bootstrap-null fallback '
@@ -143,12 +146,26 @@ test('self-normalized-e-process-fallback (Q70 §7/§6) is documented as deprecat
 });
 
 test('sequential_mmd: the audit-writer id-mapping caveat lives in id_mapping_note, '
-  + 'not citation — citation stays a pure literature anchor', () => {
+  + 'not citation — citation stays a pure literature anchor. Now that '
+  + 'sequential_mmd_betting_e_process is registered, the note documents the id as '
+  + "DORMANT for live attribution (the canonical evaluator's fires route to its own "
+  + 'id), not as an active misattribution target', () => {
   const g = DETECTOR_GUARANTEES['sequential_mmd'];
   assert.equal(g.citation, 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process');
   assert.ok(g.id_mapping_note !== undefined, 'expected sequential_mmd.id_mapping_note to be set');
   assert.match(g.id_mapping_note!, /sequential_mmd_betting_e_process/);
+  assert.match(g.id_mapping_note!, /[Dd]ormant/);
   assert.doesNotMatch(g.citation, /sequential_mmd_betting_e_process/);
+});
+
+test('sequential_mmd_betting_e_process: registered Q67 v2 canonical id — ville, '
+  + 'Shekhar-Ramdas-2023 citation, and (unlike its dormant sequential_mmd sibling) no '
+  + 'id_mapping_note, since its own signal now resolves to itself with no fallback hop', () => {
+  const g = DETECTOR_GUARANTEES['sequential_mmd_betting_e_process'];
+  assert.equal(g.validity_class, 'ville_anytime_valid');
+  assert.equal(g.family, 'C');
+  assert.equal(g.citation, 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process');
+  assert.equal(g.id_mapping_note, undefined);
 });
 
 test('fallback_of always points at a real registry id', () => {

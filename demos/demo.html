@@ -3872,7 +3872,14 @@ const DETECTOR_REGISTRY = {
         'tok_econ', 'behavioral', 'eval_quality_drop', 'refusal_spike',
         'output_len_drift', 'tool_call_degradation', 'quality_warning',
     ],
-    C: ['hotelling_t2_joint_vector', 'sequential_mmd', 'hotelling_t2_safe', 'sequential_mmd_e_process'],
+    C: [
+        'hotelling_t2_joint_vector', 'sequential_mmd', 'hotelling_t2_safe', 'sequential_mmd_e_process',
+        // Q67 v2 canonical Shekhar-Ramdas-2023 betting-e-process (Addition #20).
+        // Was previously unregistered — engine/_audit-families.ts's registry-
+        // membership check fell through to the legacy `sequential_mmd` id for
+        // its fires; see engine/guarantees.ts file header for the finding.
+        'sequential_mmd_betting_e_process',
+    ],
     D: ['spectral_peak_acf_kv_cache', 'spectral_e_detector_kv_cache'],
     E: ['mahalanobis_conformal_baseline'],
 };
@@ -6359,6 +6366,7 @@ function evaluateConformalWeightedEValue(input, x_t, state) {
             verdict: 'suppressed', statistic: state.M, threshold,
             alpha_consumed: 0, alpha_spent: 0,
             reason_code: 'covariance_singular', family: 'E',
+            signal: 'weighted_conformal_e_value',
         };
     }
     const { scores, cumulative_weights_above, total_weight } = input.params;
@@ -9097,9 +9105,15 @@ function evalFamilyC(params, hr, fc) {
             const rr = resolveDetectorId(rid);
             // Addition #20 — variant-aware detector_id. When the verdict carries
             // a Family-C-registered signal (`hotelling_t2_safe` /
-            // `sequential_mmd_e_process`), use it as detector_id instead of
-            // the default chi_square / bootstrap_null mapping. Preserves
-            // audit distinction between legacy + new e-process variants.
+            // `sequential_mmd_e_process` / `sequential_mmd_betting_e_process`),
+            // use it as detector_id instead of the default chi_square /
+            // legacy-mmd mapping. Preserves audit distinction between
+            // chi_square/legacy-mmd and the safe_test / e-process variants.
+            // `sequential_mmd_betting_e_process` registration closed a gap: the
+            // Q67 v2 canonical evaluator's own signal id used to be absent from
+            // DETECTOR_REGISTRY.C, so this membership check fell through to
+            // `rr` (the legacy `sequential_mmd` id) for its fires — see
+            // engine/guarantees.ts sequential_mmd.id_mapping_note.
             const sig = v.signal;
             const ridResolved = (sig && DETECTOR_REGISTRY.C.indexOf(sig) >= 0)
                 ? { family_id: 'C', detector_id: sig }

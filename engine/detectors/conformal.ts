@@ -386,6 +386,7 @@ export function evaluateConformalWeightedEValue(
       verdict: 'suppressed', statistic: state.M, threshold,
       alpha_consumed: 0, alpha_spent: 0,
       reason_code: 'covariance_singular', family: 'E',
+      signal: 'weighted_conformal_e_value',
     };
   }
   const { scores, cumulative_weights_above, total_weight } = input.params;

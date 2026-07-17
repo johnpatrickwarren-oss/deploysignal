@@ -21,6 +21,7 @@ import assert from 'node:assert/strict';
 
 import type {
   CompiledConfig, FamilyCPerCell, FamilyCBettingEProcessState,
+  DetectorVerdict, HealthResult, OrchestrateParams, Scenario, VerdictResult,
 } from '../engine/types';
 import {
   evaluateFamilyCBettingEProcess,
@@ -29,6 +30,7 @@ import {
   onsUpdate,
 } from '../engine/detectors/family-c-betting-e-process';
 import { FAMILY_C_SIGNALS } from '../engine/detectors/hotelling';
+import { buildFamilyVerdictsV2 } from '../engine/_audit-families';
 
 const ALPHA = 1e-4;
 const LAMBDA_MAX = 0.5;
@@ -376,4 +378,49 @@ test('Q67: schema additive — pre-Q67 cells handle missing betting_e_process_pa
   const v = evaluateFamilyCBettingEProcess(cfg, liveAt(0.01), {}, baseCtx());
   assert.equal(v, null,
     'pre-Q67 cells must return null cleanly (graceful additive backward-compat)');
+});
+
+// ── (13) Audit attribution — canonical fire routes to its OWN registry
+//         id, not the legacy `sequential_mmd` fallback ─────────────────
+//
+// Regression coverage for the id-mapping gap documented in
+// engine/guarantees.ts's file header / sequential_mmd.id_mapping_note:
+// before `sequential_mmd_betting_e_process` was added to
+// DETECTOR_REGISTRY.C, engine/_audit-families.ts's registry-membership
+// check in evalFamilyC had nothing to match this evaluator's own
+// `verdict.signal` against, so it fell through to the legacy
+// `sequential_mmd` id (resolveDetectorId('family_C_mmd')). This test
+// drives buildFamilyVerdictsV2 directly with a fire verdict carrying
+// `signal: 'sequential_mmd_betting_e_process'` (exactly what
+// evaluateFamilyCBettingEProcess emits — see fireCheck in
+// _family-c-betting-eval.ts) and asserts the resulting v2 detector_id is
+// the canonical id itself, not the legacy fallback.
+
+test('Q67 audit attribution: a family_C_mmd_verdict carrying '
+  + "signal='sequential_mmd_betting_e_process' attributes to the canonical "
+  + 'registry id in the v2 record, NOT the legacy sequential_mmd fallback', () => {
+  const fireVerdict: DetectorVerdict = {
+    verdict: 'fire', statistic: 12345, threshold: 10000,
+    alpha_consumed: 1e-4, alpha_spent: 1e-4,
+    reason_code: 'family_c_betting_wealth_exceeded',
+    family: 'C', signal: 'sequential_mmd_betting_e_process',
+  };
+  const hr: HealthResult = {
+    rollback: [{ id: 'family_C_mmd', label: 'Family C (canonical betting-e-process)' }],
+    extend: [],
+    warmup: { active: false, grace: false, pct: 1, suppressedIds: [] },
+    suppressed: [],
+    family_C_mmd_verdict: fireVerdict,
+  };
+  const params = {
+    liveMetrics: {}, scenario: {} as Scenario, hoursElapsed: 0,
+    tick: 0, totalTicks: 1,
+  } as OrchestrateParams;
+  const result = {} as VerdictResult;
+
+  const families = buildFamilyVerdictsV2(params, result, hr);
+  assert.equal(families.C.verdict, 'fire');
+  assert.equal(families.C.detectors.length, 1);
+  assert.equal(families.C.detectors[0].detector_id, 'sequential_mmd_betting_e_process');
+  assert.notEqual(families.C.detectors[0].detector_id, 'sequential_mmd');
 });
