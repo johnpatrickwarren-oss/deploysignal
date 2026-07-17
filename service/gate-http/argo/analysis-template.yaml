@@ -1,0 +1,46 @@
+# service/gate-http/argo/analysis-template.yaml — Task 8 (WS4
+# session-durability-argo plan): Argo Rollouts AnalysisTemplate for the
+# Level-1 "web metric provider" integration (ORCHESTRATION-ADAPTERS.md
+# §Level 1, lines 75-96). Argo polls GET /v1/verdict/{deploy-ref} on
+# `interval`; the gate never pushes to Argo — see README.md's "metric
+# ingestion model" section for how ticks reach the gate instead
+# (push, POST /v1/sessions/{id}/ticks, OQ-2).
+#
+# jsonPath / success / failure / inconclusive conditions are pinned to
+# the seven-key GET /v1/verdict/{deploy_ref} response shape
+# (service/gate-http/_gate-handlers.ts handleGetVerdict) and the
+# VERDICT_CODE mapping (service/gate-http/_gate-session-runtime.ts):
+#   proceed -> 0 (Successful)   rollback -> 1 (Failed)   extend -> -1 (Inconclusive)
+#
+# Namespace / service DNS name / port below are illustrative — replace
+# `<ns>` and the Service name with your deployment's actual values.
+# DS_GATE_PORT defaults to 8790 (deliberately distinct from
+# tools/claude-proxy.js's 8787).
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: deploysignal-gate
+spec:
+  args:
+    - name: deploy-ref
+  metrics:
+    - name: gate-verdict
+      interval: 30s
+      count: 60             # up to 60 evaluations (30 min at 30s cadence);
+                             # matches DS_GATE_TOTAL_TICKS's default of 60
+      successCondition: result == 0
+      failureCondition: result == 1
+      inconclusiveCondition: result == -1
+      provider:
+        web:
+          url: "http://deploysignal-gate.<ns>.svc:8790/v1/verdict/{{args.deploy-ref}}"
+          method: GET
+          timeoutSeconds: 5  # under DS_GATE_REQUEST_TIMEOUT_MS's default of 4000ms
+          jsonPath: "{$.verdict_code}"
+          # Uncomment if DS_GATE_SHARED_SECRET is set on the gate deployment
+          # (the shared-secret boundary — see server.ts's header comment
+          # and README.md's "security boundary" section; /healthz and
+          # /readyz are exempt, every other /v1/* route requires this):
+          # headers:
+          #   - key: x-ds-gate-token
+          #     value: "{{ secrets.deploysignal-gate-token }}"

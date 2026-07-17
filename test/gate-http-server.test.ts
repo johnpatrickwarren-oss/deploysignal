@@ -1,6 +1,8 @@
 // test/gate-http-server.test.ts — Task 7 (WS4 session-durability-argo
 // plan): the gate HTTP verdict service. Real http.request() calls
 // against a server bound to port 0 (ephemeral), closed in `finally`.
+// Also covers Task 8's YAML-contract test (the AnalysisTemplate must
+// stay in lockstep with the live GET /v1/verdict response shape).
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,6 +11,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as http from 'node:http';
 import type { AddressInfo } from 'node:net';
+import * as yaml from 'js-yaml';
 
 import { createGateServer } from '../service/gate-http/server';
 import type { GateServerHandle } from '../service/gate-http/server';
@@ -408,5 +411,49 @@ test('server.requestTimeout reflects DS_GATE_REQUEST_TIMEOUT_MS', async () => {
   const s = await start({ requestTimeoutMs: 4000 });
   try {
     assert.equal(s.handle.server.requestTimeout, 4000);
+  } finally { await stop(s); }
+});
+
+// ────────────────────────────────────────────────────────────────────
+// Task 8 — Argo AnalysisTemplate YAML contract.
+// ────────────────────────────────────────────────────────────────────
+
+test('argo/analysis-template.yaml: jsonPath and conditions match the live GET /v1/verdict response', async () => {
+  const templatePath = path.resolve(__dirname, '..', 'service', 'gate-http', 'argo', 'analysis-template.yaml');
+  const doc = yaml.load(fs.readFileSync(templatePath, 'utf8')) as any;
+
+  assert.equal(doc.kind, 'AnalysisTemplate');
+  const metric = doc.spec.metrics[0];
+  assert.equal(metric.provider.web.method, 'GET');
+  assert.match(metric.provider.web.url, /\/v1\/verdict\/\{\{args\.deploy-ref\}\}$/);
+
+  // jsonPath references a key actually present in a live response.
+  const jsonPathMatch = String(metric.provider.web.jsonPath).match(/\{\$\.(\w+)\}/);
+  assert.ok(jsonPathMatch, 'jsonPath is a {$.<key>} JSONPath expression');
+  const referencedKey = jsonPathMatch![1];
+
+  const s = await start();
+  try {
+    await req(s.baseUrl, 'POST', '/v1/sessions', { body: beginBody() });
+    const verdict = await req(s.baseUrl, 'GET', '/v1/verdict/deploy-ref-1');
+    assert.equal(verdict.status, 200);
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(verdict.json, referencedKey),
+      `jsonPath key "${referencedKey}" must be present on a live GET /v1/verdict response`,
+    );
+
+    // success/failure/inconclusive conditions reference codes the
+    // service can actually emit (VERDICT_CODE: proceed=0, rollback=1,
+    // extend=-1 — service/gate-http/_gate-session-runtime.ts).
+    const emittableCodes = new Set([0, 1, -1]);
+    for (const cond of [metric.successCondition, metric.failureCondition, metric.inconclusiveCondition]) {
+      const codeMatch = String(cond).match(/result == (-?\d+)/);
+      assert.ok(codeMatch, `condition "${cond}" is a "result == <code>" expression`);
+      assert.ok(emittableCodes.has(Number(codeMatch![1])), `condition "${cond}" references an emittable verdict_code`);
+    }
+    // The three conditions are mutually exclusive and jointly cover the mapping.
+    const codes = [metric.successCondition, metric.failureCondition, metric.inconclusiveCondition]
+      .map((c) => Number(String(c).match(/result == (-?\d+)/)![1]));
+    assert.deepEqual(new Set(codes), emittableCodes);
   } finally { await stop(s); }
 });
