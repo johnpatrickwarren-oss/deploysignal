@@ -2,8 +2,27 @@
 // comparator arm. Static per-signal μ±kσ gates with a consecutive-tick
 // run-length state machine, mirroring Flagger/Argo-Rollouts-style metric
 // threshold checks. μ_s, σ_s are read from the same compiled-config cell
-// (with the same aggregate_fallback path) the portfolio consults —
-// information parity per ENDPOINTS.md.
+// the portfolio consults — information parity per ENDPOINTS.md, in the
+// sense that this arm never sees calibration data the portfolio lacks.
+//
+// One deliberate, comparator-favoring asymmetry in the aggregate_fallback
+// path (carried over from an earlier reviewer pass; corrected here to
+// state it accurately rather than as unqualified "same fallback path"):
+// the engine (`buildMSPRTParamsLocal` in
+// `engine/detectors/betting-e-process.ts`) only retries
+// `aggregate_fallback` when the matched cell's `confidence` is
+// `'aggregate'` or `'none'` — for a `'pooled'` (or other
+// confidence-gated) cell missing the signal, the engine returns `null`
+// and that signal simply isn't monitored at that cell. `resolveMeanSigma`
+// below has no such gate: it retries `aggregate_fallback` unconditionally
+// whenever `meanSigmaFromCompiledCell` fails to find the signal on the
+// matched cell, regardless of that cell's `confidence`. So this arm's
+// fallback is strictly LOOSER than the engine's — it can resolve
+// calibration (and therefore gate) a (cell, signal) pair the engine would
+// silently decline to monitor. That is an asymmetry in the comparator's
+// favor (more information, not less), consistent with ENDPOINTS.md's
+// fairness note on the canary arm's control stream — the conservative
+// direction for this study, not a parity violation.
 //
 // Reviewer note honored: the cell-resolution + meanSigma call is wrapped
 // in exactly ONE helper (`resolveMeanSigma`, below) so the fallback logic
@@ -48,15 +67,18 @@ export interface ThresholdArm {
 }
 
 /** Reads {mu, sigma, cls} for `signal` at `cellKey`, falling back to
- *  `compiledConfig.baseline_cells.aggregate_fallback` the same way the
- *  engine and report-card machinery do elsewhere — the ONE place this
- *  resolution happens in the threshold arm. Two fallback cases, both
- *  handled here: (1) `lookupCell` finds no cell at all for `cellKey`
- *  (e.g. a sparsely-populated cell not present in the compiled config),
- *  and (2) a real cell is found but its `family_A.per_signal` doesn't
- *  carry this particular signal (partial per-cell calibration) — in
- *  which case `meanSigmaFromCompiledCell` throws and this retries
- *  against `aggregate_fallback`, exactly as its JSDoc documents.
+ *  `compiledConfig.baseline_cells.aggregate_fallback` — the ONE place
+ *  this resolution happens in the threshold arm. Two fallback cases,
+ *  both handled here unconditionally: (1) `lookupCell` finds no cell at
+ *  all for `cellKey` (e.g. a sparsely-populated cell not present in the
+ *  compiled config), and (2) a real cell is found but its
+ *  `family_A.per_signal` doesn't carry this particular signal (partial
+ *  per-cell calibration) — in which case `meanSigmaFromCompiledCell`
+ *  throws and this retries against `aggregate_fallback`, exactly as its
+ *  JSDoc documents. Unconditionally is the operative word: unlike the
+ *  engine's `buildMSPRTParamsLocal`, this fallback does not gate on the
+ *  matched cell's `confidence` field — see the file header for the
+ *  resulting (comparator-favoring) asymmetry.
  *
  *  `cls` is resolved from the SAME per_signal entry mu/sigma came from
  *  (never a different cell's class), then falls through exactly like the
