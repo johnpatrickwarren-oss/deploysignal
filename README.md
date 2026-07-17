@@ -10,7 +10,7 @@
 A statistically-rigorous answer to one operational question: **given a new deploy and live telemetry, should we proceed, extend, or rollback?**
 
 - **Multi-family detector portfolio.** Five detector families operate in parallel — Page-CUSUM mixture-supermartingale (Family A; per-signal mean shift), structural pattern-matching (Family B), Hotelling T² + Sequential MMD betting-e-process (Family C; multivariate distributional shift), spectral ACF (Family D; oscillation-class signal), weighted-conformal Mahalanobis novelty (Family E). Each family contributes evidence; portfolio fusion produces the verdict.
-- **Anytime-valid α-budget — with an honest boundary.** The α-participating portfolio is predominantly anytime-valid (Ville-bounded supermartingales / e-processes): on those paths, operators can peek at the wealth statistic at every tick without inflating the false-positive rate. Not every configured path is Ville-bounded — the Page-CUSUM co-ship component and the MMD bootstrap-null fallback (used when a cell's baseline is too sparse for the betting e-process) consume a **classical-epoch-α** portion that is Bonferroni-corrected per deploy and valid only at canary boundaries, not under continuous peeking. The partition (α_ville ≈ 5·10⁻⁴ vs α_classical ≈ 3·10⁻⁴ of the 8·10⁻⁴ participating budget) is documented in [`CHEAT-SHEET.md`](CHEAT-SHEET.md) and tracked per family in the audit record.
+- **Anytime-valid α-budget — with an honest boundary.** The α-participating portfolio is predominantly anytime-valid (Ville-bounded supermartingales / e-processes): on those paths, operators can peek at the wealth statistic at every tick without inflating the false-positive rate. Not every configured path is Ville-bounded, and an earlier revision of this bullet named the wrong classical paths. Verified against runtime dispatch (2026-07-17): both Family A components are Ville-bounded post-Q68 (the classical Page-CUSUM code path is retired); cells too sparse for the Family C MMD betting e-process get **no MMD coverage** (the bootstrap-null fallback is retired — sparseness costs coverage, not validity); the **classical-epoch-α** path that actually ships in the committed compiled configs is Family E's conformal detector, which the compiler's auto-selector compiles to the classical `unweighted` kind when the baseline span/effective-sample-size gate isn't met (≈1·10⁻⁴, i.e. 12.5% of the 8·10⁻⁴ participating budget — valid at canary boundaries, not under continuous peeking). Per-config ground truth is machine-checkable: each compiled config's guarantee manifest reports the configured validity class per detector, and the audit record tracks per-family α.
 - **Calibration compiler.** `tools/calibrate.ts` compiles a healthy-baseline trace into a `CompiledConfig` with per-(hour-of-day × day-of-week × tenant-tier) cells. Per-cell mean vectors, covariance matrices (Ledoit-Wolf / MCD / MRCD), Cholesky factors, AR(1) phi coefficients, mixture-supermartingale priors, betting-e-process baseline pools, conformal calibration scores. The compile is deterministic; same input → same output → same fire decisions on replay.
 - **Audit substrate.** Every detector evaluation emits a structured `DetectorVerdict` with provenance (cell_key, baseline_version, schema_continuity), α consumption, fire reason. Audit records replay-clean: the same compiled config + the same metric stream produces the same verdict, supporting post-incident reconstruction.
 
@@ -62,6 +62,20 @@ To open the interactive demo locally: open `demos/demo.html` in a browser.
 - **[`CHEAT-SHEET.md`](CHEAT-SHEET.md)** — quick-reference card across the system surface.
 - **[`DETECTOR-MATH-RESEARCH.md`](DETECTOR-MATH-RESEARCH.md)** — the statistical-literature anchors for each detector.
 - **[`audit/SCHEMA.md`](audit/SCHEMA.md)** — the audit-record schema (versioned).
+
+## Implementation status at a glance
+
+Docs in this repo mark components with a five-bucket status taxonomy so readers can tell what exists where. The buckets, and the headline components in each:
+
+| Status | Meaning | Currently includes |
+|---|---|---|
+| **[runtime]** | Implemented in the per-tick engine path, exercised by the test suite | Five detector families; gate cascade + SRM + fail-fast; portfolio/cascade fusion; audit v2; verdict grouping + advisory fan-out; Anvil suppression |
+| **[offline-tool]** | Implemented as a repo tool an operator runs manually | Calibration compiler; regression injection; real-trace ingestion (v8a–c, v9a); shadow-compare CLI; demo builders |
+| **[stub]** | Typed contract present, implementation inert or deliberately throwing | State-gate (G3) persistence; Anvil chaos-platform adapter network methods |
+| **[spec-only]** | Specified in `NORTH-STAR-ARCHITECTURE.md` / `ORCHESTRATION-ADAPTERS.md`, no code | Orchestrator adapters (Argo/Spinnaker/webhook); direction-aware baseline-maintenance loop (Addition #15); incident-aware gating; Metric Registry governance |
+| **[future]** | Intended production-control-plane work, not fully specified | Durable verdict service (sessions, idempotent verdict API); multi-region baseline consistency |
+
+The engine is also published as a separate shared library, [`deploysignal-engine`](https://github.com/johnpatrickwarren-oss/deploysignal-engine), consumed by this repo and by [Tessera](https://github.com/johnpatrickwarren-oss/tessera); a handful of statistical baseline primitives live there rather than here (see that repo's README for its charter).
 
 ## Methodology
 

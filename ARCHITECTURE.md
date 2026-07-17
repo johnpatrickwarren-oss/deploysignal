@@ -1,158 +1,248 @@
-# Architecture
+# Architecture — current implemented state
 
-## The pipeline
+> **Doc status:** describes what is implemented on `main` today.
+> [`NORTH-STAR-ARCHITECTURE.md`](NORTH-STAR-ARCHITECTURE.md) is the *target*
+> architecture (non-binding); [`CHEAT-SHEET.md`](CHEAT-SHEET.md) carries the
+> statistical detail (α-budget, detector math, validation results). An earlier
+> revision of this file described the pre-portfolio heuristic engine; that
+> material is preserved in [§ Historical](#historical-the-heuristic-era-engine)
+> below.
+
+## Entry point and execution model
+
+The engine's public entry point is a **pure per-tick function**:
+
+```ts
+evaluate(params: OrchestrateParams): VerdictResult   // engine/orchestrator.ts
+```
+
+Each tick, the caller supplies `{scenario, liveMetrics, tick, totalTicks, …}`
+plus **all rolling state** — the `TrendBuffer`, detector accumulator state,
+lifecycle-event state, sticky fail-fast state. The engine holds no state
+that affects evaluation between calls (the one module-level store, the G3
+stub's, is inert — see below) and performs no I/O apart from the optional
+audit writer. There
+is no server loop, no HTTP surface, and no persistence layer in this repo —
+see [Status](#implementation-status) and `README.md § Status`.
+
+## Per-tick pipeline
 
 ```
-raw metrics ──┐
-              ├─► TrendBuffer ──► SignalSnapshot ──► G0 blast ──► G1 policy ──► G2 approval ──► G3 state ──► G4 health ──► Verdict
-baseline   ──┘                                        │            │             │               │
-flags      ──┘                                        └──────── short-circuit on structural fire ┘
+                       ┌ reversibility classification (once per deploy, tick 0)
+                       │ lifecycle: evaluation.triggered (tick 0)
+                       ▼
+ admission gates:  blast radius ─► policy ─► approval ─► state
+                       │              │          │         │
+                       │       rollback SC   extend SC  extend SC   (SC = short-circuit)
+                       ▼
+ traffic checks:   SRM continuity ─► fail-fast thresholds ─► ignore bands
+                       │                    │
+                  rollback SC          rollback SC (sticky)
+                       ▼
+ health gate:      Family B structural tables + Family A/C/D/E statistical dispatch
+                       ▼
+                   Anvil expected-failure-pattern suppression (only when declared)
+                       ▼
+ fusion:           fuseVerdict (portfolio) ∥ computeVerdict (cascade)
+                       ▼
+ post-verdict:     VerdictGrouper ingest ─► TopologyEnricher + advisory AgentProposer fan-out
+                       ▼
+ emit:             reversibility translation ─► audit record (v2) ─► lifecycle events
 ```
 
-Every tick, the orchestrator receives `{live, baseline, flags}`, feeds live metrics into the TrendBuffer, extracts a snapshot, and routes through the gates in order. Any gate can short-circuit the pipeline with a rollback or extend verdict.
+Any gate can short-circuit the pipeline; every path (short-circuit or full
+evaluation) exits through a single `_emit()` helper, so audit records and
+lifecycle events are uniform across all verdict return points.
+
+### A note on gate numbering
+
+Three numbering schemes exist in the wild: the code's file headers
+(G1 health, G2 policy, G3 state, G4 blast-radius, G5 approval), this file's
+earlier revision (G0–G4 in pipeline order), and CHEAT-SHEET's diagram
+(G0 blast-radius, G1 policy). **The code's names are canonical**; this doc
+uses functional names and gives the code label once per section.
 
 ## TrendBuffer (`engine/core.ts`)
 
-A bounded rolling window per signal. On `get()` it returns:
+A bounded rolling window per signal. On `get()` it returns `n`, `mean`,
+`min`/`max`/`range`, `slope`, `slopeNorm` (slope normalized by baseline),
+`cv`, and `trendStrength` (0 = pure noise, 1 = monotonic).
 
-- `n` — sample count
-- `mean`, `min`, `max`, `range`
-- `slope` — linear regression slope
-- `slopeNorm` — slope normalized by baseline
-- `cv` — coefficient of variation
-- `trendStrength` — how monotonic the trend is (0 = pure noise, 1 = monotonic)
+The design insight survives from the earliest engine: `cv` is not a noise
+indicator on trending data — a metric drifting smoothly upward has high `cv`
+but is moving, not noisy. `trendStrength` separates real movement from
+jitter. The `TrendBuffer.get()` contract is the public type surface for
+structural detection; changes ripple through every Family B pattern.
 
-The design insight: `cv` is not a noise indicator on trending data. A metric drifting smoothly upward has high `cv` but is not noisy — it's moving. `trendStrength` separates real movement from jitter. Detectors that tried to use `cv` as a noise filter produced false negatives; `trendStrength` is what survived.
+## Admission gates
 
-## G0 — Blast radius (`engine/gates/blast_radius.ts`)
+**Blast radius** (`engine/gates/blast_radius.ts`, G4) — classifies deployment
+risk from change metadata (risk level, change type, author, file paths) and
+adjusts the effective risk tier downstream gates see. Never short-circuits.
 
-Classifies deployment risk level from change metadata (risk level, change type, author, file paths). Adjusts the effective risk tier that downstream gates see. Does not short-circuit.
+**Policy** (`engine/gates/policy.ts`, G2) — time windows, change types,
+risk-level rules. Short-circuits to `rollback`. Produces the `PolicyContext`
+consumed by the health gate (thresholds, warmup state, downstream
+corroboration rules); the compiled config is applied onto this context.
 
-## G1 — Policy gate (`engine/gates/policy.ts`)
+**Approval** (`engine/gates/approval.ts`, G5) — validates flags and author
+context. Short-circuits to `extend`.
 
-Checks time windows, change types, and risk-level rules. Can short-circuit to `rollback`. Produces a `policyContext` consumed by G4 (health) — contains thresholds, warmup state, downstream corroboration rules.
+**State** (`engine/gates/state.ts`, G3) — **stub**. `evaluateState()`
+currently always returns `{allow: true}`; its `recordDeployment` /
+`updatePhase` helpers exist but nothing calls them, and its in-memory store
+does not survive the process. This is the designed seam for deployment-
+session persistence (see Status below).
 
-## G2 — Approval gate (`engine/gates/approval.ts`)
+## Traffic checks
 
-Validates flags and author context. Can short-circuit to `extend`.
+**SRM / traffic-allocation continuity** (Addition #10) — when the canary is
+receiving the wrong traffic fraction, the comparison population is invalid:
+all detector families are moot, and the tick short-circuits to `rollback`
+with `shortCircuit: 'srm'`.
 
-## G3 — State gate (`engine/gates/state.ts`)
+**Fail-fast / ignore thresholds** (Addition #13) — operator-declared absolute
+panic bounds short-circuit to `rollback` and are *sticky* for the deploy's
+remaining ticks. Ignore bands produce a per-tick set of signals that the
+statistical families suppress with `suppression_reason: 'ignore_threshold'`.
 
-Checks deploy state (deploy ID, target cloud). Can short-circuit to `extend`.
+## Health gate (`engine/gates/health.ts`, G1)
 
-## G4 — Health gate (`engine/gates/health.ts`)
+A facade over two detection surfaces evaluated against the `PolicyContext`:
 
-The bulk of the detection logic. Each detector consumes a trend snapshot and returns a tripped/not-tripped verdict with a reason. Detectors are independent — the first to fire wins.
+- **Family B — structural pattern tables** (`engine/gates/_health-defs.ts`):
+  the hand-designed absolute-threshold patterns covering known LLM-serving
+  failure classes — `slowbleed` (4+ metrics drifting sub-threshold
+  simultaneously), `mfu_collapse`, `kv_saturation`, `hbm_elevation`,
+  `hbm_spill_roll`, `collective`, `capacity`, `gpu_eff`, plus the per-signal
+  ratio checks and flag-based signals. These are the direct descendants of
+  the heuristic-era detectors (see § Historical) and are non-α-consuming.
+- **Families A/C/D/E — statistical dispatch**
+  (`engine/gates/_health-detectors.ts` → `engine/detectors/`): per-signal
+  mixture-supermartingale Page-CUSUM + betting e-process (A), Hotelling T² +
+  sequential-MMD betting e-process (C), spectral e-detector (D),
+  weighted-conformal Mahalanobis novelty (E). Math, α-accounting, and
+  per-family validity classes are documented in `CHEAT-SHEET.md`.
 
-### Current detectors
+The health gate knows nothing about risk tiers, time windows, or approval
+state — it evaluates signals against the thresholds the policy context hands
+it. Detectors are independent; no inter-detector dependencies.
 
-The eight detectors documented here are the architecturally distinctive ones — they encode the patterns specific to AI inference workloads. The engine runs 24 rollback detectors and 9 extend detectors in total; the remaining 16 rollback detectors and all 9 extend detectors are threshold checks on individual signals or flags. Full list: see `engine/gates/health.ts` and `engine/signals/quality.ts`.
+## Anvil suppression (Addition #29)
 
-**`slowbleed`** — four or more metrics drifting simultaneously at low magnitude.
-_Catches:_ correlated sub-threshold drift across the signal set. The individual metric movements are each too small to trip their own detector, but the joint pattern is distinctive. Triggers when slopeNorm is in the 0.001–0.010 range with trendStrength > 0 and ratio > 2% off baseline, across 4+ of 9 tracked signals.
+When the caller declares an `expectedFailurePattern` (chaos experiments),
+the families the operator expects to fire are rewritten to `suppressed`
+during the fault window; non-declared families still fire on unexpected
+blast. The pre-Anvil path is byte-identical when no pattern is supplied.
+The chaos-platform adapters themselves (`engine/o0/anvil/`) are typed
+contracts with deliberately throwing stubs — see Status.
 
-**`mfu_collapse`** — >=20% sustained MFU drop with trendStrength >= 0.3 and n >= 6.
-_Catches:_ GPU utilization collapse. Triggers before latency responds, giving an early signal.
+## Fusion and verdicts
 
-**`kv_saturation`** — KV cache ratio >= 1.04 AND cv < 0.005 AND |slopeNorm| < 0.002.
-_Catches:_ cache at capacity ceiling. The signature is a pinned-flat ratio — the cache can't grow further, but the engine is still trying.
+Both fusion topologies compute every tick:
 
-**`hbm_elevation`** — HBM spill ratio >= 1.08 with slopeNorm >= 0.002, trendStrength > 0, and n >= 8.
-_Catches:_ early high-bandwidth memory pressure before full saturation.
+- **Cascade** (`computeVerdict`, `engine/core.ts`) — first-fire-wins over the
+  health result. Default topology.
+- **Portfolio** (`fuseVerdict`, `engine/verdict.ts`) — α-budget fusion across
+  the five families, always emitted for audit and promoted to the primary
+  verdict when `fusionTopology === 'portfolio'`.
 
-**`hbm_spill_roll`** — standalone sustained HBM rise (slopeNorm >= 0.006, ratio >= 1.28, trendStrength >= 0.3, n >= 8).
-_Catches:_ HBM pressure trending upward without other signals moving yet.
+The verdict union is `'rollback' | 'extend' | 'proceed' | 'baking'` —
+`baking` is internal (in-window, insufficient evidence to conclude) and is
+never surfaced as a final verdict; the last tick collapses indeterminate to
+`proceed`. Per-detector verdicts are
+`'fire' | 'indeterminate' | 'clean' | 'suppressed'` with per-fire
+`alpha_spent`.
 
-**`collective`** — absolute-drop override (>= 7% relative drop with HBM slopeNorm >= 0.005), plus a slope-gated path requiring slopeNorm >= 0.015 or trendStrength >= 0.5 with HBM corroboration.
-_Catches:_ collective operation degradation events.
+`VerdictResult` carries: `verdict`, `reason`, per-gate `gateResults`,
+`healthResult`, `shortCircuit` (gate name or null), the fused portfolio
+verdict, the reversibility classification, and `finalAction` — the concrete
+orchestrator action derived from verdict × reversibility
+(`engine/o0/reversibility-translator.ts`, Addition #5; by calling contract,
+classification happens once per deploy at tick 0 and is never revised
+mid-deploy — callers thread it via `params.reversibilityClassification` on
+subsequent ticks).
 
-**`capacity`** — requires n >= 6, stable HBM with slopeNorm >= 0.005, and >= 2 of {HBM ratio >= 1.30, KV ratio <= 0.90, latency slopeNorm >= 0.008}.
-_Catches:_ multi-signal capacity constraint patterns.
+## Post-verdict fan-out (Additions #25/#26/#27)
 
-**`gpu_eff`** — model_weights only, after 12h warmup. MFU drop >= ~12% with latency or HBM corroboration.
-_Catches:_ GPU efficiency regressions specific to model weight changes.
+`VerdictGrouper` (`engine/verdict-groups.ts`) aggregates per-tick fused
+verdicts into incident groups (grace-window close, D2 default 300 s). On
+group close, fan-out runs to the `TopologyEnricher` (topology overlay,
+common-mode attribution) and the **advisory** `AgentProposer`
+(`advisory/agent/`), which emits a `ProposedAction` with `human_summary` and
+`cited_evidence` — advisory only, never part of the verdict path. A closed
+group emits exactly once (rail-g).
 
-Also: `p99`, `ttft`, `compound_lat`, `tok_econ`, `tokens`, `cost`, `downstream`, `behavioral`, plus flag-based signals (`security`, `artifact`, `provenance`, `contract`) and quality signals from `engine/signals/quality.ts`.
+## Audit and lifecycle events
 
-### Worked example: slowbleed
+Every `_emit` builds an **audit-schema v2** record (`audit/SCHEMA.md`):
+per-family blocks with `DetectorTripV2 {statistic, threshold, alpha_spent,
+reason_code, provenance, cusum_progress}`, suppression reasons, cell
+confidence, schema continuity, and reversibility fields. The shipped writer
+(`engine/_audit-writer.ts`) is append-only JSONL with daily rotation;
+writes are currently best-effort (fs errors are swallowed — a known gap,
+tracked for remediation).
 
-A deployment looks fine on every individual metric. p99 is up 1.8%. TTFT is up 2.1%. `tokens_turn` is down 1.6%. `eval_score` is down 0.9%. None of these crosses its own detector threshold. Traditional monitoring sees green across the board.
+Lifecycle events (Addition #14): `evaluation.triggered / started / tick /
+suppressed / finished`, emitted through a `LifecycleEventEmitter`. Shipped
+emitters are `NoOpLifecycleEventEmitter` (default) and
+`InMemoryLifecycleEventEmitter` (tests); durable transports are integration
+work (see Status).
 
-`slowbleed` counts metrics with `slopeNorm` in the 0.001–0.010 range and `trendStrength > 0`. Four qualify. The detector fires with `reason: "4 metrics drifting (p99, ttft, tokens_turn, eval_score)"`. Health returns rollback signals, and `computeVerdict` produces `rollback`.
+## Implementation status
 
-This is the single most distinctive DeploySignal detector — nothing else in standard SRE tooling catches this signature, which is why it covers a large class of adversarial scenarios.
+Using the repo-wide status taxonomy (see `README.md § Implementation status
+at a glance`):
 
-## Verdict shape
+- **Implemented, runtime path:** everything in the pipeline diagram above
+  except as noted; five detector families; both fusion topologies; audit v2;
+  Anvil suppression; verdict grouping + advisory fan-out.
+- **Implemented, offline tools:** calibration compiler (`tools/calibrate.ts`),
+  regression injection, real-trace ingestion, shadow-compare CLI, demo
+  builders.
+- **Stub / inert:** state gate persistence (G3); Anvil chaos-platform
+  adapter network methods.
+- **Spec-only:** orchestrator adapters (`ORCHESTRATION-ADAPTERS.md`);
+  direction-aware baseline-maintenance loop (North-Star Addition #15);
+  incident-aware gating; Metric Registry governance.
 
-```
-{
-  verdict: "proceed" | "extend" | "rollback",
-  reason: "<detector id>: <human-readable>",
-  tripped: [{ id, label, gate }],
-  short_circuit: <gate name or null>,
-  trend_snapshot: { <signal>: { n, slopeNorm, cv, trendStrength } }
-}
-```
+## Historical: the heuristic-era engine
 
-The orchestrator has four verdict return points (policy short-circuit, approval short-circuit, state short-circuit, health evaluation); PLAN.md Phase 1 wraps them through a single `_emit()` helper so audit logging is uniform.
+An earlier revision of this document described the engine as it stood before
+the statistical portfolio landed. Preserved for context; **do not read this
+as current state.**
 
-## The tuning harness (`loop.js`)
+The original engine was a single health-gate cascade of hand-tuned heuristic
+detectors — 24 rollback + 9 extend threshold checks over TrendBuffer
+snapshots, with `slowbleed` as its signature pattern. Those detectors were
+not hand-tuned but *evolved*: a tuning loop (`loop.js`, not included in this
+public repo) paired Opus (planning) with Sonnet (patch-writing) against a
+120-scenario adversarial suite (`runs/adversarial-scenarios.json`), with a
+two-layer guardrail (prompt rules + runtime auto-stripping of tautologies
+and guard removals) and `ADV_TP_THRESHOLD = 0.975` defended as a floor.
 
-> **Note:** the tuning harness itself (`loop.js`, `run_loop.sh`) is **not
-> included** in this public repository — this repo is a curated reference
-> subset, and there is no `npm run loop` here. This section documents how
-> the shipped detector code was produced.
+Disposition of that era's parts:
 
-DeploySignal's detectors were not hand-tuned. They were evolved by a loop that pairs **Opus** (plans what to change and why) with **Sonnet** (writes the code patches), validated each iteration against the adversarial suite.
-
-The loop has a **two-layer guardrail**:
-
-1. **Prompt layer** — rules embedded in `buildPatchPrompt` (ordered branches, no dead conditions, structural over numeric, no threshold chasing, guard preservation).
-2. **Runtime enforcement** — `applyPatches` auto-strips common failure patterns (tautology detection, guard removal, non-boolean returns).
-
-The second layer exists because without it, after ~10 iterations Sonnet accumulates dead branches and impossible conditions that pass detection but degrade code quality.
-
-`ADV_TP_THRESHOLD = 0.975` is a floor the loop defends, not a target it chases. When the loop hits the floor on a clean sweep, convergence is declared.
-
-## Scenario pool
-
-120 adversarial scenarios in `runs/adversarial-scenarios.json`, each a time series of metric values designed to exercise a specific failure mode. Scenarios are grouped into families:
-
-- Baseline: `adv_slowbleed_*`, `adv_mfu_collapse_*`, etc. (105 original)
-- Context-length family: KV cache + attention cost scenarios (5)
-- Batch-saturation family: throughput ceiling + request queuing (5)
-- Quantization-drift family: precision-induced quality regression (5)
-
-Each new family is a tuning cycle. Never more than one family per cycle — multi-family tuning produces signals that over-fit.
-
-## Known limits (architectural, not tuning)
-
-Three scenario patterns are not catchable with the current detector architecture:
-
-1. **`adv_collective_ops_flap`** — collective operation duty-cycle flapping averaged below tick resolution. Requires sub-tick sampling.
-2. **`adv_oscillating_cache_signal`** — downstream error oscillation with amplitude below the FP-safe threshold floor. Requires FFT or oscillation-aware detection.
-3. **`adv_correlated_noise`** — all metrics within 0.2% movement, joint pattern detectable only via covariance. Requires a covariance-aware signal (planned).
-
-These are documented structural gaps. The covariance signal in the next-cycle queue targets #3 and possibly #2.
-
-## Runs and artifacts
-
-> **Note:** these are artifacts of the (not-included) tuning harness; per-run
-> outputs and `analyze_iterations.py` are not part of this public subset.
-> The curated inputs that *are* shipped live under `runs/` (e.g.
-> `runs/adversarial-scenarios.json`, `runs/compiled-configs/`).
-
-Per-run outputs land in `runs/<run-id>/`. Each contains:
-
-- `iterations/` — tuning loop iteration snapshots (if run was a tuning cycle)
-- `scenario_results.json` — per-scenario verdict + trip reason
-- `summary.txt` — human-readable TP/FP summary
-
-`analyze_iterations.py` post-processes tuning runs to produce convergence plots and iteration-level diagnostics.
+- The heuristic detectors live on as **Family B structural patterns**
+  (`engine/gates/_health-defs.ts`), non-α-consuming by design.
+- The era's three "architectural limits" are since addressed by the
+  portfolio: covariance-only joint patterns → **Family C** (Hotelling T² +
+  MMD); sub-floor oscillation → **Family D** (spectral e-detector); only
+  sub-tick duty-cycle flapping remains out of reach at current tick
+  resolution.
+- The `shared.js` file at the repo root is the legacy monolith retained for
+  the cascade demo path; the engine tree does not import it.
+- The tuning-harness artifacts (`runs/<run-id>/`, `analyze_iterations.py`)
+  are not part of this public subset.
 
 ## Invariants (do not break)
 
-- `ADV_TP_THRESHOLD` is a floor. Never bump it without a full sweep confirming the new rate is exact.
-- G4 detectors are independent. Do not add inter-detector dependencies without explicit review.
-- `TrendBuffer.get()` contract (the returned shape) is the public type surface for the engine. Any change ripples through every detector.
-- `orchestrator.js` must pass through every verdict via `_emit()` once Phase 1 lands. No ad-hoc `return` statements bypassing audit.
+- Health-gate detectors are independent. No inter-detector dependencies
+  without explicit review.
+- `TrendBuffer.get()`'s returned shape is a public type surface.
+- Every verdict path exits through `_emit()` — no ad-hoc returns bypassing
+  audit or lifecycle emission.
+- Reversibility is classified once per deploy at tick 0 and never revised
+  mid-deploy (anti-scope rule, Addition #5).
+- Anvil suppression must be a no-op when `expectedFailurePattern` is
+  undefined (byte-identical pre-Anvil path, PRD-29 NFR-2/AC-11).
