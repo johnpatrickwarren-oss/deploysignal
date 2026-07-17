@@ -58,6 +58,10 @@ function fusedVerdict(tick: number, firing: FusedVerdict['firing_families'] = []
     per_family_verdicts: { A: null, B: null, C: null, D: null, E: null },
     total_alpha_spent: firing.length > 0 ? 1e-4 : 0,
     fusion_topology: 'portfolio', tick, deploy_ref: 'checkout',
+    verdict_rationale: firing.length > 0
+      ? 'Rollback triggered: Family A fired.'
+      : 'Proceed: observation window closed with no rollback signals across all families.',
+    evidence_outlook: [],
   };
 }
 
