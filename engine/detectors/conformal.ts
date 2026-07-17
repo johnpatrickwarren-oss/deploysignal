@@ -190,10 +190,23 @@ export function evaluateFamilyE(
   const r = relativeDeviation(x, famC.mean_vector);
   const s = mahalanobisDistance(r, famC.covariance);
   if (s === null) {
+    // This is the sole production entry point for Family E — it
+    // computes the Mahalanobis distance itself and returns here BEFORE
+    // ever dispatching into CONFORMAL_EVALUATORS, so the inner
+    // per-variant evaluators' own `covariance_singular` branches (e.g.
+    // evaluateConformalWeightedEValue's, below) are unreachable from
+    // here. Tag this verdict with the wealth-process `signal` when (and
+    // only when) the resolved params are the `weighted_e_value` kind —
+    // that's the only Family E variant whose live verdict is a wealth
+    // martingale (see engine/verdict.ts's `WEALTH_SIGNAL_NAMES` /
+    // `progressScaleFor`); the classical `unweighted` and `weighted`
+    // kinds have no signal tag of their own anywhere in this file and
+    // must stay untagged rather than borrow the wealth tag.
     return {
       verdict: 'suppressed', statistic: null, threshold: alphaE,
       alpha_consumed: 0, alpha_spent: 0,
       reason_code: 'covariance_singular', family: 'E',
+      ...(isWeightedEValueConformal(params) ? { signal: 'weighted_conformal_e_value' as const } : {}),
     };
   }
 
@@ -386,6 +399,7 @@ export function evaluateConformalWeightedEValue(
       verdict: 'suppressed', statistic: state.M, threshold,
       alpha_consumed: 0, alpha_spent: 0,
       reason_code: 'covariance_singular', family: 'E',
+      signal: 'weighted_conformal_e_value',
     };
   }
   const { scores, cumulative_weights_above, total_weight } = input.params;

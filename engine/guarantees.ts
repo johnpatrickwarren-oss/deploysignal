@@ -38,13 +38,18 @@
 //     runtime dispatch at Q68 close (engine/gates/_health-detectors.ts
 //     `runFamilyC` only calls the two Ville-bounded MMD paths — Q67 v2
 //     canonical betting-e-process and the Option-B GRAPA/ONS betting
-//     e-process). Both live MMD ids are therefore Ville. Note a real
-//     registry gap found while building this table: the Q67 v2 canonical
-//     evaluator emits `signal: 'sequential_mmd_betting_e_process'`, which
-//     is NOT a DETECTOR_REGISTRY.C id — engine/_audit-families.ts's
-//     unrecognized-signal fallthrough attributes those fires to the
-//     legacy `sequential_mmd` id. That id is therefore Ville-bounded in
-//     practice, not the classical test its name suggests.
+//     e-process). All three live MMD ids are therefore Ville. Registry
+//     gap CLOSED (was open when this table was first authored): the Q67
+//     v2 canonical evaluator emits `signal: 'sequential_mmd_betting_e_process'`,
+//     which used NOT to be a DETECTOR_REGISTRY.C id —
+//     engine/_audit-families.ts's unrecognized-signal fallthrough
+//     attributed those fires to the legacy `sequential_mmd` id instead of
+//     the evaluator's own id. That id is now registered
+//     (DETECTOR_REGISTRY.C), so canonical-evaluator fires attribute to
+//     `sequential_mmd_betting_e_process` directly; `sequential_mmd` is
+//     kept registered as engine/_audit-families.ts's fallback target for
+//     any Family-C-MMD verdict whose signal isn't a registered id (no
+//     live evaluator produces one today — see its table entry below).
 //
 //   Family D — engine/detectors/spectral.ts dispatches `spectral_variant`
 //     per signal: 'bootstrap_null' (classical quantile test, the
@@ -318,9 +323,9 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     citation: 'Grünwald, de Heide & Koolen (2024), JASA — safe testing / GROW e-test',
   },
 
-  // Family C — Sequential MMD. Both live ids are Ville (classical
-  // bootstrap-null retired at Q68 close); see file header for the
-  // sequential_mmd id-mapping finding.
+  // Family C — Sequential MMD. All three live-registered ids are Ville
+  // (classical bootstrap-null retired at Q68 close); see file header for
+  // the sequential_mmd id-mapping finding and its resolution.
   sequential_mmd: {
     detector_id: 'sequential_mmd',
     family: 'C',
@@ -329,10 +334,16 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     repeated_look_policy: VILLE_POLICY,
     alpha_participating: true,
     citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process',
-    id_mapping_note: 'this legacy id is what engine/_audit-families.ts attributes '
-      + "canonical-variant fires to (its own signal id, "
-      + "'sequential_mmd_betting_e_process', is not yet a registered "
-      + 'DETECTOR_REGISTRY.C id)',
+    id_mapping_note: 'Dormant for live attribution as of the '
+      + "sequential_mmd_betting_e_process registration: the Q67 v2 canonical "
+      + "evaluator now emits its OWN registered DETECTOR_REGISTRY.C id "
+      + "('sequential_mmd_betting_e_process'), and engine/_audit-families.ts's "
+      + "registry-membership check routes those fires there directly — no "
+      + 'longer through this id. This id remains registered as '
+      + "resolveDetectorId('family_C_mmd')'s fallback target for any "
+      + 'Family-C-MMD verdict whose signal is absent or not a registered id '
+      + '(no live evaluator produces one today; kept for v1-record replay '
+      + 'and any future variant that has not yet registered its own id).',
   },
   sequential_mmd_e_process: {
     detector_id: 'sequential_mmd_e_process',
@@ -343,6 +354,22 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     alpha_participating: true,
     citation: 'Addition #20 Option-B simplification of Shekhar & Ramdas (2023) via '
       + 'REPLY-34 GRAPA/ONS betting primitives',
+  },
+  // Q67 v2 canonical betting-e-process (Addition #20) — engine/detectors/
+  // _family-c-betting-eval.ts evaluateFamilyCBettingEProcess. Registered
+  // to close the id-mapping gap documented in the file header and in
+  // sequential_mmd.id_mapping_note above: this evaluator always emitted
+  // `signal: 'sequential_mmd_betting_e_process'`, but until this id was
+  // added to DETECTOR_REGISTRY.C, engine/_audit-families.ts had nothing
+  // to route it to and fell back to the legacy `sequential_mmd` id.
+  sequential_mmd_betting_e_process: {
+    detector_id: 'sequential_mmd_betting_e_process',
+    family: 'C',
+    validity_class: 'ville_anytime_valid',
+    null_assumptions: MMD_ASSUMPTIONS_CANONICAL,
+    repeated_look_policy: VILLE_POLICY,
+    alpha_participating: true,
+    citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process',
   },
 
   // Family D — spectral ACF (bootstrap_null classical default / e_detector Ville).
