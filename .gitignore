@@ -38,6 +38,8 @@ runs/*
 !runs/baselines/**
 !runs/benchmarks/
 !runs/benchmarks/**
+!runs/comparator-baseline/
+!runs/comparator-baseline/**
 
 # Compiled test sources (from tsconfig.test.json; .ts is source of truth)
 test/**/*.test.js
