@@ -77,6 +77,19 @@ Docs in this repo mark components with a five-bucket status taxonomy so readers 
 
 The engine is also published as a separate shared library, [`deploysignal-engine`](https://github.com/johnpatrickwarren-oss/deploysignal-engine), consumed by this repo and by [Tessera](https://github.com/johnpatrickwarren-oss/tessera); a handful of statistical baseline primitives live there rather than here (see that repo's README for its charter).
 
+## Guarantee manifest
+
+The statistical-validity claim above ("predominantly anytime-valid, with an honest boundary") is generated from code, not hand-maintained as prose. [`engine/guarantees.ts`](engine/guarantees.ts) is a static, per-detector table (validity class, null assumptions, repeated-look policy, α-participation, fallback relationships, literature citation) keyed by every id in `DETECTOR_REGISTRY` (`engine/types/audit.ts`). [`tools/build-guarantee-manifest.ts`](tools/build-guarantee-manifest.ts) joins that table against a compiled config to report which validity class is actually configured — e.g. which cells route Hotelling T² through the classical χ² test vs the Ville-bounded safe-test e-process, or Family E's conformal novelty detector through the classical per-tick p-value test vs the Ville-bounded weighted-e-value wealth process — rather than asserting one guarantee for the whole system.
+
+Every `tools/calibrate.ts` compile emits a `<config-basename>.guarantee-manifest.json` sidecar next to the `CompiledConfig` automatically. To generate one standalone:
+
+```bash
+node tools/build-guarantee-manifest.js --config runs/compiled-configs/v7-demos.json \
+                                        --out runs/compiled-configs/v7-demos.guarantee-manifest.json
+```
+
+The manifest reports `effective_validity` (`fully_ville_bounded` or `mixed`, with the classical share of the α-participating budget and exactly which configured paths carry it), plus `known_limitations` and `fallback_behavior` sourced from [`deploysignal-paper.md`](deploysignal-paper.md) §5 and the compiler/detector fallback code. Because it's derived from the compiled config rather than asserted in prose, it can't silently drift from what a given deploy actually runs.
+
 ## Methodology
 
 This codebase was built as a four-role multi-agent project (architect / TPM / implementer / reviewer). The methodology — including the four-anchor pre-merge defense, memorial accretion, pre-emit grilling, and role anchoring across multiple chat instances — is published as a standalone pack:

@@ -54,6 +54,7 @@ const _calibrate_derive_cells_js_1 = require("./_calibrate-derive-cells.js");
 const _calibrate_family_d_stamp_js_1 = require("./_calibrate-family-d-stamp.js");
 const _calibrate_worker_pool_js_1 = require("./_calibrate-worker-pool.js");
 const _calibrate_config_build_js_1 = require("./_calibrate-config-build.js");
+const _guarantee_manifest_cli_js_1 = require("../_guarantee-manifest-cli.js");
 /** REPLY-50 D2 — spin up worker pool for per-cell parallelism. Pool size
  *  ≤ 1 → serial fallback. Sandboxed environments that reject Worker
  *  construction fall back to serial with a stderr note. Charges the
@@ -151,6 +152,15 @@ function buildAndWriteConfig(b) {
     const outPath = path.resolve(process.cwd(), args.out);
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
     fs.writeFileSync(outPath, JSON.stringify(config, null, 2) + '\n');
+    // WS2 — every compile also emits a machine-readable guarantee manifest
+    // next to the CompiledConfig, generated from this exact config (not
+    // hand-maintained prose). Non-breaking: existing CLI output/behavior is
+    // otherwise unchanged. `compiled_at` is reused as `generated_at` so the
+    // manifest stays a deterministic function of the config (calibrate's
+    // `compiled_at` is itself deterministic — see the `config.compiled_at`
+    // assignment above).
+    const manifestOutPath = outPath.replace(/\.json$/, '') + '.guarantee-manifest.json';
+    (0, _guarantee_manifest_cli_js_1.writeGuaranteeManifest)(config, manifestOutPath, config.compiled_at);
     return { config, outPath, alphaA, alphaC };
 }
 async function main() {

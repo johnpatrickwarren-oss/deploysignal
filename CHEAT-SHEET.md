@@ -71,6 +71,8 @@ Status buckets below use the repo-wide taxonomy (see `README.md § Implementatio
 
 **Deliberately out of scope:** LLM content-safety (owned by Arize / Fiddler / WhyLabs); pre-deploy model evaluation (W&B, Hugging Face); full CD pipeline UX (Harness, Spinnaker); topology-graph root-cause analysis (Dynatrace, Datadog).
 
+**Which paths are actually Ville-bounded for a given compiled config, not just in prose:** see the generated [guarantee manifest](README.md#guarantee-manifest) (`engine/guarantees.ts` + `tools/build-guarantee-manifest.ts`, `<config>.guarantee-manifest.json` sidecar emitted by every `tools/calibrate.ts` run) — it joins the per-detector validity-class table against the compiled config's actual variant selections (Hotelling chi_square/safe_test, MMD coverage, spectral bootstrap_null/e_detector, Family E conformal kind) instead of asserting one guarantee for the whole system.
+
 ## Real-Data Validation (REPLY-52 partial)
 
 **Shipped:** regression-injection harness (`tools/inject-regression.ts`) with three `delta_kind` dispatch modes (`absolute`, `relative_to_baseline_sigma`, `relative_to_baseline_mean`; step-function semantic — latest applicable `tick_offset` per signal wins); five hand-curated v1 profiles sourced from public postmortems (OpenAI 2024-12-11, Anthropic 2025-09 TPU + XLA, Cloudflare 2024-03, GitHub 2024-06); per-source structural schema-map layer (`tools/ingest-real-trace.ts`) for BurstGPT, Azure LLM Inference, Mooncake, grounded-synthetic overlay; `CompiledConfig.baseline_provenance` honest-provenance stamp; 27 new tests green.
