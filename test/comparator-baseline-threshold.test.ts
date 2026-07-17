@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { makeThresholdArm, type ThresholdParams } from '../tools/_comparator-baseline-threshold';
+import { makeThresholdArm, signalsWithFamilyACalibration, type ThresholdParams } from '../tools/_comparator-baseline-threshold';
 import type { CompiledConfig, HourDayCellKey } from '../tools/_comparator-baseline-types';
 
 function fakeCompiledConfig(entries: Record<string, { mu: number; sigmaSq: number }>): CompiledConfig {
@@ -120,6 +120,52 @@ test('threshold arm: falls back to aggregate_fallback when no per-cell entry (vi
   };
   const arm = makeThresholdArm(params, compiledConfig, { hour_of_day: 3, day_of_week: 5 });
   const notBreaching = arm.onTick(0, { p99_latency: 200 + 1 * 10 }); // z = 1, below k = 2
+  assert.deepEqual(notBreaching, []);
+  const breaching = arm.onTick(1, { p99_latency: 200 + 3 * 10 }); // z = 3 > k = 2
+  assert.deepEqual(breaching, ['p99_latency']);
+});
+
+test('signalsWithFamilyACalibration: restricts to signals present in aggregate_fallback.family_A.per_signal', () => {
+  const compiledConfig = fakeCompiledConfig({
+    p99_latency: { mu: 100, sigmaSq: 25 },
+    eval_score: { mu: 0.9, sigmaSq: 0.0025 },
+  });
+  const resolvable = signalsWithFamilyACalibration(compiledConfig, ['p99_latency', 'eval_score', 'refusal_rate', 'kv_cache']);
+  assert.deepEqual(resolvable.sort(), ['eval_score', 'p99_latency']);
+});
+
+test('threshold arm: real cell found but missing this signal\'s family_A entry retries against aggregate_fallback', () => {
+  // Regression case surfaced by the Task 5 driver against the real
+  // compiled config: lookupCell can return a REAL cell (present in
+  // baseline_cells.cells) whose family_A.per_signal doesn't carry every
+  // signal (partial per-cell calibration) — a plain `lookupCell(...) ??
+  // aggregate_fallback` never retries in that case, since the `??` only
+  // fires when lookupCell itself returns null. The arm must retry
+  // against aggregate_fallback when meanSigmaFromCompiledCell throws for
+  // the found cell, not just when the cell lookup itself misses.
+  const cellKey: HourDayCellKey = { hour_of_day: 3, day_of_week: 5 };
+  const compiledConfig: CompiledConfig = {
+    baseline_cells: {
+      dimensions: ['hour_of_day', 'day_of_week'],
+      cells: [
+        {
+          key: { hour_of_day: 3, day_of_week: 5 },
+          n_samples: 42,
+          family_A: { per_signal: { downstream_err: { baseline_mean: 0.001, baseline_sigma_squared: 0.0001 } } },
+        },
+      ],
+      aggregate_fallback: {
+        family_A: { per_signal: { p99_latency: { baseline_mean: 200, baseline_sigma_squared: 100 } } }, // sigma = 10
+      },
+    },
+  };
+  const params: ThresholdParams = {
+    kPerSignal: { p99_latency: 2 },
+    consecutiveTicks: 1,
+    directions: { p99_latency: 'up' },
+  };
+  const arm = makeThresholdArm(params, compiledConfig, cellKey);
+  const notBreaching = arm.onTick(0, { p99_latency: 200 + 1 * 10 }); // z = 1, below k = 2 (aggregate_fallback stats)
   assert.deepEqual(notBreaching, []);
   const breaching = arm.onTick(1, { p99_latency: 200 + 3 * 10 }); // z = 3 > k = 2
   assert.deepEqual(breaching, ['p99_latency']);

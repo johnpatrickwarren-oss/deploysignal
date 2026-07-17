@@ -32,14 +32,28 @@ export interface ThresholdArm {
 /** Reads {mu, sigma} for `signal` at `cellKey`, falling back to
  *  `compiledConfig.baseline_cells.aggregate_fallback` the same way the
  *  engine and report-card machinery do elsewhere — the ONE place this
- *  resolution happens in the threshold arm. */
+ *  resolution happens in the threshold arm. Two fallback cases, both
+ *  handled here: (1) `lookupCell` finds no cell at all for `cellKey`
+ *  (e.g. a sparsely-populated cell not present in the compiled config),
+ *  and (2) a real cell is found but its `family_A.per_signal` doesn't
+ *  carry this particular signal (partial per-cell calibration) — in
+ *  which case `meanSigmaFromCompiledCell` throws and this retries
+ *  against `aggregate_fallback`, exactly as its JSDoc documents. */
 function resolveMeanSigma(
   compiledConfig: CompiledConfig,
   cellKey: HourDayCellKey,
   signal: string,
 ): { mu: number; sigma: number } {
-  const cell = cellModule.lookupCell(compiledConfig, cellKey) ?? compiledConfig.baseline_cells.aggregate_fallback;
-  return meanSigmaFromCompiledCell(cell, signal);
+  const cell = cellModule.lookupCell(compiledConfig, cellKey);
+  if (cell) {
+    try {
+      return meanSigmaFromCompiledCell(cell, signal);
+    } catch {
+      // Real cell, but no per-signal entry for this signal — fall
+      // through to aggregate_fallback below.
+    }
+  }
+  return meanSigmaFromCompiledCell(compiledConfig.baseline_cells.aggregate_fallback, signal);
 }
 
 /** Build a threshold-gate arm for one window/trajectory (fixed cellKey).
@@ -127,4 +141,24 @@ export function buildDirectionMap(directionTable: {
   for (const s of directionTable.down_bad) out[s] = 'down';
   for (const s of directionTable.two_sided) out[s] = 'both';
   return out;
+}
+
+/** Restrict `signals` to those with a resolvable `family_A.per_signal`
+ *  entry in `compiledConfig.baseline_cells.aggregate_fallback` — the
+ *  threshold arm's information source per ENDPOINTS.md. Not every signal
+ *  in the direction table has Family A calibration: the real
+ *  v5-sequential-e-process.json compiled config calibrates only 6 of the
+ *  15 direction-table signals via family_A (verified: the per-cell union
+ *  across all 840 cells never exceeds aggregate_fallback's coverage, so
+ *  checking aggregate_fallback alone is sufficient — no cell resolves a
+ *  signal aggregate_fallback doesn't). A Flagger-style threshold gate
+ *  can't be built for a signal with no calibrated baseline anywhere in
+ *  the config, so those signals are simply not gated by this arm —
+ *  mirroring how such tooling can't threshold-check a metric it was
+ *  never configured with a baseline for. Used when building both the
+ *  tuned (Task 6) and untuned-default (Task 5) threshold-arm signal
+ *  sets. */
+export function signalsWithFamilyACalibration(compiledConfig: CompiledConfig, signals: string[]): string[] {
+  const fallbackPerSignal = compiledConfig.baseline_cells.aggregate_fallback.family_A?.per_signal ?? {};
+  return signals.filter((s) => fallbackPerSignal[s] !== undefined);
 }

@@ -18,6 +18,17 @@ export interface ArmResult {
   armId: string;
   firstFireTick: number | null;
   firingSignals: string[];
+  /** Portfolio arms only (portfolio_alpha / portfolio_combined): the raw
+   *  per-family first-fire tick data from `runGateOverTrajectory`,
+   *  preserved so a downstream consumer can apply the D1 post-injection
+   *  exclusion rule (per family: a fire counts only if that family's
+   *  first-ever fire tick is >= injection_tick — runProfileSweep's rule)
+   *  for the eval-injected split, without the driver needing to know
+   *  whether a given window is healthy or injected. `false_rollbacks`
+   *  (healthy split) needs "fired anywhere, any tick" — that's exactly
+   *  `firstFireTick !== null` above; `escaped_regressions` (injected
+   *  split) needs the D1-filtered per-family view here instead. */
+  perFamilyFirstFireTick?: Record<string, number | null>;
 }
 
 /** hour_of_day / day_of_week cell key, as carried on generated
@@ -38,6 +49,28 @@ export interface WindowProvenance {
   cell_key: HourDayCellKey;
   profile_id?: string;
   repeat?: number;
+  /** injection_tick / bake_hours are constant across an entire plan
+   *  (sourced from EndpointsSpec.frozen_params at buildWindowPlan time)
+   *  but carried per-entry so `materializeWindow(entry, baseline,
+   *  compiledConfig)` stays a pure 3-argument function of the entry
+   *  (Task 5 §2 spec) without a 4th `endpoints` parameter. */
+  injection_tick: number;
+  bake_hours: number;
+}
+
+/** One entry in the full evaluation plan built by `buildWindowPlan`: the
+ *  window's provenance plus its already-generated (pre-injection,
+ *  pre-freeze) healthy trajectory. Trajectories for the shared-RNG-stream
+ *  splits (`eval_healthy`, `tuning`) are generated eagerly, in the exact
+ *  iteration order of the single `mulberry32` instance driving that
+ *  split, so the plan itself — not a later lazy materialization step —
+ *  is what has to replicate `runFprSweep`'s RNG consumption order
+ *  byte-for-byte. `materializeWindow` (Task 5) turns this into the final
+ *  {traj, controlTraj, scenario} without needing any further RNG-order
+ *  coordination. */
+export interface WindowPlanEntry {
+  provenance: WindowProvenance;
+  trajectory: Trajectory;
 }
 
 // ── EndpointsSpec — mirror of the frozen ENDPOINTS.md JSON block ────
