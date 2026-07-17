@@ -12,6 +12,7 @@ import type { Scenario } from './verdict';
 import type { TrendBufferI } from './metrics';
 import type { AuditWriter, AuditOpts } from './audit';
 import type { CompiledConfig } from './config';
+import type { StateGateContext } from './session';
 
 /** Inputs to evaluate(). All fields except liveMetrics/scenario are optional. */
 export interface OrchestrateParams {
@@ -23,6 +24,14 @@ export interface OrchestrateParams {
   totalTicks: number;
   deployId?: string;
   targetCloud?: string;
+  /** Task 2 (WS4 session-durability-argo plan) — pure data snapshot fed
+   *  to the G3 state gate (`gates/state.ts` `evaluateState`). The
+   *  service layer's SessionStore (Task 3) builds this from its
+   *  file-backed store before each tick's evaluate() call. Absent → G3
+   *  behaves exactly as the pre-WS4 stub (`{allow: true, reason: null}`)
+   *  — hard backward-compat gate, same precedent as `failFastState` /
+   *  `lifecycleEmitter` above. */
+  stateContext?: StateGateContext;
   auditWriter?: AuditWriter | null;
   auditOpts?: AuditOpts | null;
   /** Week-1 NS keystone hook: if provided, Family B cutoffs from this config

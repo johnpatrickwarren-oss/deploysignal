@@ -70,6 +70,8 @@ jobs:
             advisory/**/*.js.map
             engine/**/*.js
             engine/**/*.js.map
+            service/**/*.js
+            service/**/*.js.map
             test/**/*.test.js
             test/**/*.test.js.map
             tools/**/*.js
