@@ -13,21 +13,59 @@
 // `compareCandidateVsActive` (and by tools/recalibrate/_recalibrate-
 // candidate.ts's classification call site). For each signal it averages
 // every `baseline_cells.cells[]` entry's own per-cell value, weighted by
-// the cell's `n_samples`, mirroring what the RUNTIME detectors
-// (engine/detectors — Family A betting/Page-CUSUM, Family C Hotelling)
-// actually consult: a cell whose `confidence` is `'strict'` or
-// `'pooled'` contributes ITS OWN per-cell value; a cell whose
-// `confidence` is `'aggregate'` or `'none'` contributes
-// `aggregate_fallback`'s value instead — exactly the substitution
-// `engine/detectors/_page-cusum-params.ts`'s `buildMSPRTParams`
-// (lines ~57-68) makes at runtime. A cell that lacks per-cell data for a
-// signal entirely (legacy/malformed) contributes nothing, again matching
-// runtime (no MSPRT params -> no evaluation for that cell/signal).
-// Weighting is by `n_samples` because that's the field
-// `BaselineCellEntry` actually carries for per-cell sample counts (no
-// separate "n" field exists); if a future cell shape ever lacks
-// `n_samples`, `weightedMean` below falls back to an unweighted mean of
-// the populated per-cell values rather than throwing.
+// the cell's `n_samples`. The GATING RULE THAT DECIDES "own value vs.
+// aggregate" DIFFERS BY FAMILY — the two runtime detector families don't
+// route the same way, so a single confidence-mirroring rule (this
+// comment's prior wording) does NOT describe both correctly:
+//
+//  - Family A (betting/Page-CUSUM): CONFIDENCE-GATED. A cell whose
+//    `confidence` is `'strict'` or `'pooled'` contributes its own
+//    `family_A.per_signal[signal].baseline_mean`; a cell whose
+//    `confidence` is `'aggregate'` or `'none'` contributes
+//    `aggregate_fallback`'s value instead — regardless of whether the
+//    cell happens to carry a `family_A` block of its own — exactly the
+//    substitution `engine/detectors/_page-cusum-params.ts`'s
+//    `buildMSPRTParams` makes at runtime. A cell that lacks per-cell
+//    Family A data for a signal entirely (legacy/malformed, non-
+//    aggregate confidence) contributes nothing, again matching runtime
+//    (no MSPRT params -> no evaluation for that cell/signal).
+//
+//  - Family C (Hotelling): PRESENCE-GATED, NOT CONFIDENCE-GATED. A cell
+//    contributes its own `family_C.mean_vector[idx]` whenever that block
+//    is present on the cell at all — including on `'aggregate'`/`'none'`
+//    -confidence cells — and only falls back to `aggregate_fallback`'s
+//    value when the cell has no `family_C` block whatsoever. This
+//    mirrors `engine/detectors/_hotelling-lookup.ts`'s
+//    `lookupFamilyCParams`, which never inspects `cell.confidence`: it
+//    uses the matched cell's `family_C` block whenever present, falling
+//    back to `aggregate_fallback.family_C` only on a missing block.
+//    `tools/calibrate/_calibrate-derive-cells-helpers.ts` stitches a
+//    `family_C` block onto nearly every cell one way or another — either
+//    `stitchPerCellCalibration`'s pure per-cell fit, or
+//    `stitchAggregateFallback`'s hybrid (per-cell empirical mean when
+//    the cell has its own rows, but aggregate covariance — a binary
+//    shrinkage_alpha of {0,1}, not a continuous blend — when the cell is
+//    rank-deficient for Family C's covariance estimate; note the
+//    rank-deficiency floor is independent of the `confidence` label, so
+//    even `'strict'`-confidence cells commonly land in this hybrid path)
+//    — so a present `family_C` block is the common case even on
+//    low-confidence cells, and runtime consults it. HONEST CAVEAT:
+//    because of that hybrid stitching, a cell's own `family_C.mean_vector`
+//    is not always a "pure" per-cell-only quantity even when present —
+//    it can itself be partly aggregate-derived (aggregate covariance,
+//    and/or an aggregate-copied mean when the cell had zero rows to
+//    compute an empirical mean from). Using it here is still correct
+//    because it's exactly what `lookupFamilyCParams` would return at
+//    serve time — this extraction aims to mirror runtime, not to
+//    isolate a "purer" per-cell-only statistic runtime doesn't actually
+//    use.
+//
+// Weighting is by `n_samples` (the cell's own sample count) for both
+// families' contributions because that's the field `BaselineCellEntry`
+// actually carries for per-cell sample counts (no separate "n" field
+// exists); if a future cell shape ever lacks `n_samples`, `weightedMean`
+// below falls back to an unweighted mean of the populated per-cell
+// values rather than throwing.
 //
 // This is STILL a summary statistic, not a cell-by-cell equivalence:
 // averaging per-cell values (even weighted) can hide divergence where
@@ -40,12 +78,14 @@
 // replay gate) remains the empirical backstop this approximation can't
 // replace. `ComparisonResult.extraction_basis` records which extraction
 // actually ran — `'per_cell_weighted'` when at least one config carried
-// real per-cell data to weight, `'aggregate_fallback_only'` when neither
-// active nor candidate had any (pre-Week-3 legacy configs, or configs
-// whose cells are all bare key/n_samples/confidence with no family
-// blocks) — so the CandidateRecord.comparison this lands on carries the
-// caveat machine-readably rather than only in this code comment. The
-// old `extractSignalMeans` (aggregate_fallback-only) stays exported for
+// real per-cell data to weight (Family A under strict/pooled confidence,
+// OR Family C wherever a `family_C` block is present regardless of
+// confidence), `'aggregate_fallback_only'` when neither active nor
+// candidate had any (pre-Week-3 legacy configs, or configs whose cells
+// are all bare key/n_samples/confidence with no family blocks) — so the
+// CandidateRecord.comparison this lands on carries the caveat
+// machine-readably rather than only in this code comment. The old
+// `extractSignalMeans` (aggregate_fallback-only) stays exported for
 // callers that explicitly want the pre-fix aggregate view.
 
 import type { BaselineCellEntry, CompiledConfig } from '../types';
@@ -124,13 +164,21 @@ function weightedMean(contributions: CellContribution[]): number | undefined {
 }
 
 /** True when `cfg` carries at least one `baseline_cells.cells[]` entry
- *  with real per-cell Family A or Family C data under `'strict'` or
- *  `'pooled'` confidence — i.e. at least one cell the runtime would
- *  actually consult for ITS OWN params rather than routing straight to
- *  `aggregate_fallback`. Configs whose cells are all bare
- *  key/n_samples/confidence (no `family_A`/`family_C` blocks — the
- *  shape recalibration's own unit-test fixtures use) or all
- *  `'aggregate'`/`'none'` confidence report `false` here: for those,
+ *  the runtime would actually consult for ITS OWN params on at least one
+ *  family, rather than routing straight to `aggregate_fallback` for
+ *  everything. The two families gate differently (see this module's
+ *  header PER-CELL-WEIGHTED EXTRACTION note), so this checks each on its
+ *  own terms: Family A only counts under `'strict'`/`'pooled'`
+ *  confidence (confidence-gated, matching `buildMSPRTParams`); Family C
+ *  counts whenever a `family_C` block with a non-empty `mean_vector` is
+ *  present AT ALL, regardless of confidence (presence-gated, matching
+ *  `lookupFamilyCParams`) — an `'aggregate'`/`'none'`-confidence cell
+ *  with its own stitched `family_C` block DOES count here, because
+ *  `extractSignalMeansPerCellWeighted` really does read that cell's own
+ *  value for Family C even though it wouldn't for Family A. Configs
+ *  whose cells are all bare key/n_samples/confidence (no
+ *  `family_A`/`family_C` blocks — the shape recalibration's own
+ *  unit-test fixtures use) report `false` here: for those,
  *  `extractSignalMeansPerCellWeighted` degenerates to exactly
  *  `extractSignalMeans`'s aggregate-only values, so `extraction_basis`
  *  should say so honestly rather than claim a per-cell computation that
@@ -139,21 +187,25 @@ function hasPerCellSignalData(cfg: CompiledConfig): boolean {
   const cells = cfg.baseline_cells?.cells;
   if (!cells) return false;
   return cells.some((cell) => {
-    if (cell.confidence === 'aggregate' || cell.confidence === 'none') return false;
-    const hasFamilyA = !!cell.family_A && Object.keys(cell.family_A.per_signal).length > 0;
     const hasFamilyC = !!cell.family_C && cell.family_C.mean_vector.length > 0;
-    return hasFamilyA || hasFamilyC;
+    if (hasFamilyC) return true;
+    if (cell.confidence === 'aggregate' || cell.confidence === 'none') return false;
+    return !!cell.family_A && Object.keys(cell.family_A.per_signal).length > 0;
   });
 }
 
-/** One signal's per-cell contributions, shared by the Family A and
- *  Family C branches of `extractSignalMeansPerCellWeighted` below: walk
- *  every cell, routing a `'aggregate'`/`'none'`-confidence cell to
- *  `aggValue` (weighted by ITS OWN `n_samples`, per the runtime
- *  substitution this module mirrors) and any other cell to whatever
+/** One signal's per-cell contributions for FAMILY A ONLY — walk every
+ *  cell, routing a `'aggregate'`/`'none'`-confidence cell to `aggValue`
+ *  (weighted by ITS OWN `n_samples`, per the runtime substitution
+ *  `buildMSPRTParams` makes) and any other cell to whatever
  *  `perCellValue` finds on it — `undefined` (no per-cell data for this
  *  signal on this cell) contributes nothing, matching runtime's "no
- *  MSPRT params -> no evaluation" behavior for that cell/signal. */
+ *  MSPRT params -> no evaluation" behavior for that cell/signal.
+ *
+ *  NOT used for Family C — Family C's gating is presence-based, not
+ *  confidence-based (see this module's header PER-CELL-WEIGHTED
+ *  EXTRACTION note and `contributionsForFamilyCSignal` below), so this
+ *  confidence-gated routing would be wrong for it. */
 function contributionsForSignal(
   cells: BaselineCellEntry[],
   aggValue: number,
@@ -171,11 +223,40 @@ function contributionsForSignal(
   return contributions;
 }
 
+/** One signal's per-cell contributions for FAMILY C ONLY — presence-
+ *  gated, NOT confidence-gated, mirroring
+ *  `engine/detectors/_hotelling-lookup.ts`'s `lookupFamilyCParams`
+ *  (which never inspects `cell.confidence`). Every cell contributes
+ *  (weighted by ITS OWN `n_samples`): its own value when `perCellValue`
+ *  finds one on it (i.e. the cell carries a `family_C` block with an
+ *  entry for this signal) — including on `'aggregate'`/`'none'`
+ *  -confidence cells — and `aggValue` otherwise (the cell has no
+ *  `family_C` data for this signal at all, so runtime would fall
+ *  through to `aggregate_fallback.family_C` for it). Unlike
+ *  `contributionsForSignal` (Family A), no cell is ever skipped here:
+ *  `lookupFamilyCParams` always resolves to SOME value (per-cell or
+ *  aggregate) once `agg.family_C` exists, it never returns "no
+ *  evaluation" the way a Family-A cell with no MSPRT params does. */
+function contributionsForFamilyCSignal(
+  cells: BaselineCellEntry[],
+  aggValue: number,
+  perCellValue: (cell: BaselineCellEntry) => number | undefined,
+): CellContribution[] {
+  return cells.map((cell) => {
+    const value = perCellValue(cell);
+    return { value: value !== undefined ? value : aggValue, weight: cell.n_samples };
+  });
+}
+
 /** Extract a flat signal -> mean map from a CompiledConfig, weighting
  *  each cell's own per-cell value by `n_samples` — see this module's
  *  header PER-CELL-WEIGHTED EXTRACTION note for the full rationale and
- *  the confidence-gating semantics mirrored from
- *  `engine/detectors/_page-cusum-params.ts`'s `buildMSPRTParams`.
+ *  the per-family gating semantics: Family A is confidence-gated
+ *  (mirroring `engine/detectors/_page-cusum-params.ts`'s
+ *  `buildMSPRTParams`, via `contributionsForSignal`); Family C is
+ *  presence-gated, not confidence-gated (mirroring
+ *  `engine/detectors/_hotelling-lookup.ts`'s `lookupFamilyCParams`, via
+ *  `contributionsForFamilyCSignal`).
  *
  *  Signal universe is still defined by `aggregate_fallback` (same as
  *  `extractSignalMeans`) — a signal has to appear there to be in scope
@@ -208,7 +289,7 @@ export function extractSignalMeansPerCellWeighted(cfg: CompiledConfig): Record<s
     agg.family_C.mean_vector.forEach((aggValue, idx) => {
       const signal = order[idx];
       if (signal === undefined) return;
-      const contributions = contributionsForSignal(cells, aggValue, (cell) => cell.family_C?.mean_vector[idx]);
+      const contributions = contributionsForFamilyCSignal(cells, aggValue, (cell) => cell.family_C?.mean_vector[idx]);
       means[signal] = weightedMean(contributions) ?? aggValue;
     });
   }
@@ -243,15 +324,18 @@ export interface ComparisonResult {
   cells_active: number;
   cells_candidate: number;
   /** Machine-readable extraction-provenance field (Tasks 3-5 review
-   *  addition; upgraded by the per-cell-weighted follow-up). This
+   *  addition; upgraded by the per-cell-weighted follow-up, then
+   *  corrected by the per-cell-weighted-follow-up-2 fix). This
    *  comparison is built from `extractSignalMeansPerCellWeighted`, which
-   *  averages each signal's per-cell values weighted by `n_samples`,
-   *  mirroring runtime's per-cell-first / aggregate-fallback confidence
-   *  gating (see this module's header PER-CELL-WEIGHTED EXTRACTION
-   *  note). `'per_cell_weighted'` means at least one of active/candidate
-   *  actually had real per-cell data to weight; `'aggregate_fallback_only'`
-   *  means neither did, so the computation degenerated to exactly the
-   *  old aggregate-only `extractSignalMeans` values (pre-Week-3 legacy
+   *  averages each signal's per-cell values weighted by `n_samples` —
+   *  Family A per-cell-first / aggregate-fallback CONFIDENCE gating,
+   *  Family C per-cell-first / aggregate-fallback PRESENCE gating (the
+   *  two rules differ; see this module's header PER-CELL-WEIGHTED
+   *  EXTRACTION note). `'per_cell_weighted'` means at least one of
+   *  active/candidate actually had real per-cell data to weight for at
+   *  least one family; `'aggregate_fallback_only'` means neither did (on
+   *  either family), so the computation degenerated to exactly the old
+   *  aggregate-only `extractSignalMeans` values (pre-Week-3 legacy
    *  configs, or configs whose cells carry no family_A/family_C blocks
    *  of their own). Either way, this remains a SUMMARY STATISTIC, not a
    *  cell-by-cell equivalence — the direction classification derived

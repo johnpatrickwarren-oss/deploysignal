@@ -205,6 +205,93 @@ test('extractSignalMeansPerCellWeighted: cells carry no per-cell family data at 
   assert.deepEqual(weighted, aggregate);
 });
 
+// ── Family A vs Family C gating split (per-cell-weighted-follow-up-2) ─
+//
+// The runtime confirms the two families gate differently:
+//   - engine/detectors/_page-cusum-params.ts's buildMSPRTParams (Family
+//     A) routes an 'aggregate'/'none'-confidence cell to
+//     aggregate_fallback.family_A REGARDLESS of whether the cell itself
+//     carries a family_A block.
+//   - engine/detectors/_hotelling-lookup.ts's lookupFamilyCParams
+//     (Family C) never inspects cell.confidence at all: it uses the
+//     matched cell's family_C block whenever PRESENT, falling back to
+//     aggregate_fallback.family_C only when the cell has no family_C
+//     block. tools/calibrate/_calibrate-derive-cells-helpers.ts's
+//     stitchAggregateFallback stitches exactly this shape onto
+//     low-confidence cells in real compiled configs — a real,
+//     cell-specific family_C block on an 'aggregate'/'none'-confidence
+//     cell is the NORMAL case, not a hand-built edge case.
+//
+// This single cell (confidence 'aggregate', carrying BOTH its own
+// family_A per-signal value AND its own family_C mean_vector entry,
+// both sharply divergent from aggregate_fallback) proves the rule split
+// in one fixture: the Family A signal must still read the aggregate
+// value (ignoring the cell's own 999), while the Family C signal must
+// read the cell's own value (777, ignoring aggregate_fallback's 100).
+// Signals are kept disjoint (family_c_signals: ['mfu'] only) so there's
+// no family-C-wins-on-overlap tie-break muddying which rule produced
+// which number.
+function makeConfidenceSplitConfig(): CompiledConfig {
+  return {
+    version: 'v-split@seed=1',
+    compiler_version: '0.3.0',
+    compiled_at: '2026-07-01T00:00:00.000Z',
+    baseline_ref: 'synthetic-v1@seed=1',
+    alpha_budget: { total: 1e-3, per_family: { A: 4e-4, C: 2e-4 } },
+    family_c_signals: ['mfu'],
+    baseline_cells: {
+      dimensions: ['hour_of_day'],
+      cells: [
+        {
+          key: { hour_of_day: 0 },
+          n_samples: 100,
+          confidence: 'aggregate',
+          // Family A: present on the cell, but confidence 'aggregate'
+          // means buildMSPRTParams routes to aggregate_fallback anyway —
+          // this 999 must NOT show up in the result.
+          family_A: {
+            per_signal: {
+              p99_latency: {
+                baseline_mean: 999, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5,
+              },
+            },
+          },
+          // Family C: a present, divergent per-cell block — exactly the
+          // stitchAggregateFallback shape a real compiler produces for a
+          // low-confidence cell. lookupFamilyCParams would consult THIS
+          // value at serve time (it never checks confidence), so the
+          // extraction must too.
+          family_C: { mean_vector: [777], covariance: [[10]] },
+        },
+      ],
+      aggregate_fallback: {
+        family_A: {
+          per_signal: {
+            p99_latency: {
+              baseline_mean: 100, baseline_sigma_squared: 10, tau_squared: 10, delta_min: 5,
+            },
+          },
+        },
+        family_C: { mean_vector: [100], covariance: [[10]] },
+      },
+    },
+  } as CompiledConfig;
+}
+
+test('extractSignalMeansPerCellWeighted: Family C reads an aggregate-confidence cell\'s own present family_C value; Family A on the same cell still reads aggregate (rule split proof)', () => {
+  const cfg = makeConfidenceSplitConfig();
+  const means = extractSignalMeansPerCellWeighted(cfg);
+  assert.equal(means.mfu, 777, 'Family C is presence-gated: the cell\'s own family_C value must win despite \'aggregate\' confidence');
+  assert.equal(means.p99_latency, 100, 'Family A is confidence-gated: an \'aggregate\'-confidence cell must still route to aggregate_fallback, even though it carries its own family_A value');
+});
+
+test('compareCandidateVsActive: extraction_basis is per_cell_weighted when only Family C carries real per-cell data on an aggregate-confidence cell', () => {
+  const active = makeConfig(); // bare cells, no per-cell family data
+  const candidate = makeConfidenceSplitConfig();
+  const result = compareCandidateVsActive(active, candidate);
+  assert.equal(result.extraction_basis, 'per_cell_weighted');
+});
+
 test('compareCandidateVsActive: extraction_basis is per_cell_weighted when either config carries real per-cell data', () => {
   const active = makeConfig(); // bare cells, no per-cell family data
   const candidate = makeWeightedConfig();
