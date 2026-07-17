@@ -14,6 +14,7 @@ import {
   GateSessionRuntime,
 } from './_gate-session-runtime';
 import type { GateHttpConfig } from './_gate-config';
+import { isSafeIdentifier } from './_gate-http-util';
 
 export interface HandlerDeps {
   runtime: GateSessionRuntime;
@@ -50,6 +51,13 @@ export function handleBeginSession(deps: HandlerDeps, rawBody: string): HandlerR
   const body = parsed.value;
 
   if (typeof body.deploy_ref !== 'string' || !body.deploy_ref) return badRequest('deploy_ref is required');
+  // m4 fix (final-review): deploy_ref flows straight into the
+  // `sess-${deploy_ref}-${ts}` session_id, which SessionStore uses as a
+  // filename — reject anything outside the safe identifier charset
+  // (blocks `../` traversal segments) before it reaches the store.
+  if (!isSafeIdentifier(body.deploy_ref)) {
+    return badRequest('deploy_ref contains invalid characters: allowed are A-Za-z0-9._-');
+  }
   if (typeof body.requested_at_ts !== 'number') return badRequest('requested_at_ts is required (unix seconds)');
   const scenario = body.scenario as { baseline?: unknown } | undefined;
   if (!scenario || typeof scenario !== 'object' || typeof scenario.baseline !== 'object' || scenario.baseline === null) {

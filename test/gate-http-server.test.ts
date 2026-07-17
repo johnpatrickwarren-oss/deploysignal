@@ -10,6 +10,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as http from 'node:http';
+import * as net from 'node:net';
 import type { AddressInfo } from 'node:net';
 import * as yaml from 'js-yaml';
 
@@ -75,6 +76,29 @@ async function stop(s: Started): Promise<void> {
 }
 
 interface Resp { status: number; json: any; raw: string }
+
+/** m4 test helper: sends a GET request line over a raw TCP socket,
+ *  bypassing http.request()'s own URL parsing/normalization — a
+ *  compliant client (Node's http.request(urlString, ...), browsers,
+ *  curl) collapses a percent-encoded dot-segment (`%2E%2E`) before the
+ *  request ever leaves the client, so exercising the server's own
+ *  defense against that payload requires writing the request target
+ *  onto the wire verbatim. */
+function rawGet(port: number, requestTarget: string): Promise<{ status: number; raw: string }> {
+  return new Promise((resolve, reject) => {
+    const socket = net.connect(port, '127.0.0.1', () => {
+      socket.write(`GET ${requestTarget} HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nConnection: close\r\n\r\n`);
+    });
+    let data = '';
+    socket.on('data', (chunk: Buffer) => { data += chunk.toString('utf8'); });
+    socket.on('end', () => {
+      const statusLine = data.split('\r\n')[0];
+      const m = statusLine.match(/^HTTP\/1\.\d (\d{3})/);
+      resolve({ status: m ? Number(m[1]) : -1, raw: data });
+    });
+    socket.on('error', reject);
+  });
+}
 
 function req(
   baseUrl: string, method: string, urlPath: string,
@@ -244,6 +268,77 @@ test('400 on missing required fields', async () => {
 });
 
 // ────────────────────────────────────────────────────────────────────
+// m4 (final-review): deploy_ref/session_id charset validation at the
+// router/handler boundary. Both flow into SessionStore filenames
+// (session_id directly; deploy_ref via the `sess-${deploy_ref}-${ts}`
+// convention) — reject anything outside [A-Za-z0-9._-] with 400,
+// including path-traversal attempts (%2F, literal/encoded "..").
+// ────────────────────────────────────────────────────────────────────
+
+test('m4: session_id path segment containing an encoded slash (%2F) is rejected 400 before reaching the store', async () => {
+  const s = await start();
+  try {
+    const onTicks = await req(s.baseUrl, 'POST', '/v1/sessions/foo%2F..%2Fetc%2Fpasswd/ticks', {
+      body: { emitted_at_ts: NOW, metrics: BASELINE },
+    });
+    assert.equal(onTicks.status, 400);
+    assert.match(onTicks.json.error, /invalid session_id/);
+
+    const onGet = await req(s.baseUrl, 'GET', '/v1/sessions/foo%2Fbar');
+    assert.equal(onGet.status, 400);
+
+    const onFinish = await req(s.baseUrl, 'POST', '/v1/sessions/foo%2Fbar/finish', {});
+    assert.equal(onFinish.status, 400);
+  } finally { await stop(s); }
+});
+
+test('m4: session_id path segment that decodes to a literal ".." is rejected 400 (encoded dot-segment guard)', async () => {
+  const s = await start();
+  try {
+    // Node's own http.request(urlString, ...) — like browsers and curl —
+    // normalizes a percent-encoded dot-segment (%2E%2E -> "..") and
+    // collapses it before the request ever leaves the client, so this
+    // exact payload can only reach our server verbatim over a raw
+    // socket (a client that does NOT normalize). That is exactly the
+    // server-side defense this guard needs to prove.
+    const port = (s.handle.server.address() as AddressInfo).port;
+    const r = await rawGet(port, '/v1/sessions/%2E%2E');
+    assert.equal(r.status, 400);
+    assert.match(r.raw, /invalid session_id/);
+  } finally { await stop(s); }
+});
+
+test('m4: GET /v1/verdict/{deploy_ref} with an encoded slash is rejected 400', async () => {
+  const s = await start();
+  try {
+    const r = await req(s.baseUrl, 'GET', '/v1/verdict/..%2F..%2Fetc%2Fpasswd');
+    assert.equal(r.status, 400);
+    assert.match(r.json.error, /invalid deploy_ref/);
+  } finally { await stop(s); }
+});
+
+test('m4: deploy_ref outside the safe identifier charset is rejected 400 on POST /v1/sessions (body field, traversal guard)', async () => {
+  const s = await start();
+  try {
+    const withSlash = await req(s.baseUrl, 'POST', '/v1/sessions', {
+      body: { deploy_ref: '../../etc/passwd', requested_at_ts: NOW, scenario: { baseline: BASELINE } },
+    });
+    assert.equal(withSlash.status, 400);
+    assert.match(withSlash.json.error, /deploy_ref/);
+
+    const literalDotDot = await req(s.baseUrl, 'POST', '/v1/sessions', {
+      body: { deploy_ref: '..', requested_at_ts: NOW, scenario: { baseline: BASELINE } },
+    });
+    assert.equal(literalDotDot.status, 400);
+
+    // A charset-safe deploy_ref (hyphens/dots/underscores) still works —
+    // the guard rejects only unsafe characters, not the whole convention.
+    const ok = await req(s.baseUrl, 'POST', '/v1/sessions', { body: beginBody({ deploy_ref: 'svc.a_b-1' }) });
+    assert.equal(ok.status, 201);
+  } finally { await stop(s); }
+});
+
+// ────────────────────────────────────────────────────────────────────
 // Shared secret.
 // ────────────────────────────────────────────────────────────────────
 
@@ -401,6 +496,39 @@ test('shadow mode: GET verdict masks to proceed/0 with shadow_verdict_code; stor
     assert.ok(history.every((e) => e.shadow === true));
     assert.ok(history.some((e) => e.verdict === 'rollback'));
   } finally { await stop(s); }
+});
+
+// ────────────────────────────────────────────────────────────────────
+// m3 (final-review): GET /v1/verdict on a void session, at the HTTP
+// layer — unlike POST .../ticks (which the router pre-checks and
+// 409s), GET /v1/verdict has no "unknown status" rejection: it always
+// answers 200 with a fail-policy-shaped body (runtime.verdictFor()).
+// ────────────────────────────────────────────────────────────────────
+
+test('GET /v1/verdict on a void session: fail_closed -> 200 verdict_code -1 + error; fail_open -> 200 verdict_code 0 + degraded', async () => {
+  const closed = await start({ failPolicy: 'fail_closed' });
+  try {
+    await req(closed.baseUrl, 'POST', '/v1/sessions', { body: beginBody() });
+    closed.handle.runtime.sweepOnBoot(); // void the just-begun active session
+    const r = await req(closed.baseUrl, 'GET', '/v1/verdict/deploy-ref-1');
+    assert.equal(r.status, 200);
+    assert.equal(r.json.verdict_code, -1);
+    assert.equal(r.json.verdict, 'extend');
+    assert.match(r.json.error, /^session_void: service_restart$/);
+    assert.equal(r.json.degraded, undefined);
+  } finally { await stop(closed); }
+
+  const open = await start({ failPolicy: 'fail_open' });
+  try {
+    await req(open.baseUrl, 'POST', '/v1/sessions', { body: beginBody() });
+    open.handle.runtime.sweepOnBoot();
+    const r = await req(open.baseUrl, 'GET', '/v1/verdict/deploy-ref-1');
+    assert.equal(r.status, 200);
+    assert.equal(r.json.verdict_code, 0);
+    assert.equal(r.json.verdict, 'proceed');
+    assert.equal(r.json.degraded, true);
+    assert.equal(r.json.error, undefined);
+  } finally { await stop(open); }
 });
 
 // ────────────────────────────────────────────────────────────────────

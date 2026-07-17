@@ -128,12 +128,26 @@ test('duplicate tick replays the stored result: does not advance tick or spend a
   assert.equal(afterFirst.tick, 1);
   assert.equal(h.store.readVerdictHistory(record.session_id).length, 1);
 
+  // m2 (final-review): a replay must not touch detector/trendBuffer
+  // accumulator state either. Snapshot the full in-memory runtime state
+  // (Maps included — VerdictGrouper's openByDeploy/recentlyClosed —
+  // via the test-only seam) immediately before the replayed call, and
+  // again immediately after, then compare.
+  const stateBeforeReplay = h.runtime.getRuntimeStateSnapshotForTest(record.session_id);
+  assert.ok(stateBeforeReplay, 'runtime state must exist after a real (non-replay) tick');
+
   const replay = h.runtime.ingestTick(record.session_id, tickReq(1_700_000_000));
   assert.equal(replay.replayed, true);
   assert.equal(replay.verdict, first.verdict);
   assert.equal(replay.verdict_code, first.verdict_code);
   assert.equal(replay.alpha_consumed, first.alpha_consumed);
   assert.deepEqual(replay.fires, first.fires);
+
+  const stateAfterReplay = h.runtime.getRuntimeStateSnapshotForTest(record.session_id);
+  assert.deepEqual(
+    stateAfterReplay, stateBeforeReplay,
+    'replay must not mutate any accumulator (trendBuffer/cusum/betting/mixture-supermartingale/verdictGrouper state)',
+  );
 
   const afterReplay = h.store.getSession(record.session_id)!;
   assert.equal(afterReplay.tick, 1, 'tick counter must not advance on replay');
@@ -195,6 +209,86 @@ test('restart: sweepOnBoot voids active sessions; a further tick is rejected via
   assert.equal(freshTick.shortCircuit, null);
 
   runtime2.close();
+});
+
+// M1 (final-review blocker): a retried POST /v1/sessions that computes
+// the SAME sess-${deploy_ref}-${ts} id as a now-dead (void/finished)
+// session must never overwrite that record in place — doing so would
+// destroy its void_reason/last_verdict audit trail and resurrect the
+// dead session's <id>.verdicts.jsonl idempotency keys under the new
+// session, so a genuinely fresh tick at a colliding emitted_at_ts would
+// wrongly come back replayed:true with a stale, never-evaluated verdict.
+test('M1: begin() colliding with a dead session\'s id mints a NEW session_id; old record + old idempotency history stay intact; a fresh tick at a colliding ts is EVALUATED not replayed', () => {
+  const h = makeHarness({ totalTicksDefault: 8 });
+  const collidingTs = 1_700_000_000;
+  const staleTickTs = 1_700_000_030;
+
+  const { record: original } = h.runtime.begin(beginReq({ requested_at_ts: collidingTs }));
+  h.runtime.ingestTick(original.session_id, tickReq(staleTickTs));
+  assert.equal(h.store.getSession(original.session_id)!.tick, 1);
+
+  // The session goes dead (e.g. a service_restart sweep), and a retried
+  // begin computes the exact same deploy_ref + requested_at_ts as the
+  // original — the id-collision scenario M1 covers.
+  h.store.voidSession(original.session_id, 'service_restart');
+  const voidedBeforeRetry = h.store.getSession(original.session_id)!;
+  assert.equal(voidedBeforeRetry.status, 'void');
+  assert.equal(voidedBeforeRetry.void_reason, 'service_restart');
+  const oldHistoryLenBeforeRetry = h.store.readVerdictHistory(original.session_id).length;
+  assert.equal(oldHistoryLenBeforeRetry, 1);
+
+  const { record: retried, created } = h.runtime.begin(beginReq({ requested_at_ts: collidingTs }));
+  assert.equal(created, true);
+  assert.notEqual(retried.session_id, original.session_id, 'a NEW session_id must be minted, never overwriting the dead record');
+  assert.equal(retried.session_id, `${original.session_id}-r2`, 'deterministic attempt-counter suffix');
+
+  // (a) old record intact, void_reason preserved, old idempotency
+  // history (verdicts.jsonl) untouched.
+  const oldStillThere = h.store.getSession(original.session_id)!;
+  assert.deepEqual(oldStillThere, voidedBeforeRetry, 'the dead record must be byte-identical after the colliding begin()');
+  assert.equal(h.store.readVerdictHistory(original.session_id).length, oldHistoryLenBeforeRetry);
+
+  // (b) a fresh tick on the NEW session at a timestamp that collided
+  // with the OLD session's history must be EVALUATED, not replayed —
+  // the new session id has its own, empty idempotency state because it
+  // maps to a distinct <id>.verdicts.jsonl file.
+  const freshTick = h.runtime.ingestTick(retried.session_id, tickReq(staleTickTs));
+  assert.equal(freshTick.replayed, false, 'must be evaluated, not replayed from the dead session\'s history');
+  assert.equal(h.store.getSession(retried.session_id)!.tick, 1);
+  assert.equal(h.store.readVerdictHistory(retried.session_id).length, 1);
+  // The old session's history is still exactly what it was — no
+  // cross-session bleed-through in either direction.
+  assert.equal(h.store.readVerdictHistory(original.session_id).length, oldHistoryLenBeforeRetry);
+
+  h.runtime.close();
+});
+
+// m5 (final-review): a tick that reaches ingestTick() for a session
+// already dead (void/finished) at entry can only get there via G3's
+// deny short-circuit on a direct runtime call (the HTTP layer
+// pre-checks status and returns 409 before calling the runtime at all —
+// see _gate-handlers.ts handleTick). Durable state must stay
+// byte-identical: no new verdict-history line, no tick/last_verdict
+// bump, on the dead record.
+test('m5: a G3-denied tick against an already-dead session does not persist — no history line, no tick/last_verdict bump', () => {
+  const h = makeHarness({ totalTicksDefault: 8 });
+  const { record } = h.runtime.begin(beginReq());
+  h.runtime.ingestTick(record.session_id, tickReq(1_700_000_000));
+  assert.equal(h.store.getSession(record.session_id)!.tick, 1);
+
+  h.store.voidSession(record.session_id, 'manual_test_void');
+  const beforeDenied = h.store.getSession(record.session_id)!;
+  const historyLenBefore = h.store.readVerdictHistory(record.session_id).length;
+
+  const denied = h.runtime.ingestTick(record.session_id, tickReq(1_700_000_030));
+  assert.equal(denied.shortCircuit, 'state');
+  assert.equal(denied.session_status, 'void');
+
+  const afterDenied = h.store.getSession(record.session_id)!;
+  assert.deepEqual(afterDenied, beforeDenied, 'a G3-denied tick must not mutate the dead record at all (no tick/last_verdict/phase change)');
+  assert.equal(h.store.readVerdictHistory(record.session_id).length, historyLenBefore, 'no new verdict-history line written for a denied tick');
+
+  h.runtime.close();
 });
 
 // ────────────────────────────────────────────────────────────────────
@@ -281,6 +375,38 @@ test('shadow mode: real verdict recorded (shadow:true); verdictFor masks to proc
   const history = h.store.readVerdictHistory(record.session_id);
   assert.ok(history.every((e) => e.shadow === true));
   h.runtime.close();
+});
+
+// m1 (final-review): shadow must mask void too — per OQ-7 "a shadow
+// gate must never block", a voided SHADOW session's verdictFor() must
+// still return verdict_code 0/proceed, with the fail-policy-derived
+// "real" (would-be enforce-mode) code in shadow_verdict_code, and the
+// void surfaced via the error/degraded field. Precedence: shadow always
+// wins the top-level verdict_code, even over a void session.
+test('verdictFor: a void SHADOW session never blocks (verdict_code 0); real code lands in shadow_verdict_code; void still surfaced', () => {
+  const closed = makeHarness({ mode: 'shadow', failPolicy: 'fail_closed', totalTicksDefault: 8 });
+  const { record: closedRecord } = closed.runtime.begin(beginReq());
+  closed.runtime.ingestTick(closedRecord.session_id, tickReq(1_700_000_000));
+  closed.store.voidSession(closedRecord.session_id, 'session_ttl_expired');
+
+  const closedResp = closed.runtime.verdictFor('deploy-ref-1')!;
+  assert.equal(closedResp.verdict_code, 0, 'a shadow gate must never block, even when the session is void');
+  assert.equal(closedResp.verdict, 'proceed');
+  assert.equal(closedResp.shadow_verdict_code, VERDICT_CODE.extend, 'the real fail_closed-void code (-1) is preserved in shadow_verdict_code');
+  assert.equal(closedResp.error, 'session_void: session_ttl_expired', 'void is surfaced via the error field');
+  closed.runtime.close();
+
+  const open = makeHarness({ mode: 'shadow', failPolicy: 'fail_open', totalTicksDefault: 8 });
+  const { record: openRecord } = open.runtime.begin(beginReq());
+  open.runtime.ingestTick(openRecord.session_id, tickReq(1_700_000_000));
+  open.store.voidSession(openRecord.session_id, 'session_ttl_expired');
+
+  const openResp = open.runtime.verdictFor('deploy-ref-1')!;
+  assert.equal(openResp.verdict_code, 0);
+  assert.equal(openResp.verdict, 'proceed');
+  assert.equal(openResp.shadow_verdict_code, VERDICT_CODE.proceed, 'fail_open-void real code is already 0');
+  assert.equal(openResp.degraded, true, 'void is surfaced via degraded even though shadow always returns 0');
+  open.runtime.close();
 });
 
 // ────────────────────────────────────────────────────────────────────

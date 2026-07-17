@@ -255,6 +255,34 @@ export class GateSessionRuntime {
     this.evaluateFn = fn;
   }
 
+  /** Test-only seam (m2, final-review): a structurally-comparable,
+   *  JSON-serializable deep snapshot of a session's in-memory
+   *  accumulator state (the per-session Map entry described in this
+   *  file's header) — including VerdictGrouper's private `Map` fields,
+   *  which `JSON.stringify` alone would flatten to `{}`. Lets a test
+   *  assert detector/trendBuffer state is byte-identical before and
+   *  after a replayed tick (a replay must not touch any accumulator).
+   *  Never called by production code paths. Returns null when the
+   *  session has no in-memory state yet (never ticked). */
+  getRuntimeStateSnapshotForTest(sessionId: string): unknown {
+    const state = this.runtimeState.get(sessionId);
+    if (!state) return null;
+    const grouper = state.verdictGrouper as unknown as {
+      openByDeploy: Map<string, unknown>;
+      recentlyClosed: Map<string, unknown>;
+    };
+    return {
+      trendBuffer: JSON.parse(JSON.stringify(state.trendBuffer)),
+      lifecycleState: JSON.parse(JSON.stringify(state.lifecycleState)),
+      failFastState: JSON.parse(JSON.stringify(state.failFastState ?? null)),
+      reversibilityClassification: JSON.parse(JSON.stringify(state.reversibilityClassification ?? null)),
+      verdictGrouper: {
+        openByDeploy: Array.from(grouper.openByDeploy.entries()),
+        recentlyClosed: Array.from(grouper.recentlyClosed.entries()),
+      },
+    };
+  }
+
   /** Releases the store-root lock. Idempotent-safe to call once at
    *  process shutdown; a second call is a no-op (releaseStoreLock treats
    *  an already-removed lockfile as ENOENT-fine). */
@@ -314,7 +342,22 @@ export class GateSessionRuntime {
       degraded = true; // fail_open: proceed on the legacy/no-config path
     }
 
-    const sessionId = `sess-${req.deploy_ref}-${req.requested_at_ts}`;
+    // M1 fix (final-review blocker): the naive `sess-${deploy_ref}-${ts}`
+    // id collides with a prior dead (void/finished) session's record
+    // whenever a retried begin computes the same deploy_ref+timestamp —
+    // e.g. immediately after sweepOnBoot() voids the prior session for
+    // the same deploy_ref and the caller retries with an identical
+    // requested_at_ts. Overwriting that record in place would destroy its
+    // void_reason/last_verdict audit trail AND resurrect its
+    // <id>.verdicts.jsonl idempotency history under the new session, so a
+    // genuinely fresh tick at a timestamp that collides with the dead
+    // session's history would incorrectly replay a stale verdict instead
+    // of being evaluated. Uniquify with a deterministic attempt-counter
+    // suffix (scanning existing session records) so the dead record is
+    // never touched and the new session starts with empty idempotency
+    // state. The active-session idempotent-return path above is
+    // unaffected.
+    const sessionId = this.uniquifySessionId(`sess-${req.deploy_ref}-${req.requested_at_ts}`);
     const beginInput: BeginSessionInput = {
       session_id: sessionId,
       service_id: req.service_id ?? this.cfg.serviceId,
@@ -352,6 +395,23 @@ export class GateSessionRuntime {
     return {
       record, created: true, config_source: configSource, ...(degraded ? { degraded: true } : {}),
     };
+  }
+
+  /** M1 fix: `base` is only ever handed back unmodified when no session
+   *  record occupies that id yet. A collision (always a dead — void or
+   *  finished — record, since an active collision is short-circuited
+   *  before this is reached) is resolved by scanning `-r2`, `-r3`, ...
+   *  until an unused id is found, so retries never overwrite durable
+   *  audit state and never inherit a dead session's idempotency keys. */
+  private uniquifySessionId(base: string): string {
+    if (!this.store.getSession(base)) return base;
+    let attempt = 2;
+    let candidate = `${base}-r${attempt}`;
+    while (this.store.getSession(candidate)) {
+      attempt += 1;
+      candidate = `${base}-r${attempt}`;
+    }
+    return candidate;
   }
 
   private runtimeStateFor(session: SessionRecord): SessionRuntimeState {
@@ -465,23 +525,28 @@ export class GateSessionRuntime {
       ...(errorMsg !== undefined ? { error: errorMsg } : {}),
       ...(degraded ? { degraded: true } : {}),
     };
-    this.store.appendVerdict(entry);
-
-    const nextTick = session.tick + 1;
-    const terminal = verdict === 'rollback' || verdict === 'proceed' || nextTick >= session.total_ticks;
-
-    this.store.updateSession(sessionId, {
-      tick: nextTick,
-      last_tick_at: recordedAt,
-      last_verdict: {
-        verdict, verdict_code: verdictCodeVal, tick: session.tick, alpha_consumed: alphaConsumed, fires,
-      },
-    });
-
-    // Only a currently-active session's phase/finish state may transition
-    // here — a denied tick against an already-void/finished session (G3
-    // short-circuit) must not resurrect it into 'finished'.
+    // m5 fix (final-review): a tick against a session that is already
+    // dead (void/finished) at entry only ever reaches here via G3's deny
+    // short-circuit (evaluateState() denies + the caller still asked to
+    // evaluate directly against the runtime, bypassing the HTTP layer's
+    // own pre-check) — durable state must stay byte-identical to before
+    // the call: no new verdict-history line, no tick/last_verdict bump,
+    // no phase/finish transition. Only a currently-active session (at
+    // the tick's entry) may durably persist a tick outcome.
     if (session.status === 'active') {
+      this.store.appendVerdict(entry);
+
+      const nextTick = session.tick + 1;
+      const terminal = verdict === 'rollback' || verdict === 'proceed' || nextTick >= session.total_ticks;
+
+      this.store.updateSession(sessionId, {
+        tick: nextTick,
+        last_tick_at: recordedAt,
+        last_verdict: {
+          verdict, verdict_code: verdictCodeVal, tick: session.tick, alpha_consumed: alphaConsumed, fires,
+        },
+      });
+
       if (verdict === 'rollback') this.store.updatePhase(sessionId, 'rolled_back' as DeploymentPhase);
       if (terminal) {
         const reason = verdict === 'rollback' ? 'rollback' : (verdict === 'proceed' ? 'proceed' : 'total_ticks_reached');
@@ -514,6 +579,14 @@ export class GateSessionRuntime {
     const fires = lv?.fires ?? [];
     const extra: Partial<VerdictResponse> = {};
 
+    // m1 fix (final-review): void handling first computes the "real"
+    // (enforce-mode-equivalent) verdict per fail policy, surfacing the
+    // void via `error` (fail_closed) / `degraded` (fail_open) — then, if
+    // the session is in shadow mode, that real verdict is demoted into
+    // `shadow_verdict_code` and the top-level verdict/verdict_code is
+    // *always* forced to proceed/0 (OQ-7: "a shadow gate must never
+    // block", even when the underlying session is void). Precedence
+    // matters here: shadow must win last, unconditionally.
     if (session.status === 'void') {
       if (this.cfg.failPolicy === 'fail_closed') {
         verdict = 'extend'; verdictCodeVal = -1;
@@ -522,7 +595,9 @@ export class GateSessionRuntime {
         verdict = 'proceed'; verdictCodeVal = 0;
         extra.degraded = true;
       }
-    } else if (session.mode === 'shadow') {
+    }
+
+    if (session.mode === 'shadow') {
       extra.shadow_verdict_code = verdictCodeVal;
       verdict = 'proceed'; verdictCodeVal = 0;
     }

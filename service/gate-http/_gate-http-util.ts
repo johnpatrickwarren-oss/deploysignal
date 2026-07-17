@@ -54,6 +54,21 @@ export function sendJson(res: http.ServerResponse, status: number, body: unknown
  *  materially cheaper code path than a full mismatch. This is a
  *  localhost-grade boundary (see server.ts header), not a claim of
  *  rigorous side-channel security. */
+// m4 fix (final-review): deploy_ref and session_id both flow into
+// filenames (SessionStore's `sess-${deploy_ref}-${ts}` id convention,
+// `sessions/<id>.json` / `<id>.verdicts.jsonl`) — an unrestricted value
+// is a path-traversal vector (`../../etc/passwd`, a URL-encoded `%2F`
+// that decodes to a literal `/`, etc). Restrict both to a safe charset
+// at the router/handler boundary, before either value reaches the
+// store. `.` and `..` alone are rejected too (defense in depth — no
+// slash is required for `..` to be meaningful once embedded in a
+// caller-controlled path).
+const SAFE_IDENTIFIER_RE = /^[A-Za-z0-9._-]+$/;
+
+export function isSafeIdentifier(value: string): boolean {
+  return SAFE_IDENTIFIER_RE.test(value) && value !== '.' && value !== '..';
+}
+
 export function timingSafeEqualStr(a: string, b: string): boolean {
   const ab = Buffer.from(a, 'utf8');
   const bb = Buffer.from(b, 'utf8');
