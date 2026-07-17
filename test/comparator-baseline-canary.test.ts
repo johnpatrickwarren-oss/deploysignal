@@ -47,6 +47,7 @@ test('canary arm: identical canary/control never fires across 200 seeded random 
     const r = runCanaryArm(canary, control, defaultParams);
     assert.equal(r.firstFireTick, null, `seed ${seed}: identical streams must never fire`);
     assert.deepEqual(r.firingSignals, []);
+    assert.deepEqual(r.fireTicks, [], `seed ${seed}: fireTicks must be empty when the arm never fires`);
   }
 });
 
@@ -81,6 +82,14 @@ test('canary arm: openai routing profile injection is detected at/after the inje
     `first fire tick ${r.firstFireTick} must be at/after the injection tick ${injectionTick}`,
   );
   assert.deepEqual(r.firingSignals, ['downstream_err']);
+
+  // I1 fix (reviewer finding): fireTicks lists every firing look tick,
+  // ascending — not just the first — and its first entry must agree with
+  // firstFireTick.
+  assert.ok(r.fireTicks.length > 0, 'expected at least one fire tick');
+  assert.equal(r.fireTicks[0], r.firstFireTick, 'fireTicks[0] must equal firstFireTick');
+  assert.deepEqual(r.fireTicks, [...r.fireTicks].sort((a, b) => a - b), 'fireTicks must be ascending');
+  for (const t of r.fireTicks) assert.ok(t >= injectionTick, `fire tick ${t} must be at/after the injection tick`);
 });
 
 // ── Bonferroni math ───────────────────────────────────────────────────

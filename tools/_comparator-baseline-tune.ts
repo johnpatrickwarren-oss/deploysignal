@@ -3,7 +3,7 @@
 // split, per ENDPOINTS.md's frozen grids and selection rules (never
 // peeking at the eval split or any regression profile).
 
-import type { Baseline, CompiledConfig, EndpointsSpec, Trajectory } from './_comparator-baseline-types';
+import type { Baseline, CompiledConfig, EndpointsSpec, Trajectory, WindowPlanEntry } from './_comparator-baseline-types';
 import {
   runThresholdArmOverTrajectory,
   buildDirectionMap,
@@ -26,6 +26,27 @@ export interface TuningAudit {
    *  the k grid at that m — i.e. that m is not viable). */
   grid: Array<{ params: Record<string, unknown>; false_fires: number }>;
   chosen: Record<string, unknown>;
+}
+
+/** Runtime provenance guard (MINOR m2, reviewer finding): every window
+ *  handed to a tuner must be provenance-stamped `split: 'tuning'` — the
+ *  ONE check-and-extract chokepoint (mirrors `resolveMeanSigma` in
+ *  _comparator-baseline-threshold.ts) so a caller can never silently feed
+ *  an eval-split window into a tuning routine (that would be leakage:
+ *  tuning against the very data the frozen endpoints later score against).
+ *  Throws eagerly, before any grid work, rather than trusting the caller.
+ *  Returns the bare trajectories the existing tick-loop helpers below
+ *  operate on. */
+function assertTuningWindows(windows: WindowPlanEntry[]): Trajectory[] {
+  for (const w of windows) {
+    if (w.provenance.split !== 'tuning') {
+      throw new Error(
+        `assertTuningWindows: window (seed=${w.provenance.seed}, index=${w.provenance.window_index}) has ` +
+          `provenance.split "${w.provenance.split}", expected "tuning" — tuners must never see eval-split windows.`,
+      );
+    }
+  }
+  return windows.map((w) => w.trajectory);
 }
 
 function countThresholdFalseFires(
@@ -91,10 +112,11 @@ function resolveThresholdForM(
  *  untuned defaults use, for the same reason (some signals have no
  *  family_A calibration anywhere in the compiled config). */
 export function tuneThreshold(
-  tuningWindows: Trajectory[],
+  tuningWindows: WindowPlanEntry[],
   compiledConfig: CompiledConfig,
   endpoints: EndpointsSpec,
 ): { params: ThresholdParams; audit: TuningAudit } {
+  const windows = assertTuningWindows(tuningWindows);
   const fp = endpoints.frozen_params;
   const grid = fp.grids.threshold;
   const directions = buildDirectionMap(fp.direction_table);
@@ -104,10 +126,10 @@ export function tuneThreshold(
   let chosen: { m: number; kPerSignal: Record<string, number> } | null = null;
 
   for (const m of grid.m) {
-    const { kPerSignal, resolved } = resolveThresholdForM(tuningWindows, compiledConfig, m, grid.k, directions, signals);
+    const { kPerSignal, resolved } = resolveThresholdForM(windows, compiledConfig, m, grid.k, directions, signals);
     let jointFires = -1;
     if (resolved) {
-      jointFires = countThresholdFalseFires(tuningWindows, compiledConfig, { kPerSignal, consecutiveTicks: m, directions });
+      jointFires = countThresholdFalseFires(windows, compiledConfig, { kPerSignal, consecutiveTicks: m, directions });
     }
     auditEntries.push({ params: { m, kPerSignal: { ...kPerSignal }, resolved }, false_fires: jointFires });
     if (resolved && jointFires === 0 && chosen === null) {
@@ -153,10 +175,11 @@ function countCanaryFalseFires(
  *  every (alpha_c, W) grid point tried (not just the winner) so the
  *  audit shows the comparator wasn't strawmanned. */
 export function tuneCanary(
-  tuningWindows: Trajectory[],
+  tuningWindows: WindowPlanEntry[],
   baseline: Baseline,
   endpoints: EndpointsSpec,
 ): { params: CanaryParams; audit: TuningAudit } {
+  const windows = assertTuningWindows(tuningWindows);
   const fp = endpoints.frozen_params;
   const grid = fp.grids.canary;
   const directions = buildDirectionMap(fp.direction_table);
@@ -170,7 +193,7 @@ export function tuneCanary(
   for (const alpha of grid.alpha_c) {
     for (const W of wDescending) {
       const params: CanaryParams = { alpha, lookScheduleTicks: lookSchedule, windowTicks: W, directions, signals };
-      const fires = countCanaryFalseFires(tuningWindows, baseline, params, fp.tuning_seed);
+      const fires = countCanaryFalseFires(windows, baseline, params, fp.tuning_seed);
       auditEntries.push({ params: { alpha, W }, false_fires: fires });
       if (fires === 0 && chosen === null) {
         chosen = { alpha, W };
@@ -193,15 +216,24 @@ export function tuneCanary(
  *  pre-registered order — decrease alpha_c one grid step, then increase
  *  m one grid step (re-resolving k_s for the new m via
  *  `resolveThresholdForM`), repeating until 0 false fires or the grid is
- *  exhausted. */
+ *  exhausted.
+ *
+ *  m4 (reviewer finding): every audit entry records the `kPerSignal`
+ *  actually in force for that step, plus `k_re_resolution_failed: true`
+ *  when the MOST RECENT m-escalation couldn't re-resolve k_s for the new
+ *  m within the grid and therefore kept the stale (previous-m) k_s —
+ *  otherwise a reader has no way to tell "these k values are valid for
+ *  this m" from "these are stale k values silently carried forward"
+ *  without re-deriving the escalation path by hand. */
 export function tuneCombined(
   threshold: { params: ThresholdParams; audit: TuningAudit },
   canary: { params: CanaryParams; audit: TuningAudit },
-  tuningWindows: Trajectory[],
+  tuningWindows: WindowPlanEntry[],
   baseline: Baseline,
   compiledConfig: CompiledConfig,
   endpoints: EndpointsSpec,
 ): { params: { threshold: ThresholdParams; canary: CanaryParams }; audit: TuningAudit } {
+  const windows = assertTuningWindows(tuningWindows);
   const fp = endpoints.frozen_params;
   const alphaGrid = fp.grids.canary.alpha_c; // pre-registered order: descending (most sensitive first)
   const mGrid = fp.grids.threshold.m; // pre-registered order: ascending
@@ -210,14 +242,20 @@ export function tuneCombined(
   let canaryParams = canary.params;
   let alphaIdx = alphaGrid.indexOf(canaryParams.alpha);
   let mIdx = mGrid.indexOf(thresholdParams.consecutiveTicks);
+  let kReResolutionFailed = false;
 
   const auditEntries: TuningAudit['grid'] = [];
   const maxSteps = alphaGrid.length + mGrid.length + 1;
 
   for (let step = 0; step <= maxSteps; step++) {
-    const combinedFires = countCombinedFalseFires(tuningWindows, baseline, compiledConfig, thresholdParams, canaryParams, fp.tuning_seed);
+    const combinedFires = countCombinedFalseFires(windows, baseline, compiledConfig, thresholdParams, canaryParams, fp.tuning_seed);
     auditEntries.push({
-      params: { alpha: canaryParams.alpha, m: thresholdParams.consecutiveTicks },
+      params: {
+        alpha: canaryParams.alpha,
+        m: thresholdParams.consecutiveTicks,
+        kPerSignal: { ...thresholdParams.kPerSignal },
+        ...(kReResolutionFailed ? { k_re_resolution_failed: true } : {}),
+      },
       false_fires: combinedFires,
     });
     if (combinedFires === 0) {
@@ -232,9 +270,10 @@ export function tuneCombined(
     } else if (mIdx + 1 < mGrid.length) {
       mIdx++;
       const { kPerSignal, resolved } = resolveThresholdForM(
-        tuningWindows, compiledConfig, mGrid[mIdx], fp.grids.threshold.k, thresholdParams.directions,
+        windows, compiledConfig, mGrid[mIdx], fp.grids.threshold.k, thresholdParams.directions,
         Object.keys(thresholdParams.kPerSignal),
       );
+      kReResolutionFailed = !resolved;
       if (resolved) {
         thresholdParams = { ...thresholdParams, consecutiveTicks: mGrid[mIdx], kPerSignal };
       } else {

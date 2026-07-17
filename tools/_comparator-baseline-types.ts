@@ -8,16 +8,37 @@
 // imports — per §0 of the implementation plan, they are required()
 // verbatim and never modified/refactored in this PR).
 
+import type { SignalClass } from '../engine/signal-classes';
+
 // ── Per-arm results / window provenance ──────────────────────────────
 
 /** A single arm's result for one evaluated window. `firstFireTick` is the
  *  earliest tick (within the trajectory) at which the arm fired, or
  *  `null` if it never fired. `firingSignals` lists every signal that
- *  contributed to a fire (order not significant). */
+ *  contributed to a fire (order not significant).
+ *
+ *  `fireTicks` (reviewer finding I1) is every tick (ascending, deduped)
+ *  at which the arm fired — not just the first. A single global
+ *  `firstFireTick` is too lossy for the frozen endpoints: `false_rollbacks`
+ *  needs "fired anywhere, any tick" (still exactly `firstFireTick !== null`),
+ *  but the eval-injected split's escape ("no fire at t in
+ *  [injection_tick, injection_tick + canary window)") and delay ("first
+ *  fire at-or-after injection_tick - bake window") endpoints both need to
+ *  distinguish a pre-injection false fire from a post-injection detection
+ *  — impossible from `firstFireTick` alone if the arm ever fired before
+ *  injection. Populated for the comparator arms (threshold, canary, and
+ *  their OR-combination) built in this harness. Portfolio arms
+ *  (portfolio_alpha / portfolio_combined) only have a single first-fire
+ *  tick available from `runGateOverTrajectory` (the frozen report-card
+ *  module isn't re-run per-tick to recover a full firing history), so
+ *  their `fireTicks` is the degenerate `[firstFireTick]` / `[]` — richer
+ *  per-family firing detail for portfolio arms lives in
+ *  `perFamilyFirstFireTick` below instead. */
 export interface ArmResult {
   armId: string;
   firstFireTick: number | null;
   firingSignals: string[];
+  fireTicks: number[];
   /** Portfolio arms only (portfolio_alpha / portfolio_combined): the raw
    *  per-family first-fire tick data from `runGateOverTrajectory`,
    *  preserved so a downstream consumer can apply the D1 post-injection
@@ -134,9 +155,19 @@ export interface EndpointsSpec {
 
 // ── Typed surfaces for the require()d report-card modules ───────────
 
+/** Per-signal family_A stats entry. `signal_class` (Q2.A) is the class
+ *  this signal's `baseline_mean`/`baseline_sigma_squared` were calibrated
+ *  in — TRANSFORMED space when set to anything other than
+ *  'gaussian_like'. Optional because pre-Q2.A compiled configs predate
+ *  the field entirely (see `../engine/detectors/betting-e-process.ts`'s
+ *  runtime resolution comment: absence here means raw-space calibration,
+ *  not "assume gaussian_like via DEFAULT_SIGNAL_CLASSES"). */
 export interface CompiledCellFamilyAStats {
   family_A?: {
-    per_signal?: Record<string, { baseline_mean: number; baseline_sigma_squared: number }>;
+    per_signal?: Record<
+      string,
+      { baseline_mean: number; baseline_sigma_squared: number; signal_class?: SignalClass }
+    >;
   };
 }
 
@@ -153,6 +184,12 @@ export interface CompiledConfig {
     cells: CompiledCell[];
     aggregate_fallback: CompiledCellFamilyAStats;
   };
+  /** Q2.A per-deploy signal-class overrides (compile-time). Runtime
+   *  resolution order (mirrored by the threshold arm — see
+   *  `_comparator-baseline-threshold.ts`'s `resolveMeanSigma`):
+   *  `per_signal[<s>].signal_class ?? signal_classes?.[<s>] ??
+   *  'gaussian_like'`. */
+  signal_classes?: Record<string, SignalClass>;
   [key: string]: unknown;
 }
 

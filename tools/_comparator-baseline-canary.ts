@@ -42,13 +42,17 @@ function directionalP(canarySlice: number[], controlSlice: number[], direction: 
  *  directional p-value is below the Bonferroni-corrected threshold
  *  `alpha / (signals.length * lookScheduleTicks.length)`. `firingSignals`
  *  accumulates every signal that fired at any look (not just the first);
- *  `firstFireTick` is the earliest look tick with any fire. */
+ *  `firstFireTick` is the earliest look tick with any fire. `fireTicks`
+ *  (I1) is every look tick that fired (any signal), ascending and
+ *  deduped — `lookScheduleTicks` need not itself be sorted, so this
+ *  sorts rather than relying on iteration order. */
 export function runCanaryArm(canary: SignalSeries, control: SignalSeries, params: CanaryParams): ArmResult {
   const denom = params.signals.length * params.lookScheduleTicks.length;
   const threshold = denom > 0 ? params.alpha / denom : params.alpha;
 
   let firstFireTick: number | null = null;
   const firingSignals = new Set<string>();
+  const fireTicksSet = new Set<number>();
 
   for (const t of params.lookScheduleTicks) {
     const w = params.windowTicks;
@@ -61,10 +65,16 @@ export function runCanaryArm(canary: SignalSeries, control: SignalSeries, params
       const p = directionalP(canarySlice, controlSlice, direction);
       if (p < threshold) {
         firingSignals.add(signal);
+        fireTicksSet.add(t);
         if (firstFireTick === null || t < firstFireTick) firstFireTick = t;
       }
     }
   }
 
-  return { armId: 'canary', firstFireTick, firingSignals: Array.from(firingSignals) };
+  return {
+    armId: 'canary',
+    firstFireTick,
+    firingSignals: Array.from(firingSignals),
+    fireTicks: Array.from(fireTicksSet).sort((a, b) => a - b),
+  };
 }

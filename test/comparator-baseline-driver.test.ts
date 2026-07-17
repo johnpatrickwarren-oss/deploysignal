@@ -167,3 +167,51 @@ test('driver: two buildWindowPlan + materializeWindow passes produce deeply equa
   assert.deepEqual(materializedA.controlTraj, materializedB.controlTraj);
   assert.deepEqual(materializedA.scenario, materializedB.scenario);
 });
+
+// ── (d) I1: fireTicks threaded through every arm ────────────────────────
+
+test('driver: every ArmResult carries fireTicks; combined arms union threshold + canary fireTicks; portfolio arms carry the degenerate single-tick list', () => {
+  const { baseline, compiledConfig } = loadFixtures();
+  const endpoints = loadEndpoints({ healthy_windows: 3, tuning_windows: 0, repeats_per_profile: 0 });
+  const plan = buildWindowPlan(baseline, endpoints, []);
+  const entry = plan.find((e) => e.provenance.split === 'eval_healthy');
+  assert.ok(entry, 'expected at least one eval_healthy plan entry');
+
+  const materialized = materializeWindow(entry!, baseline, compiledConfig);
+  const arms = buildDefaultArmsConfig(endpoints, compiledConfig);
+  const results = runArmsOverWindow(
+    materialized,
+    { threshold: arms.threshold, canary: arms.canary, thresholdDefault: arms.threshold, canaryDefault: arms.canary },
+    compiledConfig,
+    endpoints,
+  );
+
+  for (const armId of ['portfolio_alpha', 'portfolio_combined', 'threshold_tuned', 'canary_tuned', 'combined_tuned', 'combined_default']) {
+    const r = results[armId];
+    assert.ok(Array.isArray(r.fireTicks), `expected "${armId}".fireTicks to be an array`);
+    assert.deepEqual(r.fireTicks, [...r.fireTicks].sort((a, b) => a - b), `"${armId}".fireTicks must be ascending`);
+    if (r.firstFireTick === null) {
+      assert.deepEqual(r.fireTicks, [], `"${armId}": firstFireTick is null so fireTicks must be empty`);
+    } else {
+      assert.equal(r.fireTicks[0], r.firstFireTick, `"${armId}": fireTicks[0] must equal firstFireTick`);
+    }
+  }
+
+  // Portfolio arms: degenerate single-tick (or empty) list — the frozen
+  // report-card module isn't re-run per-tick to recover a full history.
+  assert.deepEqual(
+    results.portfolio_alpha.fireTicks,
+    results.portfolio_alpha.firstFireTick !== null ? [results.portfolio_alpha.firstFireTick] : [],
+  );
+  assert.deepEqual(
+    results.portfolio_combined.fireTicks,
+    results.portfolio_combined.firstFireTick !== null ? [results.portfolio_combined.firstFireTick] : [],
+  );
+
+  // combined_tuned / combined_default: fireTicks must be the ascending,
+  // deduped union of the two OR'd comparator arms' fireTicks.
+  const expectedTunedUnion = Array.from(
+    new Set([...results.threshold_tuned.fireTicks, ...results.canary_tuned.fireTicks]),
+  ).sort((a, b) => a - b);
+  assert.deepEqual(results.combined_tuned.fireTicks, expectedTunedUnion);
+});

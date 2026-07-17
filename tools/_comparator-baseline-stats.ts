@@ -4,6 +4,8 @@
 // arm, Task 4), and a compiled-cell mean/sigma reader (used by the
 // threshold arm, Task 3). No third-party dependencies.
 
+import type { SignalClass } from '../engine/signal-classes';
+
 export interface MannWhitneyResult {
   u: number;
   pTwoSided: number;
@@ -94,12 +96,20 @@ export function mannWhitneyU(a: number[], b: number[]): MannWhitneyResult {
 
 export interface CompiledCellFamilyAStats {
   family_A?: {
-    per_signal?: Record<string, { baseline_mean: number; baseline_sigma_squared: number }>;
+    per_signal?: Record<
+      string,
+      { baseline_mean: number; baseline_sigma_squared: number; signal_class?: SignalClass }
+    >;
   };
 }
 
-/** Reads a signal's baseline mean/sigma from a compiled-config cell's
- *  `family_A.per_signal` block (`sigma = sqrt(baseline_sigma_squared)`).
+/** Reads a signal's baseline mean/sigma/signal_class from a compiled-config
+ *  cell's `family_A.per_signal` block (`sigma = sqrt(baseline_sigma_squared)`).
+ *  `signalClass` is the entry's own `signal_class` field (undefined for
+ *  pre-Q2.A configs) — the caller resolves the final class (falling
+ *  through to `CompiledConfig.signal_classes` then `'gaussian_like'`,
+ *  mirroring the engine's runtime resolution) since that requires the
+ *  full compiled config, not just this cell.
  *
  *  `cell` may be either a real per-cell record (from `lookupCell`) or the
  *  compiled config's `baseline_cells.aggregate_fallback` object — both
@@ -116,7 +126,7 @@ export interface CompiledCellFamilyAStats {
 export function meanSigmaFromCompiledCell(
   cell: CompiledCellFamilyAStats | null | undefined,
   signal: string
-): { mu: number; sigma: number } {
+): { mu: number; sigma: number; signalClass?: SignalClass } {
   const entry = cell?.family_A?.per_signal?.[signal];
   if (!entry) {
     throw new Error(
@@ -124,5 +134,5 @@ export function meanSigmaFromCompiledCell(
         'cell; caller should retry with compiledConfig.baseline_cells.aggregate_fallback'
     );
   }
-  return { mu: entry.baseline_mean, sigma: Math.sqrt(entry.baseline_sigma_squared) };
+  return { mu: entry.baseline_mean, sigma: Math.sqrt(entry.baseline_sigma_squared), signalClass: entry.signal_class };
 }

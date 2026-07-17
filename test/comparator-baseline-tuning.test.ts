@@ -12,7 +12,14 @@ import * as path from 'node:path';
 import { tuneThreshold, tuneCanary, tuneCombined } from '../tools/_comparator-baseline-tune';
 import { runThresholdArmOverTrajectory } from '../tools/_comparator-baseline-threshold';
 import { buildWindowPlan } from '../tools/_comparator-baseline-driver';
-import type { Baseline, CompiledConfig, EndpointsSpec, FrozenParams, Trajectory } from '../tools/_comparator-baseline-types';
+import type {
+  Baseline,
+  CompiledConfig,
+  EndpointsSpec,
+  FrozenParams,
+  Trajectory,
+  WindowPlanEntry,
+} from '../tools/_comparator-baseline-types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ioModule = require('../tools/_build-report-card-io');
@@ -69,6 +76,24 @@ function fakeCompiledConfig(mu: number, sigma: number, signal: string): Compiled
 
 const CELL_KEY = { hour_of_day: 0, day_of_week: 0 };
 
+/** Wrap a hand-built `Trajectory` as a `split: 'tuning'`-provenanced
+ *  `WindowPlanEntry` (m2, reviewer finding: the tuners now assert this at
+ *  runtime). Only `split` is load-bearing for the assertion; the rest of
+ *  `provenance` is filled with innocuous fixture values. */
+function tuningEntry(trajectory: Trajectory, index = 0): WindowPlanEntry {
+  return {
+    provenance: {
+      split: 'tuning',
+      seed: 0,
+      window_index: index,
+      cell_key: trajectory.cell_key,
+      injection_tick: 30,
+      bake_hours: 6,
+    },
+    trajectory,
+  };
+}
+
 // ── no-leakage ────────────────────────────────────────────────────────
 
 test('no-leakage: tuning-seed stream is disjoint from eval seeds; frozen_params round-trip ENDPOINTS.md exactly', () => {
@@ -116,7 +141,7 @@ test('tuneThreshold: picks the known minimal zero-fire k for a hand-built tuning
     direction_table: { up_bad: [signal], down_bad: [], two_sided: [] },
   });
 
-  const { params, audit } = tuneThreshold([window], compiledConfig, endpoints);
+  const { params, audit } = tuneThreshold([tuningEntry(window)], compiledConfig, endpoints);
   assert.equal(params.kPerSignal[signal], 3.5, 'expected the tuner to pick the known minimal zero-fire k=3.5');
   assert.equal(params.consecutiveTicks, 1);
   assert.ok(audit.grid.length > 0, 'audit should record the grid points tried');
@@ -150,7 +175,7 @@ test('tuneThreshold: escalates m when no k in the grid resolves a signal at a sm
     direction_table: { up_bad: [signal], down_bad: [], two_sided: [] },
   });
 
-  const { params } = tuneThreshold([window], compiledConfig, endpoints);
+  const { params } = tuneThreshold([tuningEntry(window)], compiledConfig, endpoints);
   assert.equal(params.consecutiveTicks, 2, 'expected the tuner to escalate to m=2 since m=1 cannot resolve within the k grid');
   assert.equal(params.kPerSignal[signal], 2, 'at m=2 the isolated single-tick spike never sustains a 2-tick run, so k=2 (smallest grid value) already achieves 0 fires');
 });
@@ -174,10 +199,10 @@ test('tuneCanary: chosen params never fire on the tuning windows they were selec
     direction_table: { up_bad: ['p99_latency'], down_bad: [], two_sided: [] },
   });
   const plan = buildWindowPlan(baseline, endpoints, []);
-  const tuningWindows = plan.filter((e) => e.provenance.split === 'tuning').map((e) => e.trajectory);
-  assert.equal(tuningWindows.length, 6);
+  const tuningEntries = plan.filter((e) => e.provenance.split === 'tuning');
+  assert.equal(tuningEntries.length, 6);
 
-  const { params, audit } = tuneCanary(tuningWindows, baseline, endpoints);
+  const { params, audit } = tuneCanary(tuningEntries, baseline, endpoints);
   assert.ok(audit.grid.length > 0);
   assert.ok(endpoints.frozen_params.grids.canary.alpha_c.includes(params.alpha));
   assert.ok(endpoints.frozen_params.grids.canary.W.includes(params.windowTicks));
@@ -185,14 +210,14 @@ test('tuneCanary: chosen params never fire on the tuning windows they were selec
   // Re-assert zero-fire (monotonic sanity) with the SAME deterministic
   // control-seed derivation tuneCanary itself used.
   let refires = 0;
-  for (let i = 0; i < tuningWindows.length; i++) {
+  for (let i = 0; i < tuningEntries.length; i++) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { deriveControlSeed } = require('../tools/_comparator-baseline-canary');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const windowsMod = require('../tools/_build-report-card-windows');
     const controlSeed = deriveControlSeed(endpoints.frozen_params.tuning_seed + i);
     const controlRng = ioModule.mulberry32(controlSeed);
-    const traj = tuningWindows[i];
+    const traj = tuningEntries[i].trajectory;
     const control = windowsMod.bootstrapHealthyWindow(baseline, traj.cell_key, 100, controlRng);
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { runCanaryArm } = require('../tools/_comparator-baseline-canary');
@@ -261,8 +286,70 @@ test('tuneCombined: escalation loop converges to 0 joint false fires on the tuni
     audit: { grid: [], chosen: {} },
   };
 
-  const { params, audit } = tuneCombined(initialThreshold, initialCanary, [window], baseline, compiledConfig, endpoints);
+  const { params, audit } = tuneCombined(initialThreshold, initialCanary, [tuningEntry(window)], baseline, compiledConfig, endpoints);
   assert.ok(audit.grid.length > 0);
   assert.equal(audit.grid[audit.grid.length - 1].false_fires, 0, 'the escalation loop must converge to 0 joint false fires');
   assert.equal(params.threshold.consecutiveTicks, 2, 'expected escalation to have reached m=2 (the isolated spike resolves there)');
+
+  // m4 (reviewer finding): the escalation step that reached m=2 must have
+  // recorded the RE-RESOLVED k_s for that m, not silently carried the
+  // stale m=1 k_s forward without saying so.
+  const escalatedEntry = audit.grid.find((g) => (g.params as { m?: number }).m === 2);
+  assert.ok(escalatedEntry, 'expected an audit entry for the m=2 escalation step');
+  assert.deepEqual(
+    (escalatedEntry!.params as { kPerSignal?: Record<string, number> }).kPerSignal,
+    { [signal]: 2 },
+    'audit entry for m=2 must record the re-resolved k_s (k=2), not a stale m=1 k_s',
+  );
+  assert.equal(
+    (escalatedEntry!.params as { k_re_resolution_failed?: boolean }).k_re_resolution_failed,
+    undefined,
+    'k re-resolution succeeded at m=2, so no k_re_resolution_failed marker should be present',
+  );
+});
+
+// ── m2: runtime provenance guard ────────────────────────────────────────
+
+test('tuneThreshold / tuneCanary / tuneCombined: throw if any supplied window is not provenance.split === "tuning"', () => {
+  const signal = 'p99_latency';
+  const mu = 100;
+  const sigma = 10;
+  const compiledConfig = fakeCompiledConfig(mu, sigma, signal);
+  const window: Trajectory = { cell_key: CELL_KEY, signal_series: { [signal]: [mu, mu, mu] } };
+  const leakedEntry: WindowPlanEntry = {
+    provenance: {
+      split: 'eval_healthy',
+      seed: 0,
+      window_index: 0,
+      cell_key: CELL_KEY,
+      injection_tick: 30,
+      bake_hours: 6,
+    },
+    trajectory: window,
+  };
+  const endpoints = makeEndpoints({
+    direction_table: { up_bad: [signal], down_bad: [], two_sided: [] },
+  });
+
+  assert.throws(
+    () => tuneThreshold([leakedEntry], compiledConfig, endpoints),
+    /provenance\.split/,
+    'tuneThreshold must reject an eval-split window',
+  );
+  const baseline: Baseline = { manifest: { signals: [signal] }, runs: [], signalMeans: { [signal]: mu } };
+  assert.throws(
+    () => tuneCanary([leakedEntry], baseline, endpoints),
+    /provenance\.split/,
+    'tuneCanary must reject an eval-split window',
+  );
+  const stubArm = { params: { kPerSignal: { [signal]: 2 }, consecutiveTicks: 1, directions: { [signal]: 'up' as const } }, audit: { grid: [], chosen: {} } };
+  const stubCanary = {
+    params: { alpha: 0.05, lookScheduleTicks: [20], windowTicks: 20, directions: { [signal]: 'up' as const }, signals: [signal] },
+    audit: { grid: [], chosen: {} },
+  };
+  assert.throws(
+    () => tuneCombined(stubArm, stubCanary, [leakedEntry], baseline, compiledConfig, endpoints),
+    /provenance\.split/,
+    'tuneCombined must reject an eval-split window',
+  );
 });

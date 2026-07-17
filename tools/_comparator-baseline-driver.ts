@@ -255,7 +255,11 @@ function orArms(armId: string, a: ArmResult, b: ArmResult): ArmResult {
   const ticks = [a.firstFireTick, b.firstFireTick].filter((t): t is number => t !== null);
   const firstFireTick = ticks.length > 0 ? Math.min(...ticks) : null;
   const firingSignals = Array.from(new Set([...a.firingSignals, ...b.firingSignals]));
-  return { armId, firstFireTick, firingSignals };
+  // I1: union both arms' fire-tick lists, ascending + deduped, so the
+  // OR-combined arm (combined_tuned / combined_default) still carries
+  // the full firing history rather than collapsing to just firstFireTick.
+  const fireTicks = Array.from(new Set([...a.fireTicks, ...b.fireTicks])).sort((x, y) => x - y);
+  return { armId, firstFireTick, firingSignals, fireTicks };
 }
 
 /** Run every registered arm over one materialized window. Portfolio arms
@@ -292,17 +296,24 @@ export function runArmsOverWindow(
     .map((f) => gr.perFamilyFirstSignal[f])
     .filter((s): s is string => s !== null && s !== undefined);
 
+  // Portfolio arms' fire history is bounded to what `runGateOverTrajectory`
+  // (frozen, not re-run per-tick) exposes: a single first-fire tick, not a
+  // full firing history. `fireTicks` is therefore the degenerate
+  // single-entry/empty list here — see ArmResult's JSDoc. Richer
+  // per-family firing detail for portfolio arms is `perFamilyFirstFireTick`.
   const result: Record<string, ArmResult> = {
     portfolio_alpha: {
       armId: 'portfolio_alpha',
       firstFireTick: alphaFirstFireTick,
       firingSignals: alphaFiringSignals,
+      fireTicks: alphaFirstFireTick !== null ? [alphaFirstFireTick] : [],
       perFamilyFirstFireTick: gr.perFamilyFirstFireTick,
     },
     portfolio_combined: {
       armId: 'portfolio_combined',
       firstFireTick: gr.firstFireTick,
       firingSignals: combinedFiringSignals,
+      fireTicks: gr.firstFireTick !== null ? [gr.firstFireTick] : [],
       perFamilyFirstFireTick: gr.perFamilyFirstFireTick,
     },
   };
