@@ -26,6 +26,7 @@
     "tools/_comparator-baseline-types.ts",
     "tools/_comparator-baseline-stats.ts",
     "tools/_comparator-baseline-threshold.ts",
+    "tools/_comparator-baseline-canary.ts",
     "tools/run-comparator-baseline.ts"
   ],
   "exclude": [
