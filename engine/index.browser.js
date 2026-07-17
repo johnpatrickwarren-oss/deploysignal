@@ -4040,10 +4040,23 @@ function evaluateFamilyE(cfg, liveMetrics, ctx, state) {
     const r = relativeDeviation(x, famC.mean_vector);
     const s = mahalanobisDistance(r, famC.covariance);
     if (s === null) {
+        // This is the sole production entry point for Family E — it
+        // computes the Mahalanobis distance itself and returns here BEFORE
+        // ever dispatching into CONFORMAL_EVALUATORS, so the inner
+        // per-variant evaluators' own `covariance_singular` branches (e.g.
+        // evaluateConformalWeightedEValue's, below) are unreachable from
+        // here. Tag this verdict with the wealth-process `signal` when (and
+        // only when) the resolved params are the `weighted_e_value` kind —
+        // that's the only Family E variant whose live verdict is a wealth
+        // martingale (see engine/verdict.ts's `WEALTH_SIGNAL_NAMES` /
+        // `progressScaleFor`); the classical `unweighted` and `weighted`
+        // kinds have no signal tag of their own anywhere in this file and
+        // must stay untagged rather than borrow the wealth tag.
         return {
             verdict: 'suppressed', statistic: null, threshold: alphaE,
             alpha_consumed: 0, alpha_spent: 0,
             reason_code: 'covariance_singular', family: 'E',
+            ...(isWeightedEValueConformal(params) ? { signal: 'weighted_conformal_e_value' } : {}),
         };
     }
     // D-54-2 dispatch — variant routing via CONFORMAL_EVALUATORS map,
@@ -6471,13 +6484,23 @@ function detectorProgress(v) {
 //     regardless of configuration, the way Family C's χ² threshold
 //     (which scales with joint-signal count / degrees of freedom) can.
 //   - Family E's `evaluateConformalWeightedEValue` covariance_singular
-//     suppression (`conformal.ts` line ~386) omits the `signal:
-//     'weighted_conformal_e_value'` tag its fire/clean siblings carry —
-//     a pre-existing detector-code gap, out of scope here. Still safe:
-//     that branch's `threshold` is unconditionally `1/α` (set before
-//     the null check), the same wealth-scale value its tagged siblings
-//     use, so the floor resolves it correctly today. Tracked as a
-//     follow-up to add the missing signal tag directly in conformal.ts.
+//     suppression (`conformal.ts` line ~388) omits the `signal:
+//     'weighted_conformal_e_value'` tag its fire/clean siblings carry.
+//     This branch is DEAD CODE from `evaluateFamilyE` (the sole
+//     production entry point) — `evaluateFamilyE` computes the
+//     Mahalanobis distance itself first and returns its own
+//     `covariance_singular` suppression before ever dispatching into
+//     `CONFORMAL_EVALUATORS`, so this inner branch never runs in
+//     production; it survives only as defense-in-depth for direct
+//     callers of `evaluateConformalWeightedEValue`. The reachable
+//     branch (`conformal.ts` `evaluateFamilyE`, `s === null`) now tags
+//     itself `signal: 'weighted_conformal_e_value'` directly whenever
+//     the resolved params are the `weighted_e_value` kind (2026-07-17
+//     fix), so it no longer depends on this magnitude fallback at all;
+//     the classical `unweighted`/`weighted` kinds stay untagged there,
+//     same as their fire/clean siblings. This inner branch's `1/α`
+//     threshold still resolves correctly via the fallback floor should
+//     it ever run, so leaving its missing tag unaddressed remains safe.
 const MAGNITUDE_FALLBACK_THRESHOLD_FLOOR = 50;
 /** `reason_code`s that definitively mark a wealth-scale DetectorVerdict,
  *  independent of family — see header comment above for citations.
@@ -6527,6 +6550,16 @@ function progressScaleFor(v) {
     }
     return (v.threshold !== null && v.threshold >= MAGNITUDE_FALLBACK_THRESHOLD_FLOOR) ? 'wealth' : 'linear';
 }
+/** Exposed for direct classifier testing (mirrors the
+ *  `_CONFORMAL_EVALUATORS_FOR_TEST` / `_conformalKindForDispatch`
+ *  pattern in engine/detectors/conformal.ts). Needed because a
+ *  null-`statistic` verdict (e.g. Family E's `covariance_singular`
+ *  suppression) never surfaces a `progress_scale` through
+ *  `fuseVerdict`'s `evidence_outlook` — `pickScaleAndProgress` only
+ *  reports a scale alongside a non-null `progress`, so the
+ *  classification itself is otherwise unobservable from outside this
+ *  module for that verdict shape. */
+const _progressScaleForTest = progressScaleFor;
 /** Classify a Family C DetectorVerdict's scale structurally — no
  *  magnitude fallback, ever (2026-07-17 re-review: this is exactly the
  *  fallback path that could silently mislabel the legacy χ² Hotelling
@@ -6905,6 +6938,7 @@ function fuseVerdict(health, opts) {
         evidence_outlook,
     };
 }
+  __NS__._progressScaleForTest = _progressScaleForTest;
   __NS__.fuseVerdict = fuseVerdict;
 })();
 
