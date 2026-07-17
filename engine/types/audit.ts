@@ -10,11 +10,25 @@ import type { VerdictGroupId, TopologyCandidate } from './verdict';
 import type { ProposedAction } from './agent';
 import type { CellKey } from './primitives';
 
+/** Task 1 (WS4 session-durability plan) — fail-loud audit-writer health
+ *  surface. `errors` counts failed appendFileSync flush groups (not
+ *  individual records); `healthy` is `errors === 0`. */
+export interface AuditWriterStatus {
+  errors: number;
+  last_error: string | null;
+  last_error_at: string | null;
+  healthy: boolean;
+}
+
 /** Audit writer contract — see engine/audit.ts. Accepts both v1 and v2
- *  records; writer dispatches serialization based on `schema_version`. */
+ *  records; writer dispatches serialization based on `schema_version`.
+ *  `status()` is optional (strict-additive, Task 1) so existing
+ *  structural implementers (e.g. test doubles shaped `{write, close}`)
+ *  stay valid without modification. */
 export interface AuditWriter {
   write(record: AuditRecord | AuditRecordV2): void;
   close(): void;
+  status?(): AuditWriterStatus;
 }
 
 /** Per-call options for audit-record construction. */
