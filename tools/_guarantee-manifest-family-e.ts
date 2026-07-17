@@ -8,10 +8,21 @@
 // reports which kind the config ACTUALLY selected, which is what
 // effective_validity needs.
 //
-// Cells without a per-cell `family_E` block are served by
-// `aggregate_fallback.family_E` at runtime (Family E piggybacks on Family
-// C's per-cell mean/covariance the same way Family C itself falls back);
-// so every cell counts toward whichever kind actually covers it.
+// Ground truth (verified against engine/detectors/conformal.ts
+// lookupFamilyEParams, W5 REPLY-16 Q2, lines 97-141): the runtime ALWAYS
+// dispatches on `aggregate_fallback.family_E` for the ConformalParams
+// (and therefore the `kind` this join cares about) — never a per-cell
+// `family_E` block, even when the matched cell compiles one. Only Family
+// C's per-cell mean/covariance is looked up per-cell for the Mahalanobis
+// distance; the conformal calibration_scores/kind are pooled-aggregate
+// only, for statistical-power reasons documented at that citation. So
+// every cell's EFFECTIVE kind is the one value carried by
+// `aggregate_fallback.family_E`. resolvedKindPerCell below still reads
+// `c.family_E ?? fallback` per cell — harmless (it resolves to the same
+// fallback value for every cell today, since no per-cell block is ever
+// consulted at runtime), but it is not what makes this join correct; a
+// per-cell `family_E` value here would silently diverge from what the
+// engine actually evaluates.
 
 import type { CompiledConfig, ConformalParams } from '../engine/types';
 import { DETECTOR_GUARANTEES } from '../engine/guarantees';

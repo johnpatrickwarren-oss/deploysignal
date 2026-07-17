@@ -109,9 +109,12 @@ export interface DetectorGuarantee {
   readonly fallback_of?: DetectorId;
   /** Short literature anchor. */
   readonly citation: string;
-  /** True when the id is retained for read-time/replay compatibility only
-   *  and is not on the live production dispatch path. */
-  readonly deprecated?: boolean;
+  /** Non-literature caveat about how audit records map onto this id (e.g.
+   *  a runtime signal name that doesn't match any DETECTOR_REGISTRY id, so
+   *  fires get attributed to a different id than the one that produced
+   *  them). Kept separate from `citation` so that field stays a pure
+   *  literature anchor. */
+  readonly id_mapping_note?: string;
 }
 
 const VILLE_POLICY: RepeatedLookPolicy = 'anytime_valid_continuous_peeking';
@@ -138,7 +141,7 @@ const FAMILY_A_BETTING_ASSUMPTIONS = [
   'GRAPA bet with ONS fallback; no operator tunable',
 ] as const;
 
-function familyAMixtureEntry(id: DetectorId, deprecated?: boolean): DetectorGuarantee {
+function familyAMixtureEntry(id: DetectorId): DetectorGuarantee {
   return {
     detector_id: id,
     family: 'A',
@@ -148,7 +151,6 @@ function familyAMixtureEntry(id: DetectorId, deprecated?: boolean): DetectorGuar
     alpha_participating: true,
     citation: 'Howard, Ramdas, McAuliffe & Sekhon (2021), Annals of Statistics — '
       + 'time-uniform nonparametric confidence sequences (mixture supermartingale)',
-    ...(deprecated ? { deprecated: true } : {}),
   };
 }
 
@@ -326,8 +328,8 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     null_assumptions: MMD_ASSUMPTIONS_CANONICAL,
     repeated_look_policy: VILLE_POLICY,
     alpha_participating: true,
-    citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process — '
-      + 'this legacy id is what engine/_audit-families.ts attributes '
+    citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process',
+    id_mapping_note: 'this legacy id is what engine/_audit-families.ts attributes '
       + "canonical-variant fires to (its own signal id, "
       + "'sequential_mmd_betting_e_process', is not yet a registered "
       + 'DETECTOR_REGISTRY.C id)',

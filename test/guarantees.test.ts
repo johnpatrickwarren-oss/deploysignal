@@ -139,6 +139,15 @@ test('self-normalized-e-process-fallback (Q70 §7/§6) is documented as deprecat
   );
 });
 
+test('sequential_mmd: the audit-writer id-mapping caveat lives in id_mapping_note, '
+  + 'not citation — citation stays a pure literature anchor', () => {
+  const g = DETECTOR_GUARANTEES['sequential_mmd'];
+  assert.equal(g.citation, 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process');
+  assert.ok(g.id_mapping_note !== undefined, 'expected sequential_mmd.id_mapping_note to be set');
+  assert.match(g.id_mapping_note!, /sequential_mmd_betting_e_process/);
+  assert.doesNotMatch(g.citation, /sequential_mmd_betting_e_process/);
+});
+
 test('fallback_of always points at a real registry id', () => {
   const registryIds = new Set(allRegistryIds());
   for (const g of Object.values(DETECTOR_GUARANTEES)) {

@@ -46,8 +46,14 @@ export interface ManifestFamilySection {
 export interface ManifestEffectiveValidity {
   status: 'fully_ville_bounded' | 'mixed';
   /** Share of the α-participating budget (A+C+D+E; Family B excluded —
-   *  it never participates) attributable to a classical or no-coverage
-   *  path in THIS config. 0 when status is 'fully_ville_bounded'. */
+   *  it never participates) attributable to a classical (non-Ville) path
+   *  in THIS config. Cells with NO coverage at all (neither a classical
+   *  nor a Ville test runs for them — see the per-family join modules,
+   *  e.g. tools/_guarantee-manifest-family-c.ts's Sequential-MMD
+   *  no_coverage route and tools/_guarantee-manifest-family-d.ts's
+   *  spectral no_coverage route) are deliberately EXCLUDED from this
+   *  share: they're absent capacity, not a classical substitute. 0 when
+   *  status is 'fully_ville_bounded'. */
   classical_share_of_participating_alpha: number;
   /** Human-readable list of exactly which configured paths are not
    *  Ville-bounded in this config (empty when fully_ville_bounded). */

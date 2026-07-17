@@ -51,9 +51,19 @@ export const FALLBACK_BEHAVIOR: readonly string[] = [
     + 'only Family C signal there). This is a coverage gap, not a '
     + 'classical-test fallback — the classical bootstrap-null MMD '
     + 'evaluator was retired from runtime dispatch at Q68 close.',
-  'Family D spectral: spectral_variant defaults to (and falls back to, '
-    + 'when null_mean/null_std are missing) the classical bootstrap_null '
-    + 'quantile test — engine/detectors/spectral.ts spectralVariantForDispatch.',
+  'Family D spectral: spectral_variant defaults to the classical '
+    + 'bootstrap_null quantile test when unset. A cell configured '
+    + 'spectral_variant=e_detector does NOT fall back to bootstrap_null when '
+    + 'its null_mean/null_std moments are missing — engine/detectors/'
+    + 'spectral.ts spectralVariantForDispatch only falls back to '
+    + 'bootstrap_null when the per-(deploy, signal) e-detector wealth-state '
+    + "object itself is absent, which the gate lazily allocates for every "
+    + 'evaluated cell (a pre-Addition-#21 TrendBuffer compatibility path, '
+    + 'not something this compiled config controls). An e_detector cell '
+    + 'missing null_mean/null_std instead reaches evaluateSpectralEDetector '
+    + 'and returns SUPPRESSED (spectral_e_detector_params_missing) — NO '
+    + 'Family-D coverage runs for that cell at runtime. This is a coverage '
+    + 'gap, not a classical-test fallback.',
   "Family E conformal: the compiler's default 'auto' variant selector "
     + '(tools/calibrators/family-e.ts resolveFamilyEVariantSelector) '
     + 'silently falls back from the Ville-bounded weighted_e_value wealth '
