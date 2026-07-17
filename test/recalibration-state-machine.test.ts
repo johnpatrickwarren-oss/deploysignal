@@ -143,6 +143,12 @@ test('legal: pending_readiness -> readiness_failed -> rejected / decided', () =>
   const next = transition(rec, ev('readiness_failed'));
   assert.equal(next.status, 'rejected');
   assert.equal(next.review_status, 'decided');
+  // readiness_failed sets no RecalibrationOutcome — the closed
+  // RecalibrationOutcome set only covers post-readiness terminal
+  // decisions (see state-machine.ts header comment). Pins the reviewed
+  // judgment call that a readiness-gate rejection isn't one of the five
+  // defined outcomes.
+  assert.equal(next.outcome, null);
   assert.equal(next.history[next.history.length - 1].action, 'readiness_failed');
 });
 
