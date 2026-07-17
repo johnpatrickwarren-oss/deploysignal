@@ -44,12 +44,15 @@ export interface ClassifyRecalibrationResult {
 }
 
 /** relativeDeviationMean, single-value form (baseline-drift-detector.ts
- *  §Math). Kept as a private helper rather than importing the drift
- *  detector's array-valued version — that module operates on ordered
- *  signal vectors under a covariance matrix; this module operates on a
- *  named Record and has no covariance dependency. Mirrors the same
- *  |b| > 1e-12 threshold and additive fallback. */
-function relativeDelta(activeMean: number, candidateMean: number): number {
+ *  §Math). Exported (not just used internally) so engine/recalibration/
+ *  compare.ts (Task 4) reuses the identical transform for its
+ *  per-signal delta report instead of re-deriving it — one relative-
+ *  delta definition for the whole recalibration module, mirroring the
+ *  drift detector's array-valued version. That module operates on
+ *  ordered signal vectors under a covariance matrix; this single-value
+ *  form operates on a named Record and has no covariance dependency.
+ *  Mirrors the same |b| > 1e-12 threshold and additive fallback. */
+export function relativeDelta(activeMean: number, candidateMean: number): number {
   return Math.abs(activeMean) > 1e-12
     ? (candidateMean - activeMean) / activeMean
     : (candidateMean - activeMean);
