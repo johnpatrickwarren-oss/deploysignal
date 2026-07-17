@@ -9,6 +9,7 @@ import type { GateResults } from './policy';
 import type { VerdictGroupId, TopologyCandidate } from './verdict';
 import type { ProposedAction } from './agent';
 import type { CellKey } from './primitives';
+import type { RecalibrationEventRecord } from './recalibration';
 
 /** Task 1 (WS4 session-durability plan) — fail-loud audit-writer health
  *  surface. `errors` counts failed appendFileSync flush groups (not
@@ -165,6 +166,18 @@ export interface AuditRecordV2 extends Omit<AuditRecord, 'schema_version'> {
   reversibility: 'reversible' | 'forward_only' | 'conditional' | null;
   reversibility_source: 'platform_annotation' | 'default_fallback' | null;
   total_alpha_spent: number;
+  /** Addition #15 (OQ-8) — type-only optional field mirroring the
+   *  store's authoritative events.jsonl decision-log entry shape
+   *  (engine/types/recalibration.ts's RecalibrationEventRecord) onto
+   *  the per-tick audit record. audit/SCHEMA.md v2.1 documents this
+   *  under "no writer-side commitment": no `AuditWriter` / `buildAuditRecord`
+   *  code path populates this field in this project. The
+   *  candidate-lifecycle store's events.jsonl (Task 6+) remains the
+   *  authoritative decision log; this field exists so a FUTURE writer
+   *  can attach the field without a schema-version bump, and so
+   *  readers/tooling that join audit records against recalibration
+   *  decisions have a stable optional field to look for. */
+  recalibration_event?: RecalibrationEventRecord;
 }
 
 /** Persisted audit record — matches audit/SCHEMA.md v1. */

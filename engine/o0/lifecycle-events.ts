@@ -28,6 +28,7 @@
 import type {
   AuditRecord, AuditRecordV2, CellKey, FamilyId, Verdict,
 } from '../types';
+import type { DirectionClassification } from '../types/recalibration';
 
 /** Five-value enum of lifecycle event types. */
 export type LifecycleEventType =
@@ -41,7 +42,16 @@ export type LifecycleEventType =
   | 'verdict_group.updated'
   | 'verdict_group.topology_enriched'
   | 'agent_proposal.emitted'
-  | 'agent_proposal.downgraded';
+  | 'agent_proposal.downgraded'
+  // Addition #15 — baseline-maintenance candidate lifecycle events.
+  // Strict-additive (plan §C Task 5); test/lifecycle-events.test.ts's
+  // local 5-element array is unaffected.
+  | 'recalibration.proposed'
+  | 'recalibration.shadow_validated'
+  | 'recalibration.operator_approved'
+  | 'recalibration.operator_rejected'
+  | 'recalibration.auto_promoted'
+  | 'recalibration.timeout_rejected';
 
 export interface TriggeredPayload {
   type: 'evaluation.triggered';
@@ -135,6 +145,65 @@ export interface AgentProposalDowngradedPayload {
   downgrade_reason?: string;
 }
 
+// Addition #15 — baseline-maintenance candidate lifecycle event
+// payloads. Strict-additive alongside the evaluation.* / verdict_group.*
+// / agent_proposal.* events above (plan §C Task 5).
+//
+// Base fields shared by every recalibration.* payload: which candidate,
+// which service, which baseline versions are in play, and the
+// classification (engine/recalibration/classify.ts, Task 3) that drove
+// the candidate's path. `RecalibrationEventBasePayload` is not itself a
+// union member — each concrete payload below extends it with its own
+// `type` discriminant plus event-specific extras.
+interface RecalibrationEventBasePayload {
+  service_id: string;
+  candidate_id: string;
+  proposed_baseline_version: string;
+  current_baseline_version: string;
+  direction_classification: DirectionClassification;
+  at: string;
+}
+
+export interface RecalibrationProposedPayload extends RecalibrationEventBasePayload {
+  type: 'recalibration.proposed';
+}
+
+export interface RecalibrationShadowValidatedPayload extends RecalibrationEventBasePayload {
+  type: 'recalibration.shadow_validated';
+  shadow_report_path: string;
+}
+
+export interface RecalibrationOperatorApprovedPayload extends RecalibrationEventBasePayload {
+  type: 'recalibration.operator_approved';
+  operator_id: string;
+  reason_code: string;
+}
+
+export interface RecalibrationOperatorRejectedPayload extends RecalibrationEventBasePayload {
+  type: 'recalibration.operator_rejected';
+  operator_id: string;
+  reason_code: string;
+}
+
+export interface RecalibrationAutoPromotedPayload extends RecalibrationEventBasePayload {
+  type: 'recalibration.auto_promoted';
+}
+
+/** OQ-6: escalation is an embedded object on the timeout_rejected
+ *  payload rather than a seventh event type — D1's lazy-timeout sweep
+ *  (Task 7) always escalates a default-rejected candidate to
+ *  engineering leadership, so the escalation fact and the rejection
+ *  fact are one event, not two. */
+export interface RecalibrationEscalation {
+  escalated: boolean;
+  escalated_to: string;
+}
+
+export interface RecalibrationTimeoutRejectedPayload extends RecalibrationEventBasePayload {
+  type: 'recalibration.timeout_rejected';
+  escalation: RecalibrationEscalation;
+}
+
 /** Tagged union discriminated on `type`. Payload shape is statically
  *  guaranteed consistent with the `type` field — subscribers can narrow
  *  via `if (event.payload.type === 'evaluation.tick') { ... }`. */
@@ -148,7 +217,13 @@ export type LifecycleEventPayload =
   | VerdictGroupUpdatedPayload
   | VerdictGroupTopologyEnrichedPayload
   | AgentProposalEmittedPayload
-  | AgentProposalDowngradedPayload;
+  | AgentProposalDowngradedPayload
+  | RecalibrationProposedPayload
+  | RecalibrationShadowValidatedPayload
+  | RecalibrationOperatorApprovedPayload
+  | RecalibrationOperatorRejectedPayload
+  | RecalibrationAutoPromotedPayload
+  | RecalibrationTimeoutRejectedPayload;
 
 /** The contract. Real adapters (Argo, Spinnaker, MLflow, webhooks) and
  *  the test-fixture in-memory adapter both implement this. Returns a

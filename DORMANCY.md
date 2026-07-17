@@ -9,7 +9,7 @@ Schema (additive; follow-on evolutions extend without breaking):
 - `last_reviewed_ts` — ISO date of the most recent audit of this entry
 - `activation_disposition` — `'deferred' | 'current-cycle' | 'conditional'` + clarifying note
 
-Per ARCHITECT-REPLY-53 §R1 (D1a/D1b/D1c). Forbid-import enforcement lives in `test/dormancy-forbid-import.test.ts` — CI fails if `engine/**/*.ts` imports from `advisory/agent/` while this file marks #27 as dormant.
+Per ARCHITECT-REPLY-53 §R1 (D1a/D1b/D1c) — an internal decision record not included in this public repo; its substance: dormancy status must be tracked per-addition in this file, with a machine-enforceable import ban while dormant. Forbid-import enforcement lives in `test/dormancy-forbid-import.test.ts` — CI fails if `engine/**/*.ts` imports from `advisory/agent/` while this file marks #27 as dormant. (References below to "REPLY-52" cite the internal real-data-validation decision cycle — the run that produced the v8 real-trace substrates recorded in `CHEAT-SHEET.md`; "the consolidated activation slice" is the post-REPLY-52 orchestrator change that wired #25/#26/#27 into the runtime path.)
 
 ---
 

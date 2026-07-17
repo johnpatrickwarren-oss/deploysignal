@@ -37,6 +37,7 @@ import {
   allocateAlpha, emitFamilyABlock, attachProfileProvenance, printCompileSummary,
   type ConfigWithFamilyB, type FamilyBDerivation,
 } from './_calibrate-config-build.js';
+import { writeGuaranteeManifest } from '../_guarantee-manifest-cli.js';
 
 /** REPLY-50 D2 — spin up worker pool for per-cell parallelism. Pool size
  *  ≤ 1 → serial fallback. Sandboxed environments that reject Worker
@@ -172,6 +173,17 @@ function buildAndWriteConfig(b: BuildConfigArgs): {
   const outPath = path.resolve(process.cwd(), args.out);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(config, null, 2) + '\n');
+
+  // WS2 — every compile also emits a machine-readable guarantee manifest
+  // next to the CompiledConfig, generated from this exact config (not
+  // hand-maintained prose). Non-breaking: existing CLI output/behavior is
+  // otherwise unchanged. `compiled_at` is reused as `generated_at` so the
+  // manifest stays a deterministic function of the config (calibrate's
+  // `compiled_at` is itself deterministic — see the `config.compiled_at`
+  // assignment above).
+  const manifestOutPath = outPath.replace(/\.json$/, '') + '.guarantee-manifest.json';
+  writeGuaranteeManifest(config, manifestOutPath, config.compiled_at);
+
   return { config, outPath, alphaA, alphaC };
 }
 

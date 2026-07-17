@@ -83,6 +83,9 @@ engine/**/*.js
 advisory/**/*.js
 service/**/*.js
 tools/calibrators/*.js
+# Addition #15 (recalibrate CLI) — same tsconfig.test.json compiled-
+# artifact story as tools/calibrators/*.js above; .ts is source of truth.
+tools/recalibrate/*.js
 # ...but keep the .js that are intentionally committed (a browser bundle and
 # two calibrator modules already in the tree; preserves current tracked state).
 !engine/index.browser.js
