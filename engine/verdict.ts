@@ -106,6 +106,10 @@ interface FamilyEvidenceRaw {
   family_id: FamilyLetter;
   state: EvidenceState;
   progress: number | null;
+  /** See `EvidenceOutlookEntry.progress_scale`. */
+  progress_scale: 'linear' | 'wealth' | null;
+  /** See `EvidenceOutlookEntry.detector_kind`. Family C only. */
+  detector_kind?: 'hotelling' | 'e_mmd_betting';
   firedSignals: string[];
   suppressionReason: string | null;
 }
@@ -120,14 +124,126 @@ function detectorProgress(v: DetectorVerdict): number | null {
   return v.statistic / v.threshold;
 }
 
-/** Max per-detector progress across a family; `null` when none report one. */
-function maxProgress(vs: DetectorVerdict[]): number | null {
+// ── Scale-honest progress (Important-finding fix, 2026-07) ─────────
+//
+// `statistic / threshold` is not one scale across all families. Two
+// mathematically distinct detector shapes both populate `statistic`/
+// `threshold` on DetectorVerdict:
+//
+//   'linear'-ish closeness: Page-CUSUM S_n vs -log(α)
+//     (engine/detectors/_page-cusum-core.ts evaluateCUSUM), legacy χ²
+//     Hotelling T² vs a Wilson-Hilferty quantile (engine/detectors/
+//     _hotelling-dispatch.ts evaluateHotellingChiSquare), legacy
+//     spectral bootstrap-null peak|ACF| vs a bootstrap quantile
+//     (engine/detectors/spectral.ts evaluateSpectralBootstrapNull),
+//     legacy conformal p-value/Mahalanobis-distance vs α or a quantile
+//     (engine/detectors/conformal.ts evaluateConformalUnweighted /
+//     evaluateConformalWeightedQuantile). These grow roughly additively
+//     tick-over-tick, so "42% of fire threshold" is an honest read.
+//
+//   'wealth' (multiplicative e-process): the statistic is a Ville's-
+//     inequality wealth martingale M_t = M_{t-1} · e_t vs threshold =
+//     1/α (or a sliding-buffer-calibrated analog on the same scale) —
+//     Family A betting e-process (engine/detectors/betting-e-process.ts,
+//     `threshold = ... ?? 1/alphaBetting`), Family C safe-Hotelling
+//     (engine/detectors/_hotelling-safe.ts:58, `... ?? (1/input.alpha)`),
+//     Family C e-MMD (engine/detectors/sequential-mmd.ts:323,
+//     `1/eMmd.alpha`) and canonical betting (engine/detectors/
+//     family-c-betting-e-process.ts, "Fire when S_t ≥ 1/α"), Family D's
+//     spectral e-detector (engine/detectors/spectral.ts:303,
+//     `1/input.alpha`), Family E's weighted e-value (engine/detectors/
+//     conformal.ts:382, `1/input.alpha`). M_t starts at 1 and compounds
+//     multiplicatively — it can sit at a small fraction of threshold
+//     for many ticks and then cross it within one or two. "72% of fire
+//     threshold" phrasing reads as smooth linear progress; it isn't.
+//
+// `progressScaleFor` below classifies a single DetectorVerdict using
+// only fields fuseVerdict already has (no verdict-computation change).
+// `reason_code`/`signal` identify the producing evaluator definitively
+// in every case but one: Family A's Page-CUSUM and betting e-process
+// are co-shipped per signal (Addition #17, ARCHITECT-REPLY-34) and both
+// report `reason_code: 'accumulating'` on their `indeterminate` verdict
+// (compare _page-cusum-core.ts's `state.S > 0 ? 'accumulating' : ...`
+// to betting-e-process.ts's `state.M > 1 ? 'accumulating' : ...`) — no
+// field on DetectorVerdict tags which produced a given indeterminate
+// entry. The analogous overlap exists on Family D/E's shared
+// `'below_threshold'` clean reason across their legacy/wealth variants.
+// For those cases only, this falls back to reading `threshold`'s own
+// magnitude: every wealth threshold cited above is 1/α and stays ≥100
+// at any α≤1e-2 configured in this codebase; every linear threshold
+// (-log(α) down to α=1e-8, Wilson-Hilferty χ² up to 30 joint signals at
+// α=1e-5, ACF/p-value/Mahalanobis quantiles) stays under 50. See
+// WEALTH_THRESHOLD_FLOOR.
+
+const WEALTH_THRESHOLD_FLOOR = 50;
+
+/** `reason_code`s that definitively mark a wealth-scale DetectorVerdict,
+ *  independent of family — see header comment above for citations. */
+const WEALTH_REASON_CODES = new Set([
+  'betting_wealth_exceeded_threshold', 'at_initial_wealth',
+  'safe_hotelling_wealth_exceeded', 'safe_hotelling_params_missing',
+  'covariance_plus_tau_singular',
+  'spectral_e_detector_wealth_exceeded', 'spectral_e_detector_params_missing',
+  'spectral_null_std_nonpositive',
+  'conformal_e_value_wealth_exceeded', 'weighted_e_value_state_missing',
+]);
+
+/** `reason_code`s that definitively mark a linear-ish DetectorVerdict. */
+const LINEAR_REASON_CODES = new Set([
+  'cusum_exceeded_threshold', 'reset_to_zero',
+  'hotelling_exceeded_threshold',
+  'conformal_p_below_threshold', 'weighted_conformal_threshold_exceeded',
+]);
+
+/** `signal` values that definitively mark a wealth-scale detector at
+ *  EVERY verdict state, including states whose `reason_code` is shared
+ *  with a linear sibling detector (see header comment). */
+const WEALTH_SIGNAL_NAMES = new Set([
+  'hotelling_t2_safe', 'sequential_mmd_e_process',
+  'sequential_mmd_betting_e_process', 'weighted_conformal_e_value',
+]);
+
+/** Classify one DetectorVerdict's `statistic`/`threshold` scale. See the
+ *  header comment above for the full evaluator-by-evaluator mapping and
+ *  the documented last-resort magnitude fallback. */
+function progressScaleFor(v: DetectorVerdict): 'linear' | 'wealth' {
+  if (v.signal && WEALTH_SIGNAL_NAMES.has(v.signal)) return 'wealth';
+  if (WEALTH_REASON_CODES.has(v.reason_code)) return 'wealth';
+  if (LINEAR_REASON_CODES.has(v.reason_code) || v.reason_code.startsWith('spectral_peak_at_lag_')) {
+    return 'linear';
+  }
+  return (v.threshold !== null && v.threshold >= WEALTH_THRESHOLD_FLOOR) ? 'wealth' : 'linear';
+}
+
+/** Max per-detector progress among `vs` classified as `scale`; `null`
+ *  when none report one. Scale-scoped so callers never average/max
+ *  across incomparable scales into one ratio. */
+function maxProgressOfScale(vs: DetectorVerdict[], scale: 'linear' | 'wealth'): number | null {
   let best: number | null = null;
   for (const v of vs) {
+    if (progressScaleFor(v) !== scale) continue;
     const p = detectorProgress(v);
     if (p !== null && (best === null || p > best)) best = p;
   }
   return best;
+}
+
+/** Pick one scale-honest `progress`/`progress_scale` pair for a family
+ *  whose per-signal detector array may co-ship linear AND wealth
+ *  detectors on the same signal (Family A: Page-CUSUM + betting
+ *  e-process, per Addition #17 — both run every tick, not mutually
+ *  exclusive). Prefers `wealth` when both scales report a value: a
+ *  compounding wealth process nearing its threshold is the more
+ *  decision-relevant thing to surface, and — per the header comment
+ *  above — it can move much faster than the linear reading beside it
+ *  would suggest. Never combines the two into one ratio. */
+function pickScaleAndProgress(
+  vs: DetectorVerdict[],
+): { progress: number | null; scale: 'linear' | 'wealth' | null } {
+  const wealth = maxProgressOfScale(vs, 'wealth');
+  if (wealth !== null) return { progress: wealth, scale: 'wealth' };
+  const linear = maxProgressOfScale(vs, 'linear');
+  return linear !== null ? { progress: linear, scale: 'linear' } : { progress: null, scale: null };
 }
 
 /** True when a non-empty detector list is entirely `suppressed`. */
@@ -155,10 +271,12 @@ function summarizeSignalFamily(id: FamilyLetter, vs: DetectorVerdict[]): FamilyE
     : allSuppressed(vs) ? 'suppressed'
     : anyIndeterminate(vs) ? 'accumulating'
     : 'clean';
+  const { progress, scale } = pickScaleAndProgress(vs);
   return {
     family_id: id,
     state,
-    progress: maxProgress(vs),
+    progress,
+    progress_scale: scale,
     firedSignals: fired.map((v) => v.signal ?? 'unknown'),
     suppressionReason: state === 'suppressed' ? suppressionReasonFor(vs.map((v) => v.reason_code)) : null,
   };
@@ -173,35 +291,96 @@ function summarizeFamilyB(familyB: FiredSignal[]): FamilyEvidenceRaw {
     family_id: 'B',
     state: familyB.length > 0 ? 'fired' : 'clean',
     progress: null,
+    progress_scale: null,
     firedSignals: familyB.map((s) => s.label),
     suppressionReason: null,
   };
 }
 
-/** Family C — two independent detectors (Hotelling T², Sequential MMD)
- *  rather than a per-signal array; labeled positionally since neither
- *  carries a metric-signal name on `.signal`. */
-function summarizeFamilyC(famC: DetectorVerdict | null, famCMmd: DetectorVerdict | null): FamilyEvidenceRaw {
-  const entries: Array<{ v: DetectorVerdict; label: string }> = [];
-  if (famC) entries.push({ v: famC, label: 'Hotelling T²' });
-  if (famCMmd) entries.push({ v: famCMmd, label: 'Sequential MMD' });
-  const vs = entries.map((e) => e.v);
-  const fired = entries.filter((e) => e.v.verdict === 'fire');
-  const state: EvidenceState = fired.length > 0 ? 'fired'
-    : allSuppressed(vs) ? 'suppressed'
-    : anyIndeterminate(vs) ? 'accumulating'
+/** Summarize one Family C detector (Hotelling T² or Sequential MMD/
+ *  betting) as its own `FamilyEvidenceRaw`. Single-DetectorVerdict form
+ *  of `summarizeSignalFamily` — Family C's two detectors are separate
+ *  fields on `HealthResult` (`family_C_verdict`/`family_C_mmd_verdict`),
+ *  not a per-signal array, so there's no scale-mixing risk *within* one
+ *  call; the mixing risk this whole module fixes is calling this twice
+ *  and combining the results, which `summarizeFamilyC` below never
+ *  does — see its header comment. */
+function summarizeSingleCDetector(
+  v: DetectorVerdict, label: string, kind: 'hotelling' | 'e_mmd_betting',
+): FamilyEvidenceRaw {
+  const state: EvidenceState = v.verdict === 'fire' ? 'fired'
+    : v.verdict === 'suppressed' ? 'suppressed'
+    : v.verdict === 'indeterminate' ? 'accumulating'
     : 'clean';
+  const progress = detectorProgress(v);
   return {
     family_id: 'C',
     state,
-    progress: maxProgress(vs),
-    firedSignals: fired.map((e) => e.label),
-    suppressionReason: state === 'suppressed' ? suppressionReasonFor(vs.map((v) => v.reason_code)) : null,
+    progress,
+    progress_scale: progress !== null ? progressScaleFor(v) : null,
+    detector_kind: kind,
+    firedSignals: state === 'fired' ? [label] : [],
+    suppressionReason: state === 'suppressed' ? suppressionReasonFor([v.reason_code]) : null,
   };
+}
+
+/** Family C — two independent, numerically-incomparable detectors
+ *  (Hotelling T² — χ² on the legacy path, a Ville's-inequality wealth
+ *  process on the safe-Hotelling path; Sequential MMD/betting — always
+ *  a wealth process, see `progressScaleFor` header comment). Emits ONE
+ *  `FamilyEvidenceRaw` per detector that produced a verdict this tick
+ *  (never combines their `statistic`/`threshold` into a single
+ *  `maxProgress` — that was the confirmed finding: Hotelling's χ²-scale
+ *  ratio and e-MMD's wealth-scale ratio are not comparable numbers), or
+ *  one placeholder `'clean'` entry (matching the pre-fix single-entry
+ *  shape) when neither detector produced data. `detector_kind`
+ *  distinguishes the two in `evidence_outlook`/`verdict_rationale`. */
+function summarizeFamilyC(famC: DetectorVerdict | null, famCMmd: DetectorVerdict | null): FamilyEvidenceRaw[] {
+  if (!famC && !famCMmd) {
+    return [{
+      family_id: 'C', state: 'clean', progress: null, progress_scale: null,
+      firedSignals: [], suppressionReason: null,
+    }];
+  }
+  const out: FamilyEvidenceRaw[] = [];
+  if (famC) out.push(summarizeSingleCDetector(famC, 'Hotelling T²', 'hotelling'));
+  if (famCMmd) out.push(summarizeSingleCDetector(famCMmd, 'Sequential MMD', 'e_mmd_betting'));
+  return out;
 }
 
 function formatPct(p: number): string {
   return `${Math.round(p * 100)}%`;
+}
+
+/** `0.72×`-style rendering for a wealth-scale progress ratio — see
+ *  `renderAccumulatingNote`. */
+function formatMultiplier(p: number): string {
+  return `${p.toFixed(2)}×`;
+}
+
+/** `Family X` note prefix, optionally qualified with the Family-C
+ *  detector-kind label (`detector_kind` is only ever set on Family C's
+ *  split Hotelling/e-MMD entries — see `summarizeFamilyC`). Not used on
+ *  the `'fired'` branch of `renderNote`, which already names the
+ *  detector via `firedSignals`. */
+function notePrefix(r: FamilyEvidenceRaw): string {
+  const kindLabel = r.detector_kind === 'hotelling' ? 'Hotelling T²'
+    : r.detector_kind === 'e_mmd_betting' ? 'e-MMD/betting' : null;
+  return kindLabel ? `Family ${r.family_id} (${kindLabel})` : `Family ${r.family_id}`;
+}
+
+/** `'accumulating'`-state note, scale-honest per `progress_scale` — see
+ *  the "Scale-honest progress" header comment above `progressScaleFor`
+ *  for why "N% of fire threshold" misreads a multiplicative wealth
+ *  process. */
+function renderAccumulatingNote(r: FamilyEvidenceRaw): string {
+  const prefix = notePrefix(r);
+  if (r.progress === null) return `${prefix} accumulating evidence`;
+  if (r.progress_scale === 'wealth') {
+    return `${prefix} accumulating evidence, wealth at ${formatMultiplier(r.progress)} fire threshold `
+      + '(multiplicative — evidence can compound quickly under sustained drift)';
+  }
+  return `${prefix} accumulating evidence at ${formatPct(r.progress)} of fire threshold`;
 }
 
 /** Render an `EvidenceOutlookEntry.note` from a family's raw summary. */
@@ -211,20 +390,21 @@ function renderNote(r: FamilyEvidenceRaw): string {
       ? `Family ${r.family_id} fired on ${r.firedSignals.join(', ')}`
       : `Family ${r.family_id} fired`;
   }
-  if (r.state === 'accumulating') {
-    return r.progress !== null
-      ? `Family ${r.family_id} accumulating evidence at ${formatPct(r.progress)} of fire threshold`
-      : `Family ${r.family_id} accumulating evidence`;
-  }
+  if (r.state === 'accumulating') return renderAccumulatingNote(r);
   if (r.state === 'suppressed') {
-    return `Family ${r.family_id} suppressed (${r.suppressionReason ?? 'unknown'})`;
+    return `${notePrefix(r)} suppressed (${r.suppressionReason ?? 'unknown'})`;
   }
-  return `Family ${r.family_id} clean`;
+  return `${notePrefix(r)} clean`;
 }
 
 function toEvidenceOutlook(raw: FamilyEvidenceRaw[]): EvidenceOutlookEntry[] {
   return raw.map((r) => ({
-    family_id: r.family_id, state: r.state, progress: r.progress, note: renderNote(r),
+    family_id: r.family_id,
+    state: r.state,
+    progress: r.progress,
+    progress_scale: r.progress_scale,
+    detector_kind: r.detector_kind,
+    note: renderNote(r),
   }));
 }
 
@@ -373,7 +553,7 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
   const evidenceRaw: FamilyEvidenceRaw[] = [
     summarizeSignalFamily('A', famA ?? []),
     summarizeFamilyB(familyB),
-    summarizeFamilyC(famC, famCMmd),
+    ...summarizeFamilyC(famC, famCMmd),
     summarizeSignalFamily('D', famDAll),
     summarizeSignalFamily('E', famE ? [famE] : []),
   ];

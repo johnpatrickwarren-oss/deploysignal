@@ -61,6 +61,58 @@ function suppressedD(reasonCode: string): DetectorVerdict {
   };
 }
 
+// ── Scale-honest progress fixtures (2026-07 Important-finding fix) ──
+// Linear-ish (chi²/S_n-style, small threshold) vs wealth (Ville's-
+// inequality M_t vs 1/α, large threshold) DetectorVerdicts across the
+// families that co-ship both shapes. See engine/verdict.ts
+// `progressScaleFor` for the full evaluator-by-evaluator mapping.
+
+/** Family C legacy χ² Hotelling, indeterminate (50% of threshold). */
+function indeterminateC(): DetectorVerdict {
+  return {
+    verdict: 'indeterminate', statistic: 17.94, threshold: 35.88,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: 'accumulating', family: 'C',
+  };
+}
+
+/** Family C e-MMD/betting wealth process, indeterminate at 0.72× 1/α.
+ *  `signal: 'sequential_mmd_e_process'` is the real detector_id
+ *  evaluateEMmd emits (engine/detectors/sequential-mmd.ts) — a
+ *  definitive wealth marker independent of `reason_code`. */
+function indeterminateCMmd(): DetectorVerdict {
+  return {
+    verdict: 'indeterminate', statistic: 7200, threshold: 10000,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: 'accumulating', family: 'C', signal: 'sequential_mmd_e_process',
+  };
+}
+
+/** Family D spectral e-detector wealth process, indeterminate at 0.35×
+ *  1/α_D (threshold = 1/α_D per engine/detectors/spectral.ts:303 —
+ *  large-magnitude threshold is the only available discriminator here
+ *  since both the legacy bootstrap-null and e-detector paths can share
+ *  `reason_code: 'accumulating'`/`'below_threshold'`; see
+ *  `progressScaleFor`'s magnitude fallback). */
+function indeterminateDWealth(): DetectorVerdict {
+  return {
+    verdict: 'indeterminate', statistic: 3500, threshold: 10000,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: 'accumulating', family: 'D', signal: 'kv_cache',
+  };
+}
+
+/** Family E weighted-e-value wealth process, indeterminate at 0.80× 1/α.
+ *  `signal: 'weighted_conformal_e_value'` is the real detector_id
+ *  evaluateConformalWeightedEValue emits (engine/detectors/conformal.ts). */
+function indeterminateEWealth(): DetectorVerdict {
+  return {
+    verdict: 'indeterminate', statistic: 8000, threshold: 10000,
+    alpha_consumed: 0, alpha_spent: 0,
+    reason_code: 'accumulating', family: 'E', signal: 'weighted_conformal_e_value',
+  };
+}
+
 // ────────────────────────────────────────────────────────────────────
 // Outcome: proceed
 test('fuseVerdict: proceed when all families clean (last tick, no extend)', () => {
@@ -257,6 +309,8 @@ test('verdict_rationale + evidence_outlook: extend reports accumulating progress
   assert.equal(famA.state, 'accumulating');
   assert.ok(famA.progress !== null);
   assert.ok(Math.abs((famA.progress as number) - 4 / 9.6) < 1e-9);
+  // Page-CUSUM's S_n/-log(α) is linear-ish closeness — % phrasing is honest here.
+  assert.equal(famA.progress_scale, 'linear');
   assert.equal(famA.note, 'Family A accumulating evidence at 42% of fire threshold');
   assert.ok(v.verdict_rationale.includes('Family A accumulating evidence at 42% of fire threshold'),
     `expected accumulating clause; got: ${v.verdict_rationale}`);
@@ -328,4 +382,104 @@ test('verdict_rationale: is deterministic across repeated calls on identical inp
   const v2 = fuseVerdict(h, opts);
   assert.equal(v1.verdict_rationale, v2.verdict_rationale);
   assert.deepEqual(v1.evidence_outlook, v2.evidence_outlook);
+});
+
+// ────────────────────────────────────────────────────────────────────
+// Scale-honest progress (2026-07 Important-finding fix): a "% of fire
+// threshold" reading is honest for linear-ish detectors (Page-CUSUM,
+// legacy χ² Hotelling) but misleading for wealth (Ville's-inequality
+// e-process) detectors, whose statistic compounds multiplicatively and
+// can jump from near-zero to firing within a couple of ticks. These
+// tests cover `progress_scale` and the corresponding note phrasing for
+// every wealth family, plus the Family C never-mix-scales invariant.
+
+test('evidence_outlook: Family C e-MMD/betting (wealth process) uses multiplicative phrasing, not "% of fire threshold"', () => {
+  const h = emptyHealth();
+  h.family_C_mmd_verdict = indeterminateCMmd();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test' });
+  const emmd = v.evidence_outlook.find((e) => e.family_id === 'C' && e.detector_kind === 'e_mmd_betting')!;
+  assert.equal(emmd.state, 'accumulating');
+  assert.equal(emmd.progress_scale, 'wealth');
+  assert.ok(Math.abs((emmd.progress as number) - 0.72) < 1e-9);
+  assert.equal(emmd.note,
+    'Family C (e-MMD/betting) accumulating evidence, wealth at 0.72× fire threshold '
+    + '(multiplicative — evidence can compound quickly under sustained drift)');
+  assert.ok(!emmd.note.includes('% of fire threshold'));
+});
+
+test('evidence_outlook: Family D spectral e-detector (wealth process) uses multiplicative phrasing', () => {
+  const h = emptyHealth();
+  const familyD = indeterminateDWealth();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test', familyD });
+  const famD = v.evidence_outlook.find((e) => e.family_id === 'D')!;
+  assert.equal(famD.state, 'accumulating');
+  assert.equal(famD.progress_scale, 'wealth');
+  assert.ok(Math.abs((famD.progress as number) - 0.35) < 1e-9);
+  assert.equal(famD.note,
+    'Family D accumulating evidence, wealth at 0.35× fire threshold '
+    + '(multiplicative — evidence can compound quickly under sustained drift)');
+  assert.ok(!famD.note.includes('% of fire threshold'));
+});
+
+test('evidence_outlook: Family E weighted e-value (wealth process) uses multiplicative phrasing', () => {
+  const h = emptyHealth();
+  const familyE = indeterminateEWealth();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test', familyE });
+  const famE = v.evidence_outlook.find((e) => e.family_id === 'E')!;
+  assert.equal(famE.state, 'accumulating');
+  assert.equal(famE.progress_scale, 'wealth');
+  assert.ok(Math.abs((famE.progress as number) - 0.8) < 1e-9);
+  assert.equal(famE.note,
+    'Family E accumulating evidence, wealth at 0.80× fire threshold '
+    + '(multiplicative — evidence can compound quickly under sustained drift)');
+  assert.ok(!famE.note.includes('% of fire threshold'));
+});
+
+test('evidence_outlook: Family C never mixes scales — Hotelling (linear) and e-MMD (wealth) emit separate entries', () => {
+  const h = emptyHealth();
+  h.family_C_verdict = indeterminateC();
+  h.family_C_mmd_verdict = indeterminateCMmd();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 'test' });
+  const cEntries = v.evidence_outlook.filter((e) => e.family_id === 'C');
+  assert.equal(cEntries.length, 2);
+  // A<B<C<C<D<E — the two C entries stay contiguous at C's position.
+  assert.deepEqual(v.evidence_outlook.map((e) => e.family_id), ['A', 'B', 'C', 'C', 'D', 'E']);
+
+  const hotelling = cEntries.find((e) => e.detector_kind === 'hotelling')!;
+  const emmd = cEntries.find((e) => e.detector_kind === 'e_mmd_betting')!;
+  assert.equal(hotelling.progress_scale, 'linear');
+  assert.equal(emmd.progress_scale, 'wealth');
+  // Each entry's progress is its OWN detector's ratio — never averaged/
+  // maxed together into one numerically-incomparable number.
+  assert.ok(Math.abs((hotelling.progress as number) - 0.5) < 1e-9);
+  assert.ok(Math.abs((emmd.progress as number) - 0.72) < 1e-9);
+  assert.notEqual(hotelling.progress, emmd.progress);
+  assert.equal(hotelling.note, 'Family C (Hotelling T²) accumulating evidence at 50% of fire threshold');
+  assert.ok(!hotelling.note.includes('×'));
+  assert.ok(emmd.note.includes('×'));
+
+  assert.ok(v.verdict_rationale.includes('Family C (Hotelling T²) accumulating evidence at 50% of fire threshold'));
+  assert.ok(v.verdict_rationale.includes('wealth at 0.72× fire threshold'));
+});
+
+test('evidence_outlook: Family C emits a single clean entry (no detector_kind) when neither detector reports', () => {
+  const h = emptyHealth();
+  const v = fuseVerdict(h, { topology: 'portfolio', tick: 5, totalTicks: 32, deployRef: 'test' });
+  const cEntries = v.evidence_outlook.filter((e) => e.family_id === 'C');
+  assert.equal(cEntries.length, 1);
+  assert.equal(cEntries[0].state, 'clean');
+  assert.equal(cEntries[0].progress, null);
+  assert.equal(cEntries[0].progress_scale, null);
+  assert.equal(cEntries[0].detector_kind, undefined);
+});
+
+test('evidence_outlook: Family C dual-detector output is deterministic across repeated calls', () => {
+  const h = emptyHealth();
+  h.family_C_verdict = indeterminateC();
+  h.family_C_mmd_verdict = indeterminateCMmd();
+  const opts = { topology: 'portfolio' as const, tick: 10, totalTicks: 32, deployRef: 'test' };
+  const v1 = fuseVerdict(h, opts);
+  const v2 = fuseVerdict(h, opts);
+  assert.deepEqual(v1.evidence_outlook, v2.evidence_outlook);
+  assert.equal(v1.verdict_rationale, v2.verdict_rationale);
 });

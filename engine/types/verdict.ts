@@ -120,8 +120,14 @@ export interface FusedVerdict {
    *  breakdown this is rendered from. */
   verdict_rationale: string;
   /** WS5 verdict explainability. Per-family evidence summary, fixed
-   *  A<B<C<D<E order, one entry per family every tick. See
-   *  `EvidenceOutlookEntry`. */
+   *  A<B<C<D<E order. Every family emits at least one entry every tick;
+   *  Family C emits ONE entry when only its Hotelling or only its e-MMD/
+   *  betting detector has data, and TWO entries (`family_id: 'C'` twice,
+   *  discriminated by `detector_kind`) when both are present — see
+   *  `EvidenceOutlookEntry.detector_kind` for why: Hotelling's χ² path
+   *  and its safe-test wealth path, and the e-MMD/betting path, are on
+   *  numerically incomparable scales and must never collapse into one
+   *  `progress` ratio (2026-07 Important-finding fix). */
   evidence_outlook: EvidenceOutlookEntry[];
 }
 
@@ -142,8 +148,9 @@ export interface EvidenceOutlookEntry {
    *  `'suppressed'` — it has no such concept (see header comment in
    *  engine/verdict.ts: "Family B doesn't spend Ville budget"). */
   state: 'fired' | 'accumulating' | 'clean' | 'suppressed';
-  /** `statistic / threshold`, max across the family's detectors this
-   *  tick. Mirrors the formula the audit layer uses for Family A's
+  /** `statistic / threshold`, max across the family's SAME-SCALE
+   *  detectors this tick (see `progress_scale` — never mixed across
+   *  scales). Mirrors the formula the audit layer uses for Family A's
    *  `DetectorTripV2.cusum_progress` (`engine/_audit-families.ts`
    *  `tripFromVerdict`), applied here to every DetectorVerdict-shaped
    *  family (A/C/D/E all carry `statistic`/`threshold`) rather than
@@ -156,9 +163,49 @@ export interface EvidenceOutlookEntry {
    *  `statistic` and a positive `threshold` — always `null` for
    *  Family B, whose `FiredSignal` entries carry neither field. */
   progress: number | null;
+  /** How `progress` should be read — `null` iff `progress` is `null`
+   *  (Family B always; other families when unavailable this tick).
+   *
+   *  `'linear'`: the statistic accumulates roughly additively toward a
+   *  fixed threshold (Family A Page-CUSUM `S_n` vs `-log(α)`; Family C
+   *  legacy χ² Hotelling T² vs a Wilson-Hilferty quantile) — "N% of
+   *  fire threshold" is an honest closeness read.
+   *
+   *  `'wealth'`: the statistic is a Ville's-inequality wealth
+   *  martingale `M_t = M_{t-1} · e_t` compared against `threshold =
+   *  1/α` (Family C e-MMD/betting always; Family C safe-Hotelling,
+   *  Family D's spectral e-detector, and Family E's weighted e-value
+   *  when that variant is active — see `engine/verdict.ts`
+   *  `progressScaleFor` for the per-evaluator citations). `M_t` starts
+   *  at 1 and compounds multiplicatively tick-over-tick, so it can sit
+   *  at a small fraction of `threshold` for many ticks and then cross
+   *  it within one or two — "N% of fire threshold" phrasing would read
+   *  as smooth linear progress when it is not; renderers must use the
+   *  multiplicative ("0.72× fire threshold, compounds under sustained
+   *  drift") phrasing instead. */
+  progress_scale: 'linear' | 'wealth' | null;
+  /** Set ONLY on Family C entries, and only to disambiguate which of
+   *  Family C's two structurally-independent detectors (`famC` /
+   *  `famCMmd` in `engine/verdict.ts`) this entry summarizes — undefined
+   *  everywhere else, and undefined on the single default Family C
+   *  entry emitted when neither detector produced data this tick.
+   *  `'hotelling'` covers both the legacy χ² Hotelling T² variant
+   *  (`progress_scale: 'linear'`) and the safe-Hotelling wealth variant
+   *  (`progress_scale: 'wealth'`) — the KIND (Hotelling vs e-MMD/
+   *  betting) is what's structural here (`evaluateFamilyC` vs
+   *  `evaluateEMmd`/`evaluateFamilyCBettingEProcess`); the χ²-vs-safe
+   *  sub-variant is resolved per-entry via `progress_scale` already.
+   *  `'e_mmd_betting'` is always `progress_scale: 'wealth'` — every
+   *  Family C e-MMD/betting evaluator (`evaluateEMmd`,
+   *  `evaluateFamilyCBettingEProcess`) is a Ville's-inequality wealth
+   *  process by construction. */
+  detector_kind?: 'hotelling' | 'e_mmd_betting';
   /** One-sentence human-readable rendering of `state`/`progress`/
    *  suppression reason, e.g. "Family A accumulating evidence at 42%
-   *  of fire threshold" or "Family D suppressed (ignore_threshold)". */
+   *  of fire threshold", "Family C (e-MMD/betting) accumulating
+   *  evidence, wealth at 0.72× fire threshold (multiplicative —
+   *  evidence can compound quickly under sustained drift)", or
+   *  "Family D suppressed (ignore_threshold)". */
   note: string;
 }
 
