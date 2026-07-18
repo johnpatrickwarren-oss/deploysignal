@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "outDir": "dist-browser/engine",
     "rootDir": "engine",
     "declaration": false,
