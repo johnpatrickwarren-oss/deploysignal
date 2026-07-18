@@ -137,6 +137,14 @@ export class SoakController {
   private lastActiveCandidateId: string | null = null;
   private manifestCheckedOnce = false;
   private lastManifestMtimeMs: number | null = null;
+  private lastManifestSize: number | null = null;
+  // Review fix 1 (Tasks 1-3 review) — mtime-cache robustness: a pure
+  // mtimeMs equality check is defeated by a same-instant rewrite (many
+  // filesystems have coarse mtime resolution, and even sub-ms-resolution
+  // filesystems can produce two writes landing in the same tick). Track
+  // the last-seen manifest's own identity fields so a content-level
+  // change is detected even when (mtimeMs, size) both happen to match.
+  private lastManifestIdentity: { candidateId: string; status: string; requestedAt: string } | null = null;
   private currentTickNowTs = 0;
 
   constructor(private readonly cfg: SoakControllerConfig) {
@@ -174,6 +182,17 @@ export class SoakController {
     }
   }
 
+  /** Review fix 1 (Tasks 1-3 review) — (mtimeMs, size) is the fast
+   *  pre-filter, but the sole correctness gate is the manifest's own
+   *  identity fields (candidate_id, status, requested_at): the manifest
+   *  file is tiny, so reading+parsing it every refresh() is cheap, and
+   *  doing so unconditionally is what lets a same-instant rewrite (same
+   *  mtimeMs AND size — e.g. a `soak stop` immediately followed by a
+   *  `soak start` for a same-length candidate id, landing in the same
+   *  filesystem mtime tick) still be detected. What the cache actually
+   *  guards is the EXPENSIVE step (`activateCandidate`'s candidate-record
+   *  + compiled-config load) — that only runs when identity truly
+   *  changed. */
   private reconcileManifest(nowTs: number): void {
     let stat: fs.Stats | null;
     try {
@@ -182,17 +201,54 @@ export class SoakController {
       if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
       stat = null;
     }
-    const mtimeMs = stat ? stat.mtimeMs : null;
-    if (this.manifestCheckedOnce && mtimeMs === this.lastManifestMtimeMs) return;
-    this.manifestCheckedOnce = true;
-    this.lastManifestMtimeMs = mtimeMs;
 
-    if (!stat) { this.active = null; return; }
+    if (!stat) {
+      this.manifestCheckedOnce = true;
+      this.lastManifestMtimeMs = null;
+      this.lastManifestSize = null;
+      this.lastManifestIdentity = null;
+      this.active = null;
+      return;
+    }
 
     const manifest = this.readManifestSync();
-    if (!manifest || manifest.status !== 'requested') { this.active = null; return; }
+    if (!manifest) {
+      this.manifestCheckedOnce = true;
+      this.lastManifestMtimeMs = stat.mtimeMs;
+      this.lastManifestSize = stat.size;
+      this.lastManifestIdentity = null;
+      this.active = null;
+      return;
+    }
 
+    const identity = {
+      candidateId: manifest.candidate_id, status: manifest.status, requestedAt: manifest.requested_at,
+    };
+    const unchanged = this.manifestUnchanged(stat, identity);
+
+    this.manifestCheckedOnce = true;
+    this.lastManifestMtimeMs = stat.mtimeMs;
+    this.lastManifestSize = stat.size;
+    this.lastManifestIdentity = identity;
+
+    if (unchanged) return;
+
+    if (manifest.status !== 'requested') { this.active = null; return; }
     this.activateCandidate(manifest, nowTs);
+  }
+
+  /** Review fix 1 helper — isolates the multi-field comparison so
+   *  `reconcileManifest` itself stays well within the complexity ratchet. */
+  private manifestUnchanged(
+    stat: fs.Stats,
+    identity: { candidateId: string; status: string; requestedAt: string },
+  ): boolean {
+    if (!this.manifestCheckedOnce || this.lastManifestIdentity === null) return false;
+    if (stat.mtimeMs !== this.lastManifestMtimeMs || stat.size !== this.lastManifestSize) return false;
+    const prior = this.lastManifestIdentity;
+    return identity.candidateId === prior.candidateId
+      && identity.status === prior.status
+      && identity.requestedAt === prior.requestedAt;
   }
 
   private activateCandidate(manifest: SoakManifest, nowTs: number): void {
@@ -213,12 +269,52 @@ export class SoakController {
       this.lastActiveCandidateId = manifest.candidate_id;
     }
 
-    const sidecar = this.readSidecarSync(manifest.candidate_id) ?? this.freshSidecar(manifest, nowTs);
-    if (sidecar.status === 'complete') { this.active = null; return; }
+    let sidecar = this.readSidecarSync(manifest.candidate_id);
+    if (sidecar && sidecar.status === 'complete') {
+      if (Date.parse(manifest.requested_at) <= Date.parse(sidecar.started_at)) {
+        // Not a re-soak request (this manifest predates or matches the
+        // completed sidecar's own start) — stay inactive, same as before
+        // review fix 2.
+        this.active = null;
+        return;
+      }
+      // Review fix 2 (Tasks 1-3 review) — plan §4 Q4 intent: a manifest
+      // requesting a NEWER soak (requested_at strictly after the
+      // completed sidecar's started_at) for the SAME candidate id must
+      // not be a dead end. Archive the completed sidecar + its
+      // ticks.jsonl under a started_at-suffixed filename and start
+      // fresh accumulation.
+      this.archiveCompletedSidecar(manifest.candidate_id, sidecar);
+      sidecar = null;
+    }
 
+    const resolvedSidecar = sidecar ?? this.freshSidecar(manifest, nowTs);
     this.active = {
-      manifest, config, candidateId: manifest.candidate_id, sidecar,
+      manifest, config, candidateId: manifest.candidate_id, sidecar: resolvedSidecar,
     };
+  }
+
+  /** Review fix 2 helper — renames (never overwrites) the completed
+   *  sidecar/ticks-log for `candidateId` to a `<started_at>`-suffixed
+   *  path so the fresh re-soak's sidecar can be created at the normal
+   *  path without losing the prior soak's evidence. Best-effort: an
+   *  archive failure must not block the fresh soak from starting (the
+   *  prior sidecar's data already lives in the folded
+   *  CandidateRecord.soak snapshot from the CLI's `soak stop`, if that
+   *  ran — this is belt-and-suspenders retention on the service side). */
+  private archiveCompletedSidecar(candidateId: string, sidecar: SoakSidecar): void {
+    const suffix = sidecar.started_at.replace(/[:.]/g, '-');
+    const renames: Array<[string, string]> = [
+      [this.sidecarPath(candidateId), path.join(this.soakDir(), `${candidateId}.state.${suffix}.json`)],
+      [this.ticksPath(candidateId), path.join(this.soakDir(), `${candidateId}.ticks.${suffix}.jsonl`)],
+    ];
+    for (const [from, to] of renames) {
+      try {
+        if (fs.existsSync(from)) fs.renameSync(from, to);
+      } catch {
+        // best-effort archive only
+      }
+    }
   }
 
   /** Active-soak check + enrollment. Entry-snapshot tick must be 0 to

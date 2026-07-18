@@ -17,7 +17,9 @@
 // SoakController/GateSessionRuntime WIRING this task adds — enrollment,
 // non-interference, replay-safety, restart-honesty, completion — which
 // is what Tasks 2-3 need driven now (plan Task 7 items 1-5, 7; item 6
-// "error isolation" is deferred to the CLI-chunk test pass).
+// "error isolation" and the review-fix regression tests for mtime-cache
+// robustness / same-candidate re-soak are added below, in the R5
+// Tasks 4-10 pass).
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -487,4 +489,232 @@ test('completion: sidecar reaches status complete at target_ticks and exactly on
   assert.equal(eventsAfter.length, 1);
 
   h.runtime.close();
+});
+
+// ────────────────────────────────────────────────────────────────────
+// 7. Error isolation (plan Task 7 item 6 — deferred from the initial
+// Tasks 1-3 runtime pass, added now).
+// ────────────────────────────────────────────────────────────────────
+
+/** Variant of fakeEvaluateFn where the CANDIDATE (shadow) side always
+ *  throws, regardless of metrics — stands in for "a candidate whose
+ *  config makes evaluate() throw" (plan Task 7 item 6 note: a per-call
+ *  seam that throws only on the second evaluateFn call per tick isn't
+ *  possible with the shared `setEvaluateFnForTest` seam, so this
+ *  isolates the failure to whichever call carries a non-null
+ *  `compiledConfig` — i.e. always the shadow call in this harness, never
+ *  the served call). */
+function fakeEvaluateFnCandidateThrows(): (params: OrchestrateParams) => VerdictResult {
+  return (params: OrchestrateParams): VerdictResult => {
+    if (params.compiledConfig != null) {
+      throw new Error('gate-soak-test: candidate evaluate stub failure');
+    }
+    return {
+      verdict: 'extend',
+      reason: 'gate-soak-test-stub',
+      shortCircuit: null,
+      gateResults: {
+        fusion: {
+          verdict: 'extend',
+          firing_families: [],
+          per_family_verdicts: {
+            A: null, B: null, C: null, D: null, E: null,
+          },
+          total_alpha_spent: 0.0003,
+          fusion_topology: 'cascade',
+          tick: params.tick,
+          deploy_ref: params.scenario.id,
+        },
+      },
+      healthResult: {
+        rollback: [],
+        extend: [],
+        warmup: {
+          active: false, grace: false, pct: 1, suppressedIds: [],
+        },
+        suppressed: [],
+      },
+      failFastState: params.failFastState,
+      lifecycleState: params.lifecycleState,
+      reversibilityClassification: params.reversibilityClassification,
+    } as unknown as VerdictResult;
+  };
+}
+
+test('error isolation: an unloadable candidate compiled_config_path leaves soak permanently inactive; served ticks are unaffected', () => {
+  const h = makeHarness({ totalTicksDefault: 8 });
+  const fixture = seedSoak(h.baselineHistoryDir, h.serviceId, { targetTicks: 50 });
+  fs.writeFileSync(fixture.configPath, '{ not valid json');
+  h.runtime.setEvaluateFnForTest(fakeEvaluateFn());
+
+  const { record } = h.runtime.begin(beginReq());
+  const results = [];
+  for (let i = 0; i < 3; i++) {
+    const metrics = i >= 1 ? degradedMetrics() : BASELINE;
+    results.push(h.runtime.ingestTick(record.session_id, tickReq(1_700_000_000 + i * 30, metrics)));
+  }
+  h.runtime.close();
+
+  for (const r of results) {
+    assert.equal(r.verdict, 'extend', 'served path (no active.json in this harness) never rolls back');
+    assert.equal(r.error, undefined, 'a shadow-side activation failure must never surface on the served TickResult');
+  }
+  assert.equal(fs.existsSync(sidecarPath(fixture)), false, 'an unloadable candidate config means soak never activates -> no sidecar is ever created');
+});
+
+test('error isolation: a shadow-side evaluate() throw never surfaces in the served TickResult; only candidate_errored_ticks increments', () => {
+  const h = makeHarness({ totalTicksDefault: 8 });
+  const fixture = seedSoak(h.baselineHistoryDir, h.serviceId, { targetTicks: 50 });
+  h.runtime.setEvaluateFnForTest(fakeEvaluateFnCandidateThrows());
+
+  const { record } = h.runtime.begin(beginReq());
+  const results = [];
+  for (let i = 0; i < 3; i++) {
+    results.push(h.runtime.ingestTick(record.session_id, tickReq(1_700_000_000 + i * 30, BASELINE)));
+  }
+  h.runtime.close();
+
+  for (const r of results) {
+    assert.equal(r.verdict, 'extend');
+    assert.equal(r.error, undefined, 'a shadow-side throw must never surface as a served-tick error');
+  }
+
+  const sidecar = readSidecar(fixture);
+  assert.equal(sidecar.stats.ticks_observed, 3, 'the soak controller still observed every tick');
+  assert.equal(sidecar.stats.coverage.candidate_errored_ticks, 3);
+  assert.equal(sidecar.stats.coverage.active_errored_ticks, 0);
+  assert.equal(sidecar.stats.disagreement.total_compared, 0, 'an errored candidate tick is never compared');
+});
+
+// ────────────────────────────────────────────────────────────────────
+// 8. Review fix 1 — mtime-cache robustness (same-instant manifest
+// rewrite must still be detected via the content identity check).
+// ────────────────────────────────────────────────────────────────────
+
+test('mtime-cache robustness: a same-instant manifest rewrite (identical mtimeMs + size) is still detected via the content identity check', () => {
+  const h = makeHarness({ totalTicksDefault: 10 });
+  const fixtureA = seedSoak(h.baselineHistoryDir, h.serviceId, {
+    candidateId: 'cand-soak-1', targetTicks: 50, requestedAtTs: 1_700_000_000,
+  });
+  h.runtime.setEvaluateFnForTest(fakeEvaluateFn());
+
+  const { record: sessionA } = h.runtime.begin(beginReq());
+  h.runtime.ingestTick(sessionA.session_id, tickReq(1_700_000_000, BASELINE));
+  assert.equal(readSidecar(fixtureA).stats.ticks_observed, 1);
+
+  const manifestPath = fixtureA.manifestPath;
+  const statBefore = fs.statSync(manifestPath);
+
+  // Rewrite soak.json to point at a DIFFERENT candidate id of the SAME
+  // length ('cand-soak-1' -> 'cand-soak-2', 11 chars each) with the same
+  // `requested_at`, so the new manifest's JSON byte length is identical
+  // to the old one's — then force fs.utimesSync to make the mtime match
+  // too. This reproduces the exact edge case a pure (mtimeMs) or even
+  // (mtimeMs, size) comparison alone would miss.
+  const fixtureB = seedSoak(h.baselineHistoryDir, h.serviceId, {
+    candidateId: 'cand-soak-2', targetTicks: 50, requestedAtTs: 1_700_000_000,
+  });
+  const statAfterRewrite = fs.statSync(manifestPath);
+  assert.equal(statAfterRewrite.size, statBefore.size, 'precondition: the rewritten manifest is byte-identical in length');
+  // Pass raw fractional seconds (not a `Date`, which truncates to
+  // millisecond precision) so the forced mtime matches statBefore.mtimeMs
+  // exactly, not just to the nearest millisecond.
+  const forcedSeconds = statBefore.mtimeMs / 1000;
+  fs.utimesSync(manifestPath, forcedSeconds, forcedSeconds);
+  const statForced = fs.statSync(manifestPath);
+  assert.equal(statForced.mtimeMs, statBefore.mtimeMs, 'precondition: mtimeMs now matches the pre-rewrite manifest exactly');
+
+  // A fresh session ticking now must enroll into candidate B's sidecar
+  // (the manifest DID change, despite identical mtimeMs + size) — not
+  // candidate A's.
+  const { record: sessionB } = h.runtime.begin(beginReq({ deploy_ref: 'deploy-ref-2', requested_at_ts: 1_700_000_100 }));
+  h.runtime.ingestTick(sessionB.session_id, tickReq(1_700_000_100, BASELINE));
+  h.runtime.close();
+
+  const sidecarB = readSidecar(fixtureB);
+  assert.equal(sidecarB.stats.ticks_observed, 1, 'the new manifest (same mtime+size) was still picked up');
+  assert.equal(sidecarB.stats.coverage.sessions_enrolled, 1);
+
+  const sidecarAAfter = readSidecar(fixtureA);
+  assert.equal(sidecarAAfter.stats.ticks_observed, 1, 'candidate A stopped accumulating once the manifest switched to candidate B');
+});
+
+// ────────────────────────────────────────────────────────────────────
+// 9. Review fix 2 — same-candidate re-soak (a completed sidecar must
+// not be a dead end for a genuinely newer soak request).
+// ────────────────────────────────────────────────────────────────────
+
+test('same-candidate re-soak: a newer manifest for an already-completed candidate archives the old sidecar and starts a fresh accumulation', () => {
+  const h = makeHarness({ totalTicksDefault: 10 });
+  const fixture = seedSoak(h.baselineHistoryDir, h.serviceId, {
+    candidateId: 'cand-resoak', targetTicks: 2, requestedAtTs: 1_700_000_000,
+  });
+  h.runtime.setEvaluateFnForTest(fakeEvaluateFn());
+
+  const { record: firstSoak } = h.runtime.begin(beginReq());
+  h.runtime.ingestTick(firstSoak.session_id, tickReq(1_700_000_000, BASELINE));
+  h.runtime.ingestTick(firstSoak.session_id, tickReq(1_700_000_030, BASELINE));
+
+  const completedSidecar = readSidecar(fixture);
+  assert.equal(completedSidecar.status, 'complete');
+  assert.equal(completedSidecar.stats.ticks_observed, 2);
+
+  // A new soak.json for the SAME candidate id, requested strictly after
+  // the completed sidecar's own started_at.
+  seedSoak(h.baselineHistoryDir, h.serviceId, {
+    candidateId: 'cand-resoak', targetTicks: 2, requestedAtTs: 1_700_000_200,
+  });
+
+  const { record: secondSoak } = h.runtime.begin(beginReq({ deploy_ref: 'deploy-ref-resoak', requested_at_ts: 1_700_000_200 }));
+  h.runtime.ingestTick(secondSoak.session_id, tickReq(1_700_000_200, BASELINE));
+  h.runtime.close();
+
+  const freshSidecar = readSidecar(fixture);
+  assert.equal(freshSidecar.status, 'accumulating');
+  assert.equal(freshSidecar.stats.ticks_observed, 1, 're-soak starts a fresh accumulation, not a continuation of the completed one');
+  assert.equal(freshSidecar.stats.coverage.sessions_enrolled, 1);
+
+  const soakDir = path.join(fixture.serviceDir, 'soak');
+  const archivedSidecars = fs.readdirSync(soakDir).filter(
+    (f) => f.startsWith('cand-resoak.state.') && f !== 'cand-resoak.state.json',
+  );
+  assert.equal(archivedSidecars.length, 1, 'the completed sidecar was archived under a started_at-suffixed name');
+  const archived = JSON.parse(fs.readFileSync(path.join(soakDir, archivedSidecars[0]), 'utf8'));
+  assert.equal(archived.status, 'complete');
+  assert.equal(archived.stats.ticks_observed, 2, 'the archived sidecar retains the completed soak\'s full evidence');
+});
+
+test('same-candidate re-soak: a manifest that is NOT newer than the completed sidecar leaves soak inactive (no dead-end regression, no spurious archive)', () => {
+  const h = makeHarness({ totalTicksDefault: 10 });
+  const fixture = seedSoak(h.baselineHistoryDir, h.serviceId, {
+    candidateId: 'cand-resoak-2', targetTicks: 2, requestedAtTs: 1_700_000_000,
+  });
+  h.runtime.setEvaluateFnForTest(fakeEvaluateFn());
+
+  const { record } = h.runtime.begin(beginReq());
+  h.runtime.ingestTick(record.session_id, tickReq(1_700_000_000, BASELINE));
+  h.runtime.ingestTick(record.session_id, tickReq(1_700_000_030, BASELINE));
+  const completedSidecar = readSidecar(fixture);
+  assert.equal(completedSidecar.status, 'complete');
+
+  // Re-write the SAME manifest verbatim (requested_at unchanged, i.e.
+  // NOT newer than the completed sidecar's started_at) — must not
+  // reactivate or archive anything.
+  seedSoak(h.baselineHistoryDir, h.serviceId, {
+    candidateId: 'cand-resoak-2', targetTicks: 2, requestedAtTs: 1_700_000_000,
+  });
+  fs.utimesSync(fixture.manifestPath, new Date(), new Date());
+
+  const { record: laterSession } = h.runtime.begin(beginReq({ deploy_ref: 'deploy-ref-resoak-2', requested_at_ts: 1_700_000_500 }));
+  h.runtime.ingestTick(laterSession.session_id, tickReq(1_700_000_500, BASELINE));
+  h.runtime.close();
+
+  const sidecarAfter = readSidecar(fixture);
+  assert.deepEqual(sidecarAfter, completedSidecar, 'a non-newer manifest for a completed candidate must not reactivate or mutate the sidecar');
+
+  const soakDir = path.join(fixture.serviceDir, 'soak');
+  const archivedSidecars = fs.readdirSync(soakDir).filter(
+    (f) => f.startsWith('cand-resoak-2.state.') && f !== 'cand-resoak-2.state.json',
+  );
+  assert.equal(archivedSidecars.length, 0, 'no archive happens without a genuinely newer soak request');
 });
