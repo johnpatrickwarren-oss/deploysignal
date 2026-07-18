@@ -248,6 +248,31 @@ test('readExclusionWindows: reads declared windows', () => {
   assert.equal(windows[0].reason, 'incident');
 });
 
+// R3 (exclusion-window inference) — writeExclusionWindows, added
+// alongside readExclusionWindows since no writer existed before.
+test('writeExclusionWindows: round-trips through readExclusionWindows; atomic (no .tmp- sibling left behind)', () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  store.writeExclusionWindows([
+    { start: '2026-07-05T00:00:00.000Z', end: '2026-07-10T00:00:00.000Z', reason: 'incident', declared_by: 'op-1' },
+  ]);
+  assert.deepEqual(store.readExclusionWindows(), [
+    { start: '2026-07-05T00:00:00.000Z', end: '2026-07-10T00:00:00.000Z', reason: 'incident', declared_by: 'op-1' },
+  ]);
+  const leftoverTmp = fs.readdirSync(store.dir).filter((f) => f.includes('.tmp-'));
+  assert.deepEqual(leftoverTmp, []);
+});
+
+test('writeExclusionWindows: full replace, not append — second call overwrites the first', () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  store.writeExclusionWindows([{ start: '2026-01-01T00:00:00.000Z', end: '2026-01-02T00:00:00.000Z' }]);
+  store.writeExclusionWindows([{ start: '2026-02-01T00:00:00.000Z', end: '2026-02-02T00:00:00.000Z' }]);
+  const windows = store.readExclusionWindows();
+  assert.equal(windows.length, 1);
+  assert.equal(windows[0].start, '2026-02-01T00:00:00.000Z');
+});
+
 // ── schema-version guard ──────────────────────────────────────────────
 
 test('readMeta: unknown schema_version throws typed error', () => {
