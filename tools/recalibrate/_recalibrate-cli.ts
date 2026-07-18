@@ -35,6 +35,7 @@ import type { LifecycleEventEmitter } from '../../engine/o0/lifecycle-events';
 import type { CandidateRecord, CreationReason } from '../../engine/types/recalibration';
 import { transition } from '../../engine/recalibration/state-machine';
 import { isTimedOut } from '../../engine/recalibration/timeout';
+import type { ExclusionWindow } from '../../engine/recalibration/compare';
 import { sweepTimeouts, checkCalendarSafetyNet } from './_recalibrate-sweep';
 import { buildProposedCandidate, type ProposeSourceWindow } from './_recalibrate-candidate';
 import { runCandidateShadow } from './_recalibrate-shadow';
@@ -104,6 +105,12 @@ export interface ProposeArgs {
   sourceWindow: ProposeSourceWindow;
   driftOutput?: object;
   now?: string;
+  /** R2 Task 7 — threaded through to `buildProposedCandidate`'s Task-1
+   *  `selectionAppliedExclusions` option. `refresh`'s own dispatch
+   *  (Task 8, tools/recalibrate/_recalibrate-refresh.ts) is the only
+   *  caller that sets this; direct `propose` CLI invocations never do,
+   *  so the Task-1 backstop stays unchanged for them. */
+  selectionAppliedExclusions?: ExclusionWindow[];
 }
 
 export async function runPropose(
@@ -120,6 +127,7 @@ export async function runPropose(
     sourceWindow: args.sourceWindow,
     driftOutput: args.driftOutput,
     nowIso,
+    selectionAppliedExclusions: args.selectionAppliedExclusions,
   });
   store.writeCandidate(outcome.record);
 
