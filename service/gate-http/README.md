@@ -253,3 +253,11 @@ served sessions: in-memory shadow accumulators are lost, but the
 sidecar's last flush survives, and the controller appends a durable
 `{reason: 'service_restart'}` admission to the sidecar on the next
 construction — never a silent gap.
+
+**Re-soak semantics.** Re-`start`ing a soak for the same candidate after its
+window *completed* archives the old sidecar/ticks log (timestamp-suffixed)
+and starts fresh. Re-starting after an *early stop* (sidecar still
+`accumulating`) **resumes** the existing accumulation under the original
+window — a new `--target-ticks` takes effect only after the current window
+completes. The fold performed at `soak stop` always preserves a durable
+snapshot, so neither path loses evidence.

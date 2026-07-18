@@ -270,6 +270,16 @@ export class SoakController {
     }
 
     let sidecar = this.readSidecarSync(manifest.candidate_id);
+    // RESUME vs RESTART semantics (documented, deliberate): archive-and-
+    // restart triggers only on a COMPLETE sidecar. A soak stopped early
+    // (sidecar left 'accumulating') that is re-started for the same
+    // candidate RESUMES accumulation into the existing sidecar under the
+    // ORIGINAL window (a new --target-ticks on the re-start manifest is
+    // ignored until the current window completes). The durable fold from
+    // the earlier `soak stop` preserved a clean snapshot, so no evidence
+    // is lost either way. To force a fresh window instead, complete or
+    // archive the sidecar first (start a different candidate, or let the
+    // current window run out).
     if (sidecar && sidecar.status === 'complete') {
       if (Date.parse(manifest.requested_at) <= Date.parse(sidecar.started_at)) {
         // Not a re-soak request (this manifest predates or matches the
