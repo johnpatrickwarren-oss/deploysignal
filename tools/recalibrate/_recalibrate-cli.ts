@@ -40,6 +40,8 @@ import { sweepTimeouts, checkCalendarSafetyNet } from './_recalibrate-sweep';
 import { buildProposedCandidate, type ProposeSourceWindow } from './_recalibrate-candidate';
 import { runCandidateShadow } from './_recalibrate-shadow';
 import { RecalibrationStore, JsonlLifecycleEventEmitter, type InitOptions } from './_recalibrate-store';
+import { soakEvidenceLines } from './_recalibrate-soak';
+import { soakMain } from './_recalibrate-soak-cli';
 // R2 Task 8 — `refresh` dispatch. See _recalibrate-refresh.ts's module
 // header for the deliberate cli.ts<->refresh.ts require-cycle note.
 import { runRefresh, type RefreshArgs } from './_recalibrate-refresh';
@@ -230,7 +232,7 @@ export async function runShow(
   const nowIso = nowOrDefault(now);
   await sweepTimeouts(store, emitter, nowIso);
   const rec = store.readCandidate(candidateId);
-  return ok([JSON.stringify(rec, null, 2)]);
+  return ok([JSON.stringify(rec, null, 2), ...soakEvidenceLines(store.dir, rec)]);
 }
 
 // ── approve / reject ─────────────────────────────────────────────────
@@ -543,6 +545,17 @@ async function dispatch(subcommand: string, flags: Record<string, string>): Prom
 }
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
+  // R5 live shadow soak (plan §3 Task 6) — dispatched BEFORE parseArgv
+  // so KNOWN_FLAGS/dispatch()/USAGE_TEXT above stay untouched (§6
+  // conflict list, binding): `soak` has its own flag table, usage text,
+  // and argv parser in _recalibrate-soak-cli.ts.
+  if (argv[0] === 'soak') {
+    const result = await soakMain(argv.slice(1));
+    for (const line of result.lines) console.log(line);
+    if (result.exitCode !== 0) process.exitCode = result.exitCode;
+    return;
+  }
+
   const { subcommand, flags } = parseArgv(argv);
   const result = await dispatch(subcommand, flags);
   for (const line of result.lines) console.log(line);

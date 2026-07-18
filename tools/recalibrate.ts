@@ -27,10 +27,22 @@
 //   node tools/recalibrate.ts check --service <id> [--now <iso>]
 //   node tools/recalibrate.ts rollback --service <id> --version <id> \
 //     --reviewer <id> --reason-code <code> [--now <iso>]
+//   node tools/recalibrate.ts soak start  --service <id> \
+//     --candidate-id <id> --requested-by <id> [--target-ticks 200] \
+//     [--max-duration-seconds <n>] [--root <dir>] [--now <iso>]
+//   node tools/recalibrate.ts soak status --service <id> [--root <dir>] [--now <iso>]
+//   node tools/recalibrate.ts soak stop   --service <id> \
+//     --candidate-id <id> --reviewer <id> [--root <dir>] [--now <iso>]
 //
 // `shadow` (Task 9, tools/recalibrate/_recalibrate-shadow.ts) wraps the
 // EXISTING tools/run-shadow-compare.ts Q60 orchestrator with active +
 // candidate SubstrateRefs; 'reviewable' is reachable ONLY via that path.
+//
+// `soak` (R5, tools/recalibrate/_recalibrate-soak.ts +
+// _recalibrate-soak-cli.ts) drives a LIVE shadow soak of a candidate
+// CompiledConfig against real traffic via service/gate-http's
+// SoakController — ADDITIONAL evidence only (R-Q4: complements, never
+// replaces, replay shadow validation; never gates reviewable).
 
 export {
   runInit, runPropose, runShadow, runList, runShow, runApprove, runReject, runCheck, runRollback,
@@ -51,6 +63,14 @@ export { buildProposedCandidate } from './recalibrate/_recalibrate-candidate';
 export type { ProposeInput, ProposeOutcome, ProposeSourceWindow } from './recalibrate/_recalibrate-candidate';
 export { runCandidateShadow } from './recalibrate/_recalibrate-shadow';
 export type { RunCandidateShadowOptions, RunCandidateShadowResult } from './recalibrate/_recalibrate-shadow';
+export {
+  soakManifestPath, soakSidecarPath, readSoakManifest, writeSoakManifest, readSoakSidecar,
+  foldSoakEvidence, soakEvidenceLines, formatSoakSidecarSummary,
+} from './recalibrate/_recalibrate-soak';
+export {
+  SOAK_USAGE_TEXT, runSoakStart, runSoakStatus, runSoakStop, soakMain,
+} from './recalibrate/_recalibrate-soak-cli';
+export type { SoakStartArgs, SoakStopArgs } from './recalibrate/_recalibrate-soak-cli';
 // R2 Task 8 — `refresh` (Task 7 orchestrator) + Task 6's pure selection
 // module public surface.
 export { runRefresh } from './recalibrate/_recalibrate-refresh';
@@ -62,7 +82,7 @@ export type {
 
 import { main } from './recalibrate/_recalibrate-cli';
 
-const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'refresh', 'shadow', 'list', 'show', 'approve', 'reject', 'check', 'rollback'];
+const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'refresh', 'shadow', 'list', 'show', 'approve', 'reject', 'check', 'rollback', 'soak'];
 if (RECALIBRATE_SUBCOMMANDS.includes(process.argv[2])) {
   main().catch((err) => {
     console.error(err instanceof Error ? (err.stack ?? err.message) : err);
