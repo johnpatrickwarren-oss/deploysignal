@@ -200,6 +200,11 @@ test('e2e: propose -> shadow-validate -> soak start -> live ticks -> soak stop -
     sessionTtlSeconds: 3600,
     requestTimeoutMs: 4000,
     auditDir: path.join(storeDir, serviceId, 'audit'),
+    maintenanceIntervalSeconds: 0,
+    maintenanceAutoRefresh: false,
+    maintenanceRefreshBundleDir: null,
+    maintenanceRefreshWindow: null,
+    maintenanceRecalibrateBin: null,
   };
 
   let handle: GateServerHandle | undefined;
