@@ -14,6 +14,7 @@ import {
   GateSessionRuntime,
 } from './_gate-session-runtime';
 import type { GateHttpConfig } from './_gate-config';
+import type { MaintenanceScheduler } from './_gate-maintenance';
 import { isSafeIdentifier } from './_gate-http-util';
 
 export interface HandlerDeps {
@@ -21,6 +22,7 @@ export interface HandlerDeps {
   store: SessionStore;
   cfg: GateHttpConfig;
   auditWriter: AuditWriter;
+  maintenance: MaintenanceScheduler;
 }
 
 export interface HandlerResult {
@@ -207,6 +209,11 @@ export function handleReadyz(deps: HandlerDeps): HandlerResult {
       ok, store_writable: storeWritable,
       audit_writer: { healthy: auditStatus.healthy, errors: auditStatus.errors },
       config_source: configSource,
+      // R4 additive field — readiness itself never depends on the
+      // maintenance scheduler (a stalled/erroring maintenance run is not
+      // a reason to fail readiness: it never touches the served tick
+      // path). See MaintenanceScheduler.getStatus().
+      maintenance: deps.maintenance.getStatus(),
     },
   };
 }

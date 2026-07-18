@@ -28,6 +28,7 @@ import { loadConfigFromEnv } from './_gate-config';
 import type { GateHttpConfig } from './_gate-config';
 import { GateSessionRuntime } from './_gate-session-runtime';
 import type { GateRuntimeConfig } from './_gate-session-runtime';
+import { MaintenanceScheduler } from './_gate-maintenance';
 import { SessionStore } from '../session/session-store';
 import { JsonlLifecycleEventEmitter } from '../session/jsonl-lifecycle-emitter';
 import { handleRequest } from './_gate-router';
@@ -41,6 +42,13 @@ export interface GateServerHandle {
   runtime: GateSessionRuntime;
   store: SessionStore;
   auditWriter: AuditWriter;
+  // R4 in-service maintenance scheduler (service/gate-http/_gate-maintenance.ts).
+  // Exposed on the handle (not just buried in HandlerDeps) so callers —
+  // and tests — can drive a maintenance run directly
+  // (`handle.maintenance.runOnce()`) and inject the execFileFn test seam
+  // (`handle.maintenance.setExecFileFnForTest(...)`), the same way
+  // GateSessionRuntime.setEvaluateFnForTest is reached via `handle.runtime`.
+  maintenance: MaintenanceScheduler;
   close(): Promise<void>;
 }
 
@@ -62,8 +70,25 @@ export function createGateServer(cfg: GateHttpConfig): GateServerHandle {
   const runtime = new GateSessionRuntime(runtimeCfg, store, emitter, auditWriter);
   runtime.sweepOnBoot(); // OQ-1 declare-void-and-restart
 
+  // R4 in-service maintenance scheduler: constructed unconditionally
+  // (cheap — just a durable-log mkdir), started unconditionally too —
+  // `start()` itself is the no-op when `maintenanceIntervalSeconds` is
+  // 0/unset (DEFAULT OFF). See README.md's "maintenance scheduler"
+  // section.
+  const maintenance = new MaintenanceScheduler({
+    intervalSeconds: cfg.maintenanceIntervalSeconds,
+    autoRefresh: cfg.maintenanceAutoRefresh,
+    refreshBundleDir: cfg.maintenanceRefreshBundleDir,
+    refreshWindow: cfg.maintenanceRefreshWindow,
+    recalibrateBin: cfg.maintenanceRecalibrateBin,
+    serviceId: cfg.serviceId,
+    baselineHistoryDir: cfg.baselineHistoryDir,
+    storeDir: cfg.storeDir,
+  });
+  maintenance.start();
+
   const deps: HandlerDeps = {
-    runtime, store, cfg, auditWriter,
+    runtime, store, cfg, auditWriter, maintenance,
   };
   const server = http.createServer((req, res) => handleRequest(deps, req, res));
   server.requestTimeout = cfg.requestTimeoutMs;
@@ -73,7 +98,9 @@ export function createGateServer(cfg: GateHttpConfig): GateServerHandle {
     runtime,
     store,
     auditWriter,
+    maintenance,
     close: () => new Promise((resolve, reject) => {
+      maintenance.stop();
       runtime.close();
       auditWriter.close();
       server.close((err) => (err ? reject(err) : resolve()));
