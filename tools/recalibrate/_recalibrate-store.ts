@@ -359,6 +359,18 @@ export class RecalibrationStore {
     return parsed.windows;
   }
 
+  /** R3 (exclusion-window inference, SUGGEST-ONLY) — the store's owned
+   *  writer for exclusion-windows.json, added alongside `readExclusionWindows`
+   *  since no writer existed before this: every declared exclusion window
+   *  (operator-authored, or SUGGESTED-and-then-applied via `recalibrate
+   *  exclusions apply`) is written through here, atomic tmp+rename like
+   *  every other store-owned file. Full replace, not append — callers pass
+   *  the complete desired window list. */
+  writeExclusionWindows(windows: ExclusionWindow[]): void {
+    const payload = { schema_version: '1' as const, windows };
+    writeAtomic(this.exclusionsPath(), JSON.stringify(payload, null, 2) + '\n');
+  }
+
   appendEvent(event: StoredEvent): void {
     fs.appendFileSync(this.eventsPath(), JSON.stringify(event) + '\n');
   }
