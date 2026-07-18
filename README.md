@@ -69,11 +69,11 @@ Docs in this repo mark components with a five-bucket status taxonomy so readers 
 
 | Status | Meaning | Currently includes |
 |---|---|---|
-| **[runtime]** | Implemented in the per-tick engine path, exercised by the test suite | Five detector families; gate cascade + SRM + fail-fast; portfolio/cascade fusion; audit v2; verdict grouping + advisory fan-out; Anvil suppression |
-| **[offline-tool]** | Implemented as a repo tool an operator runs manually | Calibration compiler; regression injection; real-trace ingestion (v8a–c, v9a); shadow-compare CLI; demo builders |
-| **[stub]** | Typed contract present, implementation inert or deliberately throwing | State-gate (G3) persistence; Anvil chaos-platform adapter network methods |
-| **[spec-only]** | Specified in `NORTH-STAR-ARCHITECTURE.md` / `ORCHESTRATION-ADAPTERS.md`, no code | Orchestrator adapters (Argo/Spinnaker/webhook); direction-aware baseline-maintenance loop (Addition #15); incident-aware gating; Metric Registry governance |
-| **[future]** | Intended production-control-plane work, not fully specified | Durable verdict service (sessions, idempotent verdict API); multi-region baseline consistency |
+| **[runtime]** | Implemented in the per-tick engine path or a shipped long-running service, exercised by the test suite | Five detector families; gate cascade + SRM + fail-fast (G3 state gate wired via `StateGateContext`); portfolio/cascade fusion with `verdict_rationale` + scale-honest `evidence_outlook`; audit v2 with fail-loud writer; verdict grouping + advisory fan-out; Anvil suppression; **durable session store + Argo Rollouts Level-1 verdict service** (`service/`, declare-void-and-restart semantics, idempotent tick replay) |
+| **[offline-tool]** | Implemented as a repo tool an operator runs manually | Calibration compiler + guarantee-manifest sidecar; **Addition #15 baseline-maintenance lifecycle** (`tools/recalibrate`: candidate state machine, readiness gates, shadow validation, approve/reject, atomic promotion + rollback, timeout + calendar sweeps); regression injection; real-trace ingestion (v8a–c, v9a); shadow-compare CLI; pre-registered comparator-baseline study; demo builders |
+| **[stub]** | Typed contract present, implementation inert or deliberately throwing | Anvil chaos-platform adapter network methods; curation pipeline SLICEs 2–3 (D5–D10 throw) |
+| **[spec-only]** | Specified in `NORTH-STAR-ARCHITECTURE.md` / `ORCHESTRATION-ADAPTERS.md`, no code | Spinnaker / model-lifecycle / webhook orchestrator adapters (the **Argo Level-1 web-provider service is shipped** — see [runtime]); incident-aware gating; Metric Registry governance |
+| **[future]** | Intended production-control-plane work, not fully specified | Multi-instance/distributed control plane (the shipped session store is deliberately single-writer reference-grade); multi-region baseline consistency; automated candidate *production* (window selection → curation → compile remains an upstream operator flow feeding `recalibrate propose`) |
 
 The engine is also published as a separate shared library, [`deploysignal-engine`](https://github.com/johnpatrickwarren-oss/deploysignal-engine), consumed by this repo and by [Tessera](https://github.com/johnpatrickwarren-oss/tessera); a handful of statistical baseline primitives live there rather than here (see that repo's README for its charter).
 
@@ -98,6 +98,8 @@ This codebase was built as a four-role multi-agent project (architect / TPM / im
 
 The local [`anchor/`](anchor/) folder is a pointer to that canonical repo.
 
+Comparator-baseline validation against tuned threshold-gate and canary-vs-control alternatives is pre-registered in [`runs/comparator-baseline/ENDPOINTS.md`](runs/comparator-baseline/ENDPOINTS.md), with the committed registered run at [`runs/comparator-baseline/report-synthetic-v1.json`](runs/comparator-baseline/report-synthetic-v1.json) (see [`METHODOLOGY.md` §5](METHODOLOGY.md#5-empirical-validation-against-comparator-baselines)).
+
 ## License
 
 Apache 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
@@ -112,7 +114,9 @@ DeploySignal's detector calibration assumes baseline traces are operator-curated
 
 **Gap — Sustained large-scale-event (LSE) contamination.** No automatic outage-period detection in baseline ingestion. If an operator feeds a baseline window containing a multi-day outage, calibrated thresholds will skew (mean shifted, variance inflated); robust statistics break down past ~50% contamination per window. Operators are responsible for upstream curation: feed traces from healthy windows; exclude incident periods via timestamp filtering before ingestion.
 
-This operator-curated-healthy-baseline pattern is consistent with industry standard for deploy-gate analysis tools — Spinnaker Kayenta, Argo Rollouts, Flagger, Harness Continuous Verification, LaunchDarkly Release Guardian, Datadog Watchdog, and Dynatrace Quality Gates all rely on operator-curated healthy traffic as calibration input. The same pattern applies to LLM-observability tools (Fiddler Guardrails, Arize Phoenix, WhyLabs LangKit) for their reference distributions. Adding automated incident-window exclusion (e.g., as a D11 decision in the baseline curation pipeline, or operator-supplied incident-timestamp manifest) is a possible future extension.
+This operator-curated-healthy-baseline pattern is consistent with industry standard for deploy-gate analysis tools — Spinnaker Kayenta, Argo Rollouts, Flagger, Harness Continuous Verification, LaunchDarkly Release Guardian, Datadog Watchdog, and Dynatrace Quality Gates all rely on operator-curated healthy traffic as calibration input. The same pattern applies to LLM-observability tools (Fiddler Guardrails, Arize Phoenix, WhyLabs LangKit) for their reference distributions.
+
+**Where the boundary sits today (2026-07-17):** DeploySignal now implements candidate-baseline *governance* — persisted candidates, readiness gates, mandatory shadow validation, operator approve/reject with reason codes, atomic promotion with rollback, timeout default-reject, and a monthly calendar due-check (`tools/recalibrate`). Operator-declared exclusion windows (`exclusion-windows.json`) are a first-class readiness input: a candidate whose source window overlaps a declared incident/maintenance period fails eligibility. What remains upstream and operator-owned is candidate *production*: selecting the telemetry window, curating it as healthy, and running the calibration compiler that `recalibrate propose` consumes. Automated inference of exclusion windows from DeploySignal's own session/verdict records, and an integrated refresh controller that chains window selection → compile → propose over an operator-supplied bundle, are approved follow-on work — not yet shipped.
 
 ## Performance
 

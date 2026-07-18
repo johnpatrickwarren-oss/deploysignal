@@ -113,13 +113,16 @@ function buildAndWriteConfig(b: BuildConfigArgs): {
   const { alphaA, alphaB, alphaC, alphaD, alphaE } = allocateAlpha(
     args, effective, emit.A, emit.C, emit.D, emit.E);
 
-  const version = (emit.D || emit.E)
+  const derivedVersion = (emit.D || emit.E)
     ? 'v4-fusion-novelty'
     : emit.C
       ? 'v3-with-family-c'
       : emit.A
         ? 'v2-with-family-a'
         : 'v1-legacy-equivalent';
+  // R2 Task 3 — optional refresh-candidate version disambiguator.
+  // Absent -> byte-identical to the pre-Task-3 fixed enum string.
+  const version = args.version_suffix ? `${derivedVersion}+${args.version_suffix}` : derivedVersion;
 
   const config: ConfigWithFamilyB = {
     version,
@@ -163,9 +166,13 @@ function buildAndWriteConfig(b: BuildConfigArgs): {
   // REPLY-50 D7 — stamp compile_phases just before write.
   config.compile_phases = finalizePhaseTimings(agg.timings, hrNow() - tHrStart);
 
-  // Q61 SPEC-1 SLICE 1 — stamp baseline curation pipeline diagnostics.
+  // Q61 SPEC-1 SLICE 1/2/3 (R2 Task 5) — stamp baseline curation
+  // pipeline diagnostics. D10 (within SLICE_3) is the pipeline's sole
+  // config-mutating decision (baseline_provenance honest stamping);
+  // it runs here, before the config file + guarantee manifest are
+  // written, so both reflect the stamped value.
   const pipelineState = runBaselineCurationPipeline(bundle, config, {
-    slices: ['SLICE_1'],
+    slices: ['SLICE_1', 'SLICE_2', 'SLICE_3'],
     verifyDecisions: true,
   });
   config.baseline_curation_pipeline_diagnostics = pipelineState.decisions;
@@ -187,8 +194,8 @@ function buildAndWriteConfig(b: BuildConfigArgs): {
   return { config, outPath, alphaA, alphaC };
 }
 
-export async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
+export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
+  const args = parseArgs(argv);
   const t0 = Date.now();
   const tHrStart = hrNow();
   const agg = newCompileAggregator();

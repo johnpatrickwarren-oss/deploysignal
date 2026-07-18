@@ -268,9 +268,15 @@ function evalFamilyC(params: OrchestrateParams, hr: HealthResult, fc: FamilyVerd
       const rr = resolveDetectorId(rid)!;
       // Addition #20 — variant-aware detector_id. When the verdict carries
       // a Family-C-registered signal (`hotelling_t2_safe` /
-      // `sequential_mmd_e_process`), use it as detector_id instead of
-      // the default chi_square / bootstrap_null mapping. Preserves
-      // audit distinction between legacy + new e-process variants.
+      // `sequential_mmd_e_process` / `sequential_mmd_betting_e_process`),
+      // use it as detector_id instead of the default chi_square /
+      // legacy-mmd mapping. Preserves audit distinction between
+      // chi_square/legacy-mmd and the safe_test / e-process variants.
+      // `sequential_mmd_betting_e_process` registration closed a gap: the
+      // Q67 v2 canonical evaluator's own signal id used to be absent from
+      // DETECTOR_REGISTRY.C, so this membership check fell through to
+      // `rr` (the legacy `sequential_mmd` id) for its fires — see
+      // engine/guarantees.ts sequential_mmd.id_mapping_note.
       const sig = v.signal as DetectorId | undefined;
       const ridResolved = (sig && (DETECTOR_REGISTRY.C as readonly string[]).indexOf(sig) >= 0)
         ? { family_id: 'C' as const, detector_id: sig }

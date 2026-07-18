@@ -170,7 +170,45 @@ two operational regimes, is direct evidence of the framework's generality.
 
 ---
 
-## 5. Open problems
+## 5. Empirical validation against comparator baselines
+
+External review of the portfolio detector's evaluation asked the natural
+follow-up question: how does the portfolio's escaped-regression /
+false-rollback / detection-delay profile compare against the two families of
+gate most deployment-health tooling actually ships — a **well-tuned
+single-signal threshold gate** (metric-threshold checks à la
+Flagger/Argo-Rollouts) and a **well-tuned canary-vs-control statistical
+judge** (Mann-Whitney canary analysis à la Spinnaker/Kayenta)? A comparison
+against an untuned or strawman baseline is not informative, so the harness
+pre-registers the comparator arms, the tuning procedure, the evaluation
+splits, and the exact endpoints *before* any comparator code is written —
+[`runs/comparator-baseline/ENDPOINTS.md`](runs/comparator-baseline/ENDPOINTS.md)
+is committed and frozen ahead of the implementation, and the harness
+hard-fails at runtime if its own CLI arguments disagree with that frozen
+document. This pre-registration discipline is the point: the tuning
+procedure cannot be adjusted after seeing evaluation-split results, and a
+post-hoc endpoint addition fails CI in the same PR that adds it (the harness
+asserts the emitted report's metric keys equal exactly the pre-registered
+set).
+
+The committed run —
+[`runs/comparator-baseline/report-synthetic-v1.json`](runs/comparator-baseline/report-synthetic-v1.json)
+and its human-readable
+[`SUMMARY-synthetic-v1.md`](runs/comparator-baseline/SUMMARY-synthetic-v1.md)
+— is the exact registered command (no ad hoc parameter overrides) against
+the `synthetic-v1` baseline. Both comparator arms tune to zero false fires
+on a held-out, healthy-only tuning split (no regression-profile peeking,
+mirroring how such gates are tuned in production) and hold that guarantee
+on the evaluation split with no leakage, at a measurable cost in escaped
+regressions relative to the portfolio — exactly the kind of power/false-alarm
+trade-off this class of study exists to surface. This harness supersedes any
+prior, non-pre-registered comparator work in this codebase; no result from
+any such prior attempt was consulted in writing ENDPOINTS.md or the code
+that implements it.
+
+---
+
+## 6. Open problems
 
 1. **Optimal detector-portfolio composition.** The $40/20/20/10/10$ allocation
    and five-family roster are hand-set. Which subset of detectors and what

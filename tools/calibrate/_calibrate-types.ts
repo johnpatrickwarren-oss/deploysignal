@@ -110,6 +110,13 @@ export interface Args {
    *  to cells[].tier='aggregate' for tenantId-less queries) sees the
    *  patched values. P3.3 spot-check finding documented in commit. */
   demo_baseline_patch?: string;
+  /** R2 Task 3 (recalibrate refresh) — appended to the compiler-derived
+   *  `version` string as `` `${derivedVersion}+${suffix}` `` when
+   *  present. Rationale: `CompiledConfig.version` is otherwise a fixed
+   *  enum string (`v4-fusion-novelty` …) — successive refreshes would
+   *  collide in `promotion_history` and break `rollbackTo` version
+   *  lookup. Absent → unchanged version string (determinism guard). */
+  version_suffix?: string;
 }
 
 export interface CellSamples2D {

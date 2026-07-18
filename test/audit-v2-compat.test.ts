@@ -68,6 +68,8 @@ function portfolioResult(): VerdictResult {
     fusion_topology: 'portfolio',
     tick: 8,
     deploy_ref: 'compat-test',
+    verdict_rationale: 'Rollback triggered: Family A fired on p99_latency; Family B fired on Slow Bleed (Multi-Metric Drift).',
+    evidence_outlook: [],
   };
   return {
     verdict: 'rollback',
@@ -93,6 +95,8 @@ function cascadeResult(): VerdictResult {
     fusion_topology: 'cascade',
     tick: 8,
     deploy_ref: 'compat-test',
+    verdict_rationale: 'Rollback triggered: Family B fired on Slow Bleed (Multi-Metric Drift).',
+    evidence_outlook: [],
   };
   return {
     verdict: 'rollback',

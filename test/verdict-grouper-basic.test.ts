@@ -27,6 +27,8 @@ function makeVerdict(overrides: Partial<FusedVerdict> = {}): FusedVerdict {
     fusion_topology: 'portfolio',
     tick: 0,
     deploy_ref: 'deploy-1',
+    verdict_rationale: 'Proceed: observation window closed with no rollback signals across all families.',
+    evidence_outlook: [],
     ...overrides,
   };
 }

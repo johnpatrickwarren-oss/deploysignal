@@ -1,4 +1,4 @@
-// tools/curate-baseline-pipeline.ts — Q61 SPEC-1 SLICE 1.
+// tools/curate-baseline-pipeline.ts — Q61 SPEC-1 SLICE 1 + R2 SLICE 2/3.
 //
 // 10-decision baseline curation pipeline orchestrator. Each decision
 // is a pure function with explicit input + output_summary + decision
@@ -7,7 +7,8 @@
 // diagnostic at CompiledConfig.baseline_curation_pipeline_diagnostics
 // (additive optional field).
 //
-// SLICE 1 ships D1-D4; SLICE 2 ships D5-D7; SLICE 3 ships D8-D10.
+// SLICE 1 ships D1-D4; SLICE 2 ships D5-D7 (R2 Task 4); SLICE 3 ships
+// D8-D10 (R2 Task 5).
 //
 // SLICE 1 design choice (per spec § Open questions #1 +
 // architect-default-suggestion + TPM HALT-DISCIPLINE Step 3):
@@ -21,21 +22,37 @@
 //
 //   Byte-identical regression (acceptance criterion #7) auto-holds by
 //   construction — pipeline does no calculation; just inspects state
-//   and stamps audit records.
+//   and stamps audit records. SLICE 2 (D5-D7) preserves this: pure
+//   inspection of already-computed compiler outputs — no computation.
+//
+//   D10 CARVE-OUT (R2 Task 5): D10 (baseline_provenance honest
+//   stamping) is the SOLE config-mutating decision in the pipeline.
+//   Every other decision (D1-D9) only inspects `state.compiledConfig`
+//   / `state.bundle` and returns an audit record; D10 may write
+//   `state.compiledConfig.baseline_provenance` (never any numeric
+//   calibration state) per the honest-stamping contract in its
+//   function doc. This is a deliberate, narrow exception to the
+//   "pipeline does no calculation, only inspects" design choice above.
 //
 // Anti-scope (per Q61 spec):
 //   - NO calibration logic changes (preserves Q58 + Q59 H4 PERMANENT +
 //     Q60 anti-scope).
 //   - NO new compile-output fields beyond baseline_curation_pipeline_
-//     diagnostics.
-//   - SLICE 1 ships D1-D4 only; D5-D10 throw on request.
+//     diagnostics (D10's baseline_provenance stamp is pre-existing
+//     schema per _config-compiled.ts — populating it is not a new
+//     field).
+//   - SLICE 1 + SLICE 2 + SLICE 3 ship D1-D10.
 
 import type {
   BaselineBundle,
+  BaselineCellEntry,
   BaselineCurationDecision,
   BaselineCurationDecisionId,
   CompiledConfig,
 } from '../engine/types/config.js';
+import type { FamilyAPerSignalParams } from '../engine/types/families/a.js';
+import type { FamilyDPerSignal } from '../engine/types/families/d.js';
+import { hashTenantTierConfig } from './calibrate/_calibrate-tenant-tiers.js';
 
 export type SliceId = 'SLICE_1' | 'SLICE_2' | 'SLICE_3';
 
@@ -54,8 +71,10 @@ export interface PipelineOpts {
 
 /** Run the baseline curation pipeline against an already-built
  *  CompiledConfig + its source BaselineBundle. SLICE 1 stamps D1-D4
- *  audit records; SLICE 2/3 throw NotImplementedError per slice
- *  boundary halt-discipline. */
+ *  audit records; SLICE 2 stamps D5-D7; SLICE 3 stamps D8-D10. D1-D9
+ *  are pure inspection (never mutate their inputs); D10 is the SOLE
+ *  config-mutating decision in the entire pipeline — see its function
+ *  doc for the honest-stamping contract it enforces. */
 export function runBaselineCurationPipeline(
   bundle: BaselineBundle,
   compiledConfig: CompiledConfig,
@@ -71,17 +90,15 @@ export function runBaselineCurationPipeline(
   }
 
   if (opts.slices.includes('SLICE_2')) {
-    throw new Error(
-      'SLICE_2 (D5 sparse-cell fallback + D6 multi-tenant tier '
-      + 'aggregation + D7 ar1_phi calibration) not yet implemented; '
-      + 'deferred to future close PR per Q61 spec § Q61.2 phasing.');
+    state.decisions.D5 = runD5_sparseCellFallback(state);
+    state.decisions.D6 = runD6_multiTenantTierAggregation(state);
+    state.decisions.D7 = runD7_ar1PhiCalibration(state);
   }
+
   if (opts.slices.includes('SLICE_3')) {
-    throw new Error(
-      'SLICE_3 (D8 substrate-specific calibration adjustment + D9 '
-      + 'cross-substrate consistency verification + D10 baseline_provenance '
-      + 'honest stamping) not yet implemented; deferred to future close PR '
-      + 'per Q61 spec § Q61.2 phasing.');
+    state.decisions.D8 = runD8_substrateSpecificAdjustment(state);
+    state.decisions.D9 = runD9_crossSubstrateConsistency(state);
+    state.decisions.D10 = runD10_baselineProvenanceHonestStamping(state);
   }
 
   if (opts.verifyDecisions) verifyDecisionAuditEmissions(state);
@@ -248,6 +265,356 @@ function runD4_slidingBufferThreshold(state: PipelineState): BaselineCurationDec
     source_memorialization:
       'ARCHITECT-REPLY-Q2-B-6-1 + Q2.B.6.2 + Q2.B.6.3 sliding-buffer recalibration disposition cycle '
       + '(audit hardened at Q2.B.6.3 betting threshold consistency check).',
+  };
+}
+
+// ── SLICE 2 decision functions (D5-D7) ────────────────────────────
+//
+// R2 Task 4. Pure inspection of already-computed compiler outputs — no
+// computation; byte-behavior of calibration untouched (D5-D7 read but
+// never write CompiledConfig or BaselineBundle).
+
+function countCellsByConfidence(cells: BaselineCellEntry[]): {
+  strict: number; pooled: number; aggregate: number; none: number; varianceInflated: number;
+} {
+  let strict = 0;
+  let pooled = 0;
+  let aggregate = 0;
+  let none = 0;
+  let varianceInflated = 0;
+  for (const c of cells) {
+    if (c.confidence === 'strict') strict += 1;
+    else if (c.confidence === 'pooled') pooled += 1;
+    else if (c.confidence === 'aggregate') aggregate += 1;
+    else if (c.confidence === 'none') none += 1;
+    if (c.variance_inflated) varianceInflated += 1;
+  }
+  return { strict, pooled, aggregate, none, varianceInflated };
+}
+
+function runD5_sparseCellFallback(state: PipelineState): BaselineCurationDecision {
+  const cells = state.compiledConfig.baseline_cells?.cells ?? [];
+  const counts = countCellsByConfidence(cells);
+  const aggregateFallback = state.compiledConfig.baseline_cells?.aggregate_fallback;
+  const aggregateFallbackPresent = !!aggregateFallback && Object.keys(aggregateFallback).length > 0;
+  return {
+    decision_id: 'D5',
+    decision_name: 'Sparse-cell fallback',
+    inputs: {
+      upstream_decisions: ['D1', 'D2'],
+      compile_state_ref: 'baseline_cells.cells[].{confidence,pooled_from,variance_inflated} + aggregate_fallback',
+    },
+    output_summary: {
+      n_cells_strict: counts.strict,
+      n_cells_pooled: counts.pooled,
+      n_cells_aggregate: counts.aggregate,
+      n_cells_none: counts.none,
+      n_cells_variance_inflated: counts.varianceInflated,
+      aggregate_fallback_present: aggregateFallbackPresent,
+    },
+    decision_rule:
+      'Q2.B.4 sparse-cell confidence disposition: cells below min_samples_pooled '
+      + 'pool from adjacent hours (confidence=pooled) or fall through to the '
+      + 'cross-cell aggregate_fallback (confidence=aggregate/none); pooling '
+      + 'flags variance_inflated for L3 fusion threshold widening.',
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D5',
+    },
+    source_memorialization:
+      'ARCHITECT-REPLY-Q2-B-4-COMPILE-PIPELINE-FIX-DISPOSITION (sparse-cell pooling/fallback disposition) '
+      + '+ Reviewer X4 variance_inflated signaling.',
+  };
+}
+
+function countDistinctTenantTiers(cells: BaselineCellEntry[]): number {
+  const tiers = new Set<string>();
+  for (const c of cells) {
+    const t = c.key.tenant_tier;
+    if (t !== undefined) tiers.add(String(t));
+  }
+  return tiers.size;
+}
+
+function runD6_multiTenantTierAggregation(state: PipelineState): BaselineCurationDecision {
+  const config = state.compiledConfig;
+  const cells = config.baseline_cells?.cells ?? [];
+  const multiTenant = !!config.tenant_tier_map;
+  const nTenantsMapped = config.tenant_tier_map ? Object.keys(config.tenant_tier_map).length : 0;
+  const nTiersInCells = countDistinctTenantTiers(cells);
+  const tenantTierConfigHash = config.tenant_tier_config
+    ? hashTenantTierConfig(config.tenant_tier_config)
+    : 'unset';
+  return {
+    decision_id: 'D6',
+    decision_name: 'Multi-tenant tier aggregation',
+    inputs: {
+      upstream_decisions: undefined,
+      compile_state_ref: 'CompiledConfig.{tenant_tier_map,tenant_tier_config} + baseline_cells.cells[].key.tenant_tier',
+    },
+    output_summary: {
+      multi_tenant: multiTenant,
+      n_tenants_mapped: nTenantsMapped,
+      n_tiers_in_cells: nTiersInCells,
+      tenant_tier_config_hash: tenantTierConfigHash,
+    },
+    decision_rule:
+      'Addition #23 tenant-tier bucketing: runs carrying tenant_id are bucketed '
+      + 'into tiers by traffic fraction (tenant_tier_config.boundaries); cells '
+      + 'gain a per-tier key.tenant_tier dimension alongside the always-present '
+      + "cross-tenant 'aggregate' tier. No-tenant bundles leave tenant_tier_map unset.",
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D6',
+    },
+    source_memorialization: 'ARCHITECT-REPLY-39 D1+D2 tenant-tier bucketing disposition.',
+  };
+}
+
+interface PhiAccumulator {
+  n: number;
+  absMax: number;
+  sum: number;
+  nAtClip: number;
+}
+
+function newPhiAccumulator(): PhiAccumulator {
+  return { n: 0, absMax: 0, sum: 0, nAtClip: 0 };
+}
+
+function accumulatePhi(acc: PhiAccumulator, phi: number | undefined): void {
+  if (typeof phi !== 'number' || !Number.isFinite(phi)) return;
+  acc.n += 1;
+  acc.sum += phi;
+  const abs = Math.abs(phi);
+  if (abs > acc.absMax) acc.absMax = abs;
+  if (abs >= 0.95) acc.nAtClip += 1;
+}
+
+/** Accumulates family_A per-signal ar1_phi values into `acc`; returns
+ *  the count of entries whose betting_calibration_scope is
+ *  'sliding_buffer_ar1'. */
+function collectFamilyAPhiAndScope(
+  perSignal: Record<string, FamilyAPerSignalParams> | undefined,
+  acc: PhiAccumulator,
+): number {
+  if (!perSignal) return 0;
+  let slidingBufferCount = 0;
+  for (const params of Object.values(perSignal)) {
+    accumulatePhi(acc, params.ar1_phi);
+    if (params.betting_calibration_scope === 'sliding_buffer_ar1') slidingBufferCount += 1;
+  }
+  return slidingBufferCount;
+}
+
+function collectFamilyDPhi(familyD: Record<string, FamilyDPerSignal> | undefined, acc: PhiAccumulator): void {
+  if (!familyD) return;
+  for (const params of Object.values(familyD)) accumulatePhi(acc, params.ar1_phi);
+}
+
+function runD7_ar1PhiCalibration(state: PipelineState): BaselineCurationDecision {
+  const cells = state.compiledConfig.baseline_cells?.cells ?? [];
+  const aggregateFallback = state.compiledConfig.baseline_cells?.aggregate_fallback;
+  const acc = newPhiAccumulator();
+  let nSlidingBufferArScope = 0;
+  for (const c of cells) {
+    nSlidingBufferArScope += collectFamilyAPhiAndScope(c.family_A?.per_signal, acc);
+    collectFamilyDPhi(c.family_D, acc);
+  }
+  nSlidingBufferArScope += collectFamilyAPhiAndScope(aggregateFallback?.family_A?.per_signal, acc);
+  collectFamilyDPhi(aggregateFallback?.family_D, acc);
+  const phiMean = acc.n > 0 ? acc.sum / acc.n : 0;
+  return {
+    decision_id: 'D7',
+    decision_name: 'AR(1) phi calibration',
+    inputs: {
+      upstream_decisions: ['D1', 'D2'],
+      compile_state_ref: 'baseline_cells.*.family_A.per_signal[].{ar1_phi,betting_calibration_scope} + family_D[].ar1_phi',
+    },
+    output_summary: {
+      n_signal_entries_with_phi: acc.n,
+      phi_abs_max: acc.absMax,
+      phi_mean: phiMean,
+      n_phi_at_clip_bound: acc.nAtClip,
+      n_sliding_buffer_ar1_scope: nSlidingBufferArScope,
+    },
+    decision_rule:
+      'Q66 Phase-3.d.A.b + Q2.B.7: per-signal AR(1) lag-1 autocorrelation phi '
+      + 'fitted at compile time via Yule-Walker on baseline-mean-centered '
+      + 'per-cell residuals, clipped to [-0.95, +0.95] for stationarity; drives '
+      + 'family_A pre-whitening and family_D bootstrap threshold recalibration '
+      + 'under AR(1) H0. betting_calibration_scope=sliding_buffer_ar1 marks '
+      + 'signals whose betting wealth threshold uses the post-Q2.B.6.3 '
+      + 'per-trajectory MAX-wealth quantile instead of the analytical 1/alpha.',
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D7',
+    },
+    source_memorialization:
+      'Q66 Phase-3.d.A.b ar1_phi extension (retires Q59 H4 PERMANENT clause 1) '
+      + '+ Q2.B.7 ACF-aware parametric AR(1) spec + Q2.B.6.3 sliding-buffer betting disposition.',
+  };
+}
+
+// ── SLICE 3 decision functions (D8-D10) ───────────────────────────
+//
+// R2 Task 5. D8 + D9 are pure inspection like D1-D7. D10 is the SOLE
+// config-mutating decision in the pipeline — see its function doc.
+
+function runD8_substrateSpecificAdjustment(state: PipelineState): BaselineCurationDecision {
+  const config = state.compiledConfig;
+  const perFamily = config.alpha_budget.per_family;
+  const familiesEmitted = Object.entries(perFamily)
+    .filter(([, alpha]) => typeof alpha === 'number' && alpha > 0)
+    .map(([family]) => family)
+    .join(',');
+  return {
+    decision_id: 'D8',
+    decision_name: 'Substrate-specific adjustment',
+    inputs: {
+      upstream_decisions: undefined,
+      compile_state_ref: 'CompiledConfig.{profile_ref,customer_override_ref,policy_defaults,alpha_budget.per_family,family_a_signals,family_c_signals}',
+    },
+    output_summary: {
+      profile_ref: config.profile_ref ?? 'none',
+      customer_override_ref: config.customer_override_ref ?? 'none',
+      families_emitted: familiesEmitted,
+      n_family_a_signals: config.family_a_signals?.length ?? 0,
+      n_family_c_signals: config.family_c_signals?.length ?? 0,
+    },
+    decision_rule:
+      'Addition #28 (REPLY-51 D6/D8) substrate-specific adjustment: a reference '
+      + 'workload profile (profile_ref) parameterizes alpha allocation + bake '
+      + 'defaults + signal inventory; an optional customer_override_ref layers '
+      + 'operator overrides on top. Legacy (no profile) compiles emit '
+      + "profile_ref='none' and derive alpha/signals from hardcoded defaults.",
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D8',
+    },
+    source_memorialization:
+      'ARCHITECT-REPLY-51 D6 (profile_ref) + D8 (customer_override_ref) substrate-parameterization disposition.',
+  };
+}
+
+function countWarningsByCode(config: CompiledConfig): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const w of config.compile_warnings ?? []) {
+    counts[w.code] = (counts[w.code] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function familyDPresent(config: CompiledConfig): boolean {
+  const cells = config.baseline_cells?.cells ?? [];
+  if (cells.some((c) => !!c.family_D)) return true;
+  return !!config.baseline_cells?.aggregate_fallback?.family_D;
+}
+
+function runD9_crossSubstrateConsistency(state: PipelineState): BaselineCurationDecision {
+  const config = state.compiledConfig;
+  const warnings = config.compile_warnings ?? [];
+  const warningsByCode = countWarningsByCode(config);
+  return {
+    decision_id: 'D9',
+    decision_name: 'Cross-substrate consistency',
+    inputs: {
+      upstream_decisions: ['D5', 'D6', 'D7', 'D8'],
+      compile_state_ref: 'CompiledConfig.compile_warnings (residue of _calibrate-audits.ts Q2.B.6.3 consistency audits) + family_D presence',
+    },
+    output_summary: {
+      n_compile_warnings: warnings.length,
+      warnings_summary: JSON.stringify(warningsByCode),
+      family_d_audits_ran: familyDPresent(config),
+    },
+    decision_rule:
+      'Q2.B.6.3 cross-substrate consistency audits (auditAR1FactorizationConsistency, '
+      + 'auditSlidingBufferHotellingConsistency, auditBettingSlidingBufferConsistency) '
+      + 'run during compile against each cell\'s family_A/family_C/family_D calibration; '
+      + 'any residue surfaces on CompiledConfig.compile_warnings. This decision is an '
+      + 'audit-emission-only summary over that residue -- it does not re-run the audits.',
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D9',
+    },
+    source_memorialization: 'Q2.B.6.3 betting/Hotelling/AR(1)-factorization consistency audit disposition cycle.',
+  };
+}
+
+/** D10 — baseline_provenance honest stamping. THE SOLE CONFIG-MUTATING
+ *  DECISION in the 10-decision pipeline (every other decision only
+ *  reads `state.compiledConfig` / `state.bundle`). Four-way disposition
+ *  (R2 plan §C OQ5, throw-on-mismatch adopted):
+ *
+ *   1. `compiledConfig.baseline_provenance` already set AND it
+ *      contradicts `bundle.baseline_provenance` (both present, unequal)
+ *      -> THROW. An artifact whose stamped provenance contradicts its
+ *      own source bundle is worse than a failed compile -- the honest-
+ *      stamping contract treats that contradiction as a hard error, not
+ *      a warning. (`provenance_source: 'pre_stamped'` on the non-throw
+ *      pre-stamped branch, i.e. when bundle-side provenance is absent
+ *      or matches.)
+ *   2. Else if `bundle.baseline_provenance` present -> stamp it
+ *      verbatim (`provenance_source: 'manifest'`).
+ *   3. Else if `bundle.version` starts with `'synthetic'` -> stamp
+ *      `'synthetic'` (`provenance_source: 'synthetic_version_inference'`).
+ *   4. Else -> leave `compiledConfig.baseline_provenance` unstamped;
+ *      `output_summary.provenance_stamped` records the sentinel
+ *      `'unknown_left_unstamped'` (`provenance_source: 'none'`). Never
+ *      guess a `real_*` value -- that is the "honest" contract's core
+ *      promise. */
+function runD10_baselineProvenanceHonestStamping(state: PipelineState): BaselineCurationDecision {
+  const config = state.compiledConfig;
+  const bundle = state.bundle;
+  let provenanceStamped: string;
+  let provenanceSource: 'pre_stamped' | 'manifest' | 'synthetic_version_inference' | 'none';
+
+  if (config.baseline_provenance) {
+    if (bundle.baseline_provenance && bundle.baseline_provenance !== config.baseline_provenance) {
+      throw new Error(
+        `Q61 D10 honest-stamping contract violation: CompiledConfig.baseline_provenance `
+        + `('${config.baseline_provenance}') contradicts the source bundle's manifest `
+        + `baseline_provenance ('${bundle.baseline_provenance}'). An artifact that `
+        + `contradicts its own source is worse than a failed compile.`);
+    }
+    provenanceStamped = config.baseline_provenance;
+    provenanceSource = 'pre_stamped';
+  } else if (bundle.baseline_provenance) {
+    config.baseline_provenance = bundle.baseline_provenance; // THE mutation.
+    provenanceStamped = bundle.baseline_provenance;
+    provenanceSource = 'manifest';
+  } else if (bundle.version.startsWith('synthetic')) {
+    config.baseline_provenance = 'synthetic'; // THE mutation.
+    provenanceStamped = 'synthetic';
+    provenanceSource = 'synthetic_version_inference';
+  } else {
+    provenanceStamped = 'unknown_left_unstamped';
+    provenanceSource = 'none';
+  }
+
+  return {
+    decision_id: 'D10',
+    decision_name: 'Baseline provenance honest stamping',
+    inputs: {
+      upstream_decisions: undefined,
+      compile_state_ref: 'CompiledConfig.baseline_provenance + BaselineBundle.{baseline_provenance,version}',
+    },
+    output_summary: {
+      provenance_stamped: provenanceStamped,
+      provenance_source: provenanceSource,
+    },
+    decision_rule:
+      'R2 plan §C OQ5 honest-provenance-stamping contract: baseline_provenance is '
+      + 'stamped from the source bundle manifest when present, inferred as '
+      + "'synthetic' only from an unambiguous synthetic-* bundle version, and left "
+      + 'unstamped (never guessed as real_*) otherwise. A config whose pre-stamped '
+      + "provenance contradicts its bundle's manifest throws rather than compiling "
+      + 'a self-contradictory artifact.',
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D10',
+    },
+    source_memorialization: 'R2 refresh-controller implementation plan §C OQ5 (2026-07-17).',
   };
 }
 
