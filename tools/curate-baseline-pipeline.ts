@@ -1,4 +1,4 @@
-// tools/curate-baseline-pipeline.ts — Q61 SPEC-1 SLICE 1 + R2 SLICE 2.
+// tools/curate-baseline-pipeline.ts — Q61 SPEC-1 SLICE 1 + R2 SLICE 2/3.
 //
 // 10-decision baseline curation pipeline orchestrator. Each decision
 // is a pure function with explicit input + output_summary + decision
@@ -8,7 +8,7 @@
 // (additive optional field).
 //
 // SLICE 1 ships D1-D4; SLICE 2 ships D5-D7 (R2 Task 4); SLICE 3 ships
-// D8-D10 (R2 Task 5, still throws pending that task).
+// D8-D10 (R2 Task 5).
 //
 // SLICE 1 design choice (per spec § Open questions #1 +
 // architect-default-suggestion + TPM HALT-DISCIPLINE Step 3):
@@ -25,13 +25,23 @@
 //   and stamps audit records. SLICE 2 (D5-D7) preserves this: pure
 //   inspection of already-computed compiler outputs — no computation.
 //
+//   D10 CARVE-OUT (R2 Task 5): D10 (baseline_provenance honest
+//   stamping) is the SOLE config-mutating decision in the pipeline.
+//   Every other decision (D1-D9) only inspects `state.compiledConfig`
+//   / `state.bundle` and returns an audit record; D10 may write
+//   `state.compiledConfig.baseline_provenance` (never any numeric
+//   calibration state) per the honest-stamping contract in its
+//   function doc. This is a deliberate, narrow exception to the
+//   "pipeline does no calculation, only inspects" design choice above.
+//
 // Anti-scope (per Q61 spec):
 //   - NO calibration logic changes (preserves Q58 + Q59 H4 PERMANENT +
 //     Q60 anti-scope).
 //   - NO new compile-output fields beyond baseline_curation_pipeline_
-//     diagnostics.
-//   - SLICE 1 + SLICE 2 ship D1-D7; D8-D10 throw on request pending
-//     R2 Task 5.
+//     diagnostics (D10's baseline_provenance stamp is pre-existing
+//     schema per _config-compiled.ts — populating it is not a new
+//     field).
+//   - SLICE 1 + SLICE 2 + SLICE 3 ship D1-D10.
 
 import type {
   BaselineBundle,
@@ -61,8 +71,10 @@ export interface PipelineOpts {
 
 /** Run the baseline curation pipeline against an already-built
  *  CompiledConfig + its source BaselineBundle. SLICE 1 stamps D1-D4
- *  audit records; SLICE 2/3 throw NotImplementedError per slice
- *  boundary halt-discipline. */
+ *  audit records; SLICE 2 stamps D5-D7; SLICE 3 stamps D8-D10. D1-D9
+ *  are pure inspection (never mutate their inputs); D10 is the SOLE
+ *  config-mutating decision in the entire pipeline — see its function
+ *  doc for the honest-stamping contract it enforces. */
 export function runBaselineCurationPipeline(
   bundle: BaselineBundle,
   compiledConfig: CompiledConfig,
@@ -84,11 +96,9 @@ export function runBaselineCurationPipeline(
   }
 
   if (opts.slices.includes('SLICE_3')) {
-    throw new Error(
-      'SLICE_3 (D8 substrate-specific calibration adjustment + D9 '
-      + 'cross-substrate consistency verification + D10 baseline_provenance '
-      + 'honest stamping) not yet implemented; deferred to future close PR '
-      + 'per Q61 spec § Q61.2 phasing.');
+    state.decisions.D8 = runD8_substrateSpecificAdjustment(state);
+    state.decisions.D9 = runD9_crossSubstrateConsistency(state);
+    state.decisions.D10 = runD10_baselineProvenanceHonestStamping(state);
   }
 
   if (opts.verifyDecisions) verifyDecisionAuditEmissions(state);
@@ -443,6 +453,168 @@ function runD7_ar1PhiCalibration(state: PipelineState): BaselineCurationDecision
     source_memorialization:
       'Q66 Phase-3.d.A.b ar1_phi extension (retires Q59 H4 PERMANENT clause 1) '
       + '+ Q2.B.7 ACF-aware parametric AR(1) spec + Q2.B.6.3 sliding-buffer betting disposition.',
+  };
+}
+
+// ── SLICE 3 decision functions (D8-D10) ───────────────────────────
+//
+// R2 Task 5. D8 + D9 are pure inspection like D1-D7. D10 is the SOLE
+// config-mutating decision in the pipeline — see its function doc.
+
+function runD8_substrateSpecificAdjustment(state: PipelineState): BaselineCurationDecision {
+  const config = state.compiledConfig;
+  const perFamily = config.alpha_budget.per_family;
+  const familiesEmitted = Object.entries(perFamily)
+    .filter(([, alpha]) => typeof alpha === 'number' && alpha > 0)
+    .map(([family]) => family)
+    .join(',');
+  return {
+    decision_id: 'D8',
+    decision_name: 'Substrate-specific adjustment',
+    inputs: {
+      upstream_decisions: undefined,
+      compile_state_ref: 'CompiledConfig.{profile_ref,customer_override_ref,policy_defaults,alpha_budget.per_family,family_a_signals,family_c_signals}',
+    },
+    output_summary: {
+      profile_ref: config.profile_ref ?? 'none',
+      customer_override_ref: config.customer_override_ref ?? 'none',
+      families_emitted: familiesEmitted,
+      n_family_a_signals: config.family_a_signals?.length ?? 0,
+      n_family_c_signals: config.family_c_signals?.length ?? 0,
+    },
+    decision_rule:
+      'Addition #28 (REPLY-51 D6/D8) substrate-specific adjustment: a reference '
+      + 'workload profile (profile_ref) parameterizes alpha allocation + bake '
+      + 'defaults + signal inventory; an optional customer_override_ref layers '
+      + 'operator overrides on top. Legacy (no profile) compiles emit '
+      + "profile_ref='none' and derive alpha/signals from hardcoded defaults.",
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D8',
+    },
+    source_memorialization:
+      'ARCHITECT-REPLY-51 D6 (profile_ref) + D8 (customer_override_ref) substrate-parameterization disposition.',
+  };
+}
+
+function countWarningsByCode(config: CompiledConfig): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const w of config.compile_warnings ?? []) {
+    counts[w.code] = (counts[w.code] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function familyDPresent(config: CompiledConfig): boolean {
+  const cells = config.baseline_cells?.cells ?? [];
+  if (cells.some((c) => !!c.family_D)) return true;
+  return !!config.baseline_cells?.aggregate_fallback?.family_D;
+}
+
+function runD9_crossSubstrateConsistency(state: PipelineState): BaselineCurationDecision {
+  const config = state.compiledConfig;
+  const warnings = config.compile_warnings ?? [];
+  const warningsByCode = countWarningsByCode(config);
+  return {
+    decision_id: 'D9',
+    decision_name: 'Cross-substrate consistency',
+    inputs: {
+      upstream_decisions: ['D5', 'D6', 'D7', 'D8'],
+      compile_state_ref: 'CompiledConfig.compile_warnings (residue of _calibrate-audits.ts Q2.B.6.3 consistency audits) + family_D presence',
+    },
+    output_summary: {
+      n_compile_warnings: warnings.length,
+      warnings_summary: JSON.stringify(warningsByCode),
+      family_d_audits_ran: familyDPresent(config),
+    },
+    decision_rule:
+      'Q2.B.6.3 cross-substrate consistency audits (auditAR1FactorizationConsistency, '
+      + 'auditSlidingBufferHotellingConsistency, auditBettingSlidingBufferConsistency) '
+      + 'run during compile against each cell\'s family_A/family_C/family_D calibration; '
+      + 'any residue surfaces on CompiledConfig.compile_warnings. This decision is an '
+      + 'audit-emission-only summary over that residue -- it does not re-run the audits.',
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D9',
+    },
+    source_memorialization: 'Q2.B.6.3 betting/Hotelling/AR(1)-factorization consistency audit disposition cycle.',
+  };
+}
+
+/** D10 — baseline_provenance honest stamping. THE SOLE CONFIG-MUTATING
+ *  DECISION in the 10-decision pipeline (every other decision only
+ *  reads `state.compiledConfig` / `state.bundle`). Four-way disposition
+ *  (R2 plan §C OQ5, throw-on-mismatch adopted):
+ *
+ *   1. `compiledConfig.baseline_provenance` already set AND it
+ *      contradicts `bundle.baseline_provenance` (both present, unequal)
+ *      -> THROW. An artifact whose stamped provenance contradicts its
+ *      own source bundle is worse than a failed compile -- the honest-
+ *      stamping contract treats that contradiction as a hard error, not
+ *      a warning. (`provenance_source: 'pre_stamped'` on the non-throw
+ *      pre-stamped branch, i.e. when bundle-side provenance is absent
+ *      or matches.)
+ *   2. Else if `bundle.baseline_provenance` present -> stamp it
+ *      verbatim (`provenance_source: 'manifest'`).
+ *   3. Else if `bundle.version` starts with `'synthetic'` -> stamp
+ *      `'synthetic'` (`provenance_source: 'synthetic_version_inference'`).
+ *   4. Else -> leave `compiledConfig.baseline_provenance` unstamped;
+ *      `output_summary.provenance_stamped` records the sentinel
+ *      `'unknown_left_unstamped'` (`provenance_source: 'none'`). Never
+ *      guess a `real_*` value -- that is the "honest" contract's core
+ *      promise. */
+function runD10_baselineProvenanceHonestStamping(state: PipelineState): BaselineCurationDecision {
+  const config = state.compiledConfig;
+  const bundle = state.bundle;
+  let provenanceStamped: string;
+  let provenanceSource: 'pre_stamped' | 'manifest' | 'synthetic_version_inference' | 'none';
+
+  if (config.baseline_provenance) {
+    if (bundle.baseline_provenance && bundle.baseline_provenance !== config.baseline_provenance) {
+      throw new Error(
+        `Q61 D10 honest-stamping contract violation: CompiledConfig.baseline_provenance `
+        + `('${config.baseline_provenance}') contradicts the source bundle's manifest `
+        + `baseline_provenance ('${bundle.baseline_provenance}'). An artifact that `
+        + `contradicts its own source is worse than a failed compile.`);
+    }
+    provenanceStamped = config.baseline_provenance;
+    provenanceSource = 'pre_stamped';
+  } else if (bundle.baseline_provenance) {
+    config.baseline_provenance = bundle.baseline_provenance; // THE mutation.
+    provenanceStamped = bundle.baseline_provenance;
+    provenanceSource = 'manifest';
+  } else if (bundle.version.startsWith('synthetic')) {
+    config.baseline_provenance = 'synthetic'; // THE mutation.
+    provenanceStamped = 'synthetic';
+    provenanceSource = 'synthetic_version_inference';
+  } else {
+    provenanceStamped = 'unknown_left_unstamped';
+    provenanceSource = 'none';
+  }
+
+  return {
+    decision_id: 'D10',
+    decision_name: 'Baseline provenance honest stamping',
+    inputs: {
+      upstream_decisions: undefined,
+      compile_state_ref: 'CompiledConfig.baseline_provenance + BaselineBundle.{baseline_provenance,version}',
+    },
+    output_summary: {
+      provenance_stamped: provenanceStamped,
+      provenance_source: provenanceSource,
+    },
+    decision_rule:
+      'R2 plan §C OQ5 honest-provenance-stamping contract: baseline_provenance is '
+      + 'stamped from the source bundle manifest when present, inferred as '
+      + "'synthetic' only from an unambiguous synthetic-* bundle version, and left "
+      + 'unstamped (never guessed as real_*) otherwise. A config whose pre-stamped '
+      + "provenance contradicts its bundle's manifest throws rather than compiling "
+      + 'a self-contradictory artifact.',
+    verification: {
+      audit_emitted: true,
+      diagnostic_path: 'CompiledConfig.baseline_curation_pipeline_diagnostics.D10',
+    },
+    source_memorialization: 'R2 refresh-controller implementation plan §C OQ5 (2026-07-17).',
   };
 }
 

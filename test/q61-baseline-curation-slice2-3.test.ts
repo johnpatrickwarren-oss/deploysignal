@@ -145,7 +145,7 @@ test('Q61 SLICE 2: runBaselineCurationPipeline executes D1-D7 with SLICE_1+SLICE
   for (const id of ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'] as const) {
     assert.ok(state.decisions[id], `${id} emitted`);
   }
-  assert.equal(state.decisions.D8, undefined, 'D8 not emitted (SLICE 3 deferred)');
+  assert.equal(state.decisions.D8, undefined, 'D8 not emitted (SLICE_3 not requested)');
 });
 
 test('Q61 SLICE 2: D5 sparse-cell fallback output_summary — confidence-tier counts + variance_inflated + aggregate_fallback_present', () => {
@@ -235,9 +235,163 @@ test('Q61 SLICE 2: verifyDecisions=true passes for D5-D7 audit emission', () => 
   }
 });
 
-test('Q61 SLICE 2: SLICE_3 still throws when requested standalone (deferred to R2 Task 5)', () => {
+// ── SLICE 3 (R2 Task 5): D8, D9, D10 ───────────────────────────────
+
+test('Q61 SLICE 3: runBaselineCurationPipeline executes all ten decisions with SLICE_1+SLICE_2+SLICE_3', () => {
+  const state = runBaselineCurationPipeline(makeFixtureBundle(), makeFixtureCompiledConfig(), {
+    slices: ['SLICE_1', 'SLICE_2', 'SLICE_3'],
+    verifyDecisions: true,
+  });
+  for (const id of ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10'] as const) {
+    assert.ok(state.decisions[id], `${id} emitted`);
+  }
+});
+
+test('Q61 SLICE 3: D8 substrate-specific adjustment — profile_ref/customer_override_ref absent -> "none"; families_emitted filters alpha>0', () => {
+  const state = runBaselineCurationPipeline(makeFixtureBundle(), makeFixtureCompiledConfig(), {
+    slices: ['SLICE_3'],
+  });
+  assert.deepEqual(state.decisions.D8!.output_summary, {
+    profile_ref: 'none',
+    customer_override_ref: 'none',
+    families_emitted: 'A,C,D,E', // all four fixture per_family entries are > 0
+    n_family_a_signals: 0,
+    n_family_c_signals: 0,
+  });
+});
+
+test('Q61 SLICE 3: D8 — profile_ref/customer_override_ref present; alpha=0 family excluded from families_emitted; signal inventories counted', () => {
+  const config = makeFixtureCompiledConfig();
+  config.profile_ref = 'llm-inference-streaming@1.0.0';
+  config.customer_override_ref = 'acme@1.0.0';
+  config.alpha_budget.per_family = { A: 4e-4, B: 0, C: 2e-4, D: 0, E: 1e-4 };
+  config.family_a_signals = ['p99_latency', 'ttft'];
+  config.family_c_signals = ['p99_latency', 'ttft', 'cost_req'];
+  const state = runBaselineCurationPipeline(makeFixtureBundle(), config, { slices: ['SLICE_3'] });
+  assert.equal(state.decisions.D8!.output_summary.profile_ref, 'llm-inference-streaming@1.0.0');
+  assert.equal(state.decisions.D8!.output_summary.customer_override_ref, 'acme@1.0.0');
+  assert.equal(state.decisions.D8!.output_summary.families_emitted, 'A,C,E');
+  assert.equal(state.decisions.D8!.output_summary.n_family_a_signals, 2);
+  assert.equal(state.decisions.D8!.output_summary.n_family_c_signals, 3);
+});
+
+test('Q61 SLICE 3: D9 cross-substrate consistency — no compile_warnings -> zeroed summary; family_d_audits_ran true (fixture cellA carries family_D)', () => {
+  const state = runBaselineCurationPipeline(makeFixtureBundle(), makeFixtureCompiledConfig(), {
+    slices: ['SLICE_3'],
+  });
+  assert.equal(state.decisions.D9!.output_summary.n_compile_warnings, 0);
+  assert.equal(state.decisions.D9!.output_summary.warnings_summary, '{}');
+  assert.equal(state.decisions.D9!.output_summary.family_d_audits_ran, true);
+  assert.deepEqual(state.decisions.D9!.inputs.upstream_decisions, ['D5', 'D6', 'D7', 'D8']);
+});
+
+test('Q61 SLICE 3: D9 — compile_warnings counted + grouped by code; no family_D anywhere -> family_d_audits_ran false', () => {
+  const config = makeFixtureCompiledConfig();
+  delete config.baseline_cells!.cells[0].family_D;
+  delete config.baseline_cells!.aggregate_fallback.family_D;
+  config.compile_warnings = [
+    { code: 'CELL_DIM_BASELINE_DEFICIENCY', message: 'm1', context: {} },
+    { code: 'CELL_DIM_BASELINE_DEFICIENCY', message: 'm2', context: {} },
+    { code: 'OTHER_CODE', message: 'm3', context: {} },
+  ];
+  const state = runBaselineCurationPipeline(makeFixtureBundle(), config, { slices: ['SLICE_3'] });
+  assert.equal(state.decisions.D9!.output_summary.n_compile_warnings, 3);
+  assert.equal(state.decisions.D9!.output_summary.warnings_summary,
+    JSON.stringify({ CELL_DIM_BASELINE_DEFICIENCY: 2, OTHER_CODE: 1 }));
+  assert.equal(state.decisions.D9!.output_summary.family_d_audits_ran, false);
+});
+
+test('Q61 SLICE 3: D10 four-way matrix — case 1: config pre-stamped, bundle absent -> pre_stamped, no mutation, no throw', () => {
+  const config = makeFixtureCompiledConfig();
+  config.baseline_provenance = 'real_burstgpt';
+  const bundle = makeFixtureBundle(); // no baseline_provenance
+  const state = runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_3'] });
+  assert.deepEqual(state.decisions.D10!.output_summary, {
+    provenance_stamped: 'real_burstgpt',
+    provenance_source: 'pre_stamped',
+  });
+  assert.equal(config.baseline_provenance, 'real_burstgpt', 'unchanged');
+});
+
+test('Q61 SLICE 3: D10 four-way matrix — case 1b: config pre-stamped matches bundle manifest -> pre_stamped, no throw', () => {
+  const config = makeFixtureCompiledConfig();
+  config.baseline_provenance = 'real_burstgpt';
+  const bundle = makeFixtureBundle();
+  bundle.baseline_provenance = 'real_burstgpt';
+  const state = runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_3'] });
+  assert.equal(state.decisions.D10!.output_summary.provenance_source, 'pre_stamped');
+  assert.equal(config.baseline_provenance, 'real_burstgpt');
+});
+
+test('Q61 SLICE 3: D10 four-way matrix — mismatch (config pre-stamped contradicts bundle manifest) -> THROWS (OQ5)', () => {
+  const config = makeFixtureCompiledConfig();
+  config.baseline_provenance = 'real_burstgpt';
+  const bundle = makeFixtureBundle();
+  bundle.baseline_provenance = 'real_azure_llm_inference';
   assert.throws(
-    () => runBaselineCurationPipeline(makeFixtureBundle(), makeFixtureCompiledConfig(), { slices: ['SLICE_3'] }),
-    /SLICE_3.*not yet implemented/,
+    () => runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_3'] }),
+    /D10 honest-stamping contract violation/,
   );
+});
+
+test('Q61 SLICE 3: D10 four-way matrix — case 2: bundle manifest present, config unset -> stamps verbatim (mutation)', () => {
+  const config = makeFixtureCompiledConfig();
+  const bundle = makeFixtureBundle();
+  bundle.baseline_provenance = 'real_mooncake';
+  const state = runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_3'] });
+  assert.deepEqual(state.decisions.D10!.output_summary, {
+    provenance_stamped: 'real_mooncake',
+    provenance_source: 'manifest',
+  });
+  assert.equal(config.baseline_provenance, 'real_mooncake', 'D10 mutates the config -- the sole mutating decision');
+});
+
+test('Q61 SLICE 3: D10 four-way matrix — case 3: neither present, bundle.version starts with "synthetic" -> stamps synthetic (mutation)', () => {
+  const config = makeFixtureCompiledConfig();
+  const bundle = makeFixtureBundle();
+  bundle.version = 'synthetic-v1';
+  const state = runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_3'] });
+  assert.deepEqual(state.decisions.D10!.output_summary, {
+    provenance_stamped: 'synthetic',
+    provenance_source: 'synthetic_version_inference',
+  });
+  assert.equal(config.baseline_provenance, 'synthetic');
+});
+
+test('Q61 SLICE 3: D10 four-way matrix — case 4: neither present, non-synthetic version -> left unstamped, never guesses real_*', () => {
+  const config = makeFixtureCompiledConfig();
+  const bundle = makeFixtureBundle(); // version: 'fixture-v1'
+  const state = runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_3'] });
+  assert.deepEqual(state.decisions.D10!.output_summary, {
+    provenance_stamped: 'unknown_left_unstamped',
+    provenance_source: 'none',
+  });
+  assert.equal(config.baseline_provenance, undefined, 'left unstamped');
+});
+
+test('Q61 SLICE 3: D10 is the SOLE config-mutating decision -- D1-D9 leave the input CompiledConfig byte-identical', () => {
+  const config = makeFixtureCompiledConfig();
+  const bundle = makeFixtureBundle();
+  bundle.baseline_provenance = 'real_huggingface_lmsys_arena';
+  const beforeD1toD9 = JSON.stringify(config);
+  runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_1', 'SLICE_2'] });
+  assert.equal(JSON.stringify(config), beforeD1toD9, 'D1-D7 must not mutate the config');
+  // Now run SLICE_3 alone against a fresh config: only baseline_provenance changes.
+  const configForSlice3 = makeFixtureCompiledConfig();
+  const beforeSlice3 = JSON.parse(JSON.stringify(configForSlice3));
+  runBaselineCurationPipeline(bundle, configForSlice3, { slices: ['SLICE_3'] });
+  delete (configForSlice3 as { baseline_provenance?: string }).baseline_provenance;
+  assert.deepEqual(configForSlice3, beforeSlice3,
+    'D10 must not mutate any field of CompiledConfig other than baseline_provenance');
+});
+
+test('Q61 SLICE 3: verifyDecisions=true passes for D8-D10 audit emission', () => {
+  const state = runBaselineCurationPipeline(makeFixtureBundle(), makeFixtureCompiledConfig(), {
+    slices: ['SLICE_3'],
+    verifyDecisions: true,
+  });
+  for (const id of ['D8', 'D9', 'D10'] as const) {
+    assert.equal(state.decisions[id]!.verification.audit_emitted, true);
+    assert.ok(state.decisions[id]!.source_memorialization.length > 0);
+  }
 });

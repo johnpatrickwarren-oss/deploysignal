@@ -166,9 +166,13 @@ function buildAndWriteConfig(b: BuildConfigArgs): {
   // REPLY-50 D7 — stamp compile_phases just before write.
   config.compile_phases = finalizePhaseTimings(agg.timings, hrNow() - tHrStart);
 
-  // Q61 SPEC-1 SLICE 1 — stamp baseline curation pipeline diagnostics.
+  // Q61 SPEC-1 SLICE 1/2/3 (R2 Task 5) — stamp baseline curation
+  // pipeline diagnostics. D10 (within SLICE_3) is the pipeline's sole
+  // config-mutating decision (baseline_provenance honest stamping);
+  // it runs here, before the config file + guarantee manifest are
+  // written, so both reflect the stamped value.
   const pipelineState = runBaselineCurationPipeline(bundle, config, {
-    slices: ['SLICE_1'],
+    slices: ['SLICE_1', 'SLICE_2', 'SLICE_3'],
     verifyDecisions: true,
   });
   config.baseline_curation_pipeline_diagnostics = pipelineState.decisions;
