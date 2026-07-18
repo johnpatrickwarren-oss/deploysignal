@@ -105,6 +105,7 @@ export function parseArgs(argv: string[]): Args {
         ? args.cell_dimension_deficiency_mode as CellDimensionDeficiencyMode
         : undefined,
     demo_baseline_patch: args.demo_baseline_patch,
+    version_suffix: args.version_suffix,
   };
 }
 

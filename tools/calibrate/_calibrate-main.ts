@@ -113,13 +113,16 @@ function buildAndWriteConfig(b: BuildConfigArgs): {
   const { alphaA, alphaB, alphaC, alphaD, alphaE } = allocateAlpha(
     args, effective, emit.A, emit.C, emit.D, emit.E);
 
-  const version = (emit.D || emit.E)
+  const derivedVersion = (emit.D || emit.E)
     ? 'v4-fusion-novelty'
     : emit.C
       ? 'v3-with-family-c'
       : emit.A
         ? 'v2-with-family-a'
         : 'v1-legacy-equivalent';
+  // R2 Task 3 — optional refresh-candidate version disambiguator.
+  // Absent -> byte-identical to the pre-Task-3 fixed enum string.
+  const version = args.version_suffix ? `${derivedVersion}+${args.version_suffix}` : derivedVersion;
 
   const config: ConfigWithFamilyB = {
     version,
@@ -187,8 +190,8 @@ function buildAndWriteConfig(b: BuildConfigArgs): {
   return { config, outPath, alphaA, alphaC };
 }
 
-export async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
+export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
+  const args = parseArgs(argv);
   const t0 = Date.now();
   const tHrStart = hrNow();
   const agg = newCompileAggregator();
