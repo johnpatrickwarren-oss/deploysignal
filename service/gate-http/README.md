@@ -177,3 +177,79 @@ directly, bypassing `active.json` resolution entirely
 (`config_source: 'override'`) — useful for pre-#15 repos that already
 have a hand-picked compiled config, or for pinning a specific version
 during a WS3 rollout.
+
+## R5 live shadow soak — candidate evaluation against real traffic
+
+On top of the existing served path, the gate can additionally
+shadow-evaluate a **candidate** `CompiledConfig` (an Addition #15
+recalibration candidate under review) against the exact same live ticks
+a session already serves — no separate traffic replay, no synthetic
+scenario generation. This is `service/gate-http/_gate-soak.ts`'s
+`SoakController`, wired into `GateSessionRuntime` in Tasks 2-3 (see that
+file's header for the enrollment/non-interference/restart-honesty
+design). It is driven from the CLI:
+
+```
+node tools/recalibrate.ts soak start  --service <id> --candidate-id <id> --requested-by <id> \
+     [--target-ticks 200] [--max-duration-seconds <n>]
+node tools/recalibrate.ts soak status --service <id>
+node tools/recalibrate.ts soak stop   --service <id> --candidate-id <id> --reviewer <id>
+```
+
+**R-Q4 posture — soak is ADDITIONAL evidence, it never gates.** There is
+no state-machine change: `shadow_validated` (the existing mandatory
+replay-comparison gate, `tools/recalibrate/_recalibrate-shadow.ts`)
+remains the only route to `reviewable`, and `approve`/`reject` work
+identically whether or not a candidate has ever been soaked. A soak
+result folded onto `CandidateRecord.soak` (at `soak stop`) is read-only
+context for the human reviewer, never an automated decision input.
+
+### Per-file ownership (single-writer doctrine)
+
+The service must durably record soak results in the SAME
+`runs/baseline-history/<service_id>/` store the `recalibrate` CLI
+already owns. No file ever gets two read-modify-write writers; the one
+shared file is append-only:
+
+| File | Owner (sole writer) | Other side |
+|---|---|---|
+| `store-meta.json`, `candidates/*.json`, `active.json`, `exclusion-windows.json` | recalibrate CLI (unchanged) | service reads only |
+| **`soak.json`** (manifest — one soak per service at a time) | recalibrate CLI (`soak start`/`soak stop`) | service polls it read-only, lazily, per tick |
+| **`soak/<candidate_id>.state.json`** (sidecar — live accumulated stats) | gate-http service (`SoakController`) | CLI reads only (`soak status`, `show`, fold-on-stop) |
+| **`soak/<candidate_id>.ticks.jsonl`** (per-tick evidence log, append-only) | gate-http service | CLI reads only |
+| `events.jsonl` | **both** — but strictly append-only: every append is one `fs.appendFileSync` (`'a'`/`O_APPEND`) of a single compact line, atomic for local-filesystem writes well under the page/`PIPE_BUF` limit. This is the sole multi-writer file in the store. | — |
+
+The service never imports `tools/recalibrate/*` — it re-implements the
+tiny soak-manifest/sidecar file contract on the read/append side
+(`service/gate-http/_gate-soak.ts`), the same precedent
+`service/session/active-calibration.ts` set for `active.json`. The
+`.gate-runtime.lock` (session-store-scoped) is untouched; no new
+lockfile is needed because no read-modify-write file gains a second
+writer.
+
+### Enrollment, coverage, and cost
+
+A session joins an active soak only at its own first evaluated tick
+(`tick === 0`) — a soak that starts mid-session skips that session
+(`sessions_skipped_midstream`) rather than feeding a candidate detector
+a truncated warm-up history. Once enrolled, every subsequent tick for
+that session runs a **second** `evaluate()` call — against the
+candidate's own `TrendBuffer`/lifecycle/fail-fast/reversibility state,
+never the served session's — strictly after the served verdict is
+computed and durably persisted, in its own try/catch (a shadow-side
+failure only increments `candidate_errored_ticks`; it can never affect
+the served `TickResult`). Cost: one extra `evaluate()` call at roughly
+the same ~30-60μs/tick the served path already costs, plus one small
+atomic sidecar write (tmp+rename, ~100μs) per soaked tick — negligible
+next to normal tick cadence, and zero when no soak is active (a single
+`fs.statSync` per tick).
+
+`soak status` and `show` (once a soak has been folded) report
+disagreement counts (`verdict_disagreements`, `would_be_rollback` split
+into `active_only`/`candidate_only`/`both`), per-family fire counts, and
+coverage (`sessions_enrolled`, `sessions_skipped_midstream`, errored-tick
+counts). A restart mid-soak is handled the same way a restart handles
+served sessions: in-memory shadow accumulators are lost, but the
+sidecar's last flush survives, and the controller appends a durable
+`{reason: 'service_restart'}` admission to the sidecar on the next
+construction — never a silent gap.
