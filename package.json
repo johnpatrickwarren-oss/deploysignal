@@ -27,7 +27,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.1.1",
     "js-yaml": "^5.2.1",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@johnpatrickwarren-oss/deploysignal-engine": "git+https://github.com/johnpatrickwarren-oss/deploysignal-engine.git#v0.6.3-pre"
