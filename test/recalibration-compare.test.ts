@@ -598,6 +598,60 @@ test('evaluateReadinessGates: source_window_outside_exclusions passes when there
   assert.equal(result.source_window_outside_exclusions, true);
 });
 
+test('evaluateReadinessGates: selectionAppliedExclusions — overlap fully applied passes', () => {
+  const active = makeConfig();
+  const candidate = makeConfig();
+  const exclusions = [{ start: '2026-07-05T00:00:00.000Z', end: '2026-07-10T00:00:00.000Z', reason: 'incident', declared_by: 'op-1' }];
+  const result = evaluateReadinessGates(active, candidate, SOURCE_WINDOW, exclusions, {
+    selectionAppliedExclusions: [{ start: '2026-07-05T00:00:00.000Z', end: '2026-07-10T00:00:00.000Z' }],
+  });
+  assert.equal(result.source_window_outside_exclusions, true);
+  assert.equal(result.all_passed, true);
+});
+
+test('evaluateReadinessGates: selectionAppliedExclusions — partially applied (second unapplied overlapping window) fails', () => {
+  const active = makeConfig();
+  const candidate = makeConfig();
+  const applied = { start: '2026-07-05T00:00:00.000Z', end: '2026-07-10T00:00:00.000Z', reason: 'incident', declared_by: 'op-1' };
+  const unapplied = { start: '2026-07-02T00:00:00.000Z', end: '2026-07-03T00:00:00.000Z', reason: 'incident-2', declared_by: 'op-2' };
+  const exclusions = [applied, unapplied];
+  const result = evaluateReadinessGates(active, candidate, SOURCE_WINDOW, exclusions, {
+    selectionAppliedExclusions: [{ start: applied.start, end: applied.end }],
+  });
+  assert.equal(result.source_window_outside_exclusions, false);
+  assert.equal(result.all_passed, false);
+});
+
+test('evaluateReadinessGates: selectionAppliedExclusions — non-empty but no overlap passes', () => {
+  const active = makeConfig();
+  const candidate = makeConfig();
+  const exclusions = [{ start: '2026-01-01T00:00:00.000Z', end: '2026-01-02T00:00:00.000Z', reason: 'incident', declared_by: 'op-1' }];
+  const result = evaluateReadinessGates(active, candidate, SOURCE_WINDOW, exclusions, {
+    selectionAppliedExclusions: [{ start: '2099-01-01T00:00:00.000Z', end: '2099-01-02T00:00:00.000Z' }],
+  });
+  assert.equal(result.source_window_outside_exclusions, true);
+});
+
+test('evaluateReadinessGates: selectionAppliedExclusions — endpoint-touching window still not an overlap', () => {
+  const active = makeConfig();
+  const candidate = makeConfig();
+  const exclusions = [{ start: SOURCE_WINDOW.end, end: '2026-07-15T00:00:00.000Z', reason: 'incident', declared_by: 'op-1' }];
+  const result = evaluateReadinessGates(active, candidate, SOURCE_WINDOW, exclusions, {
+    selectionAppliedExclusions: [],
+  });
+  assert.equal(result.source_window_outside_exclusions, true);
+});
+
+test('evaluateReadinessGates: option absent — behavior byte-identical to default (backstop)', () => {
+  const active = makeConfig();
+  const candidate = makeConfig();
+  const exclusions = [{ start: '2026-07-05T00:00:00.000Z', end: '2026-07-10T00:00:00.000Z', reason: 'incident', declared_by: 'op-1' }];
+  const withOpt = evaluateReadinessGates(active, candidate, SOURCE_WINDOW, exclusions, {});
+  const withoutOpt = evaluateReadinessGates(active, candidate, SOURCE_WINDOW, exclusions);
+  assert.deepEqual(withOpt, withoutOpt);
+  assert.equal(withoutOpt.source_window_outside_exclusions, false);
+});
+
 test('evaluateReadinessGates: min_source_samples defaults to DRIFT_SAMPLE_WINDOW_MAX (50, OQ-7)', () => {
   const active = makeConfig();
   const candidate = makeConfig();

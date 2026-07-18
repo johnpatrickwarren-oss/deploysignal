@@ -442,6 +442,11 @@ export interface ExclusionWindow {
 export interface ReadinessGateOptions {
   /** Overrides the OQ-7 default (DRIFT_SAMPLE_WINDOW_MAX = 50). */
   minSourceSamples?: number;
+  /** Exclusion windows already dropped from the source-data SELECTION
+   *  (refresh path). Overlap with these does not fail the gate; overlap
+   *  with any exclusion NOT in this list still fails (backstop). Matched
+   *  by exact (start, end). */
+  selectionAppliedExclusions?: ExclusionWindow[];
 }
 
 export interface ReadinessGateResult {
@@ -482,7 +487,11 @@ export function evaluateReadinessGates(
   const candidateSignals = Object.keys(extractSignalMeans(candidate));
   const signals_comparable = candidateSignals.some((s) => activeSignals.has(s));
 
-  const source_window_outside_exclusions = !exclusions.some((w) => windowsOverlap(sourceWindow, w));
+  const appliedExclusions = opts.selectionAppliedExclusions ?? [];
+  const isApplied = (w: ExclusionWindow): boolean =>
+    appliedExclusions.some((a) => a.start === w.start && a.end === w.end);
+  const source_window_outside_exclusions =
+    !exclusions.some((w) => windowsOverlap(sourceWindow, w) && !isApplied(w));
 
   const minSourceSamples = opts.minSourceSamples ?? DRIFT_SAMPLE_WINDOW_MAX;
   const min_source_samples = sourceWindow.n_samples >= minSourceSamples;
