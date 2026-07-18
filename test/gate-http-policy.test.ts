@@ -15,7 +15,7 @@ import * as path from 'node:path';
 import * as http from 'node:http';
 import type { AddressInfo } from 'node:net';
 
-import { loadConfigFromEnv } from '../service/gate-http/_gate-config';
+import { loadConfigFromEnv, GateConfigError } from '../service/gate-http/_gate-config';
 import { createGateServer } from '../service/gate-http/server';
 import type { GateServerHandle } from '../service/gate-http/server';
 import type { GateHttpConfig } from '../service/gate-http/_gate-config';
@@ -82,6 +82,62 @@ test('loadConfigFromEnv: every var overridable; invalid enum values fall back to
 });
 
 // ────────────────────────────────────────────────────────────────────
+// R4 maintenance scheduler config (DEFAULT OFF, opt-in per posture).
+// ────────────────────────────────────────────────────────────────────
+
+test('loadConfigFromEnv: maintenance scheduler defaults to fully disabled', () => {
+  const cfg = loadConfigFromEnv({});
+  assert.equal(cfg.maintenanceIntervalSeconds, 0);
+  assert.equal(cfg.maintenanceAutoRefresh, false);
+  assert.equal(cfg.maintenanceRefreshBundleDir, null);
+  assert.equal(cfg.maintenanceRefreshWindow, null);
+  assert.equal(cfg.maintenanceRecalibrateBin, null);
+});
+
+test('loadConfigFromEnv: maintenance scheduler vars overridable (check-only, auto-refresh off)', () => {
+  const cfg = loadConfigFromEnv({
+    DS_GATE_MAINTENANCE_INTERVAL_SECONDS: '3600',
+    DS_GATE_RECALIBRATE_BIN: '/opt/ds/recalibrate.js',
+  });
+  assert.equal(cfg.maintenanceIntervalSeconds, 3600);
+  assert.equal(cfg.maintenanceAutoRefresh, false);
+  assert.equal(cfg.maintenanceRecalibrateBin, '/opt/ds/recalibrate.js');
+});
+
+test('loadConfigFromEnv: auto-refresh with bundle-dir + window set is accepted', () => {
+  const cfg = loadConfigFromEnv({
+    DS_GATE_MAINTENANCE_INTERVAL_SECONDS: '3600',
+    DS_GATE_MAINTENANCE_AUTO_REFRESH: 'true',
+    DS_GATE_REFRESH_BUNDLE_DIR: '/data/bundles',
+    DS_GATE_REFRESH_WINDOW: 'trailing-30d',
+  });
+  assert.equal(cfg.maintenanceAutoRefresh, true);
+  assert.equal(cfg.maintenanceRefreshBundleDir, '/data/bundles');
+  assert.equal(cfg.maintenanceRefreshWindow, 'trailing-30d');
+});
+
+test('loadConfigFromEnv: auto-refresh without bundle-dir/window is a config error', () => {
+  assert.throws(
+    () => loadConfigFromEnv({ DS_GATE_MAINTENANCE_AUTO_REFRESH: 'true' }),
+    GateConfigError,
+  );
+  assert.throws(
+    () => loadConfigFromEnv({
+      DS_GATE_MAINTENANCE_AUTO_REFRESH: 'true', DS_GATE_REFRESH_BUNDLE_DIR: '/data/bundles',
+    }),
+    GateConfigError,
+    'bundle-dir alone (no window) is still an error',
+  );
+  assert.throws(
+    () => loadConfigFromEnv({
+      DS_GATE_MAINTENANCE_AUTO_REFRESH: 'true', DS_GATE_REFRESH_WINDOW: 'trailing-30d',
+    }),
+    GateConfigError,
+    'window alone (no bundle-dir) is still an error',
+  );
+});
+
+// ────────────────────────────────────────────────────────────────────
 // begin-time active.json-resolution fail policy.
 // ────────────────────────────────────────────────────────────────────
 
@@ -101,6 +157,8 @@ async function start(overrides: Partial<GateHttpConfig> = {}): Promise<Started> 
     failPolicy: 'fail_closed', mode: 'enforce',
     totalTicksDefault: 8, sessionTtlSeconds: 3600, requestTimeoutMs: 4000,
     auditDir: path.join(storeDir, serviceId, 'audit'),
+    maintenanceIntervalSeconds: 0, maintenanceAutoRefresh: false,
+    maintenanceRefreshBundleDir: null, maintenanceRefreshWindow: null, maintenanceRecalibrateBin: null,
     ...overrides,
   };
   const handle = createGateServer(cfg);

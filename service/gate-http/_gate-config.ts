@@ -24,6 +24,32 @@ export interface GateHttpConfig {
   requestTimeoutMs: number;
   auditDir: string;
   compiledConfigOverride?: string;
+  // R4 in-service maintenance scheduler (service/gate-http/_gate-maintenance.ts).
+  // DEFAULT OFF (opt-in per posture): intervalSeconds unset/0 disables the
+  // scheduler entirely — no timer is ever created. See README.md's
+  // "maintenance scheduler" section for the full write-split rationale.
+  maintenanceIntervalSeconds: number;
+  maintenanceAutoRefresh: boolean;
+  maintenanceRefreshBundleDir: string | null;
+  maintenanceRefreshWindow: string | null;
+  /** DS_GATE_RECALIBRATE_BIN escape hatch — overrides the repo-relative
+   *  default resolution of the recalibrate CLI entry point (see
+   *  _gate-maintenance.ts's resolveRecalibrateBin). */
+  maintenanceRecalibrateBin: string | null;
+}
+
+/** Thrown by loadConfigFromEnv when the env combination is
+ *  self-contradictory in a way no fallback can safely resolve — thrown at
+ *  startup (server.ts's require.main branch), never silently coerced.
+ *  Today's only case: DS_GATE_MAINTENANCE_AUTO_REFRESH=true without both
+ *  DS_GATE_REFRESH_BUNDLE_DIR and DS_GATE_REFRESH_WINDOW set — auto-acting
+ *  on a calendar-due refresh with no bundle to refresh FROM is not a
+ *  posture this service will silently degrade out of. */
+export class GateConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GateConfigError';
+  }
 }
 
 function intFromEnv(env: NodeJS.ProcessEnv, key: string, fallback: number): number {
@@ -41,6 +67,23 @@ function oneOf<T extends string>(env: NodeJS.ProcessEnv, key: string, allowed: r
 export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): GateHttpConfig {
   const storeDir = env.DS_GATE_STORE_DIR || 'runs/sessions';
   const serviceId = env.DS_GATE_SERVICE_ID || 'default';
+
+  const maintenanceIntervalSeconds = intFromEnv(env, 'DS_GATE_MAINTENANCE_INTERVAL_SECONDS', 0);
+  const maintenanceAutoRefresh = env.DS_GATE_MAINTENANCE_AUTO_REFRESH === 'true';
+  const maintenanceRefreshBundleDir = env.DS_GATE_REFRESH_BUNDLE_DIR || null;
+  const maintenanceRefreshWindow = env.DS_GATE_REFRESH_WINDOW || null;
+
+  // Validate at startup, not lazily at the first scheduled tick: auto-
+  // refresh with no bundle to refresh from is a config error, not a
+  // runtime condition to degrade around (README.md "maintenance
+  // scheduler" section).
+  if (maintenanceAutoRefresh && (!maintenanceRefreshBundleDir || !maintenanceRefreshWindow)) {
+    throw new GateConfigError(
+      'DS_GATE_MAINTENANCE_AUTO_REFRESH=true requires both DS_GATE_REFRESH_BUNDLE_DIR and '
+      + 'DS_GATE_REFRESH_WINDOW to be set (auto-refresh has nothing to refresh from otherwise)',
+    );
+  }
+
   return {
     port: intFromEnv(env, 'DS_GATE_PORT', 8790), // claude-proxy.js owns 8787
     bind: env.DS_GATE_BIND || '127.0.0.1',
@@ -55,5 +98,10 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): GateHtt
     requestTimeoutMs: intFromEnv(env, 'DS_GATE_REQUEST_TIMEOUT_MS', 4000), // under Argo's timeoutSeconds: 5
     auditDir: env.DS_GATE_AUDIT_DIR || path.join(storeDir, serviceId, 'audit'),
     compiledConfigOverride: env.DS_GATE_COMPILED_CONFIG || undefined,
+    maintenanceIntervalSeconds,
+    maintenanceAutoRefresh,
+    maintenanceRefreshBundleDir,
+    maintenanceRefreshWindow,
+    maintenanceRecalibrateBin: env.DS_GATE_RECALIBRATE_BIN || null,
   };
 }
