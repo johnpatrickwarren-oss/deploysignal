@@ -43,6 +43,10 @@ import { RecalibrationStore, JsonlLifecycleEventEmitter, type InitOptions } from
 // R2 Task 8 — `refresh` dispatch. See _recalibrate-refresh.ts's module
 // header for the deliberate cli.ts<->refresh.ts require-cycle note.
 import { runRefresh, type RefreshArgs } from './_recalibrate-refresh';
+// R3 self-sourced exclusion-window inference (SUGGEST-ONLY) — `exclusions`
+// dispatch, mirroring the sibling `soak` branch's own dispatch file (R5,
+// not present on this base; see main()'s early-branch comment below).
+import { exclusionsMain } from './_recalibrate-exclusions-cli';
 
 export const USAGE_TEXT = 'usage: recalibrate <init|propose|refresh|shadow|list|show|approve|reject|check|rollback> [flags]\n'
   + '  refresh --service <id> --bundle-dir <dir> '
@@ -543,6 +547,20 @@ async function dispatch(subcommand: string, flags: Record<string, string>): Prom
 }
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
+  // R3 self-sourced exclusion-window inference (SUGGEST-ONLY) — dispatched
+  // BEFORE parseArgv, exactly the pattern the R5 `soak` branch uses for
+  // its own subcommand family (that branch doesn't exist on this base;
+  // this is the first such sibling branch here): `exclusions` has its own
+  // flag table, usage text, and argv parser in
+  // _recalibrate-exclusions-cli.ts, so KNOWN_FLAGS/dispatch()/USAGE_TEXT
+  // above stay untouched.
+  if (argv[0] === 'exclusions') {
+    const result = await exclusionsMain(argv.slice(1));
+    for (const line of result.lines) console.log(line);
+    if (result.exitCode !== 0) process.exitCode = result.exitCode;
+    return;
+  }
+
   const { subcommand, flags } = parseArgv(argv);
   const result = await dispatch(subcommand, flags);
   for (const line of result.lines) console.log(line);

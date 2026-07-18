@@ -27,10 +27,24 @@
 //   node tools/recalibrate.ts check --service <id> [--now <iso>]
 //   node tools/recalibrate.ts rollback --service <id> --version <id> \
 //     --reviewer <id> --reason-code <code> [--now <iso>]
+//   node tools/recalibrate.ts exclusions suggest --service <id> \
+//     [--sessions-root runs/sessions] [--pad-minutes 30] [--now <iso>] [--root <dir>]
+//   node tools/recalibrate.ts exclusions apply --service <id> \
+//     (--ids i1,i2 | --all) --declared-by <id> [--now <iso>] [--root <dir>]
+//   node tools/recalibrate.ts exclusions list --service <id> [--root <dir>]
 //
 // `shadow` (Task 9, tools/recalibrate/_recalibrate-shadow.ts) wraps the
 // EXISTING tools/run-shadow-compare.ts Q60 orchestrator with active +
 // candidate SubstrateRefs; 'reviewable' is reachable ONLY via that path.
+//
+// `exclusions` (R3, tools/recalibrate/_recalibrate-exclusions.ts +
+// _recalibrate-exclusions-cli.ts) derives SUGGESTED exclusion windows
+// from DeploySignal's OWN durable records (session store + this store's
+// events.jsonl) — never an external incident feed (hard boundary,
+// approved disposition). SUGGEST-ONLY: `suggest` only ever writes
+// exclusion-suggestions.json; only `exclusions apply`, with an explicit
+// operator `--declared-by`, promotes a suggestion into a real
+// exclusion-windows.json entry the readiness gate enforces.
 
 export {
   runInit, runPropose, runShadow, runList, runShow, runApprove, runReject, runCheck, runRollback,
@@ -59,10 +73,21 @@ export { resolveWindow, selectBundleWindow } from './recalibrate/_recalibrate-re
 export type {
   RefreshWindow, SelectionReport, ExcludedSpanReport,
 } from './recalibrate/_recalibrate-refresh-select';
+// R3 — exclusion-window inference public surface.
+export {
+  scanSessionStore, scanRecalEvents, mergeSuggestions, deriveSuggestedExclusions,
+} from './recalibrate/_recalibrate-exclusions';
+export type { SuggestedExclusion, DeriveExclusionsInput } from './recalibrate/_recalibrate-exclusions';
+export {
+  readSuggestionsFile, writeSuggestionsFile,
+  runExclusionsSuggest, runExclusionsApply, runExclusionsList,
+  EXCLUSIONS_USAGE_TEXT, exclusionsMain,
+} from './recalibrate/_recalibrate-exclusions-cli';
+export type { ExclusionsSuggestArgs, ExclusionsApplyArgs } from './recalibrate/_recalibrate-exclusions-cli';
 
 import { main } from './recalibrate/_recalibrate-cli';
 
-const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'refresh', 'shadow', 'list', 'show', 'approve', 'reject', 'check', 'rollback'];
+const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'refresh', 'shadow', 'list', 'show', 'approve', 'reject', 'check', 'rollback', 'exclusions'];
 if (RECALIBRATE_SUBCOMMANDS.includes(process.argv[2])) {
   main().catch((err) => {
     console.error(err instanceof Error ? (err.stack ?? err.message) : err);
