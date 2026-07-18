@@ -65,7 +65,7 @@ test('pool-path: pooled family_A per_signal populated for primary SLIs', () => {
   // tool_success_rate) may be absent in a sparse bundle where those
   // signals didn't accumulate — we assert on universally-present signals.
   for (const signal of ['p99_latency', 'ttft', 'cost_req', 'downstream_err']) {
-    const p = sample.family_A.per_signal[signal];
+    const p: (typeof sample.family_A.per_signal)[string] = sample.family_A.per_signal[signal];
     assert.ok(p, `pooled cell missing family_A.per_signal[${signal}]`);
     assert.ok(p.baseline_sigma_squared >= 0, 'σ² should be ≥0');
     assert.ok(p.tau_squared > 0, 'τ² should be >0');

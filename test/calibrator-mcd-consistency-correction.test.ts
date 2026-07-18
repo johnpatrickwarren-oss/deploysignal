@@ -136,7 +136,7 @@ test('MCD integration: output covariance = unscaled MCD × c_α', () => {
   for (let i = 0; i < p; i++) {
     for (let j = 0; j < p; j++) {
       const expected = unscaledCov[i][j] * c;
-      const actual = out!.cell.covariance[i][j];
+      const actual: number = out!.cell.covariance[i][j];
       assert.ok(Math.abs(actual - expected) < 1e-12,
         `cov[${i},${j}]: expected ${expected} (= ${unscaledCov[i][j]} × ${c}), got ${actual}`);
     }
