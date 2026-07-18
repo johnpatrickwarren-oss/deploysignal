@@ -117,13 +117,20 @@ export function loadBundle(dir: string): BaselineBundle {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const lines = fs.readFileSync(bundlePath, 'utf8').trim().split('\n');
   const runs: BaselineBundle['runs'] = lines.map((l) => JSON.parse(l));
-  return {
+  const bundle: BaselineBundle = {
     version:      manifest.version,
     generated_at: manifest.generated_at,
     seed:         manifest.seed,
     cell_dim:     manifest.cell_dim,
     runs,
   };
+  // R2 Task 2 — additive: thread manifest.tick_seconds + manifest.
+  // baseline_provenance through when present (per-run start_iso comes
+  // along for free since runs are parsed verbatim above). Absence on
+  // every checked-in bundle today preserves current behavior exactly.
+  if (manifest.tick_seconds !== undefined) bundle.tick_seconds = manifest.tick_seconds;
+  if (manifest.baseline_provenance !== undefined) bundle.baseline_provenance = manifest.baseline_provenance;
+  return bundle;
 }
 
 /** Flatten one signal across all runs × all ticks into a single array. */
