@@ -186,8 +186,12 @@ function resolveSelection(
 function ensureNoCandidateCollision(store: RecalibrationStore, candidateId: string): void {
   try {
     store.readCandidate(candidateId);
-  } catch (_err) {
-    return; // no such candidate -- no collision.
+  } catch (err) {
+    // Only a clean "no such candidate" means no collision. Any other error
+    // (corrupt JSON, schema mismatch) means a record EXISTS but is
+    // unreadable -- overwriting it would destroy evidence, so surface it.
+    if (err instanceof Error && err.message.includes('no such candidate')) return;
+    throw err;
   }
   throw new Error(`refresh: candidate '${candidateId}' already exists — choose a different --candidate-id`);
 }
