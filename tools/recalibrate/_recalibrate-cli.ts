@@ -45,6 +45,10 @@ import { soakMain } from './_recalibrate-soak-cli';
 // R2 Task 8 — `refresh` dispatch. See _recalibrate-refresh.ts's module
 // header for the deliberate cli.ts<->refresh.ts require-cycle note.
 import { runRefresh, type RefreshArgs } from './_recalibrate-refresh';
+// R3 self-sourced exclusion-window inference (SUGGEST-ONLY) — `exclusions`
+// dispatch, mirroring the sibling `soak` branch's own dispatch file (R5,
+// not present on this base; see main()'s early-branch comment below).
+import { exclusionsMain } from './_recalibrate-exclusions-cli';
 
 export const USAGE_TEXT = 'usage: recalibrate <init|propose|refresh|shadow|list|show|approve|reject|check|rollback> [flags]\n'
   + '  refresh --service <id> --bundle-dir <dir> '
@@ -545,6 +549,18 @@ async function dispatch(subcommand: string, flags: Record<string, string>): Prom
 }
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
+  // R3 self-sourced exclusion-window inference (SUGGEST-ONLY) — dispatched
+  // BEFORE parseArgv, same pattern as the R5 `soak` sibling below:
+  // `exclusions` has its own flag table, usage text, and argv parser in
+  // _recalibrate-exclusions-cli.ts, so KNOWN_FLAGS/dispatch()/USAGE_TEXT
+  // above stay untouched.
+  if (argv[0] === 'exclusions') {
+    const result = await exclusionsMain(argv.slice(1));
+    for (const line of result.lines) console.log(line);
+    if (result.exitCode !== 0) process.exitCode = result.exitCode;
+    return;
+  }
+
   // R5 live shadow soak (plan §3 Task 6) — dispatched BEFORE parseArgv
   // so KNOWN_FLAGS/dispatch()/USAGE_TEXT above stay untouched (§6
   // conflict list, binding): `soak` has its own flag table, usage text,
