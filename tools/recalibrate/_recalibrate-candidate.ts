@@ -44,6 +44,13 @@ export interface ProposeInput {
   sourceWindow: ProposeSourceWindow;
   driftOutput?: object;
   nowIso: string;
+  /** R2 Task 7 — exclusion windows already dropped from the source-data
+   *  SELECTION (refresh path, tools/recalibrate/_recalibrate-refresh.ts);
+   *  threaded straight to `evaluateReadinessGates`'s Task-1
+   *  `selectionAppliedExclusions` option. Direct `propose` CLI
+   *  invocations never set this — the Task-1 backstop is unchanged for
+   *  them (absent option -> byte-identical to pre-Task-1 behavior). */
+  selectionAppliedExclusions?: ExclusionWindow[];
 }
 
 export interface ProposeOutcome {
@@ -89,6 +96,7 @@ export function buildProposedCandidate(input: ProposeInput): ProposeOutcome {
 
   const readiness = evaluateReadinessGates(
     activeConfig, candidateConfig, input.sourceWindow, exclusions,
+    { selectionAppliedExclusions: input.selectionAppliedExclusions },
   );
 
   const classification = classifyCandidate(activeConfig, candidateConfig, meta);

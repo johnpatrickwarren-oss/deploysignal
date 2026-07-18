@@ -97,13 +97,16 @@ function attachFamilyE(bundle, baselineCells, compilerOpts, agg) {
 function buildAndWriteConfig(b) {
     const { args, bundle, agg, effective, compileDefaults, compileWarnings, baselineCells, familyB, tenantTierMap, tenantTierConfig, compilerOpts, tHrStart, emit, } = b;
     const { alphaA, alphaB, alphaC, alphaD, alphaE } = (0, _calibrate_config_build_js_1.allocateAlpha)(args, effective, emit.A, emit.C, emit.D, emit.E);
-    const version = (emit.D || emit.E)
+    const derivedVersion = (emit.D || emit.E)
         ? 'v4-fusion-novelty'
         : emit.C
             ? 'v3-with-family-c'
             : emit.A
                 ? 'v2-with-family-a'
                 : 'v1-legacy-equivalent';
+    // R2 Task 3 — optional refresh-candidate version disambiguator.
+    // Absent -> byte-identical to the pre-Task-3 fixed enum string.
+    const version = args.version_suffix ? `${derivedVersion}+${args.version_suffix}` : derivedVersion;
     const config = {
         version,
         compiler_version: _calibrate_constants_js_1.COMPILER_VERSION,
@@ -143,9 +146,13 @@ function buildAndWriteConfig(b) {
     config.signal_classes = resolvedSignalClasses;
     // REPLY-50 D7 — stamp compile_phases just before write.
     config.compile_phases = (0, _calibrate_aggregator_js_1.finalizePhaseTimings)(agg.timings, (0, _calibrate_aggregator_js_1.hrNow)() - tHrStart);
-    // Q61 SPEC-1 SLICE 1 — stamp baseline curation pipeline diagnostics.
+    // Q61 SPEC-1 SLICE 1/2/3 (R2 Task 5) — stamp baseline curation
+    // pipeline diagnostics. D10 (within SLICE_3) is the pipeline's sole
+    // config-mutating decision (baseline_provenance honest stamping);
+    // it runs here, before the config file + guarantee manifest are
+    // written, so both reflect the stamped value.
     const pipelineState = (0, curate_baseline_pipeline_js_1.runBaselineCurationPipeline)(bundle, config, {
-        slices: ['SLICE_1'],
+        slices: ['SLICE_1', 'SLICE_2', 'SLICE_3'],
         verifyDecisions: true,
     });
     config.baseline_curation_pipeline_diagnostics = pipelineState.decisions;
@@ -163,8 +170,8 @@ function buildAndWriteConfig(b) {
     (0, _guarantee_manifest_cli_js_1.writeGuaranteeManifest)(config, manifestOutPath, config.compiled_at);
     return { config, outPath, alphaA, alphaC };
 }
-async function main() {
-    const args = (0, _calibrate_data_prep_js_1.parseArgs)(process.argv.slice(2));
+async function main(argv = process.argv.slice(2)) {
+    const args = (0, _calibrate_data_prep_js_1.parseArgs)(argv);
     const t0 = Date.now();
     const tHrStart = (0, _calibrate_aggregator_js_1.hrNow)();
     const agg = (0, _calibrate_aggregator_js_1.newCompileAggregator)();

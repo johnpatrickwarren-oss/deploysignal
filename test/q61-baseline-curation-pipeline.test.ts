@@ -106,8 +106,8 @@ test('Q61 SLICE 1: runBaselineCurationPipeline executes D1-D4 in order', () => {
   assert.ok(state.decisions.D2, 'D2 emitted');
   assert.ok(state.decisions.D3, 'D3 emitted');
   assert.ok(state.decisions.D4, 'D4 emitted');
-  assert.equal(state.decisions.D5, undefined, 'D5 not emitted (SLICE 2 deferred)');
-  assert.equal(state.decisions.D8, undefined, 'D8 not emitted (SLICE 3 deferred)');
+  assert.equal(state.decisions.D5, undefined, 'D5 not emitted (SLICE_2 not requested)');
+  assert.equal(state.decisions.D8, undefined, 'D8 not emitted (SLICE_3 not requested)');
 });
 
 test('Q61 SLICE 1: D2 depends on D1 (per pipeline order)', () => {
@@ -145,17 +145,18 @@ test('Q61 SLICE 1: audit emission populates baseline_curation_pipeline_diagnosti
     'CompiledConfig.baseline_curation_pipeline_diagnostics.D4');
 });
 
-test('Q61 SLICE 1: SLICE_2 + SLICE_3 throw when requested at SLICE 1 implementation', () => {
+test('Q61: SLICE_2 + SLICE_3 both ship (R2 Task 4/5) — no throw, D5-D10 emitted', () => {
   const bundle = makeFixtureBundle();
   const config = makeFixtureCompiledConfig();
-  assert.throws(
-    () => runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_1', 'SLICE_2'] }),
-    /SLICE_2.*not yet implemented/,
-  );
-  assert.throws(
-    () => runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_3'] }),
-    /SLICE_3.*not yet implemented/,
-  );
+  const withSlice2 = runBaselineCurationPipeline(bundle, config, { slices: ['SLICE_1', 'SLICE_2'] });
+  assert.ok(withSlice2.decisions.D5, 'D5 emitted');
+  assert.ok(withSlice2.decisions.D6, 'D6 emitted');
+  assert.ok(withSlice2.decisions.D7, 'D7 emitted');
+
+  const withSlice3 = runBaselineCurationPipeline(bundle, makeFixtureCompiledConfig(), { slices: ['SLICE_3'] });
+  assert.ok(withSlice3.decisions.D8, 'D8 emitted');
+  assert.ok(withSlice3.decisions.D9, 'D9 emitted');
+  assert.ok(withSlice3.decisions.D10, 'D10 emitted');
 });
 
 test('Q61 SLICE 1: byte-identical regression — pipeline does NOT mutate input CompiledConfig', () => {
