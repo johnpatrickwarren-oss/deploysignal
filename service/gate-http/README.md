@@ -261,3 +261,152 @@ and starts fresh. Re-starting after an *early stop* (sidecar still
 window — a new `--target-ticks` takes effect only after the current window
 completes. The fold performed at `soak stop` always preserves a durable
 snapshot, so neither path loses evidence.
+
+## R4 in-service maintenance scheduler — turning "due" into "acted on"
+
+`tools/recalibrate.ts check` (D2's calendar safety net,
+`_recalibrate-sweep.ts`'s `checkCalendarSafetyNet`) already knows how to
+*determine* a baseline refresh is due — no recalibration activity since a
+calendar threshold, no open candidate in flight — and exits `3` when it
+is. Left as a bare CLI subcommand, that's still a lazy check: something
+external (a person, a cron entry) has to actually run it and act on the
+result. `service/gate-http/_gate-maintenance.ts`'s `MaintenanceScheduler`
+closes that gap: an env-gated interval job, hosted by this same gate-http
+service process, that periodically runs `check` and — opt-in,
+separately — `refresh` when it comes back due. No new daemon; no new
+port; no new process to deploy or monitor.
+
+### Config (env vars, `_gate-config.ts`) — DEFAULT OFF
+
+| Var | Default | Meaning |
+|---|---|---|
+| `DS_GATE_MAINTENANCE_INTERVAL_SECONDS` | `0` (disabled) | How often the scheduler runs `check`. Unset or `0` means the scheduler never even starts a timer — this is an opt-in feature, not an always-on one, matching the "never silently defaults to permissive/active" posture the rest of this service follows. |
+| `DS_GATE_MAINTENANCE_AUTO_REFRESH` | `false` (check-only) | `'true'` to actually spawn `refresh` when `check` comes back calendar-due (exit `3`). Default is check-only: due-ness is still detected and logged every interval, but nothing is proposed automatically until an operator opts in. |
+| `DS_GATE_REFRESH_BUNDLE_DIR` | — | Bundle directory passed to `refresh --bundle-dir`. **Required** when auto-refresh is enabled. |
+| `DS_GATE_REFRESH_WINDOW` | — | Window passed to `refresh --window` (e.g. `trailing-30d`). **Required** when auto-refresh is enabled. |
+| `DS_GATE_RECALIBRATE_BIN` | repo-relative `tools/recalibrate.js` | Overrides the resolved path to the recalibrate CLI entry point — see "spawning the CLI" below. |
+
+Validated at **startup**, not lazily at the first scheduled tick:
+`loadConfigFromEnv` throws a `GateConfigError` if
+`DS_GATE_MAINTENANCE_AUTO_REFRESH=true` is set without both
+`DS_GATE_REFRESH_BUNDLE_DIR` and `DS_GATE_REFRESH_WINDOW` — auto-acting on
+a calendar-due refresh with nothing to refresh *from* is a configuration
+mistake, not a runtime condition to silently degrade around.
+
+### Why the scheduler SPAWNS the CLI, rather than calling it in-process
+
+This is the write-split doctrine (the per-file ownership table earlier in
+this README, and `_gate-soak.ts`'s header) applied to a new case:
+`candidates/*.json`, `active.json`, `soak.json`, and
+`exclusion-windows.json` under `runs/baseline-history/<service_id>/` are
+**CLI-owned** — the recalibrate CLI is their sole read-modify-write
+writer. `MaintenanceScheduler` must never become a second writer of any of
+those files, so it never imports `tools/recalibrate/*` in-process (same
+D6 layering `_gate-soak.ts` follows: `service/` → `engine/` only) and
+never touches those files directly. Instead, each tick spawns the
+recalibrate CLI as an actual child process
+(`child_process.execFile`) — the CLI process does its own store I/O
+exactly as if an operator had typed the command by hand, and this module
+only ever reads back the child's exit code and stdout/stderr. The write
+boundary is enforced by OS process isolation, not by code discipline
+inside a shared module.
+
+Concretely, each tick:
+
+1. Spawns `check --service <id> --root <baselineHistoryDir>`.
+2. If that exits `3` (calendar due) **and** `DS_GATE_MAINTENANCE_AUTO_REFRESH=true`, spawns
+   `refresh --service <id> --root <baselineHistoryDir> --bundle-dir <DS_GATE_REFRESH_BUNDLE_DIR> --window <DS_GATE_REFRESH_WINDOW> --creation-reason calendar_safety_net`.
+   Exit `3` without auto-refresh enabled is logged and left as-is —
+   check-only is the default for a reason.
+
+### Spawning the CLI — why the compiled `tools/recalibrate.js`, not the raw `.ts`
+
+`tools/recalibrate.ts`'s own internal imports are extensionless
+(`from './recalibrate/_recalibrate-cli'`, this repo's CommonJS
+convention). Running the raw `.ts` file directly under Node's native
+type-stripping makes Node detect the top-level `import`/`export` syntax
+and switch to its ESM resolver, which — unlike the CommonJS resolver —
+does **not** auto-append `.js` to an extensionless specifier; the child
+fails immediately with `ERR_MODULE_NOT_FOUND` on its own first internal
+import, before ever reaching argv dispatch (confirmed by hand while
+building this feature). The **compiled** `tools/recalibrate.js` (a plain
+CommonJS file, emitted by `tsc -p tsconfig.test.json` — this task added
+`tools/recalibrate.ts` to that config's `include` list, mirroring the
+existing `tools/calibrate.ts` precedent; it wasn't previously compiled as
+a facade, only its `_recalibrate-cli.ts` submodule was, pulled in
+transitively by test imports) loads via the CommonJS resolver instead,
+which resolves the extensionless `require()`s correctly — confirmed
+working end to end by the real-spawn integration test
+(`test/gate-maintenance.test.ts`).
+
+`resolveRecalibrateBin` therefore defaults to this repo-relative compiled
+path, resolved from `_gate-maintenance.ts`'s own `__dirname`
+(`service/gate-http/` → repo root is two levels up), never from
+`process.cwd()` — the binary lives at a fixed place relative to the repo
+checkout regardless of what directory the server process happens to be
+launched from. `DS_GATE_RECALIBRATE_BIN` is the escape hatch for any
+deployment that packages or builds this differently (a bundled
+single-file CLI, a wrapper script, a different build layout) — set it and
+the scheduler spawns exactly that path instead, no resolution logic
+involved. The spawned child itself is always run as
+`<node binary> <recalibrate-bin-path> <args...>` (`process.execPath`,
+not a bare `bin` — a `.js` file has no exec bit/shebang, so spawning it
+directly as the executable fails `EACCES`), with `cwd` set to the
+**server's own `process.cwd()`** (not the repo root) — `baselineHistoryDir`/
+`storeDir` are commonly relative paths, already resolved by the rest of
+this service against `process.cwd()`, and the spawned CLI must resolve
+its own `--root` argument the same way.
+
+### Failure isolation — the scheduler can never crash the server
+
+Every method on `MaintenanceScheduler` is safe to call unconditionally
+from `server.ts`'s hot paths. A spawn failure (`ENOENT`, `EACCES`, a
+rejecting stub in tests), a child timeout (default 300s, `SIGKILL`ed on
+expiry), or an unexpected non-zero exit code is captured into that run's
+summary — `{exit_code, stdout_tail, stderr_tail, timed_out, error?}` —
+never thrown into the interval timer's callback or into an HTTP request.
+The interval timer itself is `.unref()`d, so an enabled scheduler never
+holds the process open on its own. A one-at-a-time guard means a tick
+that fires while the previous run's child is still executing is silently
+skipped (no history entry, no log line) rather than piling up concurrent
+spawns.
+
+### Observability — bounded history, durable log, `/readyz`
+
+Each run's summary is kept in a bounded in-memory ring buffer (last 20
+runs by default) and appended, one JSON line per run, to a **durable,
+service-owned** log:
+
+```
+<DS_GATE_STORE_DIR>/<service_id>/maintenance.jsonl
+```
+
+Note this lives under the **session store** (`DS_GATE_STORE_DIR`), NOT
+the recalibration store (`DS_GATE_BASELINE_HISTORY_DIR`) — the write-split
+doctrine again: this module owns nothing under
+`runs/baseline-history/<service_id>/`, so its own durable record of what
+it did lives entirely on its own side of that boundary, append-only, the
+same `fs.appendFileSync('a')`-per-line convention
+`service/session/jsonl-lifecycle-emitter.ts` already uses.
+
+`GET /readyz` additively surfaces the scheduler's enabled flags and last
+run (never gates readiness itself — a stalled or erroring maintenance run
+never touches the served tick path, so it's diagnostic-only):
+
+```json
+{
+  "...": "...",
+  "maintenance": {
+    "enabled": true,
+    "auto_refresh": false,
+    "interval_seconds": 3600,
+    "last_run": {
+      "started_at": "2026-07-17T00:00:00.000Z",
+      "finished_at": "2026-07-17T00:00:01.000Z",
+      "check": { "exit_code": 0, "stdout_tail": "...", "stderr_tail": "", "timed_out": false },
+      "auto_refresh_triggered": false
+    },
+    "history_count": 5
+  }
+}
+```
