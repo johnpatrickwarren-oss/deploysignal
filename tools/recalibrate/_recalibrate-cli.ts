@@ -40,8 +40,15 @@ import { sweepTimeouts, checkCalendarSafetyNet } from './_recalibrate-sweep';
 import { buildProposedCandidate, type ProposeSourceWindow } from './_recalibrate-candidate';
 import { runCandidateShadow } from './_recalibrate-shadow';
 import { RecalibrationStore, JsonlLifecycleEventEmitter, type InitOptions } from './_recalibrate-store';
+// R2 Task 8 — `refresh` dispatch. See _recalibrate-refresh.ts's module
+// header for the deliberate cli.ts<->refresh.ts require-cycle note.
+import { runRefresh, type RefreshArgs } from './_recalibrate-refresh';
 
-export const USAGE_TEXT = 'usage: recalibrate <init|propose|shadow|list|show|approve|reject|check|rollback> [flags]';
+export const USAGE_TEXT = 'usage: recalibrate <init|propose|refresh|shadow|list|show|approve|reject|check|rollback> [flags]\n'
+  + '  refresh --service <id> --bundle-dir <dir> '
+  + '[--window trailing-<Nd> | --window-start <iso> --window-end <iso> | --full-bundle] '
+  + '[--alpha <x>] [--families A,B,C,D,E] [--candidate-id <id>] '
+  + '[--creation-reason operator_manual|calendar_safety_net] [--out-dir <dir>] [--now <iso>] [--dry-run] [--root <dir>]';
 
 export interface HandlerResult {
   exitCode: number;
@@ -343,7 +350,7 @@ export async function runCheck(
     exitCode: 3,
     lines: [
       `calendar safety net: DUE — no recalibration activity since ${result.last_activity_at}`,
-      `run: node tools/recalibrate.ts propose --creation-reason calendar_safety_net ...`,
+      `run: node tools/recalibrate.ts refresh --service <id> --bundle-dir <dir> --window trailing-14d --creation-reason calendar_safety_net`,
       ...stale.lines,
     ],
     staleCandidateIds: stale.ids,
@@ -376,6 +383,9 @@ const KNOWN_FLAGS = new Set([
   '--drift-output', '--now', '--reviewer', '--reason-code', '--timeout-days',
   '--unchanged-epsilon-rel', '--version',
   '--scenarios', '--seeds', '--output-dir', '--dry-run', '--baseline-dir',
+  // R2 Task 8 — `refresh` subcommand flags.
+  '--bundle-dir', '--window', '--window-start', '--window-end', '--full-bundle',
+  '--alpha', '--families', '--out-dir',
 ]);
 
 export interface ParsedArgv {
@@ -386,7 +396,7 @@ export interface ParsedArgv {
 /** `--dry-run` is a bare boolean flag (Task 9's `shadow` subcommand,
  *  mirroring tools/run-shadow-compare.ts's own `--dry-run`) — it doesn't
  *  consume a following value like every other flag here. */
-const BOOLEAN_FLAGS = new Set(['--dry-run']);
+const BOOLEAN_FLAGS = new Set(['--dry-run', '--full-bundle']);
 
 /** Flat `--flag value` parser shared by every subcommand (subcommand-
  *  specific requiredness is enforced by `requireFlag` at dispatch time,
@@ -421,20 +431,63 @@ function openStore(flags: Record<string, string>): RecalibrationStore {
   return new RecalibrationStore(path.join(root, requireFlag(flags, 'service')));
 }
 
+/** `refresh` never performs drift detection (that's `propose
+ *  --creation-reason drift_detected` with a real drift output) — reject
+ *  it explicitly rather than let it silently fall through to
+ *  RefreshArgs's narrower type. Absent flag -> undefined (RefreshArgs's
+ *  own default, 'operator_manual'). */
+function parseRefreshCreationReason(raw: string | undefined): 'operator_manual' | 'calendar_safety_net' | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === 'operator_manual' || raw === 'calendar_safety_net') return raw;
+  if (raw === 'drift_detected') {
+    throw new Error(
+      'refresh does not perform drift detection; use `propose --creation-reason drift_detected` with a drift output',
+    );
+  }
+  throw new Error(`--creation-reason must be one of operator_manual | calendar_safety_net for refresh; got '${raw}'`);
+}
+
+function buildRefreshArgs(flags: Record<string, string>): RefreshArgs {
+  return {
+    bundleDir: requireFlag(flags, 'bundle-dir'),
+    window: flags.window,
+    windowStart: flags['window-start'],
+    windowEnd: flags['window-end'],
+    fullBundle: flags['full-bundle'] === 'true',
+    alpha: flags.alpha !== undefined ? parseFloat(flags.alpha) : undefined,
+    families: flags.families,
+    candidateId: flags['candidate-id'],
+    creationReason: parseRefreshCreationReason(flags['creation-reason']),
+    outDir: flags['out-dir'],
+    dryRun: flags['dry-run'] === 'true',
+    now: flags.now,
+  };
+}
+
+/** Extracted from `dispatch` (arch-invariants complexity ratchet — the
+ *  two `!== undefined ? ... : undefined` ternaries here plus the
+ *  `refresh` case pushed `dispatch` itself to 13; this keeps `dispatch`
+ *  a flat "one case, one call" table). */
+function buildInitArgs(flags: Record<string, string>): InitArgs {
+  return {
+    root: flags.root ?? 'runs/baseline-history',
+    serviceId: requireFlag(flags, 'service'),
+    timeoutDays: flags['timeout-days'] !== undefined ? parseInt(flags['timeout-days'], 10) : undefined,
+    unchangedEpsilonRel: flags['unchanged-epsilon-rel'] !== undefined ? parseFloat(flags['unchanged-epsilon-rel']) : undefined,
+  };
+}
+
 async function dispatch(subcommand: string, flags: Record<string, string>): Promise<HandlerResult> {
   if (subcommand === 'init') {
-    return runInit({
-      root: flags.root ?? 'runs/baseline-history',
-      serviceId: requireFlag(flags, 'service'),
-      timeoutDays: flags['timeout-days'] !== undefined ? parseInt(flags['timeout-days'], 10) : undefined,
-      unchangedEpsilonRel: flags['unchanged-epsilon-rel'] !== undefined ? parseFloat(flags['unchanged-epsilon-rel']) : undefined,
-    });
+    return runInit(buildInitArgs(flags));
   }
 
   const store = openStore(flags);
   const emitter = new JsonlLifecycleEventEmitter(store);
 
   switch (subcommand) {
+    case 'refresh':
+      return runRefresh(store, emitter, buildRefreshArgs(flags));
     case 'propose':
       return runPropose(store, emitter, {
         candidateId: requireFlag(flags, 'candidate-id'),

@@ -10,6 +10,11 @@
 //     --creation-reason drift_detected|calendar_safety_net|operator_manual \
 //     --source-window-start <iso> --source-window-end <iso> \
 //     --source-window-samples <n> [--drift-output <path.json>] [--now <iso>]
+//   node tools/recalibrate.ts refresh --service <id> --bundle-dir <dir> \
+//     [--window trailing-<Nd> | --window-start <iso> --window-end <iso> | --full-bundle] \
+//     [--alpha <x>] [--families A,B,C,D,E] [--candidate-id <id>] \
+//     [--creation-reason operator_manual|calendar_safety_net] [--out-dir <dir>] \
+//     [--now <iso>] [--dry-run] [--root <dir>]
 //   node tools/recalibrate.ts shadow --service <id> --candidate-id <id> \
 //     --scenarios <s1,s2,...> --seeds <42,43,...> [--output-dir <dir>] \
 //     [--dry-run] [--baseline-dir <dir>] [--now <iso>]
@@ -46,10 +51,18 @@ export { buildProposedCandidate } from './recalibrate/_recalibrate-candidate';
 export type { ProposeInput, ProposeOutcome, ProposeSourceWindow } from './recalibrate/_recalibrate-candidate';
 export { runCandidateShadow } from './recalibrate/_recalibrate-shadow';
 export type { RunCandidateShadowOptions, RunCandidateShadowResult } from './recalibrate/_recalibrate-shadow';
+// R2 Task 8 — `refresh` (Task 7 orchestrator) + Task 6's pure selection
+// module public surface.
+export { runRefresh } from './recalibrate/_recalibrate-refresh';
+export type { RefreshArgs } from './recalibrate/_recalibrate-refresh';
+export { resolveWindow, selectBundleWindow } from './recalibrate/_recalibrate-refresh-select';
+export type {
+  RefreshWindow, SelectionReport, ExcludedSpanReport,
+} from './recalibrate/_recalibrate-refresh-select';
 
 import { main } from './recalibrate/_recalibrate-cli';
 
-const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'shadow', 'list', 'show', 'approve', 'reject', 'check', 'rollback'];
+const RECALIBRATE_SUBCOMMANDS = ['init', 'propose', 'refresh', 'shadow', 'list', 'show', 'approve', 'reject', 'check', 'rollback'];
 if (RECALIBRATE_SUBCOMMANDS.includes(process.argv[2])) {
   main().catch((err) => {
     console.error(err instanceof Error ? (err.stack ?? err.message) : err);
