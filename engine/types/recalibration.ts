@@ -134,6 +134,82 @@ export interface CandidateRecord extends RecalibrationCandidate {
   readiness?: object;
   comparison?: object;
   shadow_report_path?: string;
+  /** R5 live shadow soak — ADDITIONAL evidence only (R-Q4: complements,
+   *  never replaces, replay shadow validation; never gates reviewable).
+   *  Written exclusively by the recalibrate CLI (soak stop fold). */
+  soak?: CandidateSoakEvidence;
   outcome: RecalibrationOutcome | null;
   history: ReviewHistoryEntry[];
+}
+
+// ── R5 live shadow soak (plan §3 Task 1) ───────────────────────────────
+// Additive-only types for the candidate-shadow-soak flow: a service-side
+// SoakController (service/gate-http/_gate-soak.ts) shadow-evaluates a
+// candidate CompiledConfig alongside every served tick and accumulates
+// disagreement/coverage stats into a per-candidate sidecar; the
+// recalibrate CLI (tools/recalibrate/_recalibrate-soak.ts) owns the
+// soak.json manifest and folds the sidecar onto CandidateRecord.soak at
+// `soak stop`. See §1 of the implementation plan for the per-file
+// single-writer doctrine governing which side writes which file.
+
+export interface SoakWindow { target_ticks: number; max_duration_seconds?: number; }
+
+export type SoakManifestStatus = 'requested' | 'stopped';
+export interface SoakManifest {          // soak.json — CLI-owned
+  schema_version: '1';
+  candidate_id: string;
+  requested_at: string;
+  requested_by: string;
+  window: SoakWindow;
+  status: SoakManifestStatus;
+  stopped_at?: string;
+  stopped_by?: string;
+}
+
+export interface SoakVoidEntry { at: string; reason: 'service_restart'; note?: string; }
+
+export interface SoakDisagreementStats {
+  total_compared: number;              // ticks where BOTH evaluations succeeded
+  verdict_disagreements: number;
+  by_pair: Record<string, number>;     // "active->candidate", e.g. "extend->rollback"
+  would_be_rollback: { active_only: number; candidate_only: number; both: number };
+}
+
+export interface SoakFamilyAttribution { active_fires: number; candidate_fires: number; }
+
+export interface SoakCoverageStats {
+  sessions_enrolled: number;
+  sessions_skipped_midstream: number;  // soak started mid-session; skipped for warm-up fairness
+  first_tick_ts: number | null;
+  last_tick_ts: number | null;
+  active_errored_ticks: number;
+  candidate_errored_ticks: number;
+}
+
+export interface SoakAccumulation {
+  ticks_observed: number;
+  disagreement: SoakDisagreementStats;
+  per_family: Record<'A' | 'B' | 'C' | 'D' | 'E', SoakFamilyAttribution>;
+  alpha_spent: { active_total: number; candidate_total: number };
+  coverage: SoakCoverageStats;
+}
+
+export type SoakSidecarStatus = 'accumulating' | 'complete';
+export interface SoakSidecar {           // soak/<id>.state.json — service-owned
+  schema_version: '1';
+  candidate_id: string;
+  window: SoakWindow;
+  started_at: string;
+  last_updated_at: string;
+  status: SoakSidecarStatus;
+  completed_at: string | null;
+  stats: SoakAccumulation;
+  voids: SoakVoidEntry[];
+}
+
+export interface CandidateSoakEvidence { // CandidateRecord.soak — CLI-folded snapshot
+  sidecar: SoakSidecar;
+  folded_at: string;
+  folded_by: string;
+  stopped_early: boolean;                // stopped before window.target_ticks reached
 }

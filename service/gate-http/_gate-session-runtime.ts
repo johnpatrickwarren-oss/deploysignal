@@ -47,6 +47,8 @@ import type { SessionRecord, VerdictHistoryEntry, BeginSessionInput } from '../s
 import type { SessionStatus, DeploymentPhase } from '../session/types';
 import { resolveActiveCalibration } from '../session/active-calibration';
 import type { ActiveCalibration } from '../session/active-calibration';
+import { SoakController } from './_gate-soak';
+import type { SoakServedOutcome, SoakCandidateOutcome, SoakShadowState } from './_gate-soak';
 
 // Runtime VALUES from the built engine. `service/` is compiled by
 // tsconfig.test.json (rootDir "."), which does not build `engine/`
@@ -67,6 +69,11 @@ const freshLifecycleState: () => LifecycleDeployState = lifecycleEventsRuntime.f
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const verdictGroupsRuntime = require('../../dist/engine/verdict-groups');
 const VerdictGrouperCtor: new () => VerdictGrouperType = verdictGroupsRuntime.VerdictGrouper;
+
+const NoOpLifecycleEventEmitterCtor: new () => LifecycleEventEmitter = lifecycleEventsRuntime.NoOpLifecycleEventEmitter;
+// Stateless no-op (see engine/o0/lifecycle-events.ts) — one shared
+// instance is safe to reuse across every shadow-soak tick.
+const soakNoopEmitter: LifecycleEventEmitter = new NoOpLifecycleEventEmitterCtor();
 
 const TREND_WINDOW = 10; // matches the repo-wide `new TrendBuffer(10)` convention (test/*, tools/*)
 
@@ -236,6 +243,12 @@ export class GateSessionRuntime {
   private readonly lockPath: string;
   private closed = false;
   private evaluateFn: EvaluateFn = orchestrate;
+  // R5 live shadow soak (service/gate-http/_gate-soak.ts). Must tolerate
+  // an absent baselineHistoryDir/<service_id> — every existing test
+  // harness has an empty tmp dir there, so soak is permanently inactive
+  // and the served path is byte-identical to pre-soak behavior. See
+  // maybeSoakTick below for the non-interference contract.
+  private readonly soak: SoakController;
 
   constructor(
     private readonly cfg: GateRuntimeConfig,
@@ -244,6 +257,7 @@ export class GateSessionRuntime {
     private readonly auditWriter: AuditWriter,
   ) {
     this.lockPath = acquireStoreLock(cfg.storeDir);
+    this.soak = new SoakController({ recalServiceDir: path.join(cfg.baselineHistoryDir, cfg.serviceId) });
   }
 
   /** Test-only seam: injects a stand-in for the real engine `evaluate()`
@@ -309,6 +323,7 @@ export class GateSessionRuntime {
       const lastActivityTs = rec.last_tick_at ? Date.parse(rec.last_tick_at) / 1000 : rec.begun_request_ts;
       if (nowTs - lastActivityTs > this.cfg.sessionTtlSeconds) {
         this.store.voidSession(rec.session_id, 'session_ttl_expired');
+        this.soak.dropSession(rec.session_id);
       }
     }
   }
@@ -493,6 +508,7 @@ export class GateSessionRuntime {
     let verdictCodeVal: number;
     let alphaConsumed = 0;
     let fires: string[] = [];
+    let firingFamilies: string[] = [];
     let shortCircuit: string | null = null;
     let degraded = false;
     let errorMsg: string | undefined;
@@ -503,6 +519,7 @@ export class GateSessionRuntime {
       verdictCodeVal = codeFor(verdict);
       alphaConsumed = result.gateResults?.fusion?.total_alpha_spent ?? 0;
       fires = result.healthResult?.rollback.map((s) => s.id) ?? [];
+      firingFamilies = result.gateResults?.fusion?.firing_families ?? [];
       shortCircuit = result.shortCircuit;
       state.failFastState = result.failFastState;
       if (result.lifecycleState) state.lifecycleState = result.lifecycleState;
@@ -551,7 +568,18 @@ export class GateSessionRuntime {
       if (terminal) {
         const reason = verdict === 'rollback' ? 'rollback' : (verdict === 'proceed' ? 'proceed' : 'total_ticks_reached');
         this.store.finishSession(sessionId, reason);
+        this.soak.dropSession(sessionId);
       }
+
+      // R5 live shadow soak: strictly after the served verdict is
+      // computed and durably persisted (plan §2 non-interference). Guard
+      // matches this block's own entry condition — an entry-dead session
+      // (G3-denied tick) never reaches here, and a replay never reaches
+      // ingestTick's body at all (early return above).
+      const servedSummary: SoakServedOutcome = {
+        verdict, fires, firingFamilies, alphaConsumed, errored: errorMsg !== undefined,
+      };
+      this.maybeSoakTick(session, req, servedSummary);
     }
 
     const finalRec = this.store.getSession(sessionId)!;
@@ -564,8 +592,103 @@ export class GateSessionRuntime {
     };
   }
 
+  /** R5 live shadow soak: shadow-evaluate the candidate CompiledConfig
+   *  against this same tick, strictly after the served verdict has been
+   *  computed and durably persisted (called from the caller's
+   *  `if (session.status === 'active') {...}` persist block only).
+   *  Non-interference contract (plan §2, absolute):
+   *   - `session`/`req` are read-only here; nothing served-side is
+   *     mutated.
+   *   - a FRESH OrchestrateParams object, never the served one.
+   *   - fully separate threaded state (own TrendBuffer/lifecycleState/
+   *     failFastState/VerdictGrouper/reversibilityClassification) —
+   *     never the served SessionRuntimeState.
+   *   - `auditWriter: null` (no double audit) and a NoOp lifecycle
+   *     emitter (keeps the shadow path structurally symmetric without
+   *     emitting events).
+   *   - `stateContext` is rebuilt from the entry-snapshot `session`
+   *     fields, not `store.stateGateContext()` post-persist (which could
+   *     reflect a finish transition this same tick just caused).
+   *   - the whole body is one try/catch: a shadow-side throw increments
+   *     `candidate_errored_ticks` (via SoakController.recordTick) and
+   *     nothing else — it can never surface in the served TickResult.
+   */
+  private maybeSoakTick(session: SessionRecord, req: TickRequest, served: SoakServedOutcome): void {
+    try {
+      this.soak.refresh(req.emitted_at_ts);
+      const enrollment = this.soak.shadowStateFor(session.session_id, session.tick);
+      if (!enrollment) return;
+      const { state: shadowState, config: candidateConfig } = enrollment;
+
+      for (const key of Object.keys(req.metrics)) shadowState.trendBuffer.push(key, req.metrics[key]);
+
+      const emittedDate = new Date(req.emitted_at_ts * 1000);
+      const params: OrchestrateParams = {
+        liveMetrics: { ...req.metrics } as Metrics,
+        scenario: {
+          id: session.session_id,
+          riskLevel: session.scenario.risk_level as RiskLevel,
+          bakeHours: 0,
+          author: session.scenario.author as Author,
+          changeType: session.scenario.change_type as ChangeType,
+          timeWindow: session.scenario.time_window as TimeWindow,
+          flags: session.scenario.flags as Flags,
+          baseline: session.scenario.baseline as Metrics,
+        },
+        hoursElapsed: (req.emitted_at_ts - session.begun_request_ts) / 3600,
+        trendBuffer: shadowState.trendBuffer,
+        tick: session.tick,
+        totalTicks: session.total_ticks,
+        deployId: session.deploy_id,
+        targetCloud: session.deployment.cloud,
+        stateContext: {
+          session_status: session.status,
+          void_reason: session.void_reason,
+          deployment_phase: session.deployment.phase,
+        },
+        compiledConfig: candidateConfig,
+        currentHourOfDay: req.hour_of_day ?? emittedDate.getUTCHours(),
+        currentDayOfWeek: req.day_of_week ?? emittedDate.getUTCDay(),
+        failFastState: shadowState.failFastState,
+        lifecycleEmitter: soakNoopEmitter,
+        lifecycleState: shadowState.lifecycleState,
+        reversibilityClassification: shadowState.reversibilityClassification,
+        verdictGrouper: shadowState.verdictGrouper,
+        auditWriter: null,
+        nowSeconds: req.emitted_at_ts,
+      };
+
+      const candidateOutcome = this.evaluateShadow(params, shadowState);
+      this.soak.recordTick(session.session_id, req.emitted_at_ts, served, candidateOutcome);
+    } catch {
+      // whole-body catch: no soak failure can ever escape to the served path.
+    }
+  }
+
+  private evaluateShadow(params: OrchestrateParams, shadowState: SoakShadowState): SoakCandidateOutcome {
+    try {
+      const result = this.evaluateFn(params);
+      shadowState.failFastState = result.failFastState;
+      if (result.lifecycleState) shadowState.lifecycleState = result.lifecycleState;
+      if (result.reversibilityClassification) shadowState.reversibilityClassification = result.reversibilityClassification;
+      return {
+        verdict: result.verdict,
+        fires: result.healthResult?.rollback.map((s) => s.id) ?? [],
+        firingFamilies: result.gateResults?.fusion?.firing_families ?? [],
+        alphaConsumed: result.gateResults?.fusion?.total_alpha_spent ?? 0,
+        errored: false,
+      };
+    } catch {
+      return {
+        verdict: 'extend', fires: [], firingFamilies: [], alphaConsumed: 0, errored: true,
+      };
+    }
+  }
+
   finish(sessionId: string, reason?: string): SessionRecord {
-    return this.store.finishSession(sessionId, reason);
+    const result = this.store.finishSession(sessionId, reason);
+    this.soak.dropSession(sessionId);
+    return result;
   }
 
   verdictFor(deployRef: string): VerdictResponse | null {
