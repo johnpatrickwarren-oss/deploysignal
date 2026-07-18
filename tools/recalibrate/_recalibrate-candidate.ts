@@ -24,7 +24,7 @@ import type { CompiledConfig } from '../../engine/types';
 import { transition } from '../../engine/recalibration/state-machine';
 import { classifyRecalibration } from '../../engine/recalibration/classify';
 import {
-  compareCandidateVsActive, evaluateReadinessGates, extractSignalMeans,
+  compareCandidateVsActive, evaluateReadinessGates, extractSignalMeansPerCellWeighted,
   type ReadinessGateResult, type ExclusionWindow,
 } from '../../engine/recalibration/compare';
 import { computeTimeoutAt } from '../../engine/recalibration/timeout';
@@ -44,6 +44,13 @@ export interface ProposeInput {
   sourceWindow: ProposeSourceWindow;
   driftOutput?: object;
   nowIso: string;
+  /** R2 Task 7 — exclusion windows already dropped from the source-data
+   *  SELECTION (refresh path, tools/recalibrate/_recalibrate-refresh.ts);
+   *  threaded straight to `evaluateReadinessGates`'s Task-1
+   *  `selectionAppliedExclusions` option. Direct `propose` CLI
+   *  invocations never set this — the Task-1 backstop is unchanged for
+   *  them (absent option -> byte-identical to pre-Task-1 behavior). */
+  selectionAppliedExclusions?: ExclusionWindow[];
 }
 
 export interface ProposeOutcome {
@@ -89,6 +96,7 @@ export function buildProposedCandidate(input: ProposeInput): ProposeOutcome {
 
   const readiness = evaluateReadinessGates(
     activeConfig, candidateConfig, input.sourceWindow, exclusions,
+    { selectionAppliedExclusions: input.selectionAppliedExclusions },
   );
 
   const classification = classifyCandidate(activeConfig, candidateConfig, meta);
@@ -154,6 +162,12 @@ function classifyCandidate(
   }
 }
 
+/** Feeds `classifyRecalibration` — uses the per-cell-weighted extraction
+ *  (engine/recalibration/compare.ts's `extractSignalMeansPerCellWeighted`)
+ *  so the CandidateRecord's operator-facing `direction_classification` /
+ *  `per_signal_direction` reflect the same per-cell-aware view as
+ *  `comparison.per_signal_deltas`, not the older aggregate-only
+ *  approximation. */
 function buildSignalMeans(cfg: CompiledConfig): Record<string, number> {
-  return extractSignalMeans(cfg);
+  return extractSignalMeansPerCellWeighted(cfg);
 }

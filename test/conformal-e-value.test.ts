@@ -318,6 +318,21 @@ test('conformal-e-value: suppresses with covariance_singular on non-PSD Σ', () 
   assert.equal(state.n, 0);
 });
 
+test('conformal-e-value: covariance_singular verdict carries signal=weighted_conformal_e_value '
+  + '+ family=E — same tag its fire/clean siblings carry, so a suppressed verdict on this '
+  + 'branch is still attributable to the right detector in v2 audit records', () => {
+  const params = makeUniformParams(100);
+  const state = freshConformalEValueState();
+  const badCov = [[-1, 0], [0, 1]];  // negative diagonal
+  const v = evaluateConformalWeightedEValue(
+    { params, covariance: badCov, alpha: ALPHA_E },
+    [1, 0], state,
+  );
+  assert.equal(v.verdict, 'suppressed');
+  assert.equal(v.family, 'E');
+  assert.equal(v.signal, 'weighted_conformal_e_value');
+});
+
 test('conformal-e-value: fresh state has M=1, n=0, alphaConsumed=0', () => {
   const s = freshConformalEValueState();
   assert.equal(s.M, 1);

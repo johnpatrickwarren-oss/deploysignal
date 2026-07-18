@@ -63,6 +63,8 @@ async function start(overrides: Partial<GateHttpConfig> = {}): Promise<Started> 
     failPolicy: 'fail_closed', mode: 'enforce',
     totalTicksDefault: 8, sessionTtlSeconds: 3600, requestTimeoutMs: 4000,
     auditDir: path.join(storeDir, serviceId, 'audit'),
+    maintenanceIntervalSeconds: 0, maintenanceAutoRefresh: false,
+    maintenanceRefreshBundleDir: null, maintenanceRefreshWindow: null, maintenanceRecalibrateBin: null,
     ...overrides,
   };
   const handle = createGateServer(cfg);

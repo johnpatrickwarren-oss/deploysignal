@@ -8,6 +8,7 @@ import type { FamilyAPerSignalParams } from './families/a';
 import type { FamilyCPerCell } from './families/c';
 import type { FamilyDPerSignal } from './families/d';
 import type { ConformalParams } from './families/e';
+import type { BaselineProvenance } from './_config-compiled';
 
 /** REPLY-51b R4-2 — fast-path metadata read from the baseline bundle
  *  manifest without materializing samples. Consumed by the profile-
@@ -96,6 +97,21 @@ export interface BaselineBundle {
    *  extends to 'hour_of_day_x_day_of_week'. When 2-D, each run carries a
    *  `day_of_week[]` array alongside `hour_of_day[]`. */
   cell_dim?: 'hour_of_day' | 'hour_of_day_x_day_of_week';
+  /** R2 Task 2 (refresh window selection) — uniform tick duration in
+   *  seconds, from `manifest.tick_seconds`. Absent on every checked-in
+   *  bundle today (no manifest carries it, plan §A.3); additive. A
+   *  bundle is "timestamped" iff this field is present AND every run
+   *  has `start_iso` — tick `t` of a run then occupies instant
+   *  `start_iso + t * tick_seconds`; membership tests use the tick's
+   *  start instant against half-open `[start, end)` windows. Mixed
+   *  presence (this set but some run lacks `start_iso`, or vice versa)
+   *  is an error at selection time, not at load time. */
+  tick_seconds?: number;
+  /** R2 Task 2 — baseline provenance carried from `manifest.
+   *  baseline_provenance` (real-bundle manifests already carry it;
+   *  synthetic bundles omit it). Additive; threaded through by
+   *  `loadBundle` for D10 honest-stamping consumption. */
+  baseline_provenance?: BaselineProvenance;
   runs: Array<{
     tenant_id?: string;
     signal_series: Record<string, number[]>;
@@ -104,6 +120,11 @@ export interface BaselineBundle {
     /** Day-of-week label per tick (0..6, Sun=0). Present iff
      *  `cell_dim === 'hour_of_day_x_day_of_week'`. */
     day_of_week?: number[];
+    /** R2 Task 2 — ISO-8601 UTC instant of the run's tick 0. Present iff
+     *  the source bundle.jsonl row carries it (comes along for free
+     *  since rows are parsed verbatim by `loadBundle`); absent on
+     *  every non-timestamped bundle. */
+    start_iso?: string;
   }>;
 }
 
