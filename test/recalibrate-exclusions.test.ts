@@ -109,7 +109,7 @@ test('scanSessionStore: rollback session with neither ended_at nor last_tick_at 
 
 // ── scanSessionStore: voided sessions ───────────────────────────────
 
-test('scanSessionStore: voided session -> exact span, unpadded', () => {
+test('scanSessionStore: voided session -> padded window with exact ISO arithmetic (same treatment as rollback — ended_at is a declaration stamp, not a precise boundary)', () => {
   const root = tmpDir('excl-sessions-');
   const store = SessionStore.init(root, 'svc-demo');
   const rec = store.beginSession(beginInput({ session_id: 'sess-d', begun_at: '2026-07-02T00:00:00.000Z' }));
@@ -121,8 +121,8 @@ test('scanSessionStore: voided session -> exact span, unpadded', () => {
   const suggestions = scanSessionStore(path.join(root, 'svc-demo'), 30, NOW);
   assert.equal(suggestions.length, 1);
   const s = suggestions[0];
-  assert.equal(s.start, '2026-07-02T00:00:00.000Z'); // exact begun_at, no pad
-  assert.equal(s.end, '2026-07-02T00:20:00.000Z'); // exact ended_at, no pad
+  assert.equal(s.start, '2026-07-01T23:30:00.000Z'); // begun_at - 30m
+  assert.equal(s.end, '2026-07-02T00:50:00.000Z'); // ended_at + 30m
   assert.equal(s.reason, 'voided_session:declare_void_and_restart');
   assert.deepEqual(s.evidence, ['sess-d']);
 });
@@ -292,4 +292,80 @@ test('deriveSuggestedExclusions: no source records -> []', () => {
     sessionsServiceDir: path.join(sessionsRoot, 'svc-demo'), store: recalStore, padMinutes: 30, nowIso: NOW,
   });
   assert.deepEqual(result, []);
+});
+
+// ── deriveSuggestedExclusions: containment filter against declared
+//    windows (resurrection guard) ─────────────────────────────────────
+
+test('deriveSuggestedExclusions: a suggestion exactly matching a declared window is filtered out', () => {
+  const sessionsRoot = tmpDir('excl-sessions-');
+  const sessStore = SessionStore.init(sessionsRoot, 'svc-demo');
+  const rec = sessStore.beginSession(beginInput({ session_id: 'sess-cov', begun_at: '2026-07-01T00:00:00.000Z' }));
+  sessStore.updateSession(rec.session_id, {
+    ended_at: '2026-07-01T00:10:00.000Z',
+    last_verdict: { verdict: 'rollback', verdict_code: 2, tick: 1, alpha_consumed: 0, fires: [] },
+  });
+
+  const recalRoot = tmpDir('excl-recal-');
+  const recalStore = RecalibrationStore.init(recalRoot, 'svc-demo');
+  const input = {
+    sessionsServiceDir: path.join(sessionsRoot, 'svc-demo'), store: recalStore, padMinutes: 30, nowIso: NOW,
+  };
+
+  // Pin down the exact window the source record derives to (padded
+  // begun_at/ended_at, see the rollback-session arithmetic test above),
+  // then declare it verbatim — the shape a suggestion has after it was
+  // already applied once.
+  recalStore.writeExclusionWindows([{
+    start: '2026-06-30T23:30:00.000Z', end: '2026-07-01T00:40:00.000Z', reason: 'rollback_session', declared_by: 'op-1',
+  }]);
+
+  assert.deepEqual(deriveSuggestedExclusions(input), []);
+});
+
+test('deriveSuggestedExclusions: a suggestion fully inside a WIDER declared window is filtered out', () => {
+  const sessionsRoot = tmpDir('excl-sessions-');
+  const sessStore = SessionStore.init(sessionsRoot, 'svc-demo');
+  const rec = sessStore.beginSession(beginInput({ session_id: 'sess-wide', begun_at: '2026-07-01T00:00:00.000Z' }));
+  sessStore.updateSession(rec.session_id, {
+    ended_at: '2026-07-01T00:10:00.000Z',
+    last_verdict: { verdict: 'rollback', verdict_code: 2, tick: 1, alpha_consumed: 0, fires: [] },
+  });
+
+  const recalRoot = tmpDir('excl-recal-');
+  const recalStore = RecalibrationStore.init(recalRoot, 'svc-demo');
+  // A wide operator-declared incident window that fully contains the
+  // (padded) session-derived suggestion.
+  recalStore.writeExclusionWindows([{
+    start: '2026-06-30T00:00:00.000Z', end: '2026-07-02T00:00:00.000Z', reason: 'known_incident', declared_by: 'op-1',
+  }]);
+
+  const result = deriveSuggestedExclusions({
+    sessionsServiceDir: path.join(sessionsRoot, 'svc-demo'), store: recalStore, padMinutes: 30, nowIso: NOW,
+  });
+  assert.deepEqual(result, []);
+});
+
+test('deriveSuggestedExclusions: a suggestion only PARTIALLY overlapping a declared window is still suggested', () => {
+  const sessionsRoot = tmpDir('excl-sessions-');
+  const sessStore = SessionStore.init(sessionsRoot, 'svc-demo');
+  const rec = sessStore.beginSession(beginInput({ session_id: 'sess-partial', begun_at: '2026-07-01T00:00:00.000Z' }));
+  sessStore.updateSession(rec.session_id, {
+    ended_at: '2026-07-01T00:10:00.000Z',
+    last_verdict: { verdict: 'rollback', verdict_code: 2, tick: 1, alpha_consumed: 0, fires: [] },
+  });
+
+  const recalRoot = tmpDir('excl-recal-');
+  const recalStore = RecalibrationStore.init(recalRoot, 'svc-demo');
+  // Declared window overlaps only the tail of the (padded) suggestion
+  // [2026-06-30T23:30, 2026-07-01T00:40) — it does NOT contain it.
+  recalStore.writeExclusionWindows([{
+    start: '2026-07-01T00:35:00.000Z', end: '2026-07-01T02:00:00.000Z', reason: 'later_incident', declared_by: 'op-1',
+  }]);
+
+  const result = deriveSuggestedExclusions({
+    sessionsServiceDir: path.join(sessionsRoot, 'svc-demo'), store: recalStore, padMinutes: 30, nowIso: NOW,
+  });
+  assert.equal(result.length, 1, 'partially-overlapping declared window must not suppress the suggestion');
+  assert.equal(result[0].reason, 'rollback_session');
 });

@@ -136,14 +136,37 @@ export interface ExclusionsApplyArgs {
   now?: string;
 }
 
+/** True when `s` exactly matches an already-declared window on
+ *  (start, end, reason) — the shape a suggestion re-derived from an
+ *  unchanged source record has after it was already applied once
+ *  (`isCoveredByDeclared` in `_recalibrate-exclusions.ts` normally keeps
+ *  this out of the suggestions queue in the first place, but this is the
+ *  apply-side backstop: a suggestions file written before that
+ *  containment filter existed, or hand-edited, or applied against a
+ *  declared-windows file that changed after the last `suggest`, can
+ *  still carry an exact duplicate). `reason` is compared with `?? ''`
+ *  since a declared `ExclusionWindow.reason` is optional. */
+function isExactDuplicate(s: SuggestedExclusion, declared: ExclusionWindow[]): boolean {
+  return declared.some((d) => d.start === s.start && d.end === s.end && (d.reason ?? '') === s.reason);
+}
+
 /** Moves confirmed suggestions (`--ids i1,i2` or `--all`) from the
  *  suggestions queue into exclusion-windows.json via the store's owned
- *  writer, stamping `declared_by` + `reason`; removes the applied
- *  entries from the suggestions file. Fails loud (no partial apply) when
- *  any requested id isn't present in the current suggestions file —
- *  clear error, no mutation — which also makes a repeated `apply` for an
- *  already-applied id idempotent-safe: it errors instead of silently
- *  re-applying or crashing. */
+ *  writer, stamping `declared_by` + `reason`; removes ALL selected
+ *  entries (applied or skipped) from the suggestions file. Fails loud
+ *  (no partial apply) when any requested id isn't present in the
+ *  current suggestions file — clear error, no mutation — which also
+ *  makes a repeated `apply` for an already-applied id idempotent-safe:
+ *  it errors instead of silently re-applying or crashing.
+ *
+ *  Dedup: before concatenating, any selected suggestion that exactly
+ *  matches (start, end, reason) an already-declared window
+ *  (`isExactDuplicate`) is skipped rather than appended — otherwise a
+ *  duplicate suggestion (e.g. from a stale suggestions file) would
+ *  double the entry in exclusion-windows.json. Skipped duplicates are
+ *  still removed from the pending queue (selecting them was an explicit
+ *  ask; leaving them pending would just resurrect the same no-op) and
+ *  reported by id, separately from newly-applied ones. */
 export function runExclusionsApply(store: RecalibrationStore, args: ExclusionsApplyArgs): HandlerResult {
   if (!args.all && (!args.ids || args.ids.length === 0)) {
     return { exitCode: 1, lines: ['exclusions apply: one of --ids or --all is required'] };
@@ -172,20 +195,34 @@ export function runExclusionsApply(store: RecalibrationStore, args: ExclusionsAp
     return ok(['no pending suggestions to apply']);
   }
 
+  const declaredExisting = store.readExclusionWindows();
+  const duplicates = selected.filter((s) => isExactDuplicate(s, declaredExisting));
+  const toApply = selected.filter((s) => !isExactDuplicate(s, declaredExisting));
+
+  if (toApply.length > 0) {
+    const newWindows: ExclusionWindow[] = toApply.map((s) => ({
+      start: s.start, end: s.end, reason: s.reason, declared_by: args.declaredBy,
+    }));
+    store.writeExclusionWindows([...declaredExisting, ...newWindows]);
+  }
+
   const selectedIds = new Set(selected.map((s) => s.id));
-  const newWindows: ExclusionWindow[] = selected.map((s) => ({
-    start: s.start, end: s.end, reason: s.reason, declared_by: args.declaredBy,
-  }));
-  store.writeExclusionWindows([...store.readExclusionWindows(), ...newWindows]);
   writeSuggestionsFile(store.dir, pending.filter((s) => !selectedIds.has(s.id)));
 
   store.appendEvent({
     type: 'recalibration.exclusions_applied',
-    payload: { service_id: store.readMeta().service_id, count: selected.length, ids: [...selectedIds] },
+    payload: { service_id: store.readMeta().service_id, count: toApply.length, ids: toApply.map((s) => s.id) },
     at: nowIso,
   });
 
-  return ok([`${selected.length} exclusion window(s) applied by '${args.declaredBy}':`, ...selected.map(formatSuggestion)]);
+  const lines: string[] = [`${toApply.length} applied, ${duplicates.length} skipped as duplicate`];
+  if (toApply.length > 0) {
+    lines.push(`applied by '${args.declaredBy}':`, ...toApply.map(formatSuggestion));
+  }
+  if (duplicates.length > 0) {
+    lines.push(`skipped (already declared): ${duplicates.map((s) => s.id).join(', ')}`);
+  }
+  return ok(lines);
 }
 
 // ── list ─────────────────────────────────────────────────────────────

@@ -20,15 +20,28 @@
 //          padMinutes on each side. reason 'rollback_session'.
 //          evidence = [session_id].
 //        - void_reason set (non-null) -> window over the session's own
-//          span, UNPADDED (the void itself already delimits the affected
-//          span precisely). reason `voided_session:<void_reason>`.
-//          evidence = [session_id].
+//          span, PADDED by padMinutes on each side (same as rollback —
+//          the void's `ended_at` is a wall-clock stamp of when the
+//          operator DECLARED the void, not necessarily when the
+//          underlying anomaly ended; treating it as an exact boundary is
+//          a false-precision claim, so it gets the same symmetric pad).
+//          reason `voided_session:<void_reason>`. evidence = [session_id].
 //   2. RecalibrationStore.readEvents(): StoredEvents of type
 //      'recalibration.rolled_back' -> window
 //      [event.at - padMinutes, event.at + padMinutes]. reason
 //      'baseline_rollback'. evidence = [`recal-event:<event.at>`] (a
 //      StoredEvent carries no id of its own; `at` is the only stable
 //      identifier available).
+//
+// Suggestions already COVERED by a declared exclusion window (see
+// `isCoveredByDeclared` below) are filtered out of every derivation —
+// containment, not mere overlap: a wider incident an operator (or a
+// prior `apply`) already declared should suppress a narrower suggestion
+// that falls entirely inside it (that's the exact resurrection case —
+// re-running `suggest` after the same suggestion was already applied
+// must not put it back in the queue), but a suggestion that only
+// partially overlaps a declared window still names real, not-yet-
+// covered span and stays worth surfacing.
 //
 // Deterministic given inputs + nowIso: every SuggestedExclusion carries
 // `suggested_at: nowIso` — no `new Date()` / wall-clock read anywhere in
@@ -39,7 +52,7 @@ import * as path from 'node:path';
 import { createHash } from 'node:crypto';
 
 import type { SessionRecord } from '../../service/session/types';
-import type { RecalibrationStore } from './_recalibrate-store';
+import type { RecalibrationStore, ExclusionWindow } from './_recalibrate-store';
 
 export interface SuggestedExclusion {
   /** Stable hash of (start, end, reason) — used as the --ids handle by
@@ -95,7 +108,9 @@ export function scanSessionStore(sessionsServiceDir: string, padMinutes: number,
     }
 
     if (rec.void_reason) {
-      out.push(makeSuggestion(rec.begun_at, spanEnd, `voided_session:${rec.void_reason}`, [rec.session_id], nowIso));
+      const start = addMinutes(rec.begun_at, -padMinutes);
+      const end = addMinutes(spanEnd, padMinutes);
+      out.push(makeSuggestion(start, end, `voided_session:${rec.void_reason}`, [rec.session_id], nowIso));
     }
   }
   return out;
@@ -157,6 +172,21 @@ function combine(a: SuggestedExclusion, b: SuggestedExclusion): SuggestedExclusi
   return makeSuggestion(start, end, reason, evidence, suggested_at);
 }
 
+/** True when `s`'s window is fully CONTAINED in some declared window —
+ *  `declared.start <= s.start && s.end <= declared.end` — not merely
+ *  overlapping. Containment (rather than overlap) is the deliberate
+ *  choice: a declared window that only partially overlaps `s` leaves
+ *  part of `s`'s span un-declared, so `s` is still worth surfacing as a
+ *  suggestion for that uncovered remainder; only a declared window that
+ *  already spans the ENTIRE suggestion — including the exact-match case
+ *  produced when a previously-applied suggestion is re-derived verbatim
+ *  (the resurrection bug this guards against) — makes `s` redundant.
+ *  ISO-8601 UTC ('Z'-suffixed, fixed-width) timestamps compare correctly
+ *  as plain strings, so no Date parsing is needed here. */
+function isCoveredByDeclared(s: SuggestedExclusion, declared: ExclusionWindow[]): boolean {
+  return declared.some((d) => d.start <= s.start && s.end <= d.end);
+}
+
 export interface DeriveExclusionsInput {
   sessionsServiceDir: string;
   store: RecalibrationStore;
@@ -165,10 +195,17 @@ export interface DeriveExclusionsInput {
 }
 
 /** Convenience orchestrator the CLI calls: scan both sources, merge,
- *  sort by start. Deterministic given inputs + nowIso. */
+ *  sort by start, then drop anything already fully covered by a
+ *  DECLARED exclusion window (`store.readExclusionWindows()` —
+ *  `isCoveredByDeclared` above) so re-running `suggest` after an
+ *  `apply` never resurrects an already-declared window. Deterministic
+ *  given inputs + nowIso (the declared-windows file is read as of the
+ *  call, same as every other store read here). */
 export function deriveSuggestedExclusions(input: DeriveExclusionsInput): SuggestedExclusion[] {
   const fromSessions = scanSessionStore(input.sessionsServiceDir, input.padMinutes, input.nowIso);
   const fromEvents = scanRecalEvents(input.store, input.padMinutes, input.nowIso);
-  return mergeSuggestions([...fromSessions, ...fromEvents], input.padMinutes)
+  const merged = mergeSuggestions([...fromSessions, ...fromEvents], input.padMinutes)
     .sort((a, b) => a.start.localeCompare(b.start));
+  const declared = input.store.readExclusionWindows();
+  return merged.filter((s) => !isCoveredByDeclared(s, declared));
 }

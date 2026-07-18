@@ -22,8 +22,9 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 
 import {
-  runExclusionsSuggest, runExclusionsApply, runExclusionsList, readSuggestionsFile,
+  runExclusionsSuggest, runExclusionsApply, runExclusionsList, readSuggestionsFile, writeSuggestionsFile,
 } from '../tools/recalibrate/_recalibrate-exclusions-cli';
+import type { SuggestedExclusion } from '../tools/recalibrate/_recalibrate-exclusions';
 import { runPropose, main } from '../tools/recalibrate/_recalibrate-cli';
 import { RecalibrationStore, type ActivePointer } from '../tools/recalibrate/_recalibrate-store';
 import { InMemoryLifecycleEventEmitter } from '../engine/o0/lifecycle-events';
@@ -227,6 +228,89 @@ test('exclusions apply --all with nothing pending is a no-op success', () => {
   const result = runExclusionsApply(store, { all: true, declaredBy: 'op-1', now: NOW });
   assert.equal(result.exitCode, 0);
   assert.deepEqual(store.readExclusionWindows(), []);
+});
+
+test('exclusions apply: dedups against existing declared windows by exact (start,end,reason) — skips the duplicate, reports its id, applies only the genuinely new one, does not double the declared entry', () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  store.writeExclusionWindows([{
+    start: '2020-01-01T00:00:00.000Z', end: '2020-01-01T01:00:00.000Z', reason: 'rollback_session', declared_by: 'op-0',
+  }]);
+
+  // Hand-craft a pending suggestions file the way a stale suggestions
+  // file (written before the suggest-side containment filter existed,
+  // or a hand-edited one) could look: one entry that exactly duplicates
+  // the already-declared window above, one genuinely new one.
+  const dup: SuggestedExclusion = {
+    id: 'excl-dup000000', start: '2020-01-01T00:00:00.000Z', end: '2020-01-01T01:00:00.000Z', reason: 'rollback_session', evidence: ['sess-old'], suggested_at: NOW,
+  };
+  const fresh: SuggestedExclusion = {
+    id: 'excl-fresh00000', start: '2026-07-01T00:00:00.000Z', end: '2026-07-01T01:00:00.000Z', reason: 'rollback_session', evidence: ['sess-new'], suggested_at: NOW,
+  };
+  writeSuggestionsFile(store.dir, [dup, fresh]);
+
+  const result = runExclusionsApply(store, { all: true, declaredBy: 'op-1', now: NOW });
+  assert.equal(result.exitCode, 0);
+  assert.ok(result.lines[0].includes('1 applied, 1 skipped as duplicate'));
+  assert.ok(result.lines.some((l) => l.includes(dup.id)), 'skipped duplicate id reported');
+
+  const declared = store.readExclusionWindows();
+  assert.equal(declared.length, 2, 'pre-existing window + the one genuinely new window — the duplicate was NOT re-added');
+  assert.equal(
+    declared.filter((w) => w.start === dup.start && w.end === dup.end).length,
+    1,
+    'the duplicated window still appears exactly once',
+  );
+  assert.ok(declared.some((w) => w.start === fresh.start && w.declared_by === 'op-1'));
+
+  assert.deepEqual(readSuggestionsFile(store.dir), [], 'both selected suggestions (applied + skipped-duplicate) removed from the pending queue');
+
+  const events = store.readEvents().filter((e) => e.type === 'recalibration.exclusions_applied');
+  assert.deepEqual(events[0].payload, { service_id: 'svc-demo', count: 1, ids: [fresh.id] }, 'event count/ids reflect only the actually-applied window, not the skipped duplicate');
+});
+
+// ── reviewer's exact resurrection scenario (regression) ────────────────
+//
+// Reported bug: `suggest` never consulted declared windows and `apply`
+// concatenated without dedup, so suggest -> apply -> suggest -> apply
+// --all duplicated entries in exclusion-windows.json and resurrected an
+// already-applied suggestion in the pending file. Fixed at BOTH ends:
+// `deriveSuggestedExclusions` now filters out suggestions already
+// COVERED by a declared window (so the second `suggest` never re-queues
+// the just-applied window), and `runExclusionsApply` dedups by exact
+// (start,end,reason) as a backstop (exercised directly above). Because
+// the suggest-side fix catches this exact-duplicate case before it ever
+// reaches the pending file, the second `apply --all` below finds nothing
+// pending — which is the correct, stronger outcome: the duplicate is
+// suppressed one step earlier than the bug report's apply-side dedup
+// alone would have caught it.
+test('reviewer resurrection scenario: suggest -> apply -> suggest -> apply --all does not duplicate or resurrect', () => {
+  const root = tmpRoot();
+  const store = RecalibrationStore.init(root, 'svc-demo');
+  const sessionsRoot = tmpRoot('excl-sessions-');
+  seedRollbackSession(sessionsRoot, 'svc-demo', 'sess-a', '2026-07-01T00:00:00.000Z', '2026-07-01T00:10:00.000Z');
+
+  const suggest1 = runExclusionsSuggest(store, { serviceId: 'svc-demo', sessionsRoot, now: NOW });
+  assert.equal(suggest1.exitCode, 0);
+  assert.equal(readSuggestionsFile(store.dir).length, 1);
+
+  const apply1 = runExclusionsApply(store, { all: true, declaredBy: 'op-1', now: NOW });
+  assert.equal(apply1.exitCode, 0);
+  assert.equal(store.readExclusionWindows().length, 1);
+  assert.deepEqual(readSuggestionsFile(store.dir), []);
+
+  // Re-run suggest against the SAME (unchanged) source session: the
+  // just-applied window now fully covers what would otherwise be
+  // re-derived, so it must NOT come back.
+  const suggest2 = runExclusionsSuggest(store, { serviceId: 'svc-demo', sessionsRoot, now: NOW });
+  assert.equal(suggest2.exitCode, 0);
+  assert.deepEqual(readSuggestionsFile(store.dir), [], 'resurrection guard: the already-declared window must not be re-queued');
+
+  const apply2 = runExclusionsApply(store, { all: true, declaredBy: 'op-2', now: NOW });
+  assert.equal(apply2.exitCode, 0);
+
+  assert.equal(store.readExclusionWindows().length, 1, 'exclusion-windows.json has exactly ONE entry — no duplicate was ever applied');
+  assert.deepEqual(readSuggestionsFile(store.dir), [], 'pending list is empty');
 });
 
 // ── list ─────────────────────────────────────────────────────────────
