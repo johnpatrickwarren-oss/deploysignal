@@ -410,3 +410,12 @@ never touches the served tick path, so it's diagnostic-only):
   }
 }
 ```
+
+**Before enabling the scheduler in production (checklist):** the default bin
+resolution spawns the *compiled* `tools/recalibrate.js`, which is a
+gitignored build artifact — a fresh checkout does not have it. Either run
+`tsc -p tsconfig.test.json` as part of the deploy, or set
+`DS_GATE_RECALIBRATE_BIN` to a real file. A missing binary does not fail
+startup; it surfaces as `bin_found: false` in `/readyz`'s maintenance block
+and as per-tick ENOENT entries in `maintenance.jsonl` — check `/readyz`
+after enabling.

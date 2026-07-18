@@ -159,6 +159,14 @@ export interface MaintenanceStatus {
   enabled: boolean;
   auto_refresh: boolean;
   interval_seconds: number;
+  /** Whether the resolved recalibrate binary exists on disk RIGHT NOW.
+   *  False means every maintenance tick will fail with ENOENT until the
+   *  compiled CLI is built (`tsc -p tsconfig.test.json`) or
+   *  DS_GATE_RECALIBRATE_BIN points at a real file — surfaced here so a
+   *  misdeployed scheduler is visible in /readyz, not only in
+   *  maintenance.jsonl. */
+  bin_found: boolean;
+  bin_path: string;
   last_run: MaintenanceRunSummary | null;
   history_count: number;
 }
@@ -256,10 +264,13 @@ export class MaintenanceScheduler {
   }
 
   getStatus(): MaintenanceStatus {
+    const bin = resolveRecalibrateBin(this.cfg.recalibrateBin);
     return {
       enabled: this.isEnabled(),
       auto_refresh: this.cfg.autoRefresh,
       interval_seconds: this.cfg.intervalSeconds,
+      bin_found: fs.existsSync(bin),
+      bin_path: bin,
       last_run: this.lastRun,
       history_count: this.history.length,
     };
