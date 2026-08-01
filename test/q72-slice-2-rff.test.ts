@@ -30,7 +30,7 @@ import {
 } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-rff';
 import {
   computeRffWitness,
-} from '../engine/detectors/family-c-betting-e-process';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-betting-e-process';
 
 // ── Mulberry32 PRNG determinism ─────────────────────────────────────
 
