@@ -35,7 +35,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { CompiledConfig, ConformalParams, FamilyCPerCell } from '../dist/engine/types';
-import { evaluateFamilyE } from '../dist/engine/detectors/conformal';
+import { evaluateFamilyE } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 import { _progressScaleForTest } from '../dist/engine/verdict';
 
 const ALPHA_E = 1e-4;

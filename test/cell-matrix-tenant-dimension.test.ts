@@ -17,7 +17,7 @@ import type { CompiledConfig, FamilyCPerCell, TenantTier } from '../engine/types
 import { resolveTenantTier, conformalSampleCount } from '../engine/types';
 import { lookupCellParams } from '../engine/detectors/page-cusum';
 import { lookupFamilyCParams } from '../engine/detectors/hotelling';
-import { lookupFamilyEParams } from '../engine/detectors/conformal';
+import { lookupFamilyEParams } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 
 const FAM_C: FamilyCPerCell = {
   mean_vector: [185, 220, 418, 0.89, 0.0042, 0.0012, 0.72, 0.02, 0.9997, 0.04, 1.0],
