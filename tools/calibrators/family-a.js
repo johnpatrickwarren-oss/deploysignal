@@ -21,7 +21,7 @@ exports.meanStd = meanStd;
 exports.buildFamilyAPerSignal = buildFamilyAPerSignal;
 exports.bootstrapBettingSlidingBufferThreshold = bootstrapBettingSlidingBufferThreshold;
 const signal_classes_1 = require("@johnpatrickwarren-oss/deploysignal-engine/signal-classes");
-const family_a_mixture_supermartingale_1 = require("../../engine/detectors/family-a-mixture-supermartingale");
+const family_a_mixture_supermartingale_1 = require("@johnpatrickwarren-oss/deploysignal-engine/detectors/family-a-mixture-supermartingale");
 const _family_a_rng_1 = require("./_family-a-rng");
 const _family_a_betting_bootstrap_1 = require("./_family-a-betting-bootstrap");
 // Re-export RNG helpers so existing `family-a.ts` import sites keep working.

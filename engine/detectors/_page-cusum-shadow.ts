@@ -15,7 +15,7 @@ import {
   freshMixtureSupermartingaleState,
   deriveMixtureSupermartingaleParams,
   type MixtureSupermartingaleState,
-} from './family-a-mixture-supermartingale';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-a-mixture-supermartingale';
 
 import type {
   CUSUMStates, FamilyAShadowCtx,
