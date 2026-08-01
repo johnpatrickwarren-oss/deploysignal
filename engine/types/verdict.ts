@@ -75,7 +75,7 @@ export interface VerdictResult {
 export interface GroupCloseFanoutResult {
   group_id: string;
   enriched?: VerdictGroupWithTopology;
-  agent?: import('./agent').AgentResultLike;
+  agent?: import('@johnpatrickwarren-oss/deploysignal-engine/types/agent').AgentResultLike;
   enrichment_error?: string;
   agent_error?: string;
 }

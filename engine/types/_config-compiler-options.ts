@@ -3,7 +3,7 @@
 // references. Split out of the engine/types/config.ts god-file; re-exported
 // verbatim from there to preserve the facade export surface.
 
-import type { ConfiguredAgent } from './agent';
+import type { ConfiguredAgent } from '@johnpatrickwarren-oss/deploysignal-engine/types/agent';
 
 /** Addition #18 — compiler-side options consumed by `tools/calibrate.ts`
  *  when deriving `FamilyCPerCell`. Not part of the runtime surface; the

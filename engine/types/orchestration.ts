@@ -194,7 +194,7 @@ export interface OrchestrateParams {
    *  on group-close. Structural type — the real implementation lives
    *  at `advisory/agent/proposer.ts` (outside engine/ rootDir; the
    *  advisory layer depends on engine, not the other way around). */
-  agentProposer?: import('./agent').AgentProposerLike;
+  agentProposer?: import('@johnpatrickwarren-oss/deploysignal-engine/types/agent').AgentProposerLike;
   /** Caller-owned factory for AgentInputContext. Invoked once per
    *  closed VerdictGroup. Keeps orchestrator ignorant of playbook
    *  loading + service_metadata shape. Required when `agentProposer`
@@ -202,7 +202,7 @@ export interface OrchestrateParams {
   buildAgentInputContext?: (
     group: import('./verdict').VerdictGroup,
     reversibility: ReversibilityClassification,
-  ) => import('./agent').AgentInputContextLike;
+  ) => import('@johnpatrickwarren-oss/deploysignal-engine/types/agent').AgentInputContextLike;
   /** Wallclock seconds for VerdictGrouper.ingest. Absent → orchestrator
    *  derives from `Date.now() / 1000`. Tests inject explicit values for
    *  deterministic grouping + grace-window behavior. */

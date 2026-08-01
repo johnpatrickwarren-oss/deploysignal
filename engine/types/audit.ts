@@ -7,7 +7,7 @@ import type {
 import type { Metrics, Baseline, Flags, TrendSnapshot } from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
 import type { GateResults } from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 import type { VerdictGroupId, TopologyCandidate } from './verdict';
-import type { ProposedAction } from './agent';
+import type { ProposedAction } from '@johnpatrickwarren-oss/deploysignal-engine/types/agent';
 import type { CellKey } from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
 import type { RecalibrationEventRecord } from './recalibration';
 
