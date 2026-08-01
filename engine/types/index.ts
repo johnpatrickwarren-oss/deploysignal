@@ -11,16 +11,16 @@
 // External consumers `from '../types'` resolve here; internal code can
 // also tight-import from a submodule path like `from '../types/families/a'`.
 
-export * from './primitives';
-export * from './metrics';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
 export * from './families/a';
-export * from './families/b';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/b';
 export * from './families/c';
 export * from './families/d';
-export * from './families/e';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/e';
 export * from './agent';
 export * from './verdict';
-export * from './policy';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 export * from './audit';
 export * from './config';
 export * from './session';

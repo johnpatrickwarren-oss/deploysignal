@@ -9,7 +9,7 @@ import type {
   SchemaContinuityRecord, TenantTier, SafeHotellingState,
 } from '../types';
 import { resolveTenantTier } from '../types';
-import { shouldSuppress } from '../l0/schema-continuity';
+import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 import { trafficGateMin } from './page-cusum';
 import { chiSquareQuantile } from './_hotelling-math';
 import {

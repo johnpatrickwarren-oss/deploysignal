@@ -12,7 +12,7 @@ import type {
   SchemaContinuityRecord, FamilyCBettingEProcessState,
 } from '../types';
 import { resolveTenantTier } from '../types';
-import { shouldSuppress } from '../l0/schema-continuity';
+import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 import { FAMILY_C_SIGNALS, lookupFamilyCParams } from './hotelling';
 import { trafficGateMin } from './page-cusum';
 import {
@@ -20,10 +20,10 @@ import {
 } from './sequential-mmd';
 import {
   q72TraceEnabled, q72EmitProcessHeader, q72EmitCellHeader, q72EmitTick,
-} from './_q72-trace';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_q72-trace';
 import {
   computeRffFeatureMap, RFF_DEFAULT_DIM, type RffFeatureMap,
-} from './family-c-rff';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-rff';
 import { DEFAULT_LAMBDA_MAX, LOG_FACTOR_FLOOR, freshFamilyCBettingEProcessState } from './_family-c-betting-state';
 import {
   computeRffWitness, computeKernelMMDWitness, onsUpdate, liveVectorFamilyC,

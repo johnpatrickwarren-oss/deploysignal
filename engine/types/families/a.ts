@@ -1,8 +1,8 @@
 // engine/types/families/a.ts — Family A (Page-CUSUM + betting e-process)
 // per-signal params + states.
 
-import type { SignalClass } from '../../signal-classes';
-import type { SelfNormalizedEProcessFallback } from '../self-normalized-fallback';
+import type { SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
+import type { SelfNormalizedEProcessFallback } from '@johnpatrickwarren-oss/deploysignal-engine/types/self-normalized-fallback';
 
 /** Addition #17 — per-(deploy, signal) state for the Family A betting
  *  e-process detector. `M` is the Ville-bounded wealth martingale under

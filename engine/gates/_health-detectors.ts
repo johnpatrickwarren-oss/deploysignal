@@ -11,7 +11,7 @@ import { evaluateFamilyE, freshConformalEValueState } from '../detectors/conform
 import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '../detectors/spectral';
 import { evaluateEMmd } from '../detectors/sequential-mmd';
 import { evaluateFamilyCBettingEProcess } from '../detectors/family-c-betting-e-process';
-import { shouldSuppress } from '../l0/schema-continuity';
+import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 import type {
   Metrics, FiredSignal, HealthResult,
   TrendBufferI, DetectorVerdict,

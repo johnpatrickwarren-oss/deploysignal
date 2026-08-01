@@ -74,7 +74,7 @@ export interface ProposedAction {
 export interface AgentInputContextLike {
   verdict_group: import('./verdict').VerdictGroup;
   verdict_group_with_topology?: import('./verdict').VerdictGroupWithTopology;
-  reversibility_classification: import('./policy').ReversibilityClassification;
+  reversibility_classification: import('@johnpatrickwarren-oss/deploysignal-engine/types/policy').ReversibilityClassification;
   playbook_candidates: ReadonlyArray<unknown>;
   service_metadata?: Record<string, string>;
 }

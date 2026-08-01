@@ -10,7 +10,7 @@
 // Anytime-valid under Ville's inequality: fire at `M_t ≥ 1/α`.
 
 import type { DetectorVerdict, FamilyCPerCell, SafeHotellingState } from '../types';
-import { cholesky, forwardSolve } from './_linalg';
+import { cholesky, forwardSolve } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_linalg';
 
 /** Fresh wealth state for a new (deploy, cell) safe-Hotelling evaluation.
  *  `M₀ = 1` is the Ville-inequality convention (log-wealth starts at 0). */

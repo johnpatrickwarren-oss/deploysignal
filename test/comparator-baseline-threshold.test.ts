@@ -22,7 +22,7 @@ import {
   type ThresholdParams,
 } from '../tools/_comparator-baseline-threshold';
 import type { Baseline, CompiledConfig, HourDayCellKey, ReportCardCellModule, ReportCardWindowsModule } from '../tools/_comparator-baseline-types';
-import type { SignalClass } from '../engine/signal-classes';
+import type { SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ioModule = require('../tools/_build-report-card-io');

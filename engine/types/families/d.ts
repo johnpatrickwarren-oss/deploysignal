@@ -1,6 +1,6 @@
 // engine/types/families/d.ts — Family D (spectral ACF + BOCPD).
 
-import type { SelfNormalizedEProcessFallback } from '../self-normalized-fallback';
+import type { SelfNormalizedEProcessFallback } from '@johnpatrickwarren-oss/deploysignal-engine/types/self-normalized-fallback';
 
 /** Per-signal Family D spectral params. Bootstrap null quantile gives the
  *  threshold for ACF peak height; lag bounds constrain the peak search to

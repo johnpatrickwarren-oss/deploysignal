@@ -13,12 +13,12 @@ import assert from 'node:assert/strict';
 
 import {
   InlineReversibilitySource, ScenarioReversibilitySource,
-} from '../dist/engine/o0/reversibility-source';
+} from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source';
 import type {
   OrchestrateParams, Metrics, AuditRecord, AuditRecordV2,
   ReversibilityClassification,
 } from '../dist/engine/types';
-import type { Reversibility } from '../dist/engine/o0/reversibility-source';
+import type { Reversibility } from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source';
 
 const engine = require('../shared');
 const { orchestrate, TrendBuffer } = engine;

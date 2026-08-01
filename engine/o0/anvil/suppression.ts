@@ -10,7 +10,7 @@
 // Gated upstream on `params.expectedFailurePattern !== undefined` so the
 // pre-Anvil orchestrator path is byte-identical (PRD-29 NFR-2 / AC-11).
 
-import type { HealthResult } from '../../types/policy';
+import type { HealthResult } from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 import type { DetectorVerdict } from '../../types/verdict';
 import type { ExpectedFailurePattern, SuppressibleFamily } from './types';
 import { tickWithinFaultWindow } from './types';

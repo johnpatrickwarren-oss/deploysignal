@@ -27,7 +27,7 @@ import {
 } from '../engine/detectors/betting-e-process';
 import {
   transformForClass, type SignalClass,
-} from '../engine/signal-classes';
+} from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 
 // ── Deterministic generators ──────────────────────────────────────
 

@@ -139,7 +139,7 @@ export interface CompiledConfig {
    *  Compiler emits this field whenever any signal got a non-default
    *  classification or when emit-on-default mode is on. Absent on
    *  pre-Q2.A configs; runtime detector defaults to gaussian_like. */
-  signal_classes?: Record<string, import('../signal-classes').SignalClass>;
+  signal_classes?: Record<string, import('@johnpatrickwarren-oss/deploysignal-engine/signal-classes').SignalClass>;
   /** Q61 SPEC-1 — per-decision audit emission from the 10-decision
    *  baseline curation pipeline (`tools/curate-baseline-pipeline.ts`).
    *  SLICE 1 emits D1-D4; SLICE 2 emits D5-D7; SLICE 3 emits D8-D10.

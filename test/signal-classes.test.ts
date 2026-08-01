@@ -17,7 +17,7 @@ import {
   DEFAULT_SIGNAL_CLASSES,
   LOGIT_BOUNDARY_EPS,
   LOG_FLOOR_EPS,
-} from '../engine/signal-classes';
+} from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 
 // ── logitTransform ────────────────────────────────────────────────
 

@@ -27,7 +27,7 @@ import {
   isWeightedConformal as guardViaE,
   isWeightedEValueConformal as eguardViaE,
   conformalSampleCount as countViaE,
-} from '../engine/types/families/e';
+} from '@johnpatrickwarren-oss/deploysignal-engine/types/families/e';
 
 // Type-only imports — assert availability via use-site (compilation
 // guarantees these types exist at both paths).
@@ -36,8 +36,8 @@ import type {
   AuditRecord, CompiledConfig, ConfiguredAgent, VerdictGroup,
   MSPRTParams, FamilyCPerCell, FamilyDPerSignal, ConformalParams,
 } from '../engine/types';
-import type { Verdict as VerdictViaPrimitives } from '../engine/types/primitives';
-import type { Metrics as MetricsViaMetrics } from '../engine/types/metrics';
+import type { Verdict as VerdictViaPrimitives } from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
+import type { Metrics as MetricsViaMetrics } from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
 import type { MSPRTParams as MSPRTViaFamilyA } from '../engine/types/families/a';
 
 test('barrel: runtime values re-export structurally identical across submodule + barrel paths', () => {

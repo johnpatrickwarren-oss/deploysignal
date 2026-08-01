@@ -1,6 +1,6 @@
 // engine/types/families/c.ts — Family C (Hotelling T² + Sequential MMD).
 
-import type { SelfNormalizedEProcessFallback } from '../self-normalized-fallback';
+import type { SelfNormalizedEProcessFallback } from '@johnpatrickwarren-oss/deploysignal-engine/types/self-normalized-fallback';
 
 /** Per-cell Family C parameters. Multivariate Hotelling T² needs a mean
  *  vector and a (shrunk) covariance matrix over the signals it consumes.

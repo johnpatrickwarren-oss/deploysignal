@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { weightedQuantile } from '../dist/engine/detectors/_linalg';
+import { weightedQuantile } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_linalg';
 
 test('weightedQuantile: uniform weights reduce to standard empirical quantile', () => {
   const scores = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

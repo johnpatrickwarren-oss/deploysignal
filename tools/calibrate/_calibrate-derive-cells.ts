@@ -9,7 +9,7 @@ import type {
   BaselineBundle, CompilerOptions, BaselineCellsConfig, BaselineCellEntry,
   FamilyAPerSignalParams, FamilyCPerCell, TenantTier,
 } from '../../engine/types';
-import { resolveSignalClass } from '../../engine/signal-classes.js';
+import { resolveSignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 import {
   EMITTED_TIERS, FAMILY_A_SIGNALS, FAMILY_C_SIGNALS, MIN_SAMPLES_POOLED,
 } from './_calibrate-constants.js';

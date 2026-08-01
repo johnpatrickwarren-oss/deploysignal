@@ -13,7 +13,7 @@ exports.stitchAggregateFallback = stitchAggregateFallback;
 exports.stitchPerCellCalibration = stitchPerCellCalibration;
 exports.buildEmptyTierEntry = buildEmptyTierEntry;
 exports.buildCellPass1 = buildCellPass1;
-const signal_classes_js_1 = require("../../engine/signal-classes.js");
+const signal_classes_1 = require("@johnpatrickwarren-oss/deploysignal-engine/signal-classes");
 const family_c_js_1 = require("../calibrators/family-c.js");
 const _calibrate_constants_js_1 = require("./_calibrate-constants.js");
 const _calibrate_data_prep_js_1 = require("./_calibrate-data-prep.js");
@@ -247,7 +247,7 @@ function buildCellPass1(ctx, h, d, tier, aggregateFamilyC, cellEntries, pendingB
     if (effectiveN >= _calibrate_constants_js_1.MIN_SAMPLES_STRICT) {
         confidence = 'strict';
         for (const signal of familyASignals) {
-            const cls = (0, signal_classes_js_1.resolveSignalClass)(signal, compilerOpts.signal_classes);
+            const cls = (0, signal_classes_1.resolveSignalClass)(signal, compilerOpts.signal_classes);
             familyA_perSignal[signal] = (0, _calibrate_family_wrappers_js_1.buildFamilyAPerSignal)(raw.perSignal[signal] ?? [], agg, cls);
         }
         if (rowCells && rowCells[idx].rows.length >= familyCSignals.length + 1) {
@@ -265,7 +265,7 @@ function buildCellPass1(ctx, h, d, tier, aggregateFamilyC, cellEntries, pendingB
         let pooledN = 0;
         for (const signal of familyASignals) {
             const r = poolFamilyA(signal, h, d, tier);
-            const cls = (0, signal_classes_js_1.resolveSignalClass)(signal, compilerOpts.signal_classes);
+            const cls = (0, signal_classes_1.resolveSignalClass)(signal, compilerOpts.signal_classes);
             familyA_perSignal[signal] = (0, _calibrate_family_wrappers_js_1.buildFamilyAPerSignal)(r.samples, agg, cls);
             for (const k of r.fromKeys)
                 pooled_from = (0, _calibrate_data_prep_js_1.pushIfMissing)(pooled_from, k);

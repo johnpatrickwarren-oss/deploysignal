@@ -48,7 +48,7 @@ import type {
   LilBoundHyperparams,
   BetaBinomialMixtureHyperparams,
   SelfNormalizedEProcessFallback,
-} from '../engine/types/self-normalized-fallback';
+} from '@johnpatrickwarren-oss/deploysignal-engine/types/self-normalized-fallback';
 
 // ── Helpers (mirrored from Q66 test file) ──────────────────────────
 

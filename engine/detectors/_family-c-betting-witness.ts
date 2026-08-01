@@ -8,7 +8,7 @@
 
 import type { FamilyCBettingEProcessState } from '../types';
 import { rbf } from './sequential-mmd';
-import { applyRffFeatureMap, type RffFeatureMap } from './family-c-rff';
+import { applyRffFeatureMap, type RffFeatureMap } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-rff';
 import { ONS_STEP_SIZE_C, WITNESS_NORMALIZATION_THRESHOLD } from './_family-c-betting-state';
 
 /** Q72 SLICE 2 (Phase 3.A) — unbiased RFF witness payoff F_t at

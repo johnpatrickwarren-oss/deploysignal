@@ -19,9 +19,9 @@ import { evaluateHealth } from './gates/health';
 import { computeVerdict } from './core';
 import { fuseVerdict } from './verdict';
 import { buildAuditRecord } from './audit';
-import { NoReversibilitySource } from './o0/reversibility-source';
+import { NoReversibilitySource } from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source';
 import { classifyReversibility } from './g0/reversibility-classifier';
-import { translateVerdict } from './o0/reversibility-translator';
+import { translateVerdict } from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-translator';
 import {
   NoOpLifecycleEventEmitter, freshLifecycleState, safeEmit,
 } from './o0/lifecycle-events';

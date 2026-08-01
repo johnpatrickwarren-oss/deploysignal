@@ -18,12 +18,12 @@ import assert from 'node:assert/strict';
 
 import {
   NoReversibilitySource, InlineReversibilitySource, ScenarioReversibilitySource,
-} from '../dist/engine/o0/reversibility-source';
+} from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source';
 import {
   classifyReversibility, DEFAULT_FALLBACK_REVERSIBILITY,
 } from '../dist/engine/g0/reversibility-classifier';
-import { translateVerdict } from '../dist/engine/o0/reversibility-translator';
-import type { Reversibility } from '../dist/engine/o0/reversibility-source';
+import { translateVerdict } from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-translator';
+import type { Reversibility } from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source';
 
 // ────────────────────────────────────────────────────────────────────
 // Source implementations.

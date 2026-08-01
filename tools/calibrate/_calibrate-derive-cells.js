@@ -7,7 +7,7 @@
 // ordering, side effects, and returned shapes.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deriveBaselineCells = deriveBaselineCells;
-const signal_classes_js_1 = require("../../engine/signal-classes.js");
+const signal_classes_1 = require("@johnpatrickwarren-oss/deploysignal-engine/signal-classes");
 const _calibrate_constants_js_1 = require("./_calibrate-constants.js");
 const _calibrate_data_prep_js_1 = require("./_calibrate-data-prep.js");
 const _calibrate_aggregator_js_1 = require("./_calibrate-aggregator.js");
@@ -239,7 +239,7 @@ function stitchPass3(pendingBuildTasks, cellResults, cellEntries, aggregateFamil
 function assembleBaselineCellsConfig(cellEntries, familyASignals, aggregateSamples, aggregateFamilyC, agg, compilerOpts, twoD, tenantTierMap) {
     const aggregatePerSignal = {};
     for (const signal of familyASignals) {
-        const cls = (0, signal_classes_js_1.resolveSignalClass)(signal, compilerOpts.signal_classes);
+        const cls = (0, signal_classes_1.resolveSignalClass)(signal, compilerOpts.signal_classes);
         aggregatePerSignal[signal] = (0, _calibrate_family_wrappers_js_1.buildFamilyAPerSignal)(aggregateSamples[signal], agg, cls);
     }
     const aggregateFallback = {
