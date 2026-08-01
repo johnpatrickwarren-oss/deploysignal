@@ -6,7 +6,7 @@ import type {
   DetectorVerdict, FamilyCPerCell, TenantTier, SafeHotellingState,
 } from '../types';
 import { hotellingT2 } from './_hotelling-math';
-import { evaluateSafeHotelling, freshSafeHotellingState } from './_hotelling-safe';
+import { evaluateSafeHotelling, freshSafeHotellingState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_hotelling-safe';
 
 /** Unified context the Record<HotellingVariant, Evaluator> receives.
  *  Each evaluator reads only the fields its variant needs. */
