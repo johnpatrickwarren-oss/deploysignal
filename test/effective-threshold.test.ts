@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const { effectiveThreshold, trendStrength, TrendBuffer } = require('../dist/engine/core');
+const { effectiveThreshold, trendStrength, TrendBuffer } = require('@johnpatrickwarren-oss/deploysignal-engine/core');
 
 function risingTrend(slopePerTick: number, ticks = 10) {
   const tb = new TrendBuffer();
