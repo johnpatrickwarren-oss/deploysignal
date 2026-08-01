@@ -18,7 +18,7 @@ export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/b';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/c';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/d';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/e';
-export * from './agent';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/agent';
 export * from './verdict';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 export * from './audit';
