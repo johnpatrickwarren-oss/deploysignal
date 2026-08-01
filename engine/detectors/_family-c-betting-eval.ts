@@ -17,7 +17,7 @@ import { FAMILY_C_SIGNALS, lookupFamilyCParams } from './hotelling';
 import { trafficGateMin } from './page-cusum';
 import {
   generateBaselinePool, baselinePoolSeed, BASELINE_POOL_SIZE,
-} from './sequential-mmd';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import {
   q72TraceEnabled, q72EmitProcessHeader, q72EmitCellHeader, q72EmitTick,
 } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_q72-trace';

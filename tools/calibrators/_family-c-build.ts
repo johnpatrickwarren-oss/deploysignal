@@ -12,7 +12,7 @@ import type {
 import { choleskyLocal } from './_shared.js';
 import {
   generateBaselinePool, baselinePoolSeed,
-} from '../../engine/detectors/sequential-mmd.js';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import {
   computeRffFeatureMap, applyRffFeatureMap, rffCellSeed, RFF_DEFAULT_DIM,
 } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-rff';
