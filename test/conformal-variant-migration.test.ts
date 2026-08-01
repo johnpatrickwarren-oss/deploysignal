@@ -17,7 +17,7 @@ import type {
   CompiledConfig, ConformalEValueState, DetectorVerdict,
   FamilyCPerCell, ConformalParams,
 } from '../engine/types';
-import { evaluateFamilyE } from '../engine/detectors/conformal';
+import { evaluateFamilyE } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 
 const ALPHA_E = 1e-4;
 const FIRE_THRESHOLD = 1 / ALPHA_E;  // 10,000

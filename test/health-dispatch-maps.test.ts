@@ -29,7 +29,7 @@ import {
 import {
   _CONFORMAL_EVALUATORS_FOR_TEST,
   _conformalKindForDispatch,
-} from '../engine/detectors/conformal';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 
 import type { ConformalParams } from '../engine/types';
 

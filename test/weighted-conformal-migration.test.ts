@@ -16,7 +16,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateFamilyE } from '../dist/engine/detectors/conformal';
+import { evaluateFamilyE } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 import { FAMILY_C_SIGNALS } from '../dist/engine/detectors/hotelling';
 import { isWeightedConformal } from '../dist/engine/types';
 import type {

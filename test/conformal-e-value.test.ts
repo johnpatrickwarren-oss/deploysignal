@@ -28,7 +28,7 @@ import assert from 'node:assert/strict';
 import type { ConformalParams, ConformalEValueState } from '../engine/types';
 import {
   evaluateConformalWeightedEValue, freshConformalEValueState,
-} from '../engine/detectors/conformal';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 import { findFirstGE } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_linalg';
 
 const ALPHA_E = 1e-4;
