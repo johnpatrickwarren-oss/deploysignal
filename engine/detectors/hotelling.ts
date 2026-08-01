@@ -27,5 +27,5 @@ export { FAMILY_C_SIGNALS, lookupFamilyCParams } from './_hotelling-lookup';
 export {
   _HOTELLING_EVALUATORS_FOR_TEST, _hotellingVariantForDispatch,
 } from './_hotelling-dispatch';
-export { freshSafeHotellingState, evaluateSafeHotelling } from './_hotelling-safe';
+export { freshSafeHotellingState, evaluateSafeHotelling } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_hotelling-safe';
 export { evaluateFamilyC } from './_hotelling-eval';
