@@ -38,7 +38,7 @@ import type {
 } from '../engine/types';
 import type { Verdict as VerdictViaPrimitives } from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
 import type { Metrics as MetricsViaMetrics } from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
-import type { MSPRTParams as MSPRTViaFamilyA } from '../engine/types/families/a';
+import type { MSPRTParams as MSPRTViaFamilyA } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/a';
 
 test('barrel: runtime values re-export structurally identical across submodule + barrel paths', () => {
   // CommonJS `export *` binds via property getters — strict reference

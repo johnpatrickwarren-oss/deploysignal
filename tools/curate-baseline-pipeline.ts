@@ -50,8 +50,8 @@ import type {
   BaselineCurationDecisionId,
   CompiledConfig,
 } from '../engine/types/config.js';
-import type { FamilyAPerSignalParams } from '../engine/types/families/a.js';
-import type { FamilyDPerSignal } from '../engine/types/families/d.js';
+import type { FamilyAPerSignalParams } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/a';
+import type { FamilyDPerSignal } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/d';
 import { hashTenantTierConfig } from './calibrate/_calibrate-tenant-tiers.js';
 
 export type SliceId = 'SLICE_1' | 'SLICE_2' | 'SLICE_3';

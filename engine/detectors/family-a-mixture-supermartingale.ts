@@ -25,7 +25,7 @@
 // (NO Page-CUSUM Ville-bounded re-engineering) EXPLICITLY RETIRE at
 // Phase-3.d.A close — Phase D's purpose is exactly that re-engineering.
 
-import type { FamilyAPerSignalParams } from '../types/families/a';
+import type { FamilyAPerSignalParams } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/a';
 
 /** Per-(signal) mixture-supermartingale state. Persists across ticks
  *  within a window; reset at window boundary. Sticky firing latch
