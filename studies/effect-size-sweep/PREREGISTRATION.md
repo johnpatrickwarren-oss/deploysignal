@@ -31,17 +31,33 @@ all changed together.
 This study exists to test H1 without either defect: on a canary-shaped corpus with a controllable
 effect size, and with the confound structure stated up front.
 
-## 1. ⚠️ Open decision — which engine, to be resolved before Phase 1
+## 1. Engine — resolved 2026-07-31
 
-This repo pins `deploysignal-engine@v0.6.3-pre` **and** carries a diverged local `engine/` tree last
-touched 2026-07-17. The engine is at `v0.6.5-pre`.
+**The study runs against `deploysignal-engine@v0.6.6-pre`.** Operator decision, and the ambiguity
+that motivated this section has since been removed by a migration in this repo.
 
-`v0.6.5-pre` shipped ADR 0026 **log-domain wealth**, which changes the wealth arithmetic this study
-measures. Its own changelog warns: "In-range `M` may differ from v0.6.4-pre in final ulps
-(`exp(Σz)` vs `Π exp(z)`) — decision semantics preserved up to ulp-boundary knife-edges."
+**The local `engine/detectors/` tree no longer exists.** A migration landed on `main` on 2026-07-31
+(`e6e18f4`…`aeb7cc5`) moving every detector into the engine package, including the Family A
+Page-CUSUM group (`300fd6a`) that supplies two of this study's three arms. `git ls-files
+engine/detectors/` now returns zero files; what remains under `engine/` is the orchestration, audit,
+gate and type layer. So there is no longer a second copy of the detectors, and **the arms under test
+come unambiguously from the pinned package.**
 
-**This must be decided and recorded here before Phase 1, not after seeing results.** Either pin
-choice is defensible; an unrecorded one is not. The run manifest records the resolved SHA regardless.
+`package.json` was reconciled to `#v0.6.6-pre` in the same migration (`df3ae2c`), matching what
+`node_modules` already carried.
+
+**What `v0.6.6-pre` contains**, enumerated from `git log 314537e..HEAD` because the release shipped
+without a CHANGELOG entry (`8b611aa`): a Family C registry fix registering
+`sequential_mmd_betting_e_process` (`2a36ff2`), a de-branding scrub that also tagged the conformal
+singular branches (`01b1aae`), an AR(1) short-baseline guard test (`0f0baee`), and a docs pointer
+(`2becdb6`).
+
+**None of those touch the three Family A arms.** The only detector file changed between v0.6.5-pre
+and v0.6.6-pre is `conformal.ts`, which is Family E, and `tools/_nab-validation-dispatch.ts` is
+unchanged. So the arms are identical to v0.6.5-pre while ADR 0026's log-domain wealth — the change
+that motivated this decision — is fully included.
+
+The run manifest records the resolved SHA regardless.
 
 ## 2. Data and construct (frozen)
 
