@@ -11,7 +11,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { CompiledConfig, FamilyCPerCell, EMmdState } from '../engine/types';
-import { evaluateEMmd, freshEMmdState } from '../engine/detectors/sequential-mmd';
+import { evaluateEMmd, freshEMmdState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import { FAMILY_C_SIGNALS } from '../engine/detectors/hotelling';
 
 const ALPHA = 1e-4;

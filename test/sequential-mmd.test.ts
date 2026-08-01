@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { computeUt, freshMMDState } from '../dist/engine/detectors/sequential-mmd';
+import { computeUt, freshMMDState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import type { MMDParams } from '../dist/engine/types';
 
 function mulberry32(seed: number): () => number {

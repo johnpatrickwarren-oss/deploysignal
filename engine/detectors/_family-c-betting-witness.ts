@@ -7,7 +7,7 @@
 // by the facade.
 
 import type { FamilyCBettingEProcessState } from '../types';
-import { rbf } from './sequential-mmd';
+import { rbf } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import { applyRffFeatureMap, type RffFeatureMap } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-rff';
 import { ONS_STEP_SIZE_C, WITNESS_NORMALIZATION_THRESHOLD } from './_family-c-betting-state';
 

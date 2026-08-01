@@ -9,7 +9,7 @@ import { evaluateFamilyABettingShadow, getOrCreateBetting } from '@johnpatrickwa
 import { evaluateFamilyC } from '../detectors/hotelling';
 import { evaluateFamilyE, freshConformalEValueState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
-import { evaluateEMmd } from '../detectors/sequential-mmd';
+import { evaluateEMmd } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import { evaluateFamilyCBettingEProcess } from '../detectors/family-c-betting-e-process';
 import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 import type {
