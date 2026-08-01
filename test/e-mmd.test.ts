@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 
 import type { CompiledConfig, FamilyCPerCell, EMmdState } from '../engine/types';
 import { evaluateEMmd, freshEMmdState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
-import { FAMILY_C_SIGNALS } from '../engine/detectors/hotelling';
+import { FAMILY_C_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 
 const ALPHA = 1e-4;
 const WARMUP = 30;

@@ -20,7 +20,7 @@ import type { CompiledConfig } from '../dist/engine/types';
 import {
   evaluateFamilyC, lookupFamilyCParams, hotellingT2, chiSquareQuantile,
   FAMILY_C_SIGNALS,
-} from '../dist/engine/detectors/hotelling';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 
 const ROOT = path.resolve(__dirname, '..');
 const V3_PATH = path.join(ROOT, 'runs', 'compiled-configs', 'v3-with-family-c.json');

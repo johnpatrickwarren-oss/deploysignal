@@ -31,7 +31,7 @@ import assert from 'node:assert/strict';
 import type { FamilyCPerCell, SafeHotellingState } from '../engine/types';
 import {
   evaluateSafeHotelling, evaluateFamilyC, freshSafeHotellingState,
-} from '../engine/detectors/hotelling';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 
 const P = 11;
 const ALPHA_C = 2e-4;

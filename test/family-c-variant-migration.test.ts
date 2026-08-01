@@ -23,7 +23,7 @@ import assert from 'node:assert/strict';
 import type {
   CompiledConfig, FamilyCPerCell, SafeHotellingState, DetectorVerdict,
 } from '../engine/types';
-import { evaluateFamilyC } from '../engine/detectors/hotelling';
+import { evaluateFamilyC } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 
 /** Build a minimal p=2 isotropic Family C cell for controlled dispatch
  *  testing. Covariance = I_2 so the chi_square and safe_test paths have

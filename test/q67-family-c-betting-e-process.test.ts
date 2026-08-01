@@ -29,7 +29,7 @@ import {
   computeKernelMMDWitness,
   onsUpdate,
 } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-betting-e-process';
-import { FAMILY_C_SIGNALS } from '../engine/detectors/hotelling';
+import { FAMILY_C_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import { buildFamilyVerdictsV2 } from '../engine/_audit-families';
 
 const ALPHA = 1e-4;

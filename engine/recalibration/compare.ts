@@ -89,7 +89,7 @@
 // callers that explicitly want the pre-fix aggregate view.
 
 import type { BaselineCellEntry, CompiledConfig } from '../types';
-import { FAMILY_C_SIGNALS } from '../detectors/hotelling';
+import { FAMILY_C_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import { DRIFT_SAMPLE_WINDOW_MAX } from '../drift/baseline-drift-detector';
 import { relativeDelta } from './classify';
 

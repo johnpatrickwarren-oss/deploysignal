@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import {
   mahalanobisDistance, conformalPValue, lookupFamilyEParams, evaluateFamilyE,
 } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
-import { FAMILY_C_SIGNALS } from '../dist/engine/detectors/hotelling';
+import { FAMILY_C_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import type { CompiledConfig, FamilyCPerCell, ConformalParams } from '../dist/engine/types';
 import { conformalSampleCount, isWeightedConformal } from '../dist/engine/types';
 

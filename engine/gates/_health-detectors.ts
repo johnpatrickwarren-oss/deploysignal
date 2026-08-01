@@ -6,7 +6,7 @@
 
 import { evaluateFamilyA } from '../detectors/page-cusum';
 import { evaluateFamilyABettingShadow, getOrCreateBetting } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
-import { evaluateFamilyC } from '../detectors/hotelling';
+import { evaluateFamilyC } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import { evaluateFamilyE, freshConformalEValueState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 import { evaluateEMmd } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
