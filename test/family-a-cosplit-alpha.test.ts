@@ -16,7 +16,7 @@ import * as path from 'node:path';
 
 import { freshBettingState, evaluateBettingEProcess } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 import { wealthView } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_wealth';
-import { freshCUSUM, evaluateCUSUM } from '../dist/engine/detectors/page-cusum';
+import { freshCUSUM, evaluateCUSUM } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
 import type { CompiledConfig, MSPRTParams } from '../dist/engine/types';
 
 const V4_PATH = path.resolve(__dirname, '..', 'runs', 'compiled-configs', 'v4-fusion-novelty.json');

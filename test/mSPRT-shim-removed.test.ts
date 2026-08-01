@@ -31,7 +31,7 @@ test('mSPRT-shim-removed: test/page-cusum-rename-parity.test.ts absent', () => {
 test('mSPRT-shim-removed: test/page-cusum.test.ts imports from page-cusum (not mSPRT)', () => {
   const p = path.join(REPO_ROOT, 'test', 'page-cusum.test.ts');
   const src = fs.readFileSync(p, 'utf8');
-  assert.ok(src.includes("from '../dist/engine/detectors/page-cusum'"),
+  assert.ok(src.includes("from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum'"),
     'test/page-cusum.test.ts must import from page-cusum (not mSPRT)');
   assert.ok(!src.includes("from '../dist/engine/detectors/mSPRT'"),
     'test/page-cusum.test.ts must not import from the retired mSPRT shim');

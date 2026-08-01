@@ -579,7 +579,7 @@ test('Q66 #15 (.A.b): computePerSignalAr1Phi returns 0 on degenerate inputs', ()
 // Q68 .C consolidation: variant flag retired; tests #17 (classical opt-in)
 // + #18 (explicit mixture opt-in) removed since dispatch is unconditional.
 
-import { evaluateFamilyA } from '../engine/detectors/page-cusum';
+import { evaluateFamilyA } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
 import type { CompiledConfig } from '../engine/types';
 
 function makeMinimalConfig(): CompiledConfig {

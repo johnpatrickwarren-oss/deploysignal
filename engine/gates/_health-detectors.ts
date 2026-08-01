@@ -4,7 +4,7 @@
 // runner mutates the shared HealthResult + rollback array in place,
 // preserving the original cascade order and silent-shadow error posture.
 
-import { evaluateFamilyA } from '../detectors/page-cusum';
+import { evaluateFamilyA } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
 import { evaluateFamilyABettingShadow, getOrCreateBetting } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 import { evaluateFamilyC } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import { evaluateFamilyE, freshConformalEValueState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
