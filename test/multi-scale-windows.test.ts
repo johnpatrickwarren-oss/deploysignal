@@ -16,7 +16,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 // Import from the compiled engine so Node --test can resolve at runtime.
-import { TrendBuffer } from '../dist/engine/core';
+import { TrendBuffer } from '@johnpatrickwarren-oss/deploysignal-engine/core';
 
 type Hist = number[];
 

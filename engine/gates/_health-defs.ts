@@ -3,7 +3,7 @@
 // The ratio-detector check tables for the Health Signal Service. Moved
 // verbatim from health.ts; the facade re-exports ROLLBACK_DEFS / EXTEND_DEFS.
 
-import { trendStrength, effectiveThreshold } from '../core';
+import { trendStrength, effectiveThreshold } from '@johnpatrickwarren-oss/deploysignal-engine/core';
 import { QUALITY_ROLLBACK_DEFS, QUALITY_EXTEND_DEFS } from '../signals/quality';
 import type { RollbackDef, ExtendDef } from '../types';
 

@@ -4,7 +4,7 @@
 // Scenarios without these metrics return false (no-op) — backward compatible.
 // These signals are STABLE — not rewritten by the self-improving loop.
 
-import { trendStrength } from '../core';
+import { trendStrength } from '@johnpatrickwarren-oss/deploysignal-engine/core';
 import type { RollbackDef, ExtendDef } from '../types';
 
 export const QUALITY_ROLLBACK_DEFS: RollbackDef[] = [

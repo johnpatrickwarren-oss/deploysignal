@@ -15,7 +15,7 @@
 const {
   TrendBuffer, trendStrength, effectiveThreshold,
   WARMUP_CONFIG, getWarmupState, computeVerdict, FP_CLASSIFIER_CONFIG, TOTAL_TICKS
-} = require('./dist/engine/core');
+} = require('@johnpatrickwarren-oss/deploysignal-engine/core');
 
 const { QUALITY_ROLLBACK_DEFS, QUALITY_EXTEND_DEFS } = require('./dist/engine/signals/quality');
 const { SLOW_BURN_SCENARIOS } = require('./dist/engine/scenarios/slow_burn');

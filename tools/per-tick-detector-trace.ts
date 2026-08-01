@@ -33,7 +33,7 @@
 // tools/run-shadow-compare.ts pattern (no shared.js bridge); avoids
 // CJS/ESM dual-path require/createRequire complexity.
 import { evaluate as orchestrate } from '../engine/orchestrator.js';
-import { TrendBuffer } from '../engine/core.js';
+import { TrendBuffer } from '@johnpatrickwarren-oss/deploysignal-engine/core';
 
 import type {
   PerTickDetectorTraceOpts,
