@@ -20,7 +20,7 @@ import { transformForClass, type SignalClass } from '@johnpatrickwarren-oss/depl
 import {
   computePerSignalAr1Phi,
   deriveMixtureSupermartingaleParams,
-} from '../../engine/detectors/family-a-mixture-supermartingale';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-a-mixture-supermartingale';
 import { mulberry32Local } from './_family-a-rng';
 import {
   makeBettingBetSelectors,
