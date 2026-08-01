@@ -14,7 +14,7 @@
 import * as fs from 'node:fs';
 
 import { evaluateFamilyAShadow, type CUSUMStates } from '../engine/detectors/page-cusum.js';
-import { evaluateFamilyABettingShadow, type BettingStates } from '../engine/detectors/betting-e-process.js';
+import { evaluateFamilyABettingShadow, type BettingStates } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 import { evaluateFamilyD } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 import type { CompiledConfig } from '../engine/types/config.js';
 

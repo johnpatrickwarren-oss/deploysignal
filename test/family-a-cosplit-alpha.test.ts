@@ -14,7 +14,8 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { freshBettingState, evaluateBettingEProcess } from '../dist/engine/detectors/betting-e-process';
+import { freshBettingState, evaluateBettingEProcess } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
+import { wealthView } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_wealth';
 import { freshCUSUM, evaluateCUSUM } from '../dist/engine/detectors/page-cusum';
 import type { CompiledConfig, MSPRTParams } from '../dist/engine/types';
 
@@ -85,7 +86,12 @@ test('α-split: both detectors fire independently with separate alpha_spent attr
   );
 
   const bettingState = freshBettingState();
-  bettingState.M = (1 / alphaBetting) + 1;  // just above threshold
+  // Just above threshold. Engine ADR 0026 makes `log_M` the wealth's source
+  // of truth and `M` a derived view — the same log-domain seeding the
+  // Page-CUSUM side above already does with `cusumState.S`. Assigning `M`
+  // alone would leave log_M = 0 and the first update would reset wealth to 1.
+  bettingState.log_M = Math.log((1 / alphaBetting) + 1);
+  bettingState.M = wealthView(bettingState.log_M);
   bettingState.n = 10;
   const vBetting = evaluateBettingEProcess(
     { signal: 'p99_latency', params, state: bettingState, trafficPct: 1.0,

@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 
 import {
   freshBettingState, updateBettingState,
-} from '../engine/detectors/betting-e-process';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 import {
   transformForClass, type SignalClass,
 } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
