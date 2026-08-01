@@ -36,7 +36,7 @@ export type {
 export type {
   CompilerOptions,
   ConfiguredTopologyRef,
-} from './_config-compiler-options';
+} from '@johnpatrickwarren-oss/deploysignal-engine/types/config';
 
 // ── Reference workload profiles, overrides, effective config ──────
 export type {
