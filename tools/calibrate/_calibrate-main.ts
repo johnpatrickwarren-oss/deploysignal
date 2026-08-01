@@ -12,7 +12,7 @@ import type {
   BaselineBundle, BaselineCellsConfig, CompilerOptions, EffectiveConfig,
   TenantTier, TenantTierConfig,
 } from '../../engine/types';
-import { resolveSignalClass, type SignalClass } from '../../engine/signal-classes.js';
+import { resolveSignalClass, type SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 import {
   FAMILY_E_BOOTSTRAP_SEED, computeBaselineSpanDays,
   buildFamilyEPerCell, resolveFamilyEVariantSelector,

@@ -4,7 +4,7 @@
 // Pure arithmetic: inverse-normal CDF, Wilson-Hilferty χ² quantile, and
 // the Hotelling T² quadratic form via Cholesky. No behavior change.
 
-import { cholesky, forwardSolve } from './_linalg';
+import { cholesky, forwardSolve } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_linalg';
 
 /** Rational approximation to Φ⁻¹ (inverse standard normal CDF). Beasley-
  *  Springer-Moro, 1995 — sufficient accuracy for our purposes (err

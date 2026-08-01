@@ -27,7 +27,7 @@ import type {
   CompiledConfig, DetectorVerdict, FamilyDPerSignal,
   SchemaContinuityRecord, SpectralEDetectorState,
 } from '../types';
-import { shouldSuppress } from '../l0/schema-continuity';
+import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 
 const DEFAULT_ALPHA_D = 1e-4;
 const DEFAULT_MIN_PEAK_LAG = 3;

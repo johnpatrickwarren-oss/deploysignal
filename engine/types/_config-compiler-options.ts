@@ -158,7 +158,7 @@ export interface CompilerOptions {
    *  may have domain knowledge architect-defaults don't). Compiler emits
    *  resolved classes onto CompiledConfig.signal_classes for runtime
    *  consumption. Absent → all signals resolve via DEFAULT_SIGNAL_CLASSES. */
-  signal_classes?: Record<string, import('../signal-classes').SignalClass>;
+  signal_classes?: Record<string, import('@johnpatrickwarren-oss/deploysignal-engine/signal-classes').SignalClass>;
 }
 
 /** Compiler-configured pointer to a customer-hosted topology source.

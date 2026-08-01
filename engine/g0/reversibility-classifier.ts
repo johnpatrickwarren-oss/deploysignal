@@ -15,7 +15,7 @@
 
 import type {
   Reversibility, ReversibilityAnnotationSource,
-} from '../o0/reversibility-source';
+} from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source';
 
 export interface ReversibilityClassification {
   /** Concrete reversibility value post-classification — one of

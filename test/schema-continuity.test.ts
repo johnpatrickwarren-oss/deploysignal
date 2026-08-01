@@ -10,8 +10,8 @@ import assert from 'node:assert/strict';
 import {
   hashSchema, classifyContinuity, makeContinuityRecord,
   familiesToSuppress, shouldSuppress, MIN_REBASELINE_SAMPLES,
-} from '../dist/engine/l0/schema-continuity';
-import type { SchemaDescriptor } from '../dist/engine/l0/schema-continuity';
+} from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
+import type { SchemaDescriptor } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 
 function baseDesc(): SchemaDescriptor {
   return {

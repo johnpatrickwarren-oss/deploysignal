@@ -15,7 +15,7 @@ import {
 } from '../../engine/detectors/sequential-mmd.js';
 import {
   computeRffFeatureMap, applyRffFeatureMap, rffCellSeed, RFF_DEFAULT_DIM,
-} from '../../engine/detectors/family-c-rff.js';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-rff';
 import {
   columnMean, relativeDeviations, ledoitWolfShrinkage, chiSqQuantile975,
   logDetLocal, mahalanobisSqFromL, isPSDWithTolerance,

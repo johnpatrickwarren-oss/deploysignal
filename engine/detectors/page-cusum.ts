@@ -33,7 +33,7 @@
 // signal-classes import is retained as a no-op for now in case a future
 // revision needs it (and to keep the import-graph stable for downstream
 // consumers).
-import { transformForClass as _transformForClass } from '../signal-classes';
+import { transformForClass as _transformForClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 void _transformForClass;
 
 export type { CUSUMState, CUSUMStates, CUSUMInput } from './_page-cusum-types';

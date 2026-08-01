@@ -16,7 +16,7 @@
 // suspenders defense-in-depth for any residual edge case.
 
 import type { FamilyAPerSignalParams } from '../../engine/types';
-import { transformForClass, type SignalClass } from '../../engine/signal-classes';
+import { transformForClass, type SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 import {
   computePerSignalAr1Phi,
   deriveMixtureSupermartingaleParams,

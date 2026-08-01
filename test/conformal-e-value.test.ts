@@ -29,7 +29,7 @@ import type { ConformalParams, ConformalEValueState } from '../engine/types';
 import {
   evaluateConformalWeightedEValue, freshConformalEValueState,
 } from '../engine/detectors/conformal';
-import { findFirstGE } from '../engine/detectors/_linalg';
+import { findFirstGE } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_linalg';
 
 const ALPHA_E = 1e-4;
 const FIRE_THRESHOLD = 1 / ALPHA_E;  // = 10,000

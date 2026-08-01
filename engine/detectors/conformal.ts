@@ -50,8 +50,8 @@ import type {
 // to reuse when it threads x_t through to evaluateConformalWeightedEValue
 // via evaluateFamilyE's dispatch branch.
 import { isWeightedConformal, isWeightedEValueConformal, conformalSampleCount, resolveTenantTier } from '../types';
-import { shouldSuppress } from '../l0/schema-continuity';
-import { cholesky, forwardSolve, weightedQuantile, findFirstGE } from './_linalg';
+import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
+import { cholesky, forwardSolve, weightedQuantile, findFirstGE } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_linalg';
 import {
   collectLiveVector, checkBakeAndTrafficGates, checkConformalPreGuards,
 } from './_conformal-gates';

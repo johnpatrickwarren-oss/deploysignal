@@ -43,7 +43,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.main = main;
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
-const signal_classes_js_1 = require("../../engine/signal-classes.js");
+const signal_classes_1 = require("@johnpatrickwarren-oss/deploysignal-engine/signal-classes");
 const family_e_js_1 = require("../calibrators/family-e.js");
 const curate_baseline_pipeline_js_1 = require("../curate-baseline-pipeline.js");
 const _calibrate_constants_js_1 = require("./_calibrate-constants.js");
@@ -141,7 +141,7 @@ function buildAndWriteConfig(b) {
     // Q2.A — emit the resolved signal_classes map.
     const resolvedSignalClasses = {};
     for (const sig of compileDefaults.family_a_signals) {
-        resolvedSignalClasses[sig] = (0, signal_classes_js_1.resolveSignalClass)(sig, compilerOpts.signal_classes);
+        resolvedSignalClasses[sig] = (0, signal_classes_1.resolveSignalClass)(sig, compilerOpts.signal_classes);
     }
     config.signal_classes = resolvedSignalClasses;
     // REPLY-50 D7 — stamp compile_phases just before write.

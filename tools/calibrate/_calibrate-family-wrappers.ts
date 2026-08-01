@@ -7,7 +7,7 @@
 import type {
   CompilerOptions, FamilyAPerSignalParams, FamilyCPerCell, FamilyDPerSignal,
 } from '../../engine/types';
-import type { SignalClass } from '../../engine/signal-classes.js';
+import type { SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 import type { CompileAggregator } from './_calibrate-types.js';
 
 // D-54-3 slice 3c — Family C (MCD / MRCD / Ledoit-Wolf routing +

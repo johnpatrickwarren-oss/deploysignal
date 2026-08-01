@@ -33,7 +33,7 @@ import type {
   SchemaContinuityRecord, BettingEProcessState, TenantTier,
 } from '../types';
 import { resolveTenantTier } from '../types';
-import { shouldSuppress } from '../l0/schema-continuity';
+import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 import { FAMILY_A_PRIMARY_SIGNALS, trafficGateMin } from './page-cusum';
 // Q2.A — class-appropriate forward transform on live observation
 // before mean-centering. Runtime resolution honors only what the
@@ -41,7 +41,7 @@ import { FAMILY_A_PRIMARY_SIGNALS, trafficGateMin } from './page-cusum';
 // → 'gaussian_like'); transformForClass returns identity for the
 // gaussian_like default so pre-Q2.A configs retain byte-identical
 // runtime behavior. DEFAULT_SIGNAL_CLASSES is compile-time only.
-import { transformForClass } from '../signal-classes';
+import { transformForClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 
 const DEFAULT_BAKE: BakeProfile = {
   min_ticks_before_eligible: 3,

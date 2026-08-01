@@ -3,12 +3,12 @@
 
 import type {
   Verdict, Mode, RiskLevel, Author, ChangeType, TimeWindow, FamilyId,
-} from './primitives';
-import type { Metrics, Baseline, Flags, TrendSnapshot } from './metrics';
-import type { GateResults } from './policy';
+} from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
+import type { Metrics, Baseline, Flags, TrendSnapshot } from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
+import type { GateResults } from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 import type { VerdictGroupId, TopologyCandidate } from './verdict';
 import type { ProposedAction } from './agent';
-import type { CellKey } from './primitives';
+import type { CellKey } from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
 import type { RecalibrationEventRecord } from './recalibration';
 
 /** Task 1 (WS4 session-durability plan) — fail-loud audit-writer health

@@ -3,11 +3,11 @@
 // engine/types/config.ts god-file; re-exported verbatim from there to
 // preserve the facade export surface.
 
-import type { CellKey } from './primitives';
+import type { CellKey } from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
 import type { FamilyAPerSignalParams } from './families/a';
 import type { FamilyCPerCell } from './families/c';
 import type { FamilyDPerSignal } from './families/d';
-import type { ConformalParams } from './families/e';
+import type { ConformalParams } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/e';
 import type { BaselineProvenance } from './_config-compiled';
 
 /** REPLY-51b R4-2 — fast-path metadata read from the baseline bundle

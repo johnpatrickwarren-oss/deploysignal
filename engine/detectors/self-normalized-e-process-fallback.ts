@@ -51,7 +51,7 @@ import type {
   LilBoundHyperparams,
   BetaBinomialMixtureHyperparams,
   SelfNormalizedEProcessFallback,
-} from '../types/self-normalized-fallback';
+} from '@johnpatrickwarren-oss/deploysignal-engine/types/self-normalized-fallback';
 
 export type {
   LilBoundHyperparams,

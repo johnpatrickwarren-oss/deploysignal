@@ -27,7 +27,7 @@ import {
   rffDot,
   rffCellSeed,
   RFF_DEFAULT_DIM,
-} from '../engine/detectors/family-c-rff';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-rff';
 import {
   computeRffWitness,
 } from '../engine/detectors/family-c-betting-e-process';

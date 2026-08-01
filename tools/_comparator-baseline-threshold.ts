@@ -49,7 +49,7 @@
 
 import type { CompiledConfig, HourDayCellKey, ReportCardCellModule, Trajectory } from './_comparator-baseline-types';
 import { meanSigmaFromCompiledCell } from './_comparator-baseline-stats';
-import { transformForClass, type SignalClass } from '../engine/signal-classes';
+import { transformForClass, type SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cellModule = require('./_build-report-card-cell') as ReportCardCellModule;

@@ -41,7 +41,7 @@ import type {
   SchemaContinuityRecord, EMmdState,
 } from '../types';
 import { resolveTenantTier } from '../types';
-import { shouldSuppress } from '../l0/schema-continuity';
+import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 import { FAMILY_C_SIGNALS, lookupFamilyCParams } from './hotelling';
 import { trafficGateMin } from './page-cusum';
 import { pickBet } from './betting-e-process';

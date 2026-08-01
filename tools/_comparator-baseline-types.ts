@@ -8,7 +8,7 @@
 // imports — per §0 of the implementation plan, they are required()
 // verbatim and never modified/refactored in this PR).
 
-import type { SignalClass } from '../engine/signal-classes';
+import type { SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 
 // ── Per-arm results / window provenance ──────────────────────────────
 

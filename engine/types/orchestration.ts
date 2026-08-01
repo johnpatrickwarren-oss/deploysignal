@@ -4,12 +4,12 @@
 // cutting Metrics/Scenario/AuditWriter/CompiledConfig surface stays
 // co-located with its one big consumer.
 
-import type { Metrics } from './metrics';
+import type { Metrics } from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
 import type {
   FailFastState, SchemaContinuityRecord, ReversibilityClassification,
-} from './policy';
+} from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 import type { Scenario } from './verdict';
-import type { TrendBufferI } from './metrics';
+import type { TrendBufferI } from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
 import type { AuditWriter, AuditOpts } from './audit';
 import type { CompiledConfig } from './config';
 import type { StateGateContext } from './session';
@@ -147,7 +147,7 @@ export interface OrchestrateParams {
    *  `ScenarioReversibilitySource` (scenario-JSON-keyed Record).
    *  Absent → orchestrator uses `NoReversibilitySource` → every
    *  deploy receives the default-fallback `'forward_only'` classification. */
-  reversibilitySource?: import('../o0/reversibility-source').ReversibilityAnnotationSource;
+  reversibilitySource?: import('@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source').ReversibilityAnnotationSource;
   /** Week 6+ Addition #5 — pre-classified reversibility for this deploy.
    *  Orchestrator populates at tick 0 via
    *  `classifyReversibility(deployId, reversibilitySource)` and returns

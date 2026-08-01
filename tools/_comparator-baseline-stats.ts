@@ -4,7 +4,7 @@
 // arm, Task 4), and a compiled-cell mean/sigma reader (used by the
 // threshold arm, Task 3). No third-party dependencies.
 
-import type { SignalClass } from '../engine/signal-classes';
+import type { SignalClass } from '@johnpatrickwarren-oss/deploysignal-engine/signal-classes';
 
 export interface MannWhitneyResult {
   u: number;
