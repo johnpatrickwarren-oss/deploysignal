@@ -44,7 +44,7 @@ import { resolveTenantTier } from '../types';
 import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
 import { FAMILY_C_SIGNALS, lookupFamilyCParams } from './hotelling';
 import { trafficGateMin } from './page-cusum';
-import { pickBet } from './betting-e-process';
+import { pickBet } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 
 /** Running window of relative-deviation vectors. One window per deploy;
  *  orchestrator caller owns the lifetime (same shape as TrendBuffer). */

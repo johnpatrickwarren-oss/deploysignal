@@ -23,7 +23,7 @@ import assert from 'node:assert/strict';
 
 import {
   freshBettingState, updateBettingState,
-} from '../dist/engine/detectors/betting-e-process';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;

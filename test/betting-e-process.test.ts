@@ -17,7 +17,8 @@ import assert from 'node:assert/strict';
 import {
   freshBettingState, updateBettingState, grapaBet, onsBet, pickBet,
   evaluateBettingEProcess,
-} from '../dist/engine/detectors/betting-e-process';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
+import { wealthView } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_wealth';
 import type { BettingEProcessState } from '../dist/engine/types';
 
 function mulberry32(seed: number): () => number {
@@ -138,7 +139,13 @@ test('betting: onsBet returns 0 when running second moment is zero', () => {
 
 test('betting: evaluateBettingEProcess surfaces fires with threshold + α_spent', () => {
   const state = freshBettingState();
-  state.M = 40000;  // well above threshold for α = 3.33e-5 (threshold 30K)
+  // Seed wealth well above threshold for α = 3.33e-5 (threshold 30K).
+  // Under engine ADR 0026 `log_M` is the source of truth and `M` is a
+  // derived saturating view, so assigning `M` alone builds a state the
+  // engine cannot produce: healLogWealth sees a finite log_M = 0, keeps
+  // it, and the first update re-materializes M = wealthView(0) = 1.
+  state.log_M = Math.log(40000);
+  state.M = wealthView(state.log_M);
   state.n = 10;
   const params = {
     signal: 'p99_latency',

@@ -5,7 +5,7 @@
 // preserving the original cascade order and silent-shadow error posture.
 
 import { evaluateFamilyA } from '../detectors/page-cusum';
-import { evaluateFamilyABettingShadow, getOrCreateBetting } from '../detectors/betting-e-process';
+import { evaluateFamilyABettingShadow, getOrCreateBetting } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 import { evaluateFamilyC } from '../detectors/hotelling';
 import { evaluateFamilyE, freshConformalEValueState } from '../detectors/conformal';
 import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
