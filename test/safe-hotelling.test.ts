@@ -19,7 +19,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { FamilyCPerCell } from '../engine/types';
-import { evaluateSafeHotelling, freshSafeHotellingState } from '../engine/detectors/hotelling';
+import { evaluateSafeHotelling, freshSafeHotellingState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 
 /** Build a p-dim isotropic cell Σ = I_p with analytically-known
  *  `precompiled_log_det_shrink = ½ · p · log(1 + τ²)`. */

@@ -21,7 +21,7 @@ import assert from 'node:assert/strict';
 import {
   _HOTELLING_EVALUATORS_FOR_TEST,
   _hotellingVariantForDispatch,
-} from '../engine/detectors/hotelling';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import {
   _SPECTRAL_EVALUATORS_FOR_TEST,
   _spectralVariantForDispatch,

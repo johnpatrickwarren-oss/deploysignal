@@ -21,7 +21,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { FamilyCPerCell, SafeHotellingState } from '../engine/types';
-import { evaluateSafeHotelling, freshSafeHotellingState } from '../engine/detectors/hotelling';
+import { evaluateSafeHotelling, freshSafeHotellingState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 
 const P = 11;  // FAMILY_C_SIGNALS length
 const ALPHA = 1e-4;

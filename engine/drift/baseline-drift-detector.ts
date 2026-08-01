@@ -39,7 +39,7 @@
 
 import type { CompiledConfig, FamilyCPerCell, BaselineCellEntry } from '../types';
 import { cholesky, forwardSolve } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_linalg';
-import { chiSquareQuantile, FAMILY_C_SIGNALS } from '../detectors/hotelling';
+import { chiSquareQuantile, FAMILY_C_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 
 /** Default per-recalibration-decision FP budget (REPLY-11 symmetric
  *  reasoning). */
