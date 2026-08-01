@@ -15,7 +15,7 @@ import * as fs from 'node:fs';
 
 import { evaluateFamilyAShadow, type CUSUMStates } from '../engine/detectors/page-cusum.js';
 import { evaluateFamilyABettingShadow, type BettingStates } from '../engine/detectors/betting-e-process.js';
-import { evaluateFamilyD } from '../engine/detectors/spectral.js';
+import { evaluateFamilyD } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 import type { CompiledConfig } from '../engine/types/config.js';
 
 import type { NABDetectorFamily, DetectorFiringDecision } from './_run-nab-validation-types';

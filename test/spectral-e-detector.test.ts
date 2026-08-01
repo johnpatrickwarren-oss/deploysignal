@@ -20,7 +20,7 @@ import assert from 'node:assert/strict';
 import type { FamilyDPerSignal, SpectralEDetectorState } from '../engine/types';
 import {
   evaluateSpectralEDetector, freshSpectralEDetectorState,
-} from '../engine/detectors/spectral';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 
 const MU0 = 0.42;
 const SIGMA0 = 0.05;
