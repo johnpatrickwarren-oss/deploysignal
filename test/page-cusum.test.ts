@@ -24,7 +24,7 @@ import type { CompiledConfig, MSPRTParams } from '../dist/engine/types';
 import {
   evaluateCUSUM, freshCUSUM, updateCUSUM, lookupCellParams, trafficGateMin,
   type CUSUMState,
-} from '../dist/engine/detectors/page-cusum';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
 
 const ROOT = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(ROOT, 'runs', 'compiled-configs', 'v2-with-family-a.json');

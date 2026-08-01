@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 
 import type { CompiledConfig, FamilyCPerCell, TenantTier } from '../engine/types';
 import { resolveTenantTier, conformalSampleCount } from '../engine/types';
-import { lookupCellParams } from '../engine/detectors/page-cusum';
+import { lookupCellParams } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
 import { lookupFamilyCParams } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import { lookupFamilyEParams } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 
