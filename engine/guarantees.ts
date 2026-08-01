@@ -73,7 +73,8 @@
 //     FAMILY_E_MIN_SPAN_DAYS / FAMILY_E_ESS_THRESHOLD).
 //
 //   Q70 Phase-3.d.E self-normalized e-process fallback
-//     (engine/detectors/self-normalized-e-process-fallback.ts) — SLICE 1
+//     (@johnpatrickwarren-oss/deploysignal-engine/detectors/
+//     self-normalized-e-process-fallback) — SLICE 1
 //     shipped schema only (`self_normalized_fallback` fields on
 //     FamilyCPerCell / FamilyDPerSignal / ConformalParams); calibrator
 //     stamping and detector consumption were deferred to SLICE 2, which
