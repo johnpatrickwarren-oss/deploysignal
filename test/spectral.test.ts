@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 
 import {
   normalizedACF, peakACF, evaluateFamilyD, FAMILY_D_SIGNALS,
-} from '../dist/engine/detectors/spectral';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 import type { CompiledConfig } from '../dist/engine/types';
 
 // ────────────────────────────────────────────────────────────────────

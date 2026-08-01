@@ -25,7 +25,7 @@ import {
 import {
   _SPECTRAL_EVALUATORS_FOR_TEST,
   _spectralVariantForDispatch,
-} from '../engine/detectors/spectral';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 import {
   _CONFORMAL_EVALUATORS_FOR_TEST,
   _conformalKindForDispatch,

@@ -30,7 +30,7 @@ import assert from 'node:assert/strict';
 import type {
   CompiledConfig, FamilyDPerSignal, SpectralEDetectorState, DetectorVerdict,
 } from '../engine/types';
-import { evaluateFamilyD } from '../engine/detectors/spectral';
+import { evaluateFamilyD } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 
 function makeCfg(): CompiledConfig {
   const params: FamilyDPerSignal = {

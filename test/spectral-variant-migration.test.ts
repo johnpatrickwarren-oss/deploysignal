@@ -19,7 +19,7 @@ import assert from 'node:assert/strict';
 import type {
   CompiledConfig, FamilyDPerSignal, SpectralEDetectorState, DetectorVerdict,
 } from '../engine/types';
-import { evaluateFamilyD } from '../engine/detectors/spectral';
+import { evaluateFamilyD } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 
 function makeParams(variant: 'bootstrap_null' | 'e_detector' | undefined): FamilyDPerSignal {
   const p: FamilyDPerSignal = {
