@@ -43,7 +43,7 @@ import {
   LIL_A_DEFAULT,
   LIL_T_MIN_DEFAULT,
   BETA_BINOMIAL_ALPHA_OPT_DEFAULT,
-} from '../engine/detectors/self-normalized-e-process-fallback';
+} from '@johnpatrickwarren-oss/deploysignal-engine/detectors/self-normalized-e-process-fallback';
 import type {
   LilBoundHyperparams,
   BetaBinomialMixtureHyperparams,
