@@ -23,7 +23,7 @@ import {
   computePerSignalAr1Phi,
   type MixtureSupermartingaleState,
 } from '../engine/detectors/family-a-mixture-supermartingale';
-import type { FamilyAPerSignalParams } from '../engine/types/families/a';
+import type { FamilyAPerSignalParams } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/a';
 
 // ── Deterministic Gaussian RNG (Box-Muller; mulberry32 seeded) ─────
 

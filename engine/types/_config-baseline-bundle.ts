@@ -4,9 +4,9 @@
 // preserve the facade export surface.
 
 import type { CellKey } from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
-import type { FamilyAPerSignalParams } from './families/a';
-import type { FamilyCPerCell } from './families/c';
-import type { FamilyDPerSignal } from './families/d';
+import type { FamilyAPerSignalParams } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/a';
+import type { FamilyCPerCell } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/c';
+import type { FamilyDPerSignal } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/d';
 import type { ConformalParams } from '@johnpatrickwarren-oss/deploysignal-engine/types/families/e';
 import type { BaselineProvenance } from './_config-compiled';
 

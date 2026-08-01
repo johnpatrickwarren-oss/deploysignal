@@ -13,10 +13,10 @@
 
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
-export * from './families/a';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/a';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/b';
-export * from './families/c';
-export * from './families/d';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/c';
+export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/d';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/e';
 export * from './agent';
 export * from './verdict';
