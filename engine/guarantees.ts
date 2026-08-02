@@ -229,6 +229,19 @@ const SPECTRAL_BOOTSTRAP_ASSUMPTIONS = [
 ] as const;
 
 const SPECTRAL_E_DETECTOR_ASSUMPTIONS = [
+  'MEASURED VIOLATED 2026-08-01 — both stated assumptions fail, and the '
+    + 'detector is reclassified heuristic_structural as a result. See '
+    + 'knowledge/stats/h0-battery-2026-08-01. (a) peak|ACF| is a max of |r(k)| '
+    + 'over lags 3-10: bounded in [0,1] and right-skewed (measured skew +0.49), '
+    + 'not Gaussian; z_t = r·u − ½r² is an exact e-value increment only for '
+    + 'u ~ N(0,1). Costs ~1.0023 per independent draw. (b) production evaluates '
+    + 'every tick on a ROLLING 30-sample window (engine/gates/_health-detectors.ts), '
+    + 'so successive peaks share 29 of 30 samples, u_t is nearly F_{t-1}-measurable, '
+    + 'and the martingale-difference condition fails. Integrated autocorrelation '
+    + 'time ~12. Measured false-alarm rate 0.576 against a nominal 0.05, with '
+    + 'ORACLE parameters and iid Gaussian data — this is the construction, not '
+    + 'estimation error. Evaluated on DISJOINT windows the same detector on the '
+    + 'same data measures 0.0005, so the overlap is the whole of it.',
   'peak|ACF| under H0 is Gaussian with compiled null mean/std (μ0, σ0); '
     + 'mixture-prior shift magnitude δ_D = 0.3·σ0 (Addition #21 D4)',
   'DEPRECATED fallback available but not runtime-consumed: Q70 §7 '
@@ -387,11 +400,19 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
   spectral_e_detector_kv_cache: {
     detector_id: 'spectral_e_detector_kv_cache',
     family: 'D',
-    validity_class: 'ville_anytime_valid',
+    // 2026-08-02: was ville_anytime_valid / alpha_participating: true. Reclassified because the
+    // Ville premise is measured false in the shipped configuration (see the assumptions above).
+    // The detector is kept — it may still carry signal about oscillation, which is what it is for
+    // — but it no longer makes an anytime-valid claim and no longer consumes alpha, so the budget
+    // returns to families whose premises hold.
+    validity_class: 'heuristic_structural',
     null_assumptions: SPECTRAL_E_DETECTOR_ASSUMPTIONS,
-    repeated_look_policy: VILLE_POLICY,
-    alpha_participating: true,
-    citation: 'Shin, Ramdas & Rinaldo (2022) — mixture-prior betting e-process, scalar form',
+    repeated_look_policy: EPOCH_POLICY,
+    alpha_participating: false,
+    citation: 'Shin, Ramdas & Rinaldo (2022) — mixture-prior betting e-process, scalar form. '
+      + 'NOTE: what ships is a single wealth process against a POINT null with one shift; it is '
+      + 'not the paper\'s e-detector construction, which sums e-processes over candidate onsets '
+      + 'and bounds E[tau]. See knowledge/stats/e-detector.',
   },
 
   // Family E — weighted-conformal Mahalanobis novelty. See
