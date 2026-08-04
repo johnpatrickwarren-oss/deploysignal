@@ -210,7 +210,10 @@ const HOTELLING_SAFE_ASSUMPTIONS = [
 const MMD_ASSUMPTIONS_CANONICAL = [
   'Gaussian-RBF kernel-MMD witness with median-heuristic bandwidth (RFF '
     + 'unbiased estimator when compiled with an rff_seed)',
-  'exchangeability of the split-sample baseline vs live window under H0',
+  'the compiled per-cell parametric-Gaussian reference pool is an adequate H0 model of the '
+    + 'live window (the P-side arm is SYNTHESIZED from the compiled covariance — '
+    + 'engine sequential-mmd.ts "synthesized P-side pool" — no real baseline sample is split; '
+    + 'wording corrected 2026-08-03, was "exchangeability of the split-sample baseline")',
 ] as const;
 
 const MMD_ASSUMPTIONS_OPTION_B = [
