@@ -1,0 +1,149 @@
+{
+ "mixture4|0.0002": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 25
+ },
+ "mixture4|0.0005": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 15
+ },
+ "mixture4|0.001": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 10
+ },
+ "mixture4|0.002": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 7
+ },
+ "mixture4|0.005": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 5
+ },
+ "mixture4|0.01": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 3
+ },
+ "mixture4|0.02": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 2
+ },
+ "betting4|0.0002": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 33
+ },
+ "betting4|0.0005": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 24
+ },
+ "betting4|0.001": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 21
+ },
+ "betting4|0.002": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 20
+ },
+ "betting4|0.005": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 20
+ },
+ "betting4|0.01": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 19
+ },
+ "betting4|0.02": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 19
+ },
+ "slowbleed|0.0002": {
+  "trials": 131,
+  "detections": 0,
+  "false_alarms": 0,
+  "detection_rate": 0,
+  "median_ttd": null
+ },
+ "slowbleed|0.0005": {
+  "trials": 131,
+  "detections": 0,
+  "false_alarms": 0,
+  "detection_rate": 0,
+  "median_ttd": null
+ },
+ "slowbleed|0.001": {
+  "trials": 131,
+  "detections": 108,
+  "false_alarms": 0,
+  "detection_rate": 0.8244,
+  "median_ttd": 34
+ },
+ "slowbleed|0.002": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 12
+ },
+ "slowbleed|0.005": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 5
+ },
+ "slowbleed|0.01": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 3
+ },
+ "slowbleed|0.02": {
+  "trials": 131,
+  "detections": 131,
+  "false_alarms": 0,
+  "detection_rate": 1,
+  "median_ttd": 2
+ }
+}
