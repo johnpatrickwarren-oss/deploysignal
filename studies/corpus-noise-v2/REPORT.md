@@ -40,7 +40,7 @@ decays far too slowly for any AR(1) process. This is one of the two falsifiers n
 
 **Source:** `real-burstgpt-v1`, 34,202 ticks across 48 (hour × day) cells, 5 s bucketing from real
 timestamps. **A6 disclosure:** the signal is derived — mean per-request cost within each 5 s bucket,
-tokens × a per-model pricing overlay (`tools/_ingest-real-trace-burstgpt.ts:65,104-111`). Its
+tokens × a per-model pricing overlay (`tools/_ingest-real-trace-burstgpt.ts:65,107-111`). Its
 variation is that of real 5 s-bucketed token volume under a constant price, and every use below
 carries that reading.
 
