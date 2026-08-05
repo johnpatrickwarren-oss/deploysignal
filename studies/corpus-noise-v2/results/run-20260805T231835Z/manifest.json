@@ -1,0 +1,55 @@
+{
+  "study_id": "2026-08-corpus-noise-v2",
+  "run": "run-20260805T231835Z",
+  "repo_sha": "dbdbd46f49333bbed7913af5e76ded6156d77402",
+  "repo_dirty": true,
+  "node": "v25.9.0",
+  "command": "node studies/corpus-noise-v2/analysis/fit_noise_model.mjs",
+  "seed": 42,
+  "bundles": [
+    {
+      "name": "real-burstgpt-v1",
+      "sha256": "88964514185e2023932ef3705607c350bf3181b9924d7c02338aa4581b4e666d",
+      "caveat_filters_applied": [
+        "burstgpt_v1_a1:cost_req_only_scope",
+        "burstgpt_no_p99_latency:elapsed_ms_field_absent_in_actual_csv",
+        "burstgpt_no_downstream_err:service_error_log_type_absent_in_actual_csv"
+      ]
+    },
+    {
+      "name": "real-huggingface-lmsys-arena-v1",
+      "sha256": "a7b63e2905c0444e720d70b193d697a2d4962efd83bf7b55bedbe77a6a5341ed",
+      "caveat_filters_applied": [
+        "synthetic_timestamp_derivation:row_index_x_tick_seconds",
+        "token_count_heuristic:chars_div_4_gpt_tokenizer_approximation",
+        "reject_judge_disagreement:true"
+      ]
+    },
+    {
+      "name": "real-azure-llm-inference-v1",
+      "sha256": "82ad42f30f0084365924c2a97c1c209a0a6fa389c1bac3f064658e159501a86a",
+      "caveat_filters_applied": [
+        "azure_context_tokens_arrival_only:drop_from_cost_req"
+      ]
+    },
+    {
+      "name": "real-mooncake-v1",
+      "sha256": "252f046a75c24f3f7cc6373e5be3fcecf268c037cea1c222df4f0fc472680473",
+      "caveat_filters_applied": [
+        "mooncake_window:1hour_single",
+        "mooncake_scope:family_b_kv_cache_only_not_family_d"
+      ]
+    }
+  ],
+  "frozen_constants": {
+    "KS_BAR": 0.05,
+    "MIN_TICKS_FOR_PHI": 2000,
+    "MIN_DIURNAL_CYCLES": 3,
+    "MIN_DAYS_FOR_DOW": 14,
+    "SEASONAL_AMPLITUDE_BAR": 0.05,
+    "SEASONAL_SPLIT_RHO_BAR": 0.5,
+    "BLOCK_LEN": 100,
+    "N_BOOT": 1000
+  },
+  "preregistration": "studies/corpus-noise-v2/PREREGISTRATION.md"
+}

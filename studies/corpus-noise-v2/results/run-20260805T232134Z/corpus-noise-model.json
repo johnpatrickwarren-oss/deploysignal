@@ -1,0 +1,384 @@
+{
+  "$schema_version": 1,
+  "name": "corpus-noise-model",
+  "version": 2,
+  "derived_by": "studies/corpus-noise-v2 (C30)",
+  "preregistration": "studies/corpus-noise-v2/PREREGISTRATION.md",
+  "run": "run-20260805T232134Z",
+  "tick_seconds": 5,
+  "frame": "within-cell (hour_of_day × day_of_week); see PREREGISTRATION.md §3",
+  "incumbent_model": {
+    "note": "the invented model this supersedes; left in place in engine/scenarios/slow_burn.ts:43-55",
+    "form": "v = mean × (1 + c·U[0,1])",
+    "c": {
+      "p99_latency": 0.008,
+      "ttft": 0.008,
+      "cost_req": 0.006,
+      "downstream_err": 0.03
+    },
+    "provenance": "none — no derivation exists in the repo"
+  },
+  "signals": {
+    "p99_latency": {
+      "marginal": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for p99_latency",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick p99_latency"
+      },
+      "serial": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for p99_latency",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick p99_latency"
+      },
+      "periodic": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for p99_latency",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick p99_latency"
+      },
+      "provenance": null
+    },
+    "ttft": {
+      "marginal": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for ttft",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick ttft"
+      },
+      "serial": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for ttft",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick ttft"
+      },
+      "periodic": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for ttft",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick ttft"
+      },
+      "provenance": null
+    },
+    "eval_score": {
+      "marginal": {
+        "status": "cannot_be_sourced",
+        "criterion": "A2",
+        "reason": "the trace's eval_score takes 2 distinct value(s) ([0,1]) — a binary pairwise arena outcome (winner_model_a ? 1 : 0, tools/_ingest-real-trace-huggingface.ts:20). The corpus's eval_score is a continuous quality benchmark on [0,1] (baseline 0.87, engine/scenarios/slow_burn.ts:38). A Bernoulli win-indicator and a continuous quality score do not measure the same thing, so its dispersion is not this signal's jitter.",
+        "evidence": {
+          "distinct_values": [
+            0,
+            1
+          ],
+          "n_distinct": 2
+        },
+        "what_would_be_needed": "a per-tick continuous eval/benchmark score series from a served model — e.g. a rolling automated-eval harness logged alongside serving telemetry"
+      },
+      "serial": {
+        "status": "cannot_be_sourced",
+        "criterion": "A2+A3",
+        "reason": "the trace's eval_score takes 2 distinct value(s) ([0,1]) — a binary pairwise arena outcome (winner_model_a ? 1 : 0, tools/_ingest-real-trace-huggingface.ts:20). The corpus's eval_score is a continuous quality benchmark on [0,1] (baseline 0.87, engine/scenarios/slow_burn.ts:38). A Bernoulli win-indicator and a continuous quality score do not measure the same thing, so its dispersion is not this signal's jitter. Additionally A3: this bundle has no real timestamps (synthetic_timestamp_derivation:row_index_x_tick_seconds; void tickSeconds, tools/_ingest-real-trace-huggingface.ts:158), so row order is not time order and any lag-1 correlation measured on it is an artifact of CSV ordering.",
+        "what_would_be_needed": "a per-tick continuous eval/benchmark score series from a served model — e.g. a rolling automated-eval harness logged alongside serving telemetry, with real timestamps"
+      },
+      "periodic": {
+        "status": "cannot_be_sourced",
+        "criterion": "A2+A3",
+        "reason": "the trace's eval_score takes 2 distinct value(s) ([0,1]) — a binary pairwise arena outcome (winner_model_a ? 1 : 0, tools/_ingest-real-trace-huggingface.ts:20). The corpus's eval_score is a continuous quality benchmark on [0,1] (baseline 0.87, engine/scenarios/slow_burn.ts:38). A Bernoulli win-indicator and a continuous quality score do not measure the same thing, so its dispersion is not this signal's jitter. Additionally A3: this bundle has no real timestamps (synthetic_timestamp_derivation:row_index_x_tick_seconds; void tickSeconds, tools/_ingest-real-trace-huggingface.ts:158), so row order is not time order and any lag-1 correlation measured on it is an artifact of CSV ordering.",
+        "what_would_be_needed": "a per-tick continuous eval/benchmark score series from a served model — e.g. a rolling automated-eval harness logged alongside serving telemetry, with real timestamps"
+      },
+      "provenance": {
+        "bundle": "real-huggingface-lmsys-arena-v1",
+        "bundle_sha256": "a7b63e2905c0444e720d70b193d697a2d4962efd83bf7b55bedbe77a6a5341ed",
+        "ticks": 39712,
+        "cells": 56,
+        "caveat_filters_applied": [
+          "synthetic_timestamp_derivation:row_index_x_tick_seconds",
+          "token_count_heuristic:chars_div_4_gpt_tokenizer_approximation",
+          "reject_judge_disagreement:true"
+        ],
+        "derived_from": null,
+        "a6_disclosed": false,
+        "real_timestamps": false,
+        "bars_failed": [
+          "A3"
+        ],
+        "tick_seconds": 5
+      }
+    },
+    "tool_success_rate": {
+      "marginal": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for tool_success_rate",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick tool_success_rate"
+      },
+      "serial": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for tool_success_rate",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick tool_success_rate"
+      },
+      "periodic": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for tool_success_rate",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick tool_success_rate"
+      },
+      "provenance": null
+    },
+    "downstream_err": {
+      "marginal": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for downstream_err",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick downstream_err"
+      },
+      "serial": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for downstream_err",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick downstream_err"
+      },
+      "periodic": {
+        "status": "cannot_be_sourced",
+        "criterion": "A1",
+        "reason": "no bundle in runs/baselines/ carries per-tick data for downstream_err",
+        "what_would_be_needed": "a baseline bundle in runs/baselines/ carrying per-tick downstream_err"
+      },
+      "provenance": null
+    },
+    "cost_req": {
+      "marginal": {
+        "status": "sourced",
+        "cv": 0.7603416644542296,
+        "family": "empirical",
+        "family_params": null,
+        "empirical_quantiles_z": [
+          -1.3151982151573876,
+          -1.3151982151573876,
+          -1.3151982151573876,
+          -1.3151982151573876,
+          -1.3151982151573876,
+          -1.2627864397994473,
+          -1.2236105968825408,
+          -1.192758053561273,
+          -1.1648136176292758,
+          -1.1319713586546585,
+          -1.0936825622926483,
+          -1.0648045466411393,
+          -1.0379556056925952,
+          -1.0024698987938894,
+          -0.9650380603455398,
+          -0.9421767469599978,
+          -0.9198675833702737,
+          -0.8904547542072466,
+          -0.8599239211154266,
+          -0.8299413481495168,
+          -0.7967224139306054,
+          -0.7635363739357317,
+          -0.7321344130435121,
+          -0.7029390878155224,
+          -0.6772860950676617,
+          -0.6501281783990928,
+          -0.6265818777514036,
+          -0.6024771874741364,
+          -0.5790553323590761,
+          -0.5548895844866127,
+          -0.5297241692458017,
+          -0.5069016973691585,
+          -0.4865244911652339,
+          -0.46247126464745547,
+          -0.4414338052556887,
+          -0.41858639328119,
+          -0.39576289148395555,
+          -0.3728462722018716,
+          -0.35118206059784535,
+          -0.327352764598961,
+          -0.3043632747890357,
+          -0.28439780026298056,
+          -0.2654631015723193,
+          -0.24954114881224476,
+          -0.23258007103755612,
+          -0.21705141327856148,
+          -0.20029624762607232,
+          -0.18188456282813786,
+          -0.16334851881115378,
+          -0.14514843088277962,
+          -0.12542129679165553,
+          -0.10810707374013732,
+          -0.08811650380837097,
+          -0.0684266363889173,
+          -0.05163931333702381,
+          -0.035194422804628596,
+          -0.019321009765821767,
+          -0.003743409360039633,
+          0.013114406023004097,
+          0.030864178180177327,
+          0.04897160701407798,
+          0.06477331078862161,
+          0.08203849011145267,
+          0.0987320239997343,
+          0.11516678281984374,
+          0.13394994927163403,
+          0.15341720785530355,
+          0.1717557768119145,
+          0.19032908039431623,
+          0.2133225184053371,
+          0.2378282861810463,
+          0.26471659929952296,
+          0.2939807294992972,
+          0.33013343453168564,
+          0.3675187571890045,
+          0.40920967861006596,
+          0.4523428086077044,
+          0.5013154408174744,
+          0.543662662326552,
+          0.5858981843656066,
+          0.6334879392391286,
+          0.6821120253089018,
+          0.7279805045137253,
+          0.7846745181874718,
+          0.8437807368005846,
+          0.9084259810891036,
+          0.9726016981204005,
+          1.0422314011118128,
+          1.1096827594415524,
+          1.1719224070747225,
+          1.2323048068459765,
+          1.3113590647940883,
+          1.3931024535979268,
+          1.4830663512100277,
+          1.5927201981333277,
+          1.7114539696842215,
+          1.864679257602662,
+          2.057493964121343,
+          2.330064538827656,
+          2.876145992273584,
+          17.462267654181684
+        ],
+        "ks_distances": {
+          "uniform": 0.1352199346005375,
+          "gamma": 0.23943044266417168,
+          "lognormal": 0.1073087866244059
+        },
+        "ks_bar": 0.05,
+        "best_parametric": "lognormal",
+        "best_parametric_ks": 0.1073087866244059,
+        "sample_skewness": 2.946064977728727,
+        "n": 34202,
+        "incumbent_cv": 0.0017320508075688774,
+        "source": "real-burstgpt-v1"
+      },
+      "serial": {
+        "status": "ar1_inadequate",
+        "criterion": "§4 S.3",
+        "reason": "|rho2 − phi²| = 0.1761 > 0.05; AR(1) does not describe this series, so no phi is published",
+        "phi_not_published": 0.24881484176387153,
+        "acf_lags_2_5": [
+          {
+            "lag": 2,
+            "rho": 0.238041140204637,
+            "pairs": 34106
+          },
+          {
+            "lag": 3,
+            "rho": 0.2239348296350783,
+            "pairs": 34058
+          },
+          {
+            "lag": 4,
+            "rho": 0.20276906443653397,
+            "pairs": 34010
+          },
+          {
+            "lag": 5,
+            "rho": 0.1920636676365044,
+            "pairs": 33962
+          }
+        ],
+        "ar1_check": {
+          "rho2": 0.238041140204637,
+          "phi_squared": 0.06190882548198043,
+          "abs_diff": 0.17613231472265656,
+          "bar": 0.05
+        },
+        "ci95_not_published": [
+          0.13251941676793647,
+          0.3493932048240574
+        ],
+        "source": "real-burstgpt-v1"
+      },
+      "periodic": {
+        "status": "cannot_be_sourced",
+        "criterion": "A5",
+        "reason": "2.00 complete diurnal cycles < 3 required for hour-of-day; 2 distinct day-of-week values < 14 days required for day-of-week. Two cycles cannot separate a diurnal profile from a single event or a slow trend.",
+        "what_would_be_needed": "a trace spanning at least 3 full days for hour-of-day and 14 days for day-of-week",
+        "non_qualifying_hour_of_day": {
+          "diurnal_cycles": 2,
+          "distinct_hours": 24,
+          "amplitude": 1.3388083216162088,
+          "split_rho": 0.37140650967723704,
+          "would_pass_amplitude_bar": true,
+          "would_pass_split_bar": false,
+          "profile": [
+            0.9198708954970182,
+            0.9406289673443321,
+            0.9021391190864538,
+            0.9988641941458324,
+            0.9772175999369929,
+            0.9682262466225943,
+            0.9287647019127353,
+            1.0405219733349862,
+            0.953104945357725,
+            0.9003400098157416,
+            0.5358964295280979,
+            1.2538206143534252,
+            1.5158523929962013,
+            1.8708982272867158,
+            1.7710196885269436,
+            1.4762621734670267,
+            0.7294583239834742,
+            0.5902453218330088,
+            0.767510869705592,
+            0.726649250543791,
+            0.8207044946904648,
+            0.9273850578750944,
+            0.6908550491969605,
+            0.725526222051907
+          ]
+        },
+        "non_qualifying_day_of_week": {
+          "distinct_dows": 2,
+          "amplitude": 0.13136201845444018,
+          "profile": [
+            0.934961774978458,
+            1.0664141666689368,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "source": "real-burstgpt-v1"
+      },
+      "provenance": {
+        "bundle": "real-burstgpt-v1",
+        "bundle_sha256": "88964514185e2023932ef3705607c350bf3181b9924d7c02338aa4581b4e666d",
+        "ticks": 34202,
+        "cells": 48,
+        "caveat_filters_applied": [
+          "burstgpt_v1_a1:cost_req_only_scope",
+          "burstgpt_no_p99_latency:elapsed_ms_field_absent_in_actual_csv",
+          "burstgpt_no_downstream_err:service_error_log_type_absent_in_actual_csv"
+        ],
+        "derived_from": "tokens × per-model pricing overlay (tools/_ingest-real-trace-burstgpt.ts:65)",
+        "a6_disclosed": true,
+        "real_timestamps": true,
+        "bars_failed": [],
+        "tick_seconds": 5
+      }
+    }
+  }
+}
