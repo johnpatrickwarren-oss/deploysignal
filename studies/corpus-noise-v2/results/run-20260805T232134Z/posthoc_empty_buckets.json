@@ -3,10 +3,16 @@
   "signal": "cost_req",
   "source": "real-burstgpt-v1",
   "artifact": {
-    "description": "ingest emits cost_req = 0 for a 5 s bucket with no arrivals (tools/_ingest-real-trace-burstgpt.ts, `costs.length > 0 ? mean : 0`)",
-    "empty_buckets": 1503,
+    "description": "cost_req = 0 ticks are rows with 0 request + 0 response tokens; parseBurstGPTCsv filters no rows. The ingest DROPS empty buckets rather than zero-filling them, which is a separate and unquantifiable artifact — see REPORT.md §4.",
+    "superseded_description": "ingest emits cost_req = 0 for a 5 s bucket with no arrivals (`costs.length > 0 ? mean : 0`) — WRONG, that branch is unreachable",
+    "zero_cost_ticks": 1503,
     "total_ticks": 34202,
-    "fraction": 0.04394479854979241
+    "fraction": 0.04394479854979241,
+    "clustering": {
+      "zeros": 1503,
+      "maximal_runs": 1210,
+      "longest_run": 9
+    }
   },
   "primary_as_preregistered": {
     "n": 34202,
@@ -114,5 +120,5 @@
       "ar1_adequate": false
     }
   },
-  "reading": "The AR(1)-inadequacy verdict survives the artifact: the ACF still decays far too slowly for AR(1) once idle ticks are dropped, so the slow decay is a property of real arrival structure, not of the zero-fill."
+  "reading": "The AR(1)-inadequacy verdict survives: the ACF still decays far too slowly for AR(1) once zero-cost ticks are dropped, so the slow decay is not an artifact of them. It remains conditional on array adjacency being time adjacency, which the dropped-empty-bucket behaviour leaves unverifiable from this bundle."
 }

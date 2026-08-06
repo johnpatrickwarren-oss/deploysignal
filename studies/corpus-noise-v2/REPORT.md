@@ -14,7 +14,7 @@ parameter C30 was chiefly after.**
 
 | Signal | Marginal | Serial (AR(1) φ) | Periodic |
 |---|---|---|---|
-| `cost_req` | **SOURCED** — BurstGPT, 34,202 ticks | **AR(1) REJECTED** (§4 S.3) | **A5** — 2 diurnal cycles |
+| `cost_req` | **SOURCED** — BurstGPT, 34,202 ticks | **AR(1) REJECTED** (§4 S.3) | **A5** — 2 elapsed-time 24 h cycles |
 | `eval_score` | **A2** — construct mismatch | **A2 + A3** | **A2 + A3** |
 | `p99_latency` | **A1** | **A1** | **A1** |
 | `ttft` | **A1** | **A1** | **A1** |
@@ -96,15 +96,23 @@ is — and an AR(1) φ fitted to it would misdescribe the process at every lag b
 As §3 predicted before the fit, the primary within-cell frame gives the **smaller** φ. The secondary
 is not adopted.
 
-### Periodic — A5, and it would have failed the replication bar anyway
+### Periodic — A5, and two further reasons it was never available
 
-BurstGPT spans **exactly 2 complete diurnal cycles** (48 hour-cells, 2 distinct day-of-week values)
+BurstGPT spans **exactly 2 complete 24 h cycles** (48 hour-cells, 2 distinct day-of-week values)
 against the pre-registered minimum of 3 for hour-of-day and 14 days for day-of-week. **A5 fires.**
 
 Reported as non-qualifying descriptive evidence, per §5: the hour-of-day amplitude is 1.339, which
 would clear the 0.05 amplitude bar comfortably — but the held-out split correlation is **0.371**,
-below the 0.5 replication bar. So even setting A5 aside, the diurnal profile measured on the first
-half does not predict the second. Day-of-week amplitude is 0.131 across the two days present.
+below the 0.5 replication bar. So even setting A5 aside, the profile measured on the first half does
+not predict the second. Day-of-week amplitude is 0.131 across the two days present.
+
+**And these are not wall-clock hours.** *Corrected 2026-08-06:* the emit layer synthesizes
+`hour_of_day`/`day_of_week` from array index, anchored at a notional Sunday 00:00, and states
+plainly that this is "a sample-bucketing aid … not a model of real diurnality"
+(`tools/_ingest-public-dataset-emit.ts:45-52`). So "2 diurnal cycles" above means two 24 h blocks of
+elapsed time from trace start, and the amplitude 1.339 is a profile over elapsed-hour blocks, not
+over time of day. **A seasonal parameter was never sourceable from this bundle at any cycle count** —
+A5 was the first bar it failed, not the binding one. See §4.3.
 
 ## 2. The five signals with no source
 
@@ -166,16 +174,38 @@ The superseded run is retained and its defect is named in the superseding run's 
 and skewness 5.60 against BurstGPT's 0.760 and 2.95 — a different distribution, because it is a
 per-request cost rather than a 5 s-bucketed mean.
 
-## 4. Post-hoc — the empty-bucket artifact (no verdict attaches)
+## 4. Post-hoc — the zero-cost ticks (no verdict attaches)
 
 Not pre-registered. `analysis/posthoc_empty_buckets.mjs`, written after seeing the fit.
 
-BurstGPT's ingest emits `cost_req = 0` for a 5 s bucket in which no request arrived
-(`costs.length > 0 ? mean : 0`). **1,503 of 34,202 ticks (4.39%) are such structural zeros** — they
-encode "no traffic", not "a request that cost nothing". `PREREGISTRATION.md` did not anticipate
-this, and both the marginal scale and the ACF are affected by it.
+> **Corrected 2026-08-06.** This section first said the 1,503 zeros were empty 5 s buckets
+> zero-filled by the ingest, citing `costs.length > 0 ? mean : 0`. **That attribution was wrong,
+> and the code cannot do what I said it does.** `mapBurstGPTRows` iterates
+> `Array.from(buckets.keys())` — the map's keys — and every key was created by pushing a row, so
+> `bucketRows.length ≥ 1` always and the `: 0` branch is unreachable
+> (`tools/_ingest-real-trace-burstgpt.ts:93-112`). The numbers below are unchanged and the verdict
+> is unchanged; the explanation of what the zeros *are* was not.
 
-Recomputed with idle ticks dropped:
+**What the zeros actually are: requests that cost nothing.** `parseBurstGPTCsv` filters no rows
+(`tools/_ingest-public-dataset-parsers.ts:40-52`), so a CSV row with 0 request and 0 response tokens
+maps to a cost of 0. **1,503 of 34,202 ticks (4.39%)** carry a zero. The distribution corroborates
+the reading: they fall in **1,210 separate runs, longest run 9**. Idle periods would cluster into
+long contiguous stretches; scattered singletons are individual zero-token requests.
+
+**The real artifact is the opposite one, and it is worse.** Because only populated buckets are
+emitted, **a 5 s bucket with no arrivals is dropped from the series entirely** rather than
+zero-filled. So adjacent array positions are adjacent *populated* buckets, which need not be
+adjacent in time. Every lag in the ACF below is a lag in array index, not necessarily a lag of 5 s.
+**This cannot be quantified from the stored bundle**: the emit layer synthesizes `hour_of_day` from
+array index (`t * tick_seconds`, `tools/_ingest-public-dataset-emit.ts:45-65`), not from the source
+timestamps, so the bundle retains no record of which real buckets were skipped. The φ̂ and ACF in §1
+are therefore measured on a series whose time axis is assumed, not verified.
+
+*How much this could matter is unknown, and I am not going to guess.* If BurstGPT's arrival stream
+is dense at 5 s the gaps are negligible and §1 stands as written; if it is sparse they are not. The
+bundle cannot distinguish the two, which is the point of the ingest brief this produced.
+
+Recomputed with zero-cost ticks dropped:
 
 | | as pre-registered | idle ticks dropped |
 |---|---|---|
@@ -186,14 +216,24 @@ Recomputed with idle ticks dropped:
 | AR(1) adequate? | **no** | **no** |
 
 **The AR(1)-inadequacy verdict survives.** Dropping the zeros makes the serial dependence *stronger*,
-not weaker, and the ACF still decays far too slowly. The slow decay is a property of real arrival
-structure, not of the zero-fill. The primary result stands as pre-registered and as computed.
+not weaker, and the ACF still decays far too slowly. The primary result stands as pre-registered and
+as computed.
 
-*What this study cannot quantify:* the bundle stores only the bucket mean, not the request count per
-bucket, so I cannot separate how much of the measured dispersion is per-request cost variation from
-how much is small-sample averaging over a variable number of arrivals. That is a limitation of the
-stored artifact, not of the method, and it would be lifted by an ingest that also emits per-bucket
-counts.
+*What this study cannot quantify,* and what the ingest brief exists to lift:
+
+1. **Dispersion vs averaging.** The bundle stores the bucket mean, not the request count, so I
+   cannot separate how much of the measured cv is per-request cost variation from how much is
+   small-sample averaging over a variable number of arrivals.
+2. **The time axis.** Dropped empty buckets are unrecoverable from the bundle (above), so the lag
+   structure in §1 rests on an assumption about arrival density that the artifact cannot confirm.
+3. **Seasonality, beyond A5.** The `hour_of_day`/`day_of_week` on this bundle are **synthesized
+   from array index**, anchored at a notional Sunday 00:00 — the emit layer says so and calls them
+   "a sample-bucketing aid … not a model of real diurnality"
+   (`tools/_ingest-public-dataset-emit.ts:45-52`). So the §1 hour-of-day profile is a partition into
+   contiguous ~1 h blocks of elapsed time, **not a wall-clock diurnal profile**. A5 blocked the
+   seasonal verdict on cycle count; this is the stronger reason it was never available. It does not
+   disturb the within-cell frame (§3), which needs only a contiguous block partition for variance
+   estimation, and that is exactly what these cells are.
 
 ## 5. The artifact
 

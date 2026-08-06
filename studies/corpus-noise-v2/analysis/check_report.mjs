@@ -94,7 +94,7 @@ check('primary phi < secondary phi (the harder reading, as declared)',
   cr.serial.phi_not_published < cr.secondary_no_cell_centring.phi);
 check('periodic is A5', cr.periodic.criterion === 'A5' && cr.periodic.status === 'cannot_be_sourced');
 const hod = cr.periodic.non_qualifying_hour_of_day;
-check('2 diurnal cycles', hod.diurnal_cycles === 2 && report.includes('exactly 2 complete diurnal cycles'));
+check('2 elapsed-time 24h cycles', hod.diurnal_cycles === 2 && report.includes('exactly 2 complete 24 h cycles'));
 check('hod amplitude 1.339 passes its bar', near(hod.amplitude, 1.339, 5e-4) && hod.would_pass_amplitude_bar === true
   && report.includes('1.339'));
 check('hod split rho 0.371 fails its bar', near(hod.split_rho, 0.371, 5e-4) && hod.would_pass_split_bar === false
@@ -113,10 +113,22 @@ check('cross-check cv 1.022 / skew 5.60', near(xc.cv, 1.022, 5e-4) && near(xc.sa
   && report.includes('1.022') && report.includes('5.60'));
 
 // ── §4 post-hoc ───────────────────────────────────────────────────────────
-check('1,503 of 34,202 empty buckets (4.39%)',
-  P.artifact.empty_buckets === 1503 && P.artifact.total_ticks === 34202
+check('1,503 of 34,202 zero-cost ticks (4.39%)',
+  P.artifact.zero_cost_ticks === 1503 && P.artifact.total_ticks === 34202
   && near(P.artifact.fraction * 100, 4.39, 5e-3)
   && report.includes('1,503 of 34,202') && report.includes('4.39%'));
+// the corrected attribution (2026-08-06): scattered singletons, not clustered idle periods
+check('zeros scatter as 1,210 runs, longest 9 — not idle clustering',
+  P.artifact.clustering.maximal_runs === 1210 && P.artifact.clustering.longest_run === 9
+  && report.includes('1,210 separate') && report.includes('longest run 9'));
+check('report records the superseded empty-bucket attribution as wrong',
+  report.includes('That attribution was wrong') && report.includes('unreachable'));
+check('the unreachable branch claim holds in the mapper',
+  (() => {
+    const src = readFileSync(join(ROOT, 'tools/_ingest-real-trace-burstgpt.ts'), 'utf8');
+    // keys come from the map that rows were pushed into, so every bucket has >= 1 row
+    return src.includes('Array.from(buckets.keys())') && src.includes('costs.length > 0 ?');
+  })());
 check('post-hoc cv drops to 0.7125', near(P.empty_buckets_dropped.cv, 0.7125, 5e-5) && report.includes('0.7125'));
 check('post-hoc lag-1 rises to 0.2924', near(P.empty_buckets_dropped.acf[0].rho, 0.2924, 5e-5) && report.includes('0.2924'));
 check('post-hoc lag-2 0.2781', near(P.empty_buckets_dropped.acf[1].rho, 0.2781, 5e-5) && report.includes('0.2781'));
@@ -140,4 +152,4 @@ check('incumbent jitter block still in slow_burn.ts, untouched',
   readFileSync(join(ROOT, 'engine/scenarios/slow_burn.ts'), 'utf8').includes('p99_latency: 1 + 0.008 * Math.random()'));
 
 if (failed) { console.error(`\n${failed} inconsistencies`); process.exit(1); }
-console.log(`report consistent with ${current} (${47 - failed} checks)`);
+console.log(`report consistent with ${current} (${50 - failed} checks)`);
