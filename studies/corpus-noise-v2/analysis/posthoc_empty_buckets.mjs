@@ -1,14 +1,21 @@
 // posthoc_empty_buckets.mjs — POST-HOC. No verdict attaches to anything here.
 //
-// PREREGISTRATION.md did not anticipate that BurstGPT's ingest emits cost_req = 0
-// for a 5 s bucket in which no request arrived (tools/_ingest-real-trace-burstgpt.ts:
-// `costs.length > 0 ? mean : 0`). 1,503 of 34,202 ticks (4.39%) are such structural
-// zeros: they encode "no traffic", not "a request that cost nothing".
+// PREREGISTRATION.md did not anticipate that 1,503 of 34,202 BurstGPT ticks (4.39%)
+// carry cost_req = 0. This script re-computes the marginal scale and the ACF with
+// those ticks dropped, to establish whether the pre-registered AR(1)-inadequacy
+// verdict is driven by them or survives. It changes no verdict.
 //
-// This script re-computes the marginal scale and the ACF with those ticks dropped,
-// to establish whether the pre-registered AR(1)-inadequacy verdict is driven by the
-// artifact or survives it. It changes no verdict; the primary result stands as
-// pre-registered and computed.
+// CORRECTED 2026-08-06 — what the zeros are. This file originally asserted they were
+// empty 5 s buckets zero-filled by the ingest (`costs.length > 0 ? mean : 0`). That is
+// wrong and the mapper cannot do it: mapBurstGPTRows iterates the bucket map's own
+// keys, and every key was created by pushing a row, so the `: 0` branch is unreachable
+// (tools/_ingest-real-trace-burstgpt.ts:93-112). They are requests that cost nothing —
+// rows with 0 request and 0 response tokens, which parseBurstGPTCsv does not filter.
+// zeroRunStats() below corroborates: scattered singletons, not clustered idle periods.
+//
+// The real artifact runs the other way: empty buckets are DROPPED from the series, so
+// array adjacency is not time adjacency, and the bundle keeps no record of the skips.
+// See REPORT.md §4. The numbers here are unaffected; the interpretation was not.
 //
 // Usage: node studies/corpus-noise-v2/analysis/posthoc_empty_buckets.mjs
 
@@ -55,6 +62,18 @@ function analyse(idx) {
 const all = Array.from({ length: values.length }, (_, t) => t);
 const nonEmpty = all.filter((t) => values[t] !== 0);
 
+/** Are the zeros clustered (idle periods) or scattered (individual zero-cost requests)?
+ *  Added 2026-08-06 with the corrected attribution — the original reading called them
+ *  empty-bucket zero-fill, which the mapper cannot produce. */
+function zeroRunStats() {
+  const z = all.filter((t) => values[t] === 0);
+  let runs = z.length > 0 ? 1 : 0, longest = z.length > 0 ? 1 : 0, cur = 1;
+  for (let i = 1; i < z.length; i++) {
+    if (z[i] === z[i - 1] + 1) { cur++; if (cur > longest) longest = cur; } else { runs++; cur = 1; }
+  }
+  return { zeros: z.length, maximal_runs: runs, longest_run: longest };
+}
+
 const withZeros = analyse(all);
 const withoutZeros = analyse(nonEmpty);
 
@@ -68,29 +87,40 @@ const out = {
   label: 'POST-HOC — not pre-registered, no verdict attaches',
   signal: 'cost_req', source: 'real-burstgpt-v1',
   artifact: {
-    description: 'ingest emits cost_req = 0 for a 5 s bucket with no arrivals '
-      + '(tools/_ingest-real-trace-burstgpt.ts, `costs.length > 0 ? mean : 0`)',
-    empty_buckets: values.length - nonEmpty.length,
+    // CORRECTED 2026-08-06. The original description said these were empty 5 s buckets
+    // zero-filled by the ingest. mapBurstGPTRows iterates the bucket map's own keys, every
+    // key was created by pushing a row, so the `: 0` branch is unreachable
+    // (tools/_ingest-real-trace-burstgpt.ts:93-112). These are requests that cost nothing.
+    description: 'cost_req = 0 ticks are rows with 0 request + 0 response tokens; '
+      + 'parseBurstGPTCsv filters no rows. The ingest DROPS empty buckets rather than '
+      + 'zero-filling them, which is a separate and unquantifiable artifact — see REPORT.md §4.',
+    superseded_description: 'ingest emits cost_req = 0 for a 5 s bucket with no arrivals '
+      + '(`costs.length > 0 ? mean : 0`) — WRONG, that branch is unreachable',
+    zero_cost_ticks: values.length - nonEmpty.length,
     total_ticks: values.length,
     fraction: (values.length - nonEmpty.length) / values.length,
+    // clustered => idle periods; scattered singletons => individual zero-cost requests
+    clustering: zeroRunStats(),
   },
   primary_as_preregistered: { n: withZeros.n, cv: withZeros.cv, acf: withZeros.acf, ar1: ar1Check(withZeros) },
+  // key name kept for continuity with the superseded run's JSON; these are zero-COST ticks
   empty_buckets_dropped: { n: withoutZeros.n, cv: withoutZeros.cv, acf: withoutZeros.acf, ar1: ar1Check(withoutZeros) },
   reading: null,
 };
 out.reading = out.empty_buckets_dropped.ar1.ar1_adequate
-  ? 'The AR(1)-inadequacy verdict is driven by the empty-bucket artifact: with idle ticks '
-    + 'dropped, AR(1) describes the series within the pre-registered bar.'
-  : 'The AR(1)-inadequacy verdict survives the artifact: the ACF still decays far too slowly '
-    + 'for AR(1) once idle ticks are dropped, so the slow decay is a property of real arrival '
-    + 'structure, not of the zero-fill.';
+  ? 'The AR(1)-inadequacy verdict is driven by the zero-cost ticks: with them dropped, '
+    + 'AR(1) describes the series within the pre-registered bar.'
+  : 'The AR(1)-inadequacy verdict survives: the ACF still decays far too slowly for AR(1) '
+    + 'once zero-cost ticks are dropped, so the slow decay is not an artifact of them. '
+    + 'It remains conditional on array adjacency being time adjacency, which the dropped-'
+    + 'empty-bucket behaviour leaves unverifiable from this bundle.';
 
 const runs = readdirSync(join(STUDY, 'results')).filter((d) => d.startsWith('run-')).sort();
 const latest = runs[runs.length - 1];
 writeFileSync(join(STUDY, 'results', latest, 'posthoc_empty_buckets.json'), JSON.stringify(out, null, 2) + '\n');
 
-console.log(`empty buckets: ${out.artifact.empty_buckets}/${out.artifact.total_ticks} `
-  + `(${(out.artifact.fraction * 100).toFixed(2)}%)`);
+console.log(`zero-cost ticks: ${out.artifact.zero_cost_ticks}/${out.artifact.total_ticks} `
+  + `(${(out.artifact.fraction * 100).toFixed(2)}%) in ${out.artifact.clustering.maximal_runs} runs, longest ${out.artifact.clustering.longest_run}`);
 console.log(`cv  with zeros: ${withZeros.cv.toFixed(4)}   dropped: ${withoutZeros.cv.toFixed(4)}`);
 console.log(`phi with zeros: ${withZeros.phi.toFixed(4)}   dropped: ${withoutZeros.phi.toFixed(4)}`);
 console.log('ACF with zeros:', withZeros.acf.map((a) => a.rho.toFixed(3)).join(' '));
