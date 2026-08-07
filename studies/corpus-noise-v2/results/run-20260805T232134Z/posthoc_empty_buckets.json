@@ -1,0 +1,124 @@
+{
+  "label": "POST-HOC — not pre-registered, no verdict attaches",
+  "signal": "cost_req",
+  "source": "real-burstgpt-v1",
+  "artifact": {
+    "description": "cost_req = 0 ticks are rows with 0 request + 0 response tokens; parseBurstGPTCsv filters no rows. The ingest DROPS empty buckets rather than zero-filling them, which is a separate and unquantifiable artifact — see REPORT.md §4.",
+    "superseded_description": "ingest emits cost_req = 0 for a 5 s bucket with no arrivals (`costs.length > 0 ? mean : 0`) — WRONG, that branch is unreachable",
+    "zero_cost_ticks": 1503,
+    "total_ticks": 34202,
+    "fraction": 0.04394479854979241,
+    "clustering": {
+      "zeros": 1503,
+      "maximal_runs": 1210,
+      "longest_run": 9
+    }
+  },
+  "primary_as_preregistered": {
+    "n": 34202,
+    "cv": 0.7603416644542296,
+    "acf": [
+      {
+        "lag": 1,
+        "rho": 0.24854201104499485,
+        "pairs": 34154
+      },
+      {
+        "lag": 2,
+        "rho": 0.238041140204637,
+        "pairs": 34106
+      },
+      {
+        "lag": 3,
+        "rho": 0.2239348296350783,
+        "pairs": 34058
+      },
+      {
+        "lag": 4,
+        "rho": 0.20276906443653397,
+        "pairs": 34010
+      },
+      {
+        "lag": 5,
+        "rho": 0.1920636676365044,
+        "pairs": 33962
+      },
+      {
+        "lag": 6,
+        "rho": 0.17649626005822155,
+        "pairs": 33914
+      },
+      {
+        "lag": 7,
+        "rho": 0.17178579880539288,
+        "pairs": 33866
+      },
+      {
+        "lag": 8,
+        "rho": 0.15513778903489994,
+        "pairs": 33818
+      }
+    ],
+    "ar1": {
+      "phi": 0.24854201104499485,
+      "rho2": 0.238041140204637,
+      "phi_squared": 0.06177313125429034,
+      "abs_diff": 0.17626800895034664,
+      "ar1_adequate": false
+    }
+  },
+  "empty_buckets_dropped": {
+    "n": 32699,
+    "cv": 0.7125209765916648,
+    "acf": [
+      {
+        "lag": 1,
+        "rho": 0.29244186860250704,
+        "pairs": 32651
+      },
+      {
+        "lag": 2,
+        "rho": 0.27814319563765855,
+        "pairs": 32603
+      },
+      {
+        "lag": 3,
+        "rho": 0.26385603164163646,
+        "pairs": 32555
+      },
+      {
+        "lag": 4,
+        "rho": 0.2437262507978265,
+        "pairs": 32507
+      },
+      {
+        "lag": 5,
+        "rho": 0.22158568729451888,
+        "pairs": 32459
+      },
+      {
+        "lag": 6,
+        "rho": 0.20882478555898853,
+        "pairs": 32411
+      },
+      {
+        "lag": 7,
+        "rho": 0.19678225748359526,
+        "pairs": 32363
+      },
+      {
+        "lag": 8,
+        "rho": 0.18206434118924958,
+        "pairs": 32315
+      }
+    ],
+    "ar1": {
+      "phi": 0.29244186860250704,
+      "rho2": 0.27814319563765855,
+      "phi_squared": 0.08552224651172599,
+      "abs_diff": 0.19262094912593256,
+      "ar1_adequate": false
+    }
+  },
+  "reading": "The AR(1)-inadequacy verdict survives: the ACF still decays far too slowly for AR(1) once zero-cost ticks are dropped, so the slow decay is not an artifact of them. It remains conditional on array adjacency being time adjacency, which the dropped-empty-bucket behaviour leaves unverifiable from this bundle."
+}

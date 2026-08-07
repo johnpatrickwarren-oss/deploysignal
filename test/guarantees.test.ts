@@ -119,7 +119,12 @@ test('Family D: spectral_peak_acf_kv_cache is the classical bootstrap-null fallb
   const ville = DETECTOR_GUARANTEES['spectral_e_detector_kv_cache'];
   assert.equal(classical.validity_class, 'classical_epoch_alpha');
   assert.equal(classical.fallback_of, 'spectral_e_detector_kv_cache');
-  assert.equal(ville.validity_class, 'ville_anytime_valid');
+  // 2026-08-02: reclassified from ville_anytime_valid. The Ville premise is measured false in the
+  // shipped configuration — 0.576 false-alarm rate against a nominal 0.05, with oracle parameters
+  // and iid Gaussian data, driven by rolling-window overlap. The same detector evaluated on
+  // disjoint windows measures 0.0005 on the same data. See knowledge/stats/h0-battery-2026-08-01.
+  assert.equal(ville.validity_class, 'heuristic_structural');
+  assert.equal(ville.alpha_participating, false, 'must not consume alpha under a false premise');
 });
 
 test('Family E: mahalanobis_conformal_baseline is ville_anytime_valid under its '

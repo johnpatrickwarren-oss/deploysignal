@@ -1,0 +1,63 @@
+{
+ "E1": {
+  "window_slopes": [],
+  "pass": false
+ },
+ "E2": {
+  "rows": [
+   {
+    "slope": 0.0002,
+    "drift": 1,
+    "step_union": 1,
+    "gap": 0
+   },
+   {
+    "slope": 0.0005,
+    "drift": 1,
+    "step_union": 1,
+    "gap": 0
+   },
+   {
+    "slope": 0.001,
+    "drift": 1,
+    "step_union": 1,
+    "gap": 0
+   },
+   {
+    "slope": 0.002,
+    "drift": 1,
+    "step_union": 1,
+    "gap": 0
+   },
+   {
+    "slope": 0.005,
+    "drift": 1,
+    "step_union": 1,
+    "gap": 0
+   },
+   {
+    "slope": 0.01,
+    "drift": 1,
+    "step_union": 1,
+    "gap": 0
+   },
+   {
+    "slope": 0.02,
+    "drift": 1,
+    "step_union": 1,
+    "gap": 0
+   }
+  ],
+  "pass": true
+ },
+ "E3": {
+  "floor": 0.001,
+  "ceiling": 0.02,
+  "floor_sigma_per_tick": {
+   "p99_latency": 0.43,
+   "ttft": 0.43,
+   "cost_req": 0.58,
+   "downstream_err": 0.12
+  }
+ }
+}
