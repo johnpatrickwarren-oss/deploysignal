@@ -1,0 +1,31 @@
+{
+ "study": "2026-08-drift-regime-sweep",
+ "run": "run-2026-08-04T16071Z",
+ "deploysignal_sha": "a504c9eb5ee1325ebf387a9689cef9f1cf2affe4",
+ "engine_pin": "git+https://github.com/johnpatrickwarren-oss/deploysignal-engine.git#v0.6.6-pre",
+ "engine_installed_version": "0.6.6-pre",
+ "scenario_file_sha256": "dd15a08e246c3e2152fc122fca6fb0eb0e6ed2f7f8b556dcfe95a0ae828f7474",
+ "c9_step_source": "studies/effect-size-sweep/results/run-2026-08-04T04583Z/cells.json",
+ "alpha_per_signal": 0.000033333333333333335,
+ "slopes": [
+  0.0002,
+  0.0005,
+  0.001,
+  0.002,
+  0.005,
+  0.01,
+  0.02
+ ],
+ "drifting_signals": [
+  "p99_latency",
+  "ttft",
+  "cost_req",
+  "downstream_err"
+ ],
+ "calib_window": 500,
+ "t_total": 100,
+ "t_inject": 30,
+ "seed_scheme": "mulberry32(fnv1a(`${scenario.id}|${signal}|${slope}`))",
+ "node": "v25.9.0",
+ "command": "node studies/drift-regime-sweep/analysis/run_sweep.mjs"
+}

@@ -18,3 +18,10 @@ docs, and do not leave a finding only in a commit message.
 
 Design and writing standards route through `knowledge/design/` to `~/concord/junction`, which is
 canonical for both. `WRITING-STYLE.md` exists only there.
+
+**Communication with John** follows `~/concord/knowledge/design/pages/session-communication.md`:
+verify first; cite code, not prose; lead with corrections; decisions get 3+ numbered options with a
+recommendation; state what you did not do; a reply is as long as the finding.
+
+**Default test substrate:** the adversarial corpus (`runs/adversarial-scenarios.json`, 131 scenarios + the corpus jitter model), paired seeded trajectories, engine consumed as the pinned package — the C9/C11 study template.
+See `~/concord/knowledge/methodology/pages/test-substrates.md` for the routing table.
