@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  buildFamilyDForSignal,
+  buildFamilyDForSignal, FAMILY_D_E_DETECTOR_RETIRED,
   acfAtLag,
   peakAbsACF,
   FAMILY_D_BOOTSTRAP_SEED,
@@ -51,11 +51,23 @@ test('family-d unit: useLegacy=true emits spectral_variant=bootstrap_null', () =
   assert.equal(result!.spectral_variant, 'bootstrap_null');
 });
 
-test('family-d unit: useLegacy=false emits spectral_variant=e_detector', () => {
+// C53 retirement (2026-08-18): the e_detector variant no longer ships. The AR(1)-aware
+// calibrator supplies per-trajectory-MAX moments where the runtime standardizes single
+// evaluations, and the pinned runtime (v0.6.6-pre) predates both the disjoint-cadence fix
+// (engine d3d6d06) and the priced c-bound (bb56070) — correct moments on that runtime would
+// false-fire on 28.6% of healthy 300-tick trajectories at the shipped threshold
+// (knowledge/stats/family-d-emean-2026-08-18). Reversal is FAMILY_D_E_DETECTOR_RETIRED,
+// gated on an engine re-pin plus a registered study.
+
+test('family-d unit: useLegacy=false ALSO emits bootstrap_null while the e_detector variant is retired', () => {
   const samples = Array.from({ length: 500 }, () => Math.random());
   const { result } = buildFamilyDForSignal(samples, 1e-4, FAMILY_D_BOOTSTRAP_SEED, false);
   assert.ok(result);
-  assert.equal(result!.spectral_variant, 'e_detector');
+  assert.equal(result!.spectral_variant, 'bootstrap_null');
+});
+
+test('family-d unit: the retirement is one greppable constant, currently true', () => {
+  assert.equal(FAMILY_D_E_DETECTOR_RETIRED, true);
 });
 
 test('family-d unit: betting_delta = 0.3 · null_std (REPLY-45 D4)', () => {

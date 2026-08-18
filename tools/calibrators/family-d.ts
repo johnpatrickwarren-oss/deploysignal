@@ -70,6 +70,30 @@ export function peakAbsACF(y: number[], minLag: number, maxLag: number): number 
  *  'bootstrap_null' for reproducibility on pre-#21 historical runs;
  *  null_mean/null_std/betting_delta are still populated so a post-
  *  merge retune can activate e-detector without recompile. */
+/** C53 retirement (2026-08-18) — the e_detector variant no longer ships; every compile stamps
+ *  `spectral_variant: 'bootstrap_null'` regardless of `useLegacy`. Three stacked reasons, each
+ *  sufficient (knowledge/stats/family-d-emean-2026-08-18, WORKLIST C53):
+ *
+ *  1. STATISTIC MISMATCH — buildFamilyDForSignalAR1, the path that compiled every shipped cell
+ *     (219,769 cells / 109 configs), supplies `null_mean`/`null_std` as moments of the
+ *     per-trajectory MAX over ~80 sliding evaluations (median 0.5742), while the runtime
+ *     standardizes ONE evaluation (single-window marginal 0.27–0.42) — E[z] ≈ −0.94 per update,
+ *     wealth buried under H₀ and H₁ alike. The shipped e-detector cannot fire.
+ *  2. STALE RUNTIME — the installed engine (tag v0.6.6-pre = 8b611aa) predates the
+ *     disjoint-cadence fix (d3d6d06) and the priced c-bound (bb56070): it is the rolling-cadence
+ *     variant the engine's own H₀ battery refuted (FAR 0.576 vs nominal 0.05 at oracle params).
+ *  3. FIXING THE MOMENTS ALONE IS REFUTED — on the rolling cadence, correct moments measure a
+ *     28.6% crossing rate of the shipped 10⁴ threshold on healthy 300-tick trajectories
+ *     (family-d-emean run-20260818T222835Z, N7-rolling cells).
+ *
+ *  The legacy bootstrap_null variant is self-consistent: each evaluation compares against the
+ *  (1−α) quantile of the same per-trajectory-max statistic, calibrated at the 100-tick canary
+ *  length. Existing compiled configs are artifacts and replay unchanged (their e_detector cells
+ *  are inert). Reversal is this one constant — flip it only after re-pinning to an engine with
+ *  the disjoint cadence and priced c-bound, recalibrating to single-evaluation moments with K
+ *  stated (engine SpectralInflationBoundMeasurement), and a registered validation study. */
+export const FAMILY_D_E_DETECTOR_RETIRED = true;
+
 export function buildFamilyDForSignal(
   allSamples: number[], alphaD: number, seed: number, useLegacy: boolean,
 ): FamilyDBuildResult {
@@ -107,7 +131,7 @@ export function buildFamilyDForSignal(
       bootstrap_null_quantile: threshold,
       min_peak_lag: MIN_PEAK_LAG,
       max_peak_lag: MAX_PEAK_LAG,
-      spectral_variant: useLegacy ? 'bootstrap_null' : 'e_detector',
+      spectral_variant: (FAMILY_D_E_DETECTOR_RETIRED || useLegacy) ? 'bootstrap_null' : 'e_detector',
       null_mean: mu0,
       null_std: sigma0,
       betting_delta: bettingDelta,
@@ -269,7 +293,7 @@ export function buildFamilyDForSignalAR1(
       bootstrap_null_quantile: threshold,
       min_peak_lag: MIN_PEAK_LAG,
       max_peak_lag: MAX_PEAK_LAG,
-      spectral_variant: useLegacy ? 'bootstrap_null' : 'e_detector',
+      spectral_variant: (FAMILY_D_E_DETECTOR_RETIRED || useLegacy) ? 'bootstrap_null' : 'e_detector',
       null_mean: mu0,
       null_std: sigma0,
       betting_delta: bettingDelta,
