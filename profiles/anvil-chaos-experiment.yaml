@@ -1,5 +1,12 @@
 # profiles/anvil-chaos-experiment.yaml
 #
+# STALE DUPLICATE (marked 2026-08-18, WORKLIST C12 residual). The canonical
+# profile is ../anvil/profiles/anvil-chaos-experiment.yaml (2026-07-31), which
+# holds Family D at 0 alpha as advisory-only after the 2026-08-02
+# reclassification. This copy is a 2026-05-21 snapshot kept for replay of runs
+# that cite it; it also allocates D nothing, so the divergence is prose, not
+# alpha. Do not extend this file — edit the anvil copy.
+#
 # Anvil (Addition #29 / PRD-29 / Q29) reference profile for chaos-
 # engineering verdict runs. Family A (per-signal mean shift) + Family C
 # (multivariate drift) enabled; B, D, E default-off (insufficient signal

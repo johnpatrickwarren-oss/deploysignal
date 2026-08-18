@@ -143,7 +143,8 @@ test('Q2.B.7 family-d: buildFamilyDForSignalAR1 stamps ar1_phi + ar1_sigma_eps',
   assert.ok(out.result.bootstrap_null_quantile <= 1);
   assert.equal(out.result.min_peak_lag, 3);
   assert.equal(out.result.max_peak_lag, 10);
-  assert.equal(out.result.spectral_variant, 'e_detector');
+  // C53 retirement (2026-08-18): bootstrap_null ships regardless of useLegacy.
+  assert.equal(out.result.spectral_variant, 'bootstrap_null');
 });
 
 test('Q2.B.7 family-d: too-short input returns null result', () => {
