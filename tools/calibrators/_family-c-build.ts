@@ -250,13 +250,42 @@ function stampSafeHotellingParams(
 /** e-MMD + canonical betting-e-process (incl. Q72 RFF feature-map)
  *  precompute. Stamps e_mmd_params + betting_e_process_params on `cell`
  *  in place. Verbatim from the original `if (cell.mmd_params)` block. */
+/** RETIRED 2026-08-04 — the Family C MMD branch no longer compiles.
+ *
+ *  Both MMD evaluators are disabled at the stamp, which is the single point
+ *  that controls their reachability: an evaluator with null params returns
+ *  null every tick.
+ *
+ *  Why. `knowledge/stats/family-c-blind-to-shape-2026-08-04` measured the
+ *  betting e-process against a bimodality fault with the first two moments
+ *  held exactly equal — the shape `sequential-mmd.ts` names as its reason for
+ *  existing. Power was 0.0000, at every RFF dimension to 4096 and at every
+ *  kernel bandwidth from 0.10x to 1.50x the median heuristic. A log-wealth
+ *  diagnostic showed the witness accumulating up to 0.75 log-wealth
+ *  identically with and without the fault: the wealth is covariance
+ *  scale-mismatch drift, not detection. In the shipped configuration it fired
+ *  LESS on a fault (0.1055) than on healthy data (0.1365).
+ *
+ *  BOTH are disabled, deliberately. `sequential-mmd.ts:436` suppresses the
+ *  Option-B e-MMD evaluator only while `betting_e_process_params` is present,
+ *  so disabling the betting path alone would silently RE-ACTIVATE the
+ *  superseded e-MMD detector on every cell.
+ *
+ *  Not deleted. The evaluators, types and audit surface stay so pre-existing
+ *  compiled configs remain replayable; this stops new compiles carrying the
+ *  detector. Physical removal is a follow-up once a replacement exists
+ *  (`knowledge/WORKLIST.md` C22).
+ *
+ *  Reversal is this one constant. */
+export const FAMILY_C_MMD_RETIRED = true;
+
 function stampEMmdAndBettingParams(
   cell: FamilyCPerCell,
   n: number,
   alphaMMD?: number,
   key?: Record<string, string | number>,
 ): void {
-  if (!cell.mmd_params) {
+  if (FAMILY_C_MMD_RETIRED || !cell.mmd_params) {
     cell.e_mmd_params = null;
     cell.betting_e_process_params = null;
     return;
