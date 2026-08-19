@@ -11,10 +11,32 @@ export interface CliArgs {
   rowLimit?: number;
   costPerInputToken?: number;
   costPerOutputToken?: number;
+  /** C37: BurstGPT v2 full-tick-range mapper. */
+  burstgptV2?: boolean;
+  /** C37: repeatable --provenance-line entries for the bundle README. */
+  provenanceLine?: string[];
 }
 
-export function parseArgs(argv: string[]): CliArgs {
+/** C37 flags, split from the main switch so parseArgs stays under the
+ *  no-complex-functions gate. Returns the argv with the C37 flags consumed. */
+function extractC37Flags(argv: string[], out: Partial<CliArgs>): string[] {
+  const rest: string[] = [];
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--burstgpt-v2') {
+      out.burstgptV2 = true;
+    } else if (argv[i] === '--provenance-line') {
+      (out.provenanceLine ??= []).push(argv[i + 1]);
+      i++;
+    } else {
+      rest.push(argv[i]);
+    }
+  }
+  return rest;
+}
+
+export function parseArgs(rawArgv: string[]): CliArgs {
   const out: Partial<CliArgs> = {};
+  const argv = extractC37Flags(rawArgv, out);
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     const v = argv[i + 1];
@@ -50,6 +72,7 @@ export function parseArgs(argv: string[]): CliArgs {
         out.costPerOutputToken = parseFloat(v);
         i++;
         break;
+
       default:
         if (k.startsWith('--')) throw new Error(`Unknown flag: ${k}`);
     }

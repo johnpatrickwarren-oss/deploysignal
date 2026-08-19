@@ -36,7 +36,7 @@
 // remains runnable.
 
 import {
-  mapBurstGPTRows, mapAzureLLMRows, mapMooncakeRows,
+  mapBurstGPTRows, mapBurstGPTRowsV2, mapAzureLLMRows, mapMooncakeRows,
   mapHuggingFaceLMSYSArenaRows,
   type BundleRun, type IngestReport,
 } from './ingest-real-trace.js';
@@ -67,7 +67,9 @@ export function ingestPublicDataset(opts: IngestPublicDatasetOpts): IngestReport
 
   if (dataset === 'burstgpt') {
     const rows = parseBurstGPTCsv(rawDataPath, rowLimit);
-    const result = mapBurstGPTRows(rows, {
+    // C37 (2026-08-18): --burstgpt-v2 routes to the full-tick-range mapper.
+    const mapper = opts.burstgptV2 ? mapBurstGPTRowsV2 : mapBurstGPTRows;
+    const result = mapper(rows, {
       tick_seconds: caveatOpts.tick_seconds,
       tenant_id: caveatOpts.tenant_id,
       tokens_to_cost_per_request: caveatOpts.tokens_to_cost_per_request,
@@ -112,6 +114,8 @@ export function ingestPublicDataset(opts: IngestPublicDatasetOpts): IngestReport
     baseline_provenance: PROVENANCE_BY_DATASET[dataset],
     caveat_filters_applied: filtersApplied,
     tick_seconds: caveatOpts.tick_seconds ?? 5,
+    version: opts.burstgptV2 ? `${PROVENANCE_BY_DATASET[dataset]}-v2` : undefined,
+    provenance_lines: opts.provenanceLines,
   });
 
   // Compute total ticks for the report.
@@ -152,6 +156,8 @@ function main(): void {
     outputBaselineDir: args.outputBaselineDir,
     caveatOpts,
     rowLimit: args.rowLimit,
+    burstgptV2: args.burstgptV2,
+    provenanceLines: args.provenanceLine,
   });
   console.log(`[ingest-public-dataset]   source=${report.source}`);
   console.log(`[ingest-public-dataset]   n_runs=${report.n_runs} n_ticks_total=${report.n_ticks_total}`);

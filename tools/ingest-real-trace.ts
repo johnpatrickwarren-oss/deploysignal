@@ -34,7 +34,7 @@ export type {
   BurstGPTRawRow,
   BurstGPTIngestOpts,
 } from './_ingest-real-trace-burstgpt.js';
-export { mapBurstGPTRows } from './_ingest-real-trace-burstgpt.js';
+export { mapBurstGPTRows, mapBurstGPTRowsV2 } from './_ingest-real-trace-burstgpt.js';
 
 export type { AzureLLMRawRow } from './_ingest-real-trace-azure.js';
 export { mapAzureLLMRows } from './_ingest-real-trace-azure.js';
