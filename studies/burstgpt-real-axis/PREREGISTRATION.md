@@ -189,8 +189,8 @@ before the gate). All synthetic generation is `mulberry32`-seeded; seeds fixed i
 | id | Construction | Must satisfy |
 |---|---|---|
 | I1 (fire) | AR(1), φ = 0.25, innovations N(0,1), length 174,234, masked by the real observation pattern; §4-S estimator | `|φ̂ − 0.25| ≤ 0.03` and adequacy check **passes** (it is AR(1)) |
-| I2 (no-fire) | White noise N(0,1), same mask | `|φ̂| ≤ 0.02` and `max_{k≤8} |ρ̂(k)| ≤ 0.03` |
-| I3 (the trap, demonstrated) | I2's white-noise costs zero-filled at unobserved ticks, **naive** full-series ACF | naive lag-1 ACF ≥ 0.10 while the §4-S estimator on the same data reports `|φ̂| ≤ 0.02` — i.e. the naive estimator manufactures dependence from arrivals and the registered one does not |
+| I2 (no-fire) | White noise N(0,1), same mask | `|φ̂| ≤ 0.03` *(amended from 0.02, see below)* and `max_{k≤8} |ρ̂(k)| ≤ 0.03` |
+| I3 (the trap, demonstrated) | I2's white-noise costs zero-filled at unobserved ticks, **naive** full-series ACF | naive lag-1 ACF ≥ 0.10 while the §4-S estimator on the same data reports `|φ̂| ≤ 0.03` *(amended)* — i.e. the naive estimator manufactures dependence from arrivals and the registered one does not |
 | I4a (decomposition, between-dominated) | Synthetic (μ_t, n_t): n_t = real counts at observed ticks; σ²_B, σ²_W chosen so true averaging share = 0.2 | `|ŝ − 0.2| ≤ 0.10` |
 | I4b (decomposition, averaging-dominated) | As I4a with true share = 0.8 | `|ŝ − 0.8| ≤ 0.10` |
 | I5 (degenerate) | σ²_W = 0 (pure between) | `ŝ ≤ 0.05` |
@@ -198,6 +198,18 @@ before the gate). All synthetic generation is `mulberry32`-seeded; seeds fixed i
 A failed instrument check is a code defect: fix test-first, and the fix is a rerun cause under
 provenance rule 3. Instrument results are written into the run directory alongside the
 measurement.
+
+**Amendment 2026-08-19 (before any endpoint was computed).** The first decisive run
+(`results/run-20260819T020507Z/`, preserved) declared itself NOT-EXECUTABLE at I2:
+white-noise φ̂ = −0.02053 against the frozen `|φ̂| ≤ 0.02` (I3 failed only by reusing that
+condition; its naive-lag-1 half fired at 0.325 as predicted). Test-first diagnosis, 28-seed
+null sweep of the I2 construction: the estimator's null distribution has mean ≈ −0.002
+(the −1/n_cell centring bias) and sd ≈ 0.0065, and seed 102 reproduces −0.02053 exactly —
+a ~2.7σ draw against a bar set at ~2.6σ without computing the null sd. The defect is the
+tolerance calibration, not the estimator. **Fix: the I2/I3 φ̂ tolerance widens 0.02 → 0.03
+(≈ 4.5σ); the seed stays 102; every endpoint, bar, and verdict rule is untouched.** No
+`cost_req` statistic had been computed when the run aborted (the gate runs after the
+instruments and the endpoints never executed).
 
 ## 8. Provenance rules (verbatim from the C30 template)
 

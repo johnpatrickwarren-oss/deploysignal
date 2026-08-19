@@ -1,0 +1,63 @@
+{
+  "studyId": "2026-08-burstgpt-real-axis",
+  "executable": false,
+  "instruments": [
+    {
+      "id": "I1",
+      "pass": true,
+      "phiHat": 0.23620053190228013,
+      "rho2": 0.07234755877871817,
+      "adequate": true
+    },
+    {
+      "id": "I2",
+      "pass": false,
+      "phiHat": -0.020532707461245452,
+      "maxAbsRho": 0.020779776448421005
+    },
+    {
+      "id": "I3",
+      "pass": false,
+      "naiveLag1": 0.32505343976254863,
+      "awarePhiHat": -0.020532707461245452
+    },
+    {
+      "id": "I4a",
+      "pass": true,
+      "share": 0.21338590616990855,
+      "targetShare": 0.2
+    },
+    {
+      "id": "I4b",
+      "pass": true,
+      "share": 0.796629263394108,
+      "targetShare": 0.8
+    },
+    {
+      "id": "I5",
+      "pass": true,
+      "share": 0.004461082026259099,
+      "targetShare": 0
+    }
+  ],
+  "gate": {
+    "G1_sha256": {
+      "got": "1b7b8ec46bbdac4edf4590c885950801d6236826f6ead406c59d3bc8b2241d90",
+      "want": "1b7b8ec46bbdac4edf4590c885950801d6236826f6ead406c59d3bc8b2241d90",
+      "pass": true
+    },
+    "G2_structure": {
+      "ticks": 174234,
+      "lengthsMatch": true,
+      "sumCounts": 200000,
+      "countZeroTicks": 140032,
+      "zeroCostObserved": 1503,
+      "pass": true
+    },
+    "G3_instruments": {
+      "pass": false
+    }
+  },
+  "endpoints": null,
+  "harnessCatchCount": 0
+}

@@ -1,0 +1,25 @@
+{
+  "stamp": "20260819T020507Z",
+  "repoSha": "317b2fa8f83f486e0eaef6ddb68e30eaad5f9d01",
+  "bundle": "runs/baselines/real-burstgpt-v2/bundle.jsonl",
+  "bundleSha256": "1b7b8ec46bbdac4edf4590c885950801d6236826f6ead406c59d3bc8b2241d90",
+  "node": "v25.9.0",
+  "command": "/Users/johnwarren/concord/deploysignal/studies/burstgpt-real-axis/analysis/run_study.mjs --stamp 20260819T020507Z",
+  "seeds": {
+    "bootstrap": 42,
+    "instruments": {
+      "I1": 101,
+      "I2": 102,
+      "I4a": 104,
+      "I4b": 105,
+      "I5": 106
+    }
+  },
+  "bootstrap": {
+    "blockLen": 720,
+    "nBoot": 1000,
+    "seed": 42
+  },
+  "model_calls": "none",
+  "network": "none"
+}

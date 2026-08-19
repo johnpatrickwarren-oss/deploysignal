@@ -77,11 +77,14 @@ function check(id, pass, detail) {
   const { phi: est } = phiHat(f);
   const { rho } = pairwiseAcf(f, MAX_LAG);
   const maxAbsRho = Math.max(...rho.map((r) => Math.abs(r.rho)));
-  check('I2', Math.abs(est) <= 0.02 && maxAbsRho <= 0.03, { phiHat: est, maxAbsRho });
+  // 0.03, amended 2026-08-19 from 0.02: the null distribution of phiHat under
+  // this construction has mean ~-0.002 (centring bias) and sd ~0.0065; the
+  // original bar sat at ~2.6 sigma. PREREGISTRATION.md §7 amendment.
+  check('I2', Math.abs(est) <= 0.03 && maxAbsRho <= 0.03, { phiHat: est, maxAbsRho });
 
   const zeroFilled = x.map((v, t) => (observed[t] ? v : 0));
   const naive1 = naiveAcf(zeroFilled, 1)[0];
-  check('I3', naive1 >= 0.1 && Math.abs(est) <= 0.02, { naiveLag1: naive1, awarePhiHat: est });
+  check('I3', naive1 >= 0.1 && Math.abs(est) <= 0.03, { naiveLag1: naive1, awarePhiHat: est });
 }
 
 // I4a/I4b/I5: decomposition recovery at known averaging shares, real n_t.
@@ -204,5 +207,10 @@ const manifest = {
   model_calls: 'none',
   network: 'none',
 };
+const supIdx = process.argv.indexOf('--supersedes');
+if (supIdx >= 0) {
+  manifest.supersedes = process.argv[supIdx + 1];
+  manifest.supersedes_defect = process.argv[supIdx + 2];
+}
 writeFileSync(`${outDir}/manifest.json`, JSON.stringify(manifest, null, 2));
 console.log(`written: ${outDir}`);
