@@ -18,6 +18,13 @@ export function emitBaselineBundle(
     baseline_provenance: BaselineProvenance;
     caveat_filters_applied: string[];
     tick_seconds: number;
+    /** C37 (2026-08-18): full manifest.version override (e.g. 'real_burstgpt-v2').
+     *  Absent keeps the historical `${provenance}-v1` stamp. */
+    version?: string;
+    /** C37: dataset-identity lines appended to the README's Source section —
+     *  URL, revision, sha256, row scope. The v1 bundle omitted these, which is
+     *  why WORKLIST C37 exists. */
+    provenance_lines?: string[];
   },
 ): void {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -35,9 +42,13 @@ export function emitBaselineBundle(
 
   // Determine which signals are populated across the runs.
   const populatedSignals = new Set<string>();
+  const auxSeries = new Set<string>();
   for (const run of bundleRuns) {
     for (const sig of Object.keys(run.signal_series)) {
       populatedSignals.add(sig);
+    }
+    for (const aux of Object.keys(run.auxiliary_series ?? {})) {
+      auxSeries.add(aux);
     }
   }
 
@@ -66,7 +77,7 @@ export function emitBaselineBundle(
   }
 
   const manifest: BaselineManifest = {
-    version: `${meta.baseline_provenance}-v1`,
+    version: meta.version ?? `${meta.baseline_provenance}-v1`,
     generated_at: new Date().toISOString(),
     seed: 0,  // real-data ingestion is deterministic by source data
     cell_dim: 'hour_of_day_x_day_of_week',
@@ -87,13 +98,33 @@ export function emitBaselineBundle(
   fs.writeFileSync(path.join(outputDir, 'bundle.jsonl'), lines + '\n');
 
   // README.md: provenance + caveats note.
-  const readme = `# Real-data baseline bundle: ${meta.baseline_provenance}\n\n`
-    + `Generated: ${manifest.generated_at}\n\n`
-    + `Source: Q60 Slice 1 ingestion via tools/ingest-public-dataset.ts.\n\n`
+  fs.writeFileSync(path.join(outputDir, 'README.md'),
+    renderBundleReadme(meta, manifest.generated_at, populatedSignals, auxSeries));
+}
+
+/** README rendering, split out so emitBaselineBundle stays under the
+ *  no-complex-functions gate (C37 added the identity + auxiliary sections). */
+function renderBundleReadme(
+  meta: { baseline_provenance: string; caveat_filters_applied: string[]; provenance_lines?: string[] },
+  generatedAt: string,
+  populatedSignals: Set<string>,
+  auxSeries: Set<string>,
+): string {
+  const identity = meta.provenance_lines && meta.provenance_lines.length > 0
+    ? '\n## Dataset identity\n\n' + meta.provenance_lines.map((l) => `- ${l}`).join('\n') + '\n\n'
+    : '\n';
+  const aux = auxSeries.size > 0
+    ? '\n\n## Auxiliary series (non-signal; outside every calibration path)\n\n'
+      + Array.from(auxSeries).map((s) => `- ${s}`).join('\n')
+    : '';
+  return `# Real-data baseline bundle: ${meta.baseline_provenance}\n\n`
+    + `Generated: ${generatedAt}\n\n`
+    + `Source: Q60 Slice 1 ingestion via tools/ingest-public-dataset.ts.\n`
+    + identity
     + `## Caveat filters applied\n\n`
     + meta.caveat_filters_applied.map((f) => `- ${f}`).join('\n')
     + `\n\n## Signals populated\n\n`
     + Array.from(populatedSignals).map((s) => `- ${s}`).join('\n')
+    + aux
     + '\n';
-  fs.writeFileSync(path.join(outputDir, 'README.md'), readme);
 }

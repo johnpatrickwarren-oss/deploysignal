@@ -19,7 +19,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  mapBurstGPTRows, mapAzureLLMRows, mapMooncakeRows,
+  mapBurstGPTRows, mapBurstGPTRowsV2, mapAzureLLMRows, mapMooncakeRows,
   mapGroundedSyntheticOverlay, SUPPORTED_SOURCES,
 } from '../tools/ingest-real-trace';
 import type {
@@ -74,6 +74,95 @@ test('burstgpt (V1 A1): without pricing multiplier, signal_series stays empty', 
   // No tokens_to_cost_per_request → no signals derivable post-A1.
   assert.equal(Object.keys(run.signal_series).length, 0);
   assert.ok(filters_applied.includes('burstgpt_no_pricing_multiplier:cost_req_undefined'));
+});
+
+// ── V2 mapper (C37, 2026-08-18): full tick range + per-bucket counts ──
+//
+// v1 dropped empty buckets (array adjacency ≠ time adjacency; measured on the
+// canonical 200k-row slice: 34,202 populated of 174,234 real 5 s buckets — 80.4%
+// of the time axis missing) and stored only the per-bucket mean cost. The v2
+// mapper emits the full tick range with requests_per_tick as the empty-vs-
+// zero-cost disambiguator, and derives hour_of_day/day_of_week from real
+// elapsed seconds (phase unknown: the source clock is elapsed-from-trace-start).
+
+test('burstgpt v2: full tick range — empty buckets present with requests_per_tick 0', () => {
+  const rows: BurstGPTRawRow[] = [
+    { timestamp_s: 0, request_tokens: 100, response_tokens: 50 },
+    { timestamp_s: 22, request_tokens: 200, response_tokens: 100 },
+  ];
+  const { run } = mapBurstGPTRowsV2(rows, {
+    tick_seconds: 5,
+    tokens_to_cost_per_request: (req, res) => req * 0.0001 + res * 0.0002,
+  });
+  // ticks 0..4 — floor(22/5) = 4 is the last, and 1..3 are EMPTY but PRESENT.
+  assert.equal(run.signal_series.cost_req.length, 5);
+  // requests_per_tick is AUXILIARY, not a signal: the family-D calibrator stamps per
+  // signal_series key (verified 2026-08-18: a signal_series counts key grew its own
+  // family_D params on all 840 cells), so the counts live outside the calibration path.
+  assert.equal(run.signal_series.requests_per_tick, undefined);
+  assert.equal(run.auxiliary_series!.requests_per_tick.length, 5);
+  assert.deepEqual(run.auxiliary_series!.requests_per_tick, [1, 0, 0, 0, 1]);
+  assert.deepEqual(run.signal_series.cost_req.slice(1, 4), [0, 0, 0]);
+  assert.ok(Math.abs(run.signal_series.cost_req[0] - 0.02) < 1e-9);
+});
+
+test('burstgpt v2: zero-cost-at-count>0 is distinguishable from empty-at-count-0', () => {
+  const rows: BurstGPTRawRow[] = [
+    { timestamp_s: 0, request_tokens: 0, response_tokens: 0 },   // a real zero-token request
+    { timestamp_s: 11, request_tokens: 100, response_tokens: 50 },
+  ];
+  const { run } = mapBurstGPTRowsV2(rows, {
+    tick_seconds: 5,
+    tokens_to_cost_per_request: (req, res) => req * 0.0001 + res * 0.0002,
+  });
+  assert.deepEqual(run.auxiliary_series!.requests_per_tick, [1, 0, 1]);
+  assert.equal(run.signal_series.cost_req[0], 0);   // priced request costing nothing
+  assert.equal(run.signal_series.cost_req[1], 0);   // no arrivals — same 0, count says which
+});
+
+test('burstgpt v2: multi-row bucket keeps the v1 mean-cost derivation', () => {
+  const rows: BurstGPTRawRow[] = [
+    { timestamp_s: 1, request_tokens: 100, response_tokens: 0 },
+    { timestamp_s: 3, request_tokens: 300, response_tokens: 0 },
+  ];
+  const { run } = mapBurstGPTRowsV2(rows, {
+    tick_seconds: 5,
+    tokens_to_cost_per_request: (req, _res) => req * 0.0001,
+  });
+  assert.equal(run.auxiliary_series!.requests_per_tick[0], 2);
+  assert.ok(Math.abs(run.signal_series.cost_req[0] - 0.02) < 1e-9);  // mean(0.01, 0.03)
+});
+
+test('burstgpt v2: clock derived from real elapsed seconds and stamped phase-unknown', () => {
+  // 2 hours of span at 5 s ticks: hour_of_day must advance with REAL elapsed time.
+  const rows: BurstGPTRawRow[] = [
+    { timestamp_s: 0, request_tokens: 10, response_tokens: 0 },
+    { timestamp_s: 7200, request_tokens: 10, response_tokens: 0 },
+  ];
+  const { run, filters_applied } = mapBurstGPTRowsV2(rows, {
+    tick_seconds: 5,
+    tokens_to_cost_per_request: (req, _res) => req * 0.0001,
+  });
+  assert.equal(run.hour_of_day![0], 0);
+  assert.equal(run.hour_of_day![run.hour_of_day!.length - 1], 2);
+  assert.ok(filters_applied.includes(
+    'burstgpt_v2:clock_elapsed_from_trace_start_no_wall_anchor_phase_unknown'));
+});
+
+test('burstgpt v2: without pricing, requests_per_tick still emits; cost_req does not', () => {
+  const rows: BurstGPTRawRow[] = [
+    { timestamp_s: 0, request_tokens: 100, response_tokens: 50 },
+  ];
+  const { run, filters_applied } = mapBurstGPTRowsV2(rows, { tick_seconds: 5 });
+  assert.equal(run.signal_series.cost_req, undefined);
+  assert.deepEqual(run.auxiliary_series!.requests_per_tick, [1]);
+  assert.ok(filters_applied.includes('burstgpt_no_pricing_multiplier:cost_req_undefined'));
+});
+
+test('burstgpt v2: empty rows → empty signal_series, v2 stamps present', () => {
+  const { run, filters_applied } = mapBurstGPTRowsV2([], { tick_seconds: 5 });
+  assert.equal(Object.keys(run.signal_series).length, 0);
+  assert.ok(filters_applied.includes('burstgpt_v2:full_tick_range_zero_filled_cost_requests_per_tick_disambiguator'));
 });
 
 test('burstgpt (V1 A1): empty rows → empty signal_series', () => {

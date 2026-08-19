@@ -48,6 +48,10 @@ export interface IngestPublicDatasetOpts {
    *  test-fixture mode + smoke testing on full datasets. Default:
    *  ingest all rows. */
   rowLimit?: number;
+  /** C37 (2026-08-18): route BurstGPT to the v2 full-tick-range mapper. */
+  burstgptV2?: boolean;
+  /** C37: dataset-identity lines for the bundle README (URL, revision, sha256). */
+  provenanceLines?: string[];
 }
 
 export const PROVENANCE_BY_DATASET: Record<SupportedDataset, BaselineProvenance> = {
