@@ -147,6 +147,7 @@ if (executable) {
       frame: {
         nUsable: f.nUsable, includedCells: f.includedCells,
         excludedCells: f.excludedCells, excludedTicks: f.excludedTicks,
+        zeroMeanCells: f.zeroMeanCells,
       },
       withinCellCv: Math.sqrt(acf.sigma2),
       acf: acf.rho.map((r) => ({ lag: r.lag, rho: r.rho, pairs: r.pairs, ar1Prediction: phi ** r.lag, sufficientPairs: r.pairs >= MIN_PAIRS })),

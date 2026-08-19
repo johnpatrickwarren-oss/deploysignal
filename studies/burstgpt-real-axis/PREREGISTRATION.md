@@ -67,6 +67,12 @@ Matches C30's primary frame so S is the direct heir of C30 §1.
   are within-cell: residual `r_t = x_t / m_cell(t)`, `m_cell` = mean of observed `cost_req` in that
   cell. Cells with **< 30 observed ticks** are excluded from O (exclusion count reported).
 - **Deviations:** `d_t = r_t − 1`.
+- **Amendment 2026-08-19 (frame mechanics, found by run-20260819T020655Z):** a cell whose
+  observed values are all zero has `m_cell = 0` and cannot support the multiplicative residual;
+  such cells are excluded like under-populated ones and their count is reported. This bit only
+  endpoint R (six all-idle `(hod, dow)` cells in `requests_per_tick` produced NaN); S and D were
+  unaffected in that run and their numbers reproduce identically after the fix (verified in the
+  superseding run's report). No bar or verdict rule changed.
 - **Secondary (reported, never adopted):** the same S statistics with no cell centring.
 - For R, the same frame with all 174,234 ticks observed.
 

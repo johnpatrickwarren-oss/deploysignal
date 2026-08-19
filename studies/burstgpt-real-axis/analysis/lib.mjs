@@ -71,14 +71,21 @@ export function buildFrame({ values, observed, hod, dow, minCellTicks, centre })
   }
   const globalMean = globalSum / globalN;
 
+  // A zero-mean cell cannot support the multiplicative residual v/m − 1 (and
+  // carries zero variance); it is excluded like an under-populated cell.
+  // Defect fix 2026-08-19 (run-20260819T020655Z): six all-idle (hod,dow)
+  // cells in requests_per_tick made m_cell = 0 and poisoned endpoint R with
+  // NaN. Reported via zeroMeanCells.
   const included = new Set();
   let excludedCells = 0;
   let excludedTicks = 0;
+  let zeroMeanCells = 0;
   for (const [c, e] of cellSum) {
-    if (e.n >= minCellTicks) included.add(c);
+    if (e.n >= minCellTicks && e.sum > 0) included.add(c);
     else {
       excludedCells += 1;
       excludedTicks += e.n;
+      if (e.sum === 0) zeroMeanCells += 1;
     }
   }
 
@@ -98,7 +105,7 @@ export function buildFrame({ values, observed, hod, dow, minCellTicks, centre })
 
   return {
     d, mcell, usable, cellId, nUsable,
-    includedCells: included.size, excludedCells, excludedTicks, globalMean,
+    includedCells: included.size, excludedCells, excludedTicks, zeroMeanCells, globalMean,
   };
 }
 
