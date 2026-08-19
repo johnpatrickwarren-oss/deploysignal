@@ -1,0 +1,399 @@
+{
+  "studyId": "2026-08-burstgpt-real-axis",
+  "executable": true,
+  "instruments": [
+    {
+      "id": "I1",
+      "pass": true,
+      "phiHat": 0.23620053190228013,
+      "rho2": 0.07234755877871817,
+      "adequate": true
+    },
+    {
+      "id": "I2",
+      "pass": true,
+      "phiHat": -0.020532707461245452,
+      "maxAbsRho": 0.020779776448421005
+    },
+    {
+      "id": "I3",
+      "pass": true,
+      "naiveLag1": 0.32505343976254863,
+      "awarePhiHat": -0.020532707461245452
+    },
+    {
+      "id": "I4a",
+      "pass": true,
+      "share": 0.21338590616990855,
+      "targetShare": 0.2
+    },
+    {
+      "id": "I4b",
+      "pass": true,
+      "share": 0.796629263394108,
+      "targetShare": 0.8
+    },
+    {
+      "id": "I5",
+      "pass": true,
+      "share": 0.004461082026259099,
+      "targetShare": 0
+    }
+  ],
+  "gate": {
+    "G1_sha256": {
+      "got": "1b7b8ec46bbdac4edf4590c885950801d6236826f6ead406c59d3bc8b2241d90",
+      "want": "1b7b8ec46bbdac4edf4590c885950801d6236826f6ead406c59d3bc8b2241d90",
+      "pass": true
+    },
+    "G2_structure": {
+      "ticks": 174234,
+      "lengthsMatch": true,
+      "sumCounts": 200000,
+      "countZeroTicks": 140032,
+      "zeroCostObserved": 1503,
+      "pass": true
+    },
+    "G3_instruments": {
+      "pass": true
+    }
+  },
+  "endpoints": {
+    "S": {
+      "frame": {
+        "nUsable": 33811,
+        "includedCells": 128,
+        "excludedCells": 34,
+        "excludedTicks": 391,
+        "zeroMeanCells": 0
+      },
+      "withinCellCv": 0.7555910711678441,
+      "acf": [
+        {
+          "lag": 1,
+          "rho": 0.30030857754921264,
+          "pairs": 15751,
+          "ar1Prediction": 0.4018892730635818,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 2,
+          "rho": 0.27599333922358577,
+          "pairs": 15965,
+          "ar1Prediction": 0.1615149878035742,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 3,
+          "rho": 0.2684885856840735,
+          "pairs": 16085,
+          "ar1Prediction": 0.06491114103725172,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 4,
+          "rho": 0.2541019087096877,
+          "pairs": 16071,
+          "ar1Prediction": 0.026087091285188727,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 5,
+          "rho": 0.2538768996659328,
+          "pairs": 15966,
+          "ar1Prediction": 0.010484122152947797,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 6,
+          "rho": 0.24819076965919323,
+          "pairs": 15932,
+          "ar1Prediction": 0.004213456230757985,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 7,
+          "rho": 0.2555911895643003,
+          "pairs": 15923,
+          "ar1Prediction": 0.0016933428616645457,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 8,
+          "rho": 0.22116449600094956,
+          "pairs": 15830,
+          "ar1Prediction": 0.0006805363317217697,
+          "sufficientPairs": true
+        }
+      ],
+      "phiHat": 0.4018892730635818,
+      "lag1Pairs": 15751,
+      "ci95": {
+        "lo": 0.2179870678984474,
+        "hi": 0.5212994687990169
+      },
+      "adequacyGap": 0.11447835142001156,
+      "ar1Adequate": false,
+      "nonZero": true,
+      "executable": true
+    },
+    "S_secondary": {
+      "frame": {
+        "nUsable": 33811,
+        "includedCells": 128,
+        "excludedCells": 34,
+        "excludedTicks": 391,
+        "zeroMeanCells": 0
+      },
+      "withinCellCv": 0.81225566892568,
+      "acf": [
+        {
+          "lag": 1,
+          "rho": 0.8644687278594089,
+          "pairs": 15751,
+          "ar1Prediction": 0.7223006813855182,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 2,
+          "rho": 0.8563781105652438,
+          "pairs": 15965,
+          "ar1Prediction": 0.5217182743299839,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 3,
+          "rho": 0.849610362961684,
+          "pairs": 16085,
+          "ar1Prediction": 0.376837465039824,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 4,
+          "rho": 0.8423056984433974,
+          "pairs": 16071,
+          "ar1Prediction": 0.27218995776985627,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 5,
+          "rho": 0.8536606219234326,
+          "pairs": 15966,
+          "ar1Prediction": 0.1966029919634626,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 6,
+          "rho": 0.8419638788389568,
+          "pairs": 15932,
+          "ar1Prediction": 0.14200647505764058,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 7,
+          "rho": 0.8437654150182916,
+          "pairs": 15923,
+          "ar1Prediction": 0.10257137369528939,
+          "sufficientPairs": true
+        },
+        {
+          "lag": 8,
+          "rho": 0.8385500470656914,
+          "pairs": 15830,
+          "ar1Prediction": 0.07408737311075614,
+          "sufficientPairs": true
+        }
+      ],
+      "phiHat": 0.7223006813855182,
+      "lag1Pairs": 15751,
+      "ci95": {
+        "lo": 0.5519851486241786,
+        "hi": 0.8144455046453288
+      },
+      "adequacyGap": 0.33465983623525997,
+      "ar1Adequate": false,
+      "nonZero": true,
+      "executable": true
+    },
+    "D": {
+      "intercept": 0.00020114725527414057,
+      "slope": 0.0006264682521027367,
+      "share": 0.6904583491882469,
+      "meanInvN": 0.7161985462414545,
+      "nTicks": 33811,
+      "totalWithinCellVar": 0.0006498229066965456,
+      "bins": [
+        {
+          "bin": "1",
+          "count": 21322,
+          "meanY": 0.0008222486720902642,
+          "fitted": 0.0008276155073768774,
+          "nBar": 1
+        },
+        {
+          "bin": "2",
+          "count": 3883,
+          "meanY": 0.0006069851124633832,
+          "fitted": 0.0005143813813255089,
+          "nBar": 2
+        },
+        {
+          "bin": "3",
+          "count": 983,
+          "meanY": 0.00042075253931582576,
+          "fitted": 0.0004099700059750528,
+          "nBar": 3
+        },
+        {
+          "bin": "4",
+          "count": 573,
+          "meanY": 0.0003240248292594198,
+          "fitted": 0.00035776431829982476,
+          "nBar": 4
+        },
+        {
+          "bin": "5",
+          "count": 376,
+          "meanY": 0.00021379224394109863,
+          "fitted": 0.0003264409056946879,
+          "nBar": 5
+        },
+        {
+          "bin": "6-10",
+          "count": 834,
+          "meanY": 0.0000839181595998877,
+          "fitted": 0.0002834137522437017,
+          "nBar": 7.615107913669065
+        },
+        {
+          "bin": "11+",
+          "count": 5840,
+          "meanY": 0.00022818721201570862,
+          "fitted": 0.00022444374920119276,
+          "nBar": 26.89109589041096
+        }
+      ],
+      "survivingBins": 7,
+      "adequacyPearson": 0.9401365681277819,
+      "spearmanCostOccupancy": -0.11225480772814267,
+      "betweenCv": 0.3938370261494657,
+      "totalCvThisFrame": 0.707875687188789,
+      "meanObservedCost": 0.036011441990870766,
+      "componentsPositive": true,
+      "adequacyPass": true,
+      "sharePublished": true
+    },
+    "R": {
+      "serial": {
+        "frame": {
+          "nUsable": 168474,
+          "includedCells": 162,
+          "excludedCells": 6,
+          "excludedTicks": 5760,
+          "zeroMeanCells": 6
+        },
+        "withinCellCv": 6.3813296809563,
+        "acf": [
+          {
+            "lag": 1,
+            "rho": 0.014427787843666223,
+            "pairs": 168240,
+            "ar1Prediction": 0.014412074750891637,
+            "sufficientPairs": true
+          },
+          {
+            "lag": 2,
+            "rho": 0.020557731033740582,
+            "pairs": 168006,
+            "ar1Prediction": 0.00020770789862528826,
+            "sufficientPairs": true
+          },
+          {
+            "lag": 3,
+            "rho": 0.0184307781939986,
+            "pairs": 167772,
+            "ar1Prediction": 0.0000029935017613382767,
+            "sufficientPairs": true
+          },
+          {
+            "lag": 4,
+            "rho": 0.025846177458738576,
+            "pairs": 167538,
+            "ar1Prediction": 4.314257115133302e-8,
+            "sufficientPairs": true
+          },
+          {
+            "lag": 5,
+            "rho": 0.018860544764001605,
+            "pairs": 167304,
+            "ar1Prediction": 6.217739603786726e-10,
+            "sufficientPairs": true
+          },
+          {
+            "lag": 6,
+            "rho": 0.014955374136261017,
+            "pairs": 167070,
+            "ar1Prediction": 8.961052795135365e-12,
+            "sufficientPairs": true
+          },
+          {
+            "lag": 7,
+            "rho": 0.01647697696354722,
+            "pairs": 166836,
+            "ar1Prediction": 1.2914736273017732e-13,
+            "sufficientPairs": true
+          },
+          {
+            "lag": 8,
+            "rho": 0.014715634836061153,
+            "pairs": 166602,
+            "ar1Prediction": 1.8612814455478322e-15,
+            "sufficientPairs": true
+          }
+        ],
+        "phiHat": 0.014412074750891637,
+        "lag1Pairs": 168240,
+        "ci95": {
+          "lo": 0.003251579376218237,
+          "hi": 0.03968688763357219
+        },
+        "adequacyGap": 0.020350023135115296,
+        "ar1Adequate": true,
+        "nonZero": true,
+        "executable": true
+      },
+      "periodic": {
+        "profile": [
+          1.3048966727905416,
+          1.3133904379415344,
+          0.03384372423556302,
+          0.01419252951813933,
+          0.011523848754044755,
+          0.009946901029807052,
+          0.002789984435189783,
+          0.0076421312789981015,
+          0.04645930602946465,
+          0.19711846552971293,
+          0.29658747582778344,
+          0.45537398129141066,
+          2.7205987353233243,
+          2.1556875390329404,
+          0.4493087977366503,
+          0.6325986447615095,
+          0.5362835299119143,
+          0.6512794101101715,
+          1.9583264661610373,
+          4.212633889794382,
+          2.646239584941961,
+          1.5249084493378593,
+          1.4825734681256315,
+          1.33579602610043
+        ],
+        "amplitude": 4.209843905359191,
+        "splitHalfPearson": 0.18975653135153392,
+        "present": false
+      }
+    }
+  },
+  "harnessCatchCount": 0
+}
