@@ -6,10 +6,15 @@
 // ── Public types ─────────────────────────────────────────────────
 
 /** Detector family identifier (subset of full DetectorFamily enum;
- *  Q64 evaluates Family A + Family D primary per § Q64.1). */
+ *  Q64 evaluates Family A + Family D primary per § Q64.1).
+ *
+ *  Q69.D (2026-08-18, applied at the v0.6.7-pre re-pin): the classical
+ *  'family_A_page_cusum' arm is retired with the classical detector itself
+ *  (engine validation/nab/RERUN-2026-08-18-PREREGISTRATION.md § 3). This
+ *  Q64-era copy carries no mixture branch, so best-of-A here is betting
+ *  only; the engine's own NAB tool runs the full Ville pair. */
 export type NABDetectorFamily =
   | 'family_A_betting'
-  | 'family_A_page_cusum'
   | 'family_D_spectral';
 
 export type NABSubBenchmark =
@@ -55,7 +60,7 @@ export interface NABValidationOpts {
   nabSubBenchmarks?: NABSubBenchmark[];
   /** DeploySignal compiled config path (substrate for detector calibration). */
   compiledConfig: string;
-  /** Detector families. Default: family_A_betting + family_A_page_cusum + family_D_spectral. */
+  /** Detector families. Default (Q69.D): family_A_betting + family_D_spectral. */
   detectors?: NABDetectorFamily[];
   /** Output validation report path. */
   outputPath: string;
@@ -98,7 +103,6 @@ export const DEFAULT_SUB_BENCHMARKS: NABSubBenchmark[] = [
 
 export const DEFAULT_DETECTORS: NABDetectorFamily[] = [
   'family_A_betting',
-  'family_A_page_cusum',
   'family_D_spectral',
 ];
 

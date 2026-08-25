@@ -111,11 +111,13 @@ function makeCupacAdjustedWindow(): number[] {
 // ── D7 invariant tests ──────────────────────────────────────────────
 
 test('spectral-cupac-interaction: Family D fires on RAW oscillating signal (oscillation detectable)', () => {
+  // v0.6.7-pre re-pin (d3d6d06): wealth advances once per disjoint window,
+  // so the fire arrives after several window boundaries, not within 30 ticks.
   const cfg = makeCfg();
   const state: SpectralEDetectorState = { M: 1, n: 0, alphaConsumed: 0 };
   const raw = makeRawOscillatingWindow();
   let fired = false;
-  for (let t = 1; t <= 30; t++) {
+  for (let t = 1; t <= raw.length * 15; t++) {
     const v = evaluateFamilyD(cfg, 'kv_cache', raw, baseCtx(), state) as DetectorVerdict;
     if (v && v.verdict === 'fire') { fired = true; break; }
   }
@@ -127,7 +129,8 @@ test('spectral-cupac-interaction: Family D does NOT fire on CUPAC-adjusted (flat
   const state: SpectralEDetectorState = { M: 1, n: 0, alphaConsumed: 0 };
   const adjusted = makeCupacAdjustedWindow();
   let fired = false;
-  for (let t = 1; t <= 30; t++) {
+  // Same horizon as the raw-signal test above (several disjoint windows).
+  for (let t = 1; t <= adjusted.length * 15; t++) {
     const v = evaluateFamilyD(cfg, 'kv_cache', adjusted, baseCtx(), state) as DetectorVerdict;
     if (v && v.verdict === 'fire') { fired = true; break; }
   }
@@ -144,17 +147,24 @@ test('spectral-cupac-interaction: D7 invariant — raw vs adjusted peak|ACF| div
 
   const rawState: SpectralEDetectorState = { M: 1, n: 0, alphaConsumed: 0 };
   const adjState: SpectralEDetectorState = { M: 1, n: 0, alphaConsumed: 0 };
-  const rawV = evaluateFamilyD(cfg, 'kv_cache', raw, baseCtx(), rawState) as DetectorVerdict;
-  const adjV = evaluateFamilyD(cfg, 'kv_cache', adjusted, baseCtx(), adjState) as DetectorVerdict;
+  // v0.6.7-pre re-pin (d3d6d06): the first windowLen−1 calls hold without
+  // advancing wealth, so drive exactly one full disjoint window per arm to
+  // land one wealth evaluation each.
+  for (let t = 0; t < raw.length; t++) {
+    evaluateFamilyD(cfg, 'kv_cache', raw, baseCtx(), rawState) as DetectorVerdict;
+    evaluateFamilyD(cfg, 'kv_cache', adjusted, baseCtx(), adjState) as DetectorVerdict;
+  }
+  assert.equal(rawState.n, 1, 'raw arm should have exactly one wealth evaluation');
+  assert.equal(adjState.n, 1, 'adjusted arm should have exactly one wealth evaluation');
 
-  // Single-tick wealth grows substantially under oscillating raw signal;
+  // Per-evaluation wealth grows substantially under oscillating raw signal;
   // stays ≤1 under flattened adjusted signal. This ratio quantifies the
   // masking effect.
-  assert.ok(rawState.M > 1, `raw single-tick M should grow (>1); got ${rawState.M}`);
+  assert.ok(rawState.M > 1, `raw per-evaluation M should grow (>1); got ${rawState.M}`);
   assert.ok(adjState.M <= 1,
-    `adjusted single-tick M should drift down (≤1); got ${adjState.M}`);
+    `adjusted per-evaluation M should drift down (≤1); got ${adjState.M}`);
   assert.ok(rawState.M > adjState.M * 10,
-    `raw wealth should dominate adjusted by >10× per tick (masking severity); got raw=${rawState.M}, adj=${adjState.M}`);
+    `raw wealth should dominate adjusted by >10× per evaluation (masking severity); got raw=${rawState.M}, adj=${adjState.M}`);
 });
 
 test('spectral-cupac-interaction: D7 invariant documented in evaluateFamilyD interface — no CUPAC-adjustment path in signature', () => {

@@ -15,7 +15,11 @@ import assert from 'node:assert/strict';
 
 import type { CompiledConfig, FamilyCPerCell, TenantTier } from '../engine/types';
 import { resolveTenantTier, conformalSampleCount } from '../engine/types';
-import { lookupCellParams } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
+// Q69.D (2026-08-18, applied at the v0.6.7-pre re-pin): lookupCellParams is deleted with
+// the classical Page-CUSUM. The D4/D5 cell-matching semantics it exercised live on in
+// matchCellByHour (the primitive the mixture path uses), so the two Family A lookup tests
+// below drive that instead of the retired param-assembly wrapper.
+import { matchCellByHour } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_page-cusum-core';
 import { lookupFamilyCParams } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/hotelling';
 import { lookupFamilyEParams } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/conformal';
 
@@ -77,9 +81,9 @@ test('resolveTenantTier: returns aggregate when no map, no tenant_id, or unknown
 
 test('D5 pre-#23 config (no tenant_tier on cells): runtime lookup matches any tier', () => {
   const cfg = makeCfg({ cells: [{ hour: 14, day: 2 }] });
-  const params = lookupCellParams(cfg, { hour_of_day: 14, day_of_week: 2, tenant_tier: 'large' }, 'eval_score');
-  assert.ok(params, 'pre-#23 cell should match large-tier query (key has no tenant_tier dim)');
-  assert.equal(params!.derivation!.mean, 0.85);
+  const cell = matchCellByHour(cfg.baseline_cells!.cells, { hour_of_day: 14, day_of_week: 2, tenant_tier: 'large' });
+  assert.ok(cell, 'pre-#23 cell should match large-tier query (key has no tenant_tier dim)');
+  assert.equal(cell!.family_A!.per_signal.eval_score.baseline_mean, 0.85);
 });
 
 test('D4 post-#23 config: requested tier matches its own per-tier cell', () => {
@@ -104,8 +108,9 @@ test('D4 post-#23 config: tier missing from matrix → falls back to aggregate-t
       { hour: 14, day: 2, tier: 'dominant' },
     ],
   });
-  const params = lookupCellParams(cfg, { hour_of_day: 14, day_of_week: 2, tenant_tier: 'small' }, 'eval_score');
-  assert.ok(params, 'small-tier query with no small-tier cell should fall back');
+  const cell = matchCellByHour(cfg.baseline_cells!.cells, { hour_of_day: 14, day_of_week: 2, tenant_tier: 'small' });
+  assert.ok(cell, 'small-tier query with no small-tier cell should fall back');
+  assert.equal(cell!.key.tenant_tier, 'aggregate', 'fallback must land on the aggregate-tier cell');
 });
 
 test('D4 Family E: per-cell μ/Σ via tenant tier; calibration always aggregate', () => {

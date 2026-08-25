@@ -13,7 +13,9 @@
 
 import * as fs from 'node:fs';
 
-import { evaluateFamilyAShadow, type CUSUMStates } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
+// Q69.D (2026-08-18, applied at the v0.6.7-pre re-pin): evaluateFamilyAShadow is deleted
+// from the engine with the classical Page-CUSUM; the family_A_page_cusum arm is retired
+// here with it (engine validation/nab/RERUN-2026-08-18-PREREGISTRATION.md § 3).
 import { evaluateFamilyABettingShadow, type BettingStates } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 import { evaluateFamilyD } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 import type { CompiledConfig } from '../engine/types/config.js';
@@ -52,30 +54,6 @@ const NAB_CTX = {
   deployAgeDays: 0,
   trafficPct: 1,
 };
-
-/** Family A Page-CUSUM dispatch loop (verbatim from runDetectorOverDataset). */
-function dispatchFamilyAPageCusum(
-  cfg: CompiledConfig, values: number[], calibrationSignal: string,
-): DetectorFiringDecision[] {
-  const out: DetectorFiringDecision[] = [];
-  const states: CUSUMStates = {};
-  for (let t = 0; t < values.length; t++) {
-    const verdicts = evaluateFamilyAShadow(
-      cfg,
-      { [calibrationSignal]: values[t] },
-      states,
-      { ...NAB_CTX, ticksSinceDeploy: t },
-    );
-    const v = verdicts.find((x) => x.signal === calibrationSignal);
-    out.push({
-      tick: t,
-      fire: v?.verdict === 'fire',
-      statistic_value: v?.statistic ?? undefined,
-      threshold: v?.threshold ?? undefined,
-    });
-  }
-  return out;
-}
 
 /** Family A betting-e-process dispatch loop (verbatim). */
 function dispatchFamilyABetting(
@@ -139,23 +117,20 @@ export function runDetectorOverDataset(
   // family_A.per_signal[calibrationSignal] / family_D[calibrationSignal]
   // (default 'p99_latency' heavy_tail signal class).
   //
-  // Architect pseudo-code uses `evaluatePageCusumPerSignal` /
-  // `evaluateBettingEProcessPerSignal` / `evaluateSpectralPeakAcfPerSignal`;
-  // codebase actuals are `evaluateFamilyAShadow` /
+  // Architect pseudo-code uses `evaluateBettingEProcessPerSignal` /
+  // `evaluateSpectralPeakAcfPerSignal`; codebase actuals are
   // `evaluateFamilyABettingShadow` / `evaluateFamilyD` — naming drift
   // only; semantics match (single-signal evaluation per call).
   const cfg = JSON.parse(fs.readFileSync(compiledConfigPath, 'utf8')) as CompiledConfig;
 
-  if (family === 'family_A_page_cusum') {
-    return dispatchFamilyAPageCusum(cfg, values, calibrationSignal);
-  } else if (family === 'family_A_betting') {
+  if (family === 'family_A_betting') {
     return dispatchFamilyABetting(cfg, values, calibrationSignal);
   } else if (family === 'family_D_spectral') {
     return dispatchFamilyDSpectral(cfg, values, calibrationSignal);
   } else {
     throw new Error(
       `Detector ${family} not supported at Q64 NAB validation; only `
-      + 'family_A_betting + family_A_page_cusum + family_D_spectral architect-picked '
+      + 'family_A_betting + family_D_spectral (Q69.D: the classical family_A_page_cusum arm is retired) '
       + '(per Q64 spec § Q64.1 + ARCHITECT-REPLY-Q64-PHASE-4-NAB-ACQUISITION-STUB-DISPOSITION.md).');
   }
 }

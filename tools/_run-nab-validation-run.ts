@@ -102,10 +102,9 @@ function aggregatePerFamily(
 function evaluateAcceptance(
   perFamilyScores: NABValidationReport['per_family_scores'],
 ): NABValidationReport['acceptance_results'] {
-  const familyAStandard = Math.max(
-    perFamilyScores.family_A_betting?.standard_profile_score ?? 0,
-    perFamilyScores.family_A_page_cusum?.standard_profile_score ?? 0,
-  );
+  // Q69.D: the classical family_A_page_cusum arm is retired; best-of-A in this
+  // Q64-era copy is betting only (the engine's own NAB tool runs the Ville pair).
+  const familyAStandard = perFamilyScores.family_A_betting?.standard_profile_score ?? 0;
   const familyDStandard = perFamilyScores.family_D_spectral?.standard_profile_score ?? 0;
   const family_A_passes = familyAStandard >= 50;
   const family_D_passes = familyDStandard >= 40;
