@@ -7,6 +7,7 @@ import type {
 import type { Metrics, Baseline, Flags, TrendSnapshot } from '@johnpatrickwarren-oss/deploysignal-engine/types/metrics';
 import type { GateResults } from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 import type { VerdictGroupId, TopologyCandidate } from './verdict';
+import type { EvidenceSurface } from './evidence-surface';
 import type { ProposedAction } from '@johnpatrickwarren-oss/deploysignal-engine/types/agent';
 import type { CellKey } from '@johnpatrickwarren-oss/deploysignal-engine/types/primitives';
 import type { RecalibrationEventRecord } from './recalibration';
@@ -145,6 +146,15 @@ export interface DetectorTripV2 {
    *  C/E evaluate the full joint vector regardless of ignore_thresholds,
    *  so there is no trigger signal to name). */
   ignore_threshold_trigger_signal?: string;
+  /** ADR 0027 evidence surface, copied verbatim from the firing
+   *  `DetectorVerdict.evidence` by `engine/_audit-families.ts`
+   *  `tripFromVerdict`. Present only when the verdict carried it (the
+   *  engine's multiplicative wealth detectors, on engine versions with
+   *  ADR 0027); no key is written when absent, so JSONL for every other
+   *  trip is byte-identical to the pre-ADR-0027 record. Validity
+   *  boundary per `EvidenceSurface`: bookkeeping, not evidence, on an
+   *  estimated-baseline path. */
+  evidence?: EvidenceSurface;
 }
 
 /** Per-family verdict record. One per family per tick, keyed off FamilyId. */
