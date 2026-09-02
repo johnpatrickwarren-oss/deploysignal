@@ -81,13 +81,17 @@ export const MIN_SAMPLES_POOLED = 20;
 // this guards against is uniformly 0-sample signals on real-trace
 // substrates (BurstGPT cost_req-only; Azure tokens_turn-only; etc.).
 export const MIN_PER_SIGNAL_SAMPLES = 1;
-// α allocation per WEEK4-HANDOFF.md: 40/20/20/10/10 across A/B/C/D/E when
+// α allocation per WEEK4-HANDOFF.md: 40/30/20/10/0 across A/B/C/D/E when
 // all families are emitted. B absorbs the leftover when D/E aren't enabled;
 // pre-W4 behavior (no D/E) kept C at 20% and gave B the remaining 40%.
+// Family E's fraction was 0.10 until 2026-09-02 (WORKLIST C25; ruling
+// knowledge/stats/family-e-budget-ruling option 3): Family E is advisory
+// (FAMILY_E_ADVISORY, engine/guarantees.ts) and books no α. Kept in lockstep
+// with profiles/llm-inference-streaming.yaml, the legacy byte-identity anchor.
 export const FAMILY_A_ALPHA_FRACTION = 0.40;
 export const FAMILY_C_ALPHA_FRACTION = 0.20;
 export const FAMILY_D_ALPHA_FRACTION = 0.10;
-export const FAMILY_E_ALPHA_FRACTION = 0.10;
+export const FAMILY_E_ALPHA_FRACTION = 0;
 // Family C signal vector — the multivariate Hotelling T² operates on these.
 // Restricted to signals universally present in adversarial-scenario
 // baselines. Quality-tier signals (eval_score, refusal_rate,

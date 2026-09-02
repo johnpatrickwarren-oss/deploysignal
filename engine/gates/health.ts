@@ -137,8 +137,9 @@ export function evaluateHealth(
     runFamilyD(result, rollbackFired, sup, liveMetrics, tb, opts);
   }
 
-  // Family E (conformal novelty) — W4 addition. Single multivariate test;
-  // fires push `family_E` into rollback.
+  // Family E (conformal novelty) — W4 addition. Single multivariate test.
+  // Advisory since C25 (FAMILY_E_ADVISORY): a fire is recorded on
+  // `family_E_verdict` but does not push `family_E` into rollback.
   const familyEEnabled = !!opts?.compiledConfig?.baseline_cells?.aggregate_fallback.family_E;
   if (familyEEnabled && opts) {
     runFamilyE(result, rollbackFired, sup, liveMetrics, tb, opts);
