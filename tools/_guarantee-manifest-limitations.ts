@@ -51,6 +51,17 @@ export const FALLBACK_BEHAVIOR: readonly string[] = [
     + 'only Family C signal there). This is a coverage gap, not a '
     + 'classical-test fallback — the classical bootstrap-null MMD '
     + 'evaluator was retired from runtime dispatch at Q68 close.',
+  'Family E conformal: ADVISORY since 2026-09-02 (FAMILY_E_ADVISORY, '
+    + 'engine/guarantees.ts; WORKLIST C25; knowledge/stats/family-e-budget-ruling '
+    + 'option 3) — alpha_participating false, profile budget 0 on the llm '
+    + 'profiles (share reserved in Family B\'s non-participating leftover). A '
+    + 'Family E fire is recorded in evidence_outlook and the audit record but '
+    + 'never triggers rollback and books alpha_spent 0. At engine pin '
+    + 'v0.6.7-pre a zero budget reads suppressed/calibration_underpowered on '
+    + 'every tick (conformal.ts gates on n+1 < ceil(1/alpha_E) = Infinity): '
+    + 'silence, not advisory, until the re-pin to an engine that evaluates a '
+    + 'zero-budget Family E at its advisory level. Configs compiled with E at '
+    + '1e-4 replay under the same guard (keyed on the constant, not alpha).',
   'Family D spectral: the e_detector variant is RETIRED at the calibrator '
     + '(FAMILY_D_E_DETECTOR_RETIRED, 2026-08-18, WORKLIST C53) — new compiles '
     + 'stamp bootstrap_null unconditionally. The calibrator supplied '

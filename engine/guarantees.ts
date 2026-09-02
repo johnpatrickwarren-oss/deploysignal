@@ -88,6 +88,21 @@
 import type { DetectorId, FamilyId } from './types';
 import { DETECTOR_REGISTRY } from './types';
 
+/** Family E is ADVISORY — WORKLIST C25, ruling knowledge/stats/family-e-budget-ruling
+ *  option 3 (operator, 2026-09-02). The shipped `unweighted` kind is a per-tick
+ *  parametric-bootstrap p-value whose super-uniformity under H0 is unestablished and
+ *  which has no epoch guard, so it may not draw on the union-bound α budget. While
+ *  this is true a Family E `fire` is recorded (evidence_outlook, audit record) but
+ *  never enters `firing_families` (engine/verdict.ts) or the health gate's
+ *  `rollback[]` (engine/gates/_health-detectors.ts), and its verdict books
+ *  `alpha_spent: 0`. Keyed on this constant, not on the compiled α, so behaviour is
+ *  identical whether a config carries E at 0 or at a legacy 1e-4.
+ *
+ *  Reversal is this one constant plus the profile budgets, gated on the two premises
+ *  the ruling names: a registered coverage study of the conformal p against held-out
+ *  scores (super-uniformity), and an epoch guard on the classical block. */
+export const FAMILY_E_ADVISORY = true;
+
 export type ValidityClass =
   | 'ville_anytime_valid'
   | 'classical_epoch_alpha'
@@ -426,7 +441,12 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     validity_class: 'ville_anytime_valid',
     null_assumptions: CONFORMAL_ASSUMPTIONS,
     repeated_look_policy: VILLE_POLICY,
-    alpha_participating: true,
+    // 2026-09-02: was alpha_participating: true. WORKLIST C25 — the kind that ships
+    // (unweighted, 840/840 cells in every committed manifest) is a p-value with an
+    // unestablished super-uniformity premise and no epoch guard; the ruling
+    // (knowledge/stats/family-e-budget-ruling, option 3) zeroes its budget and makes
+    // the family advisory (FAMILY_E_ADVISORY above). The detector is kept.
+    alpha_participating: false,
     citation: 'Ramdas-Wang + Fedorova hedged-indicator e-value (Addition #22 / REPLY-46b), '
       + 'built on Tibshirani/Foygel-Barber/Candès/Ramdas (2019) weighted conformal',
   },

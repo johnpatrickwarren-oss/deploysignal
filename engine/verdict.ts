@@ -8,6 +8,9 @@
 //   - Any family fires `rollback` → fused verdict is `rollback`.
 //   - No fires but ≥1 family `indeterminate` or ≥1 extend signal → `extend`.
 //   - All families `clean` (or `suppressed`) → `proceed`.
+//   - Family E is ADVISORY while `FAMILY_E_ADVISORY` (C25, 2026-09-02):
+//     its `fire` is kept in `per_family_verdicts` / `evidence_outlook`
+//     but never enters `firing_families` and contributes 0 to α_spent.
 //
 // The math-level difference from cascade: α_spent is summed across firing
 // families (union bound) rather than attributed to a single short-circuit
@@ -23,6 +26,7 @@ import type {
   FusedVerdict, HealthResult, DetectorVerdict, FiredSignal, EvidenceOutlookEntry,
   EvidenceSurface,
 } from './types';
+import { FAMILY_E_ADVISORY } from './guarantees';
 
 export interface FuseOpts {
   topology: 'cascade' | 'portfolio';
@@ -89,6 +93,17 @@ function anyIndeterminate(vs: DetectorVerdict[] | null | undefined): boolean {
 /** Partition Family D rollback synthetic IDs (family_D_<signal>) from Family B. */
 function isFamilyDSyntheticId(id: string): boolean {
   return id.startsWith('family_D_');
+}
+
+/** C25 — a Family E `fire` drives `firing_families` only when the family
+ *  is not advisory. See `FAMILY_E_ADVISORY` (engine/guarantees.ts). */
+function familyEFires(famE: DetectorVerdict | null): boolean {
+  return !FAMILY_E_ADVISORY && famE?.verdict === 'fire';
+}
+
+/** Family E's operand for the α_spent sum: nothing while advisory. */
+function familyEForAlpha(famE: DetectorVerdict | null): DetectorVerdict | null {
+  return FAMILY_E_ADVISORY ? null : famE;
 }
 
 // ── WS5 verdict explainability (verdict_rationale + evidence_outlook) ──
@@ -559,14 +574,30 @@ function toEvidenceOutlook(raw: FamilyEvidenceRaw[]): EvidenceOutlookEntry[] {
   }));
 }
 
+/** C25 — true for a family whose `fired` state cannot drive the verdict
+ *  (Family E while `FAMILY_E_ADVISORY`). */
+function isAdvisoryFamily(r: FamilyEvidenceRaw): boolean {
+  return FAMILY_E_ADVISORY && r.family_id === 'E';
+}
+
+/** Trailing clause naming advisory families that fired, so the rationale
+ *  agrees with an `evidence_outlook` entry in state `fired` that did not
+ *  produce a rollback. Empty when none fired. */
+function advisoryClause(raw: FamilyEvidenceRaw[]): string {
+  const fired = raw.filter((r) => r.state === 'fired' && isAdvisoryFamily(r));
+  return fired.length > 0
+    ? ` Advisory only (no α spent, not a rollback trigger): ${fired.map(renderNote).join('; ')}.`
+    : '';
+}
+
 /** `rollback` rationale: which families fired, on which signals; a
  *  trailing clause names any concurrently-suppressed family. */
 function rationaleRollback(raw: FamilyEvidenceRaw[]): string {
-  const fired = raw.filter((r) => r.state === 'fired');
+  const fired = raw.filter((r) => r.state === 'fired' && !isAdvisoryFamily(r));
   const suppressed = raw.filter((r) => r.state === 'suppressed');
   let s = `Rollback triggered: ${fired.map(renderNote).join('; ')}.`;
   if (suppressed.length > 0) s += ` ${suppressed.map(renderNote).join('; ')}.`;
-  return s;
+  return s + advisoryClause(raw);
 }
 
 /** `extend` rationale: which families are accumulating evidence
@@ -582,7 +613,7 @@ function rationaleExtend(raw: FamilyEvidenceRaw[], extendSignalLabels: string[])
     ? `Extending observation: ${parts.join('; ')}.`
     : 'Extending observation: evidence accumulating below the fire threshold.';
   const second = suppressed.length > 0 ? ` ${suppressed.map(renderNote).join('; ')}.` : '';
-  return first + second;
+  return first + second + advisoryClause(raw);
 }
 
 /** `proceed` / `baking` rationale: all families clean / in-window.
@@ -601,7 +632,8 @@ function rationaleSettled(verdict: 'proceed' | 'baking', raw: FamilyEvidenceRaw[
   } else {
     base = 'Baking: all families clean so far; continuing observation within the window.';
   }
-  return suppressed.length > 0 ? `${base} ${suppressed.map(renderNote).join('; ')}.` : base;
+  const s = suppressed.length > 0 ? `${base} ${suppressed.map(renderNote).join('; ')}.` : base;
+  return s + advisoryClause(raw);
 }
 
 function buildRationale(
@@ -647,7 +679,7 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
   const dFires = anyFire(famDArr) || famDInjected?.verdict === 'fire';
   if (dFires) firing.push('D');
   // Family E: single multivariate verdict.
-  const eFires = famE?.verdict === 'fire';
+  const eFires = familyEFires(famE);
   if (eFires) firing.push('E');
 
   // ── Verdict ──
@@ -687,7 +719,7 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
 
   // ── α_spent sum (Ville's per-family bounds → union bound) ──
   // Family B doesn't spend Ville budget (hand-tuned rule-based detectors).
-  const total_alpha_spent = alphaSpent(famA, famC, famCMmd, famDArr, famDInjected, famE);
+  const total_alpha_spent = alphaSpent(famA, famC, famCMmd, famDArr, famDInjected, familyEForAlpha(famE));
 
   // Surface a single Family D verdict (first fire, else first indeterminate,
   // else first clean) for the FusedVerdict shape. Per-signal breakdown is

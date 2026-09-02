@@ -12,6 +12,7 @@ import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '
 import { evaluateEMmd } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import { evaluateFamilyCBettingEProcess } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-betting-e-process';
 import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
+import { FAMILY_E_ADVISORY } from '../guarantees';
 import type {
   Metrics, FiredSignal, HealthResult,
   TrendBufferI, DetectorVerdict,
@@ -287,8 +288,16 @@ export function runFamilyD(
   } catch (_e) { /* silent */ }
 }
 
-/** Family E (conformal novelty) — W4 addition. Single multivariate test;
- *  fires push `family_E` into rollback. */
+/** C25 — while `FAMILY_E_ADVISORY` the recorded Family E verdict keeps its
+ *  verdict / statistic / reason for evidence_outlook and the audit record
+ *  but books no α. */
+function advisoryFamilyE(v: DetectorVerdict): DetectorVerdict {
+  return FAMILY_E_ADVISORY ? { ...v, alpha_consumed: 0, alpha_spent: 0 } : v;
+}
+
+/** Family E (conformal novelty) — W4 addition. Single multivariate test.
+ *  A fire pushes `family_E` into rollback only when the family is not
+ *  advisory (`FAMILY_E_ADVISORY`, engine/guarantees.ts — C25). */
 export function runFamilyE(
   result: HealthResult, rollbackFired: FiredSignal[], sup: string[],
   liveMetrics: Metrics, tb: TrendBufferI | null, opts: HealthOpts,
@@ -308,8 +317,8 @@ export function runFamilyE(
   try {
     const v = evaluateFamilyE(opts.compiledConfig!, liveMetrics, detectorCtx(liveMetrics, opts), eState);
     if (v) {
-      result.family_E_verdict = v;
-      if (v.verdict === 'fire' && sup.indexOf('family_E') < 0) {
+      result.family_E_verdict = advisoryFamilyE(v);
+      if (!FAMILY_E_ADVISORY && v.verdict === 'fire' && sup.indexOf('family_E') < 0) {
         rollbackFired.push({ id: 'family_E', label: 'Family E (novelty)' });
       }
     }

@@ -103,13 +103,13 @@ test('v1-smoke: llm-inference-batch@1.0.0 compiles with batch-specific α split'
     profile_ref: string;
   };
   // Batch reallocates A=5e-4 (+1e-4 vs streaming) and C=1e-4 (half
-  // of streaming). D + E preserved.
+  // of streaming). D preserved; E = 0 since C25 (advisory, 2026-09-02).
   assert.equal(cfg.alpha_budget.per_family.A, 5e-4);
   assert.equal(cfg.alpha_budget.per_family.C, 1e-4);
   assert.equal(cfg.alpha_budget.per_family.D, 1e-4);
-  assert.equal(cfg.alpha_budget.per_family.E, 1e-4);
-  // B = 1e-3 - 5e-4 - 1e-4 - 1e-4 - 1e-4 = 2e-4 (±FP).
-  assert.ok(Math.abs(cfg.alpha_budget.per_family.B - 2e-4) < 1e-15);
+  assert.equal(cfg.alpha_budget.per_family.E, 0);
+  // B = 1e-3 - 5e-4 - 1e-4 - 1e-4 - 0 = 3e-4 (±FP).
+  assert.ok(Math.abs(cfg.alpha_budget.per_family.B - 3e-4) < 1e-15);
   assert.equal(cfg.profile_ref, 'llm-inference-batch@1.0.0');
 });
 

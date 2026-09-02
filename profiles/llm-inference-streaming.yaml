@@ -66,14 +66,39 @@ joint_vector:
   include_in_family_e: true
 
 alpha_allocation:
-  # Matches tools/calibrate.ts WEEK4-HANDOFF 40/20/20/10/10 split on
-  # total=1e-3; B absorbs the leftover (4e-4 here = total − A − C − D − E).
+  # Matches tools/calibrate.ts WEEK4-HANDOFF 40/20/20/10/0 split on
+  # total=1e-3; B absorbs the leftover (3e-4 here = total − A − C − D − E).
+  #
+  # Family E held at 0 since 2026-09-02 (WORKLIST C25; ruling
+  # knowledge/stats/family-e-budget-ruling, option 3). The shipped
+  # `unweighted` kind is a per-tick parametric-bootstrap p-value: its
+  # super-uniformity under H0 is unestablished (evidence leans against)
+  # and nothing enforces epoch-boundary spending, so it may not draw on
+  # the union-bound α budget. Its former 1.0e-4 share is reserved, not
+  # redistributed: it sits in Family B's non-participating leftover
+  # (B spends no α; engine/guarantees.ts). Participating budget is
+  # A + C + D = 7.0e-4. Family E keeps evaluating and reporting as
+  # ADVISORY (FAMILY_E_ADVISORY, engine/guarantees.ts): a fire is
+  # recorded in evidence_outlook and the audit record but never triggers
+  # rollback and books no α.
+  #
+  # At engine pin v0.6.7-pre a zero budget reads
+  # `suppressed / calibration_underpowered` on every tick
+  # (deploysignal-engine detectors/conformal.ts:246 gates on
+  # n + 1 < ceil(1/α_E) = Infinity) — silence, not advisory, until
+  # DeploySignal re-pins to an engine that evaluates a zero-budget
+  # Family E at its advisory level (reason_code advisory_zero_budget).
+  #
+  # Re-entry into the budget needs both premises the ruling names: a
+  # registered coverage study showing the conformal p is super-uniform
+  # against real held-out scores (n ≥ 1/α per cell), and an epoch guard
+  # on the classical block.
   per_family:
     A: 4.0e-4
-    B: 2.0e-4
+    B: 3.0e-4
     C: 2.0e-4
     D: 1.0e-4
-    E: 1.0e-4
+    E: 0.0
   total: 1.0e-3
 
 cell_dimensions:
