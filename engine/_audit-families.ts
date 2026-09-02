@@ -116,6 +116,10 @@ function tripFromVerdict(
   if (rid.family_id === 'A' && v.threshold && v.statistic !== null) {
     trip.cusum_progress = v.threshold > 0 ? v.statistic / v.threshold : 0;
   }
+  // ADR 0027 evidence surface — copied through only when the verdict
+  // carries it, so trips from verdicts without it (every trip on the
+  // currently pinned engine) serialize to byte-identical JSONL.
+  if (v.evidence) trip.evidence = { ...v.evidence };
   return trip;
 }
 

@@ -10,6 +10,7 @@ import type {
   HealthResult, GateResults, PolicyContext, FailFastState,
   ReversibilityClassification, FiredSignal,
 } from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
+import type { EvidenceSurface, ThresholdKind } from './evidence-surface';
 
 // ── Orchestrator I/O ──────────────────────────────────────────────
 
@@ -202,6 +203,34 @@ export interface EvidenceOutlookEntry {
    *  `evaluateFamilyCBettingEProcess`) is a Ville's-inequality wealth
    *  process by construction. */
   detector_kind?: 'hotelling' | 'e_mmd_betting';
+  /** ADR 0027 evidence surface, projected from the SAME detector that
+   *  supplied `progress` for this entry (the max-progress same-scale
+   *  detector in `engine/verdict.ts` `pickScaleAndProgress`; the single
+   *  detector for a Family C entry). Present only when that detector's
+   *  `DetectorVerdict.evidence` is present — on the currently pinned
+   *  engine no detector emits it, and the four keys are then OMITTED,
+   *  not emitted as `null`, so entry shapes are byte-identical to the
+   *  pre-ADR-0027 output.
+   *
+   *  Why a second distance next to `progress`: `progress` is the linear
+   *  ratio `statistic / threshold`. Against the shipped bootstrap
+   *  thresholds (median 2.4e4 × the nominal 1/α for Family A betting;
+   *  knowledge stats/ville-guarantee-is-empirical) a wealth process
+   *  that is most of the way there in nats still reads as `progress ≈
+   *  0` — `log(2.4e4) ≈ 10` extra nats is a factor of 2.4e4 on the
+   *  linear scale. `nats_to_threshold` is the same distance on the
+   *  scale evidence accrues on: `log_threshold − log_wealth`, ≤ 0 once
+   *  crossed. `growth_rate_hat` (`log_wealth / n`) is the per-update
+   *  rate, so `nats_to_threshold / growth_rate_hat` is a crude updates-
+   *  to-fire estimate under sustained drift. `anytime_p` is
+   *  `min(1, exp(−log_peak_wealth))` and is a valid p-value only under
+   *  the validity premise documented on `EvidenceSurface`.
+   *  `threshold_kind` says which threshold `nats_to_threshold` is
+   *  measured to. */
+  nats_to_threshold?: number | null;
+  growth_rate_hat?: number | null;
+  anytime_p?: number | null;
+  threshold_kind?: ThresholdKind | null;
   /** One-sentence human-readable rendering of `state`/`progress`/
    *  suppression reason, e.g. "Family A accumulating evidence at 42%
    *  of fire threshold", "Family C (e-MMD/betting) accumulating
@@ -238,6 +267,19 @@ export interface DetectorVerdict {
    *  suppress under `ignore_thresholds` (per ARCHITECT-REPLY-31
    *  multivariate semantic). */
   ignore_threshold_trigger_signal?: string;
+  /** ADR 0027 evidence surface. Emitted by the engine's multiplicative
+   *  wealth detectors only (Family A betting + mixture, Family C safe-
+   *  Hotelling + betting e-process, Family D spectral e-detector), and
+   *  only on engine versions that carry ADR 0027 — absent on the
+   *  currently pinned package. Every consumer in this repo treats it as
+   *  optional and produces identical output without it.
+   *
+   *  Validity boundary: on an estimated-baseline path these fields are
+   *  the detector's bookkeeping, not evidence (knowledge stats/validity-
+   *  premise-chain; the Family A plug-in detectors are recorded at
+   *  E[e|H0] → ~1e8 in the engine's `detectors/validity-envelope.ts`).
+   *  See `EvidenceSurface` for the field-level contract. */
+  evidence?: EvidenceSurface;
 }
 
 // ── Addition #25 (ARCHITECT-REPLY-47) — L3b VerdictGroup aggregator ──

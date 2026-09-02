@@ -21,6 +21,7 @@
 
 import type {
   FusedVerdict, HealthResult, DetectorVerdict, FiredSignal, EvidenceOutlookEntry,
+  EvidenceSurface,
 } from './types';
 
 export interface FuseOpts {
@@ -110,6 +111,9 @@ interface FamilyEvidenceRaw {
   progress_scale: 'linear' | 'wealth' | null;
   /** See `EvidenceOutlookEntry.detector_kind`. Family C only. */
   detector_kind?: 'hotelling' | 'e_mmd_betting';
+  /** ADR 0027 surface of the detector that supplied `progress`, when
+   *  that verdict carried one. See `EvidenceOutlookEntry.nats_to_threshold`. */
+  evidence?: EvidenceSurface;
   firedSignals: string[];
   suppressionReason: string | null;
 }
@@ -318,15 +322,21 @@ function progressScaleForFamilyC(
   return v.signal === 'hotelling_t2_safe' ? 'wealth' : 'linear';
 }
 
-/** Max per-detector progress among `vs` classified as `scale`; `null`
- *  when none report one. Scale-scoped so callers never average/max
- *  across incomparable scales into one ratio. */
-function maxProgressOfScale(vs: DetectorVerdict[], scale: 'linear' | 'wealth'): number | null {
-  let best: number | null = null;
+/** The detector with the max progress among `vs` classified as `scale`,
+ *  with that progress; `null` when none report one. Scale-scoped so
+ *  callers never average/max across incomparable scales into one
+ *  ratio. Returns the verdict itself (not only the ratio) so the ADR
+ *  0027 evidence surface can be read off the SAME detector that
+ *  supplied `progress` — see `pickScaleAndProgress`. First max wins on
+ *  ties (strict `>`), matching the pre-ADR-0027 max. */
+function maxProgressOfScale(
+  vs: DetectorVerdict[], scale: 'linear' | 'wealth',
+): { progress: number; source: DetectorVerdict } | null {
+  let best: { progress: number; source: DetectorVerdict } | null = null;
   for (const v of vs) {
     if (progressScaleFor(v) !== scale) continue;
     const p = detectorProgress(v);
-    if (p !== null && (best === null || p > best)) best = p;
+    if (p !== null && (best === null || p > best.progress)) best = { progress: p, source: v };
   }
   return best;
 }
@@ -339,14 +349,21 @@ function maxProgressOfScale(vs: DetectorVerdict[], scale: 'linear' | 'wealth'): 
  *  compounding wealth process nearing its threshold is the more
  *  decision-relevant thing to surface, and — per the header comment
  *  above — it can move much faster than the linear reading beside it
- *  would suggest. Never combines the two into one ratio. */
+ *  would suggest. Never combines the two into one ratio.
+ *
+ *  `evidence` is the ADR 0027 surface of exactly the detector whose
+ *  ratio became `progress`, or undefined when that detector carries
+ *  none (or when no detector supplied a `progress`). A lower-progress
+ *  sibling's surface is never substituted — the two numbers must
+ *  describe one wealth process. */
 function pickScaleAndProgress(
   vs: DetectorVerdict[],
-): { progress: number | null; scale: 'linear' | 'wealth' | null } {
+): { progress: number | null; scale: 'linear' | 'wealth' | null; evidence?: EvidenceSurface } {
   const wealth = maxProgressOfScale(vs, 'wealth');
-  if (wealth !== null) return { progress: wealth, scale: 'wealth' };
+  if (wealth !== null) return { progress: wealth.progress, scale: 'wealth', evidence: wealth.source.evidence };
   const linear = maxProgressOfScale(vs, 'linear');
-  return linear !== null ? { progress: linear, scale: 'linear' } : { progress: null, scale: null };
+  if (linear !== null) return { progress: linear.progress, scale: 'linear', evidence: linear.source.evidence };
+  return { progress: null, scale: null };
 }
 
 /** True when a non-empty detector list is entirely `suppressed`. */
@@ -374,12 +391,13 @@ function summarizeSignalFamily(id: FamilyLetter, vs: DetectorVerdict[]): FamilyE
     : allSuppressed(vs) ? 'suppressed'
     : anyIndeterminate(vs) ? 'accumulating'
     : 'clean';
-  const { progress, scale } = pickScaleAndProgress(vs);
+  const { progress, scale, evidence } = pickScaleAndProgress(vs);
   return {
     family_id: id,
     state,
     progress,
     progress_scale: scale,
+    ...(evidence ? { evidence } : {}),
     firedSignals: fired.map((v) => v.signal ?? 'unknown'),
     suppressionReason: state === 'suppressed' ? suppressionReasonFor(vs.map((v) => v.reason_code)) : null,
   };
@@ -422,6 +440,10 @@ function summarizeSingleCDetector(
     progress,
     progress_scale: progress !== null ? progressScaleForFamilyC(v, kind) : null,
     detector_kind: kind,
+    // ADR 0027: `v` is the single detector that supplied `progress`, so
+    // its surface is the one to carry — but only alongside a progress
+    // it can be read against, mirroring `pickScaleAndProgress`.
+    ...(progress !== null && v.evidence ? { evidence: v.evidence } : {}),
     firedSignals: state === 'fired' ? [label] : [],
     suppressionReason: state === 'suppressed' ? suppressionReasonFor([v.reason_code]) : null,
   };
@@ -480,7 +502,13 @@ function renderAccumulatingNote(r: FamilyEvidenceRaw): string {
   const prefix = notePrefix(r);
   if (r.progress === null) return `${prefix} accumulating evidence`;
   if (r.progress_scale === 'wealth') {
-    return `${prefix} accumulating evidence, wealth at ${formatMultiplier(r.progress)} fire threshold `
+    // ADR 0027: when the detector reports its distance in nats, say so
+    // — the `N×` multiplier reads near zero against a bootstrap
+    // threshold (see `EvidenceOutlookEntry.nats_to_threshold`). Text is
+    // unchanged when no surface is present.
+    const nats = r.evidence?.nats_to_threshold;
+    const natsClause = typeof nats === 'number' ? `, ${nats.toFixed(1)} nats to threshold` : '';
+    return `${prefix} accumulating evidence, wealth at ${formatMultiplier(r.progress)} fire threshold${natsClause} `
       + '(multiplicative — evidence can compound quickly under sustained drift)';
   }
   return `${prefix} accumulating evidence at ${formatPct(r.progress)} of fire threshold`;
@@ -500,6 +528,25 @@ function renderNote(r: FamilyEvidenceRaw): string {
   return `${notePrefix(r)} clean`;
 }
 
+/** The four `EvidenceOutlookEntry` keys projected from an ADR 0027
+ *  surface. Returned as a spread so a raw summary without a surface
+ *  contributes NO keys — not `null`s — and the entry shape stays
+ *  identical to the pre-ADR-0027 output (existing `deepEqual`
+ *  self-comparisons and snapshot shapes depend on that). */
+type OutlookEvidenceFields = Pick<
+  EvidenceOutlookEntry, 'nats_to_threshold' | 'growth_rate_hat' | 'anytime_p' | 'threshold_kind'
+>;
+
+function outlookEvidenceFields(e: EvidenceSurface | undefined): OutlookEvidenceFields {
+  if (!e) return {};
+  return {
+    nats_to_threshold: e.nats_to_threshold,
+    growth_rate_hat: e.growth_rate_hat,
+    anytime_p: e.anytime_p,
+    threshold_kind: e.threshold_kind,
+  };
+}
+
 function toEvidenceOutlook(raw: FamilyEvidenceRaw[]): EvidenceOutlookEntry[] {
   return raw.map((r) => ({
     family_id: r.family_id,
@@ -507,6 +554,7 @@ function toEvidenceOutlook(raw: FamilyEvidenceRaw[]): EvidenceOutlookEntry[] {
     progress: r.progress,
     progress_scale: r.progress_scale,
     detector_kind: r.detector_kind,
+    ...outlookEvidenceFields(r.evidence),
     note: renderNote(r),
   }));
 }
