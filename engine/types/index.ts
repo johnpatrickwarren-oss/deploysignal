@@ -20,6 +20,7 @@ export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/d';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/families/e';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/agent';
 export * from './verdict';
+export * from './evidence-surface';
 export * from '@johnpatrickwarren-oss/deploysignal-engine/types/policy';
 export * from './audit';
 export * from './config';
