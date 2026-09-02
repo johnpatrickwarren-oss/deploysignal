@@ -96,7 +96,7 @@ function parseArgs(argv: string[]): CliArgs {
   if (!out.nabRepo || !out.compiled || !out.out) {
     throw new Error(
       'Required: --nab-repo <path> --compiled <path> --out <path>. '
-      + 'Optional: --detectors family_A_betting,family_A_page_cusum,family_D_spectral '
+      + 'Optional: --detectors family_A_betting,family_D_spectral '
       + '--sub-benchmarks realKnownCause,realAWSCloudwatch,artificialNoAnomaly,artificialWithAnomaly',
     );
   }

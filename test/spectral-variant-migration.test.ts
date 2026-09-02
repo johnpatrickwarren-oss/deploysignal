@@ -109,13 +109,23 @@ test('spectral-variant-migration: pre-#21 cell with state=undefined dispatches b
 // ── Post-#21 with e_detector dispatch ───────────────────────────────
 
 test('spectral-variant-migration: post-#21 e_detector cell + state dispatches wealth martingale', () => {
+  // v0.6.7-pre re-pin (d3d6d06): the e-detector advances wealth once per
+  // DISJOINT window, not per tick — the first windowLen−1 calls hold with
+  // 'awaiting_disjoint_window' and the wealth is untouched (the rolling
+  // per-tick path measured FAR 0.576 vs disjoint 0.0005; engine spectral.ts).
   const cfg = makeCfg(makeParams('e_detector'));
   const state: SpectralEDetectorState = { M: 1, n: 0, alphaConsumed: 0 };
-  const v = evaluateFamilyD(cfg, 'kv_cache', makeWindow(), baseCtx(), state) as DetectorVerdict;
+  const win = makeWindow();
+  for (let t = 1; t < win.length; t++) {
+    const held = evaluateFamilyD(cfg, 'kv_cache', win, baseCtx(), state) as DetectorVerdict;
+    assert.equal(held.reason_code, 'awaiting_disjoint_window', `tick ${t} should hold`);
+    assert.equal(state.n, 0, 'wealth must not advance inside the window');
+  }
+  const v = evaluateFamilyD(cfg, 'kv_cache', win, baseCtx(), state) as DetectorVerdict;
   assert.ok(v);
   // Safe-Hotelling-style e-detector threshold = 1/α_D = 10,000
   assert.equal(v.threshold, 10000);
-  // State should be mutated (n=1; M may have drifted either way).
+  // State should be mutated at the window boundary (n=1; M may drift either way).
   assert.equal(state.n, 1);
   assert.ok(state.M > 0, `M should be positive; got ${state.M}`);
 });
@@ -148,21 +158,28 @@ test('spectral-variant-migration: explicit bootstrap_null variant pins legacy ev
 
 // ── Fire-path through dispatch (end-to-end) ─────────────────────────
 
-test('spectral-variant-migration: e-detector dispatch fires on sustained 3σ₀ peak within 15 ticks', () => {
+test('spectral-variant-migration: e-detector dispatch fires on sustained strong oscillation at a disjoint-window boundary', () => {
+  // v0.6.7-pre re-pin (d3d6d06): wealth advances once per disjoint 30-tick
+  // window, so the pre-re-pin "within 15 ticks" bound is retired with the
+  // rolling variant. The named cost is detection latency (engine spectral.ts:
+  // bounded, rolling dominated on both axes); the fire must land on a window
+  // boundary and never inside the first window.
   const cfg = makeCfg(makeParams('e_detector'));
   const state: SpectralEDetectorState = { M: 1, n: 0, alphaConsumed: 0 };
-  // Strong oscillation → peak|ACF| sustained at ~0.57 (3σ₀ above μ₀=0.42).
-  // Build a window that consistently produces peak ~0.57 via period-5
-  // periodic pattern.
+  // Strong oscillation → peak|ACF| sustained well above μ₀=0.42, via a
+  // period-5 periodic pattern over the 30-sample window.
   const window = new Array(30);
   for (let i = 0; i < 30; i++) window[i] = 1 + 0.15 * Math.cos(i * 2 * Math.PI / 5);
   let firedTick = -1;
-  for (let t = 1; t <= 30; t++) {
+  const MAX_TICKS = 450;  // 15 disjoint windows
+  for (let t = 1; t <= MAX_TICKS; t++) {
     const v = evaluateFamilyD(cfg, 'kv_cache', window, baseCtx(), state) as DetectorVerdict;
     if (v && v.verdict === 'fire') { firedTick = t; break; }
+    if (t < window.length) {
+      assert.notEqual(v?.verdict, 'fire', 'must not fire inside the first disjoint window');
+    }
   }
-  // Loose bound: e-detector should fire within 30 ticks on this
-  // sustained strong-oscillation pattern (which produces large peak|ACF|).
-  assert.ok(firedTick > 0, `should fire under sustained strong oscillation; got firedTick=${firedTick}`);
-  assert.ok(firedTick <= 30, `should fire within 30 ticks; got ${firedTick}`);
+  assert.ok(firedTick > 0, `should fire under sustained strong oscillation within ${MAX_TICKS} ticks; got firedTick=${firedTick}`);
+  assert.equal(firedTick % window.length, 0,
+    `fire must land on a disjoint-window boundary; got tick ${firedTick}`);
 });

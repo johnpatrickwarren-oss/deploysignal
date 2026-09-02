@@ -16,7 +16,10 @@ import * as path from 'node:path';
 
 import { freshBettingState, evaluateBettingEProcess } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/betting-e-process';
 import { wealthView } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_wealth';
-import { freshCUSUM, evaluateCUSUM } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/page-cusum';
+// Q69.D (2026-08-18, applied at the v0.6.7-pre re-pin): freshCUSUM survives in the engine
+// but evaluateCUSUM is deleted with the classical Page-CUSUM, so the classical half of the
+// second test is retired with it (engine validation/nab/RERUN-2026-08-18-PREREGISTRATION.md
+// § 3). The α-split config-stamping gate below is unchanged.
 import type { CompiledConfig, MSPRTParams } from '../dist/engine/types';
 
 const V4_PATH = path.resolve(__dirname, '..', 'runs', 'compiled-configs', 'v4-fusion-novelty.json');
@@ -54,14 +57,15 @@ test('α-split: compiled configs stamp betting_e_process_alpha when v4 was regen
   }
 });
 
-test('α-split: both detectors fire independently with separate alpha_spent attributions', () => {
-  // Construct a synthetic scenario where both Page-CUSUM S_n and
-  // betting M_t have already crossed their thresholds. The test asserts:
-  //   - Both verdicts are 'fire'
-  //   - alpha_spent matches each detector's half of the budget
-  //   - No accidental sharing of alpha_spent value between detectors
+test('α-split: the betting detector attributes exactly its half of the per-signal budget', () => {
+  // Q69.D retired the classical Page-CUSUM, so the both-detectors-fire half of
+  // this test is gone with `evaluateCUSUM`. What remains asserted: the betting
+  // detector fires on its own state and attributes alpha_spent equal to its
+  // half of the per-signal budget — the no-double-counting invariant on the
+  // side of the split that still ships. The mixture side's α attribution is
+  // not covered here (boundary; it lives in the engine's own suite or nowhere).
   const alphaPerSignalTotal = 6.67e-5;  // α_A / bonf
-  const alphaPageCusum = alphaPerSignalTotal * 0.5;
+  const alphaPageCusum = alphaPerSignalTotal * 0.5;  // retired side's share, kept for the sum check
   const alphaBetting = alphaPerSignalTotal * 0.5;
 
   const params: MSPRTParams = {
@@ -69,21 +73,12 @@ test('α-split: both detectors fire independently with separate alpha_spent attr
     tau_squared: 100, delta_min: 20, min_samples: 0,
     min_ticks_before_eligible: 3, min_observation_window: 3,
     max_deploy_window_days: 1,
-    alpha: alphaPageCusum,  // Page-CUSUM side of the split
+    alpha: alphaPageCusum,
     derivation: {
       tau_multiplier: 0, empirical_variance: 4, mean: 100, std: 2,
       pooled: false, n_samples: 100,
     },
   };
-
-  const cusumState = freshCUSUM();
-  cusumState.S = -Math.log(alphaPageCusum) + 5;  // well above threshold
-  cusumState.n = 10;
-  const vCusum = evaluateCUSUM(
-    { signal: 'p99_latency', params, state: cusumState, trafficPct: 1.0,
-      trafficGate: 0, ticksSinceDeploy: 10, deployAgeDays: 0 },
-    0,
-  );
 
   const bettingState = freshBettingState();
   // Just above threshold. Engine ADR 0026 makes `log_M` the wealth's source
@@ -100,19 +95,11 @@ test('α-split: both detectors fire independently with separate alpha_spent attr
     0,
   );
 
-  assert.equal(vCusum.verdict, 'fire');
   assert.equal(vBetting.verdict, 'fire');
-  assert.ok(vCusum.alpha_spent === alphaPageCusum,
-    `Page-CUSUM alpha_spent ${vCusum.alpha_spent} != ${alphaPageCusum}`);
   assert.ok(vBetting.alpha_spent === alphaBetting,
     `Betting alpha_spent ${vBetting.alpha_spent} != ${alphaBetting}`);
-  // Family-level total attribution for this signal: halves sum to per-signal.
-  const totalForSignal = vCusum.alpha_spent! + vBetting.alpha_spent!;
-  assert.ok(Math.abs(totalForSignal - alphaPerSignalTotal) < 1e-10,
-    `signal-level α_spent (${totalForSignal}) must sum to per-signal α (${alphaPerSignalTotal})`);
-
-  // Reason codes MUST differ so audit consumers can discriminate the
-  // detectors that fired.
-  assert.notEqual(vCusum.reason_code, vBetting.reason_code,
-    'Page-CUSUM and betting fires must carry distinct reason_codes');
+  // The betting half plus the (retired) classical half's share still sum to the
+  // per-signal budget — the split constant itself did not move at Q69.D.
+  assert.ok(Math.abs((vBetting.alpha_spent! + alphaPageCusum) - alphaPerSignalTotal) < 1e-10,
+    `betting α_spent + retired half (${vBetting.alpha_spent! + alphaPageCusum}) must sum to per-signal α (${alphaPerSignalTotal})`);
 });

@@ -227,14 +227,17 @@ test('Q64 #10: runNABValidation emits report with metadata + acceptance gates', 
       nabRepoPath: root,
       compiledConfig: compiledConfigPath,
       outputPath: outPath,
-      detectors: ['family_A_betting', 'family_A_page_cusum', 'family_D_spectral'],
+      // Q69.D (v0.6.7-pre re-pin): the classical family_A_page_cusum arm is
+      // retired from this tooling with the classical detector itself.
+      detectors: ['family_A_betting', 'family_D_spectral'],
     });
     assert.ok(report.metadata.tool_version === 'Q64 SPEC-4 v1.0');
     assert.ok(Array.isArray(report.metadata.sub_benchmarks_evaluated));
     assert.equal(report.metadata.sub_benchmarks_evaluated.length, 4);
     assert.ok(report.per_family_scores.family_A_betting);
-    assert.ok(report.per_family_scores.family_A_page_cusum);
     assert.ok(report.per_family_scores.family_D_spectral);
+    // Q69.D: the classical arm is no longer scorable.
+    assert.equal((report.per_family_scores as Record<string, unknown>).family_A_page_cusum, undefined);
     assert.ok(typeof report.acceptance_results.combined_acceptance === 'boolean');
     // Report file written.
     assert.ok(fs.existsSync(outPath), 'report JSON should be emitted at outputPath');

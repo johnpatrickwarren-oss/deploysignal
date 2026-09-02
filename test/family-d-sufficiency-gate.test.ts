@@ -190,9 +190,20 @@ for (const demoId of DEMO_IDS) {
     const canaryWindow = demo.ticks.length;
 
     if (bootFire !== null) {
-      // Fire case: pre-#21 fired → post-#21 must fire within canary window.
-      assert.ok(eDetFire !== null && eDetFire < canaryWindow,
-        `${demoId}: bootstrap_null fired at t=${bootFire}; e-detector should fire within canary window [0, ${canaryWindow}), got ${eDetFire}`);
+      // Fire case. Pre-re-pin (rolling e-detector) this asserted a fire within
+      // the canary window. v0.6.7-pre (d3d6d06) advances wealth once per
+      // DISJOINT window, so a short demo canary holds too few evaluations to
+      // cross 1/α — the within-canary bound is retired with the rolling
+      // variant (engine spectral.ts: the cost is bounded detection latency;
+      // rolling was dominated on both axes, FAR 0.576 vs 0.0005). Production
+      // ships bootstrap_null (C53: FAMILY_D_E_DETECTOR_RETIRED at the
+      // calibrator), so fire-side symmetry of the retired variant is a
+      // historical migration gate, not a shipping invariant. Retained guard:
+      // an e-detector fire, if any, stays inside the canary window.
+      if (eDetFire !== null) {
+        assert.ok(eDetFire < canaryWindow,
+          `${demoId}: e-detector fire tick ${eDetFire} outside canary window [0, ${canaryWindow})`);
+      }
     } else {
       // Non-fire symmetry: pre-#21 silent → post-#21 also silent.
       // A new fire introduced by the e-process substrate on a demo where
