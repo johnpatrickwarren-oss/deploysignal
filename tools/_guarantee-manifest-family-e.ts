@@ -68,7 +68,7 @@ export function buildFamilyESection(cfg: CompiledConfig): ManifestFamilySection 
 
   return {
     family: 'E',
-    alpha_participating: true,
+    alpha_participating: g.alpha_participating,
     alpha_budget: cfg.alpha_budget?.per_family?.E ?? null,
     detectors: [entry],
     classical_alpha_fraction: classicalAlphaFraction,

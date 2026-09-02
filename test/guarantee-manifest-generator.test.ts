@@ -108,22 +108,28 @@ test('v5-sequential-e-process.json: Family D spectral is e_detector (ville) on a
 });
 
 test('v5-sequential-e-process.json: Family E is configured classical (kind=unweighted) — '
-  + "the 'auto' variant selector fell back off the Ville weighted_e_value path — so "
-  + 'effective_validity is mixed, and the classical share is entirely attributable to Family E', () => {
+  + "the 'auto' variant selector fell back off the Ville weighted_e_value path — but since "
+  + 'C25 (2026-09-02) Family E is advisory and non-α-participating, so its classical share '
+  + 'is excluded: effective_validity is fully_ville_bounded even though this fixture still '
+  + 'carries E at 1e-4', () => {
   const cfg = loadFixture('v5-sequential-e-process.json');
   const m = buildGuaranteeManifest(cfg, { generatedAt: FIXED_TS });
   const conformal = m.families.E.detectors[0];
   assert.equal(conformal.cell_counts?.['unweighted'], 840);
   assert.equal(conformal.cell_counts?.['weighted_e_value'] ?? 0, 0);
-  assert.equal(m.families.E.classical_alpha_fraction, 1);
-  assert.equal(m.effective_validity.status, 'mixed');
-  assert.ok(m.effective_validity.classical_share_of_participating_alpha > 0);
-  assert.ok(m.effective_validity.classical_paths.some((p) => p.includes('Family E')));
+  assert.equal(m.families.E.classical_alpha_fraction, 1, 'the configured reality is unchanged: classical');
+  assert.equal(m.families.E.alpha_participating, false, 'C25: advisory, spends no α');
+  assert.equal(conformal.alpha_participating, false);
+  assert.equal(m.families.E.alpha_budget, 1e-4, 'pre-C25 fixture budget is reported as-is');
+  assert.equal(m.effective_validity.status, 'fully_ville_bounded');
+  assert.equal(m.effective_validity.classical_share_of_participating_alpha, 0);
+  assert.ok(!m.effective_validity.classical_paths.some((p) => p.includes('Family E')));
 });
 
 test('v7-demos.json: manifest is well-formed and effective_validity matches its '
-  + 'configured variants (Family E still classical=unweighted → mixed; MMD active '
-  + 'via Option-B on 20/840 cells this time, not the canonical id)', () => {
+  + 'configured variants (Family E still classical=unweighted but advisory since C25, '
+  + 'so fully_ville_bounded; MMD active via Option-B on 20/840 cells this time, not '
+  + 'the canonical id)', () => {
   const cfg = loadFixture('v7-demos.json');
   const m = buildGuaranteeManifest(cfg, { generatedAt: FIXED_TS });
 
@@ -141,7 +147,8 @@ test('v7-demos.json: manifest is well-formed and effective_validity matches its 
   assert.equal(optionB.cell_counts?.['no_coverage'], 820);
 
   assert.equal(m.families.E.classical_alpha_fraction, 1);
-  assert.equal(m.effective_validity.status, 'mixed');
+  assert.equal(m.families.E.alpha_participating, false, 'C25: advisory');
+  assert.equal(m.effective_validity.status, 'fully_ville_bounded');
 });
 
 test('generator is a pure function: identical (config, generatedAt) input produces a '

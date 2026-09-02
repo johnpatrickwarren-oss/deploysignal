@@ -57,13 +57,20 @@ joint_vector:
 
 alpha_allocation:
   # Reallocate: halve Family C (less C-relevant covariance drift in
-  # batch), push savings into Family A + B. Family D + E preserved.
+  # batch), push savings into Family A + B. Family D preserved.
+  # Family E held at 0 since 2026-09-02 (WORKLIST C25; ruling
+  # knowledge/stats/family-e-budget-ruling, option 3) — advisory only,
+  # share reserved in B's non-participating leftover, participating
+  # budget A + C + D = 7.0e-4. Silence at engine pin v0.6.7-pre
+  # (suppressed / calibration_underpowered), advisory after the re-pin.
+  # Full rationale and re-entry premises (super-uniform p, epoch guard):
+  # see llm-inference-streaming.yaml alpha_allocation.
   per_family:
     A: 5.0e-4   # +1e-4 vs streaming
-    B: 2.0e-4
+    B: 3.0e-4
     C: 1.0e-4   # −1e-4 vs streaming (half)
     D: 1.0e-4
-    E: 1.0e-4
+    E: 0.0
   total: 1.0e-3
 
 bake_profiles:
