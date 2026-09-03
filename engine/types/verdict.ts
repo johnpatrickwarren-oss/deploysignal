@@ -231,6 +231,13 @@ export interface EvidenceOutlookEntry {
   growth_rate_hat?: number | null;
   anytime_p?: number | null;
   threshold_kind?: ThresholdKind | null;
+  /** C64 (b) — the (ε, δ)-approximate e-value form (Ramdas–Wang 2025 Def. 10.1) of the
+   *  Family A detector that supplied `progress`, from `engine/guarantees.ts`
+   *  `DetectorGuarantee.approximate_e_value`. `epsilon_growing` carries the law (and the
+   *  measured κ for the betting e-process): no constant prices the statistic as an e-value
+   *  under an estimated baseline, so `nats_to_threshold` on such an entry is the detector's
+   *  bookkeeping, not evidence. Family A only; omitted elsewhere. */
+  approximate_e_value?: import('../guarantees').ApproximateEValueForm;
   /** One-sentence human-readable rendering of `state`/`progress`/
    *  suppression reason, e.g. "Family A accumulating evidence at 42%
    *  of fire threshold", "Family C (e-MMD/betting) accumulating

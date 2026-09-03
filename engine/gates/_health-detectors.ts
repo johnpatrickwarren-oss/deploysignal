@@ -12,7 +12,7 @@ import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '
 import { evaluateEMmd } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import { evaluateFamilyCBettingEProcess } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-betting-e-process';
 import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
-import { FAMILY_E_ADVISORY } from '../guarantees';
+import { FAMILY_E_ADVISORY, FAMILY_A_PLUGIN_ADVISORY_REASON, familyAPluginAdvisory } from '../guarantees';
 import type {
   Metrics, FiredSignal, HealthResult,
   TrendBufferI, DetectorVerdict,
@@ -34,6 +34,23 @@ function detectorCtx(liveMetrics: Metrics, opts: HealthOpts) {
   };
 }
 
+/** C64 (b) — signals the valid path is routed for this tick (from `opts.validPath`). */
+function routedSignals(opts: HealthOpts): ReadonlySet<string> | undefined {
+  const cal = opts.validPath?.calibration;
+  return cal ? new Set(Object.keys(cal)) : undefined;
+}
+
+/** C64 (b) — a plug-in verdict on a routed signal keeps its verdict / statistic / evidence
+ *  for evidence_outlook and the audit record, books no α, and a fire carries the advisory
+ *  reason_code so fusion and the audit can tell it from a rollback-driving fire. */
+function advisoryPlugin(v: DetectorVerdict, routed: ReadonlySet<string> | undefined): DetectorVerdict {
+  if (!familyAPluginAdvisory(v.signal, routed)) return v;
+  return {
+    ...v, alpha_consumed: 0, alpha_spent: 0,
+    reason_code: v.verdict === 'fire' ? FAMILY_A_PLUGIN_ADVISORY_REASON : v.reason_code,
+  };
+}
+
 /** Family A Page-CUSUM dispatch + promotion (silent-shadow). */
 function runFamilyACusum(
   result: HealthResult, rollbackFired: FiredSignal[], sup: string[],
@@ -47,6 +64,7 @@ function runFamilyACusum(
     // warning; retires at Phase-3.d.C). Both state maps threaded; the
     // unused one stays empty across the deploy lifetime.
     if (!tb.mixtureSupermartingaleStates) tb.mixtureSupermartingaleStates = {};
+    const routed = routedSignals(opts);
     const shadow: DetectorVerdict[] = evaluateFamilyA(
       opts.compiledConfig!,
       liveMetrics,
@@ -56,13 +74,14 @@ function runFamilyACusum(
         ...detectorCtx(liveMetrics, opts),
         ignoredSignals:    opts.ignoredSignals,
       },
-    );
+    ).map((v) => advisoryPlugin(v, routed));
     result.family_A_shadow = shadow;
     // Promote Page-CUSUM fires to primary rollback entries. Provenance
     // (S_n, threshold, α) lives in `family_A_shadow` — the rollback
     // array carries the minimum v1-schema-compatible surface.
+    // C64 (b): an advisory fire (routed signal) is recorded, not promoted.
     for (const v of shadow) {
-      if (v.verdict !== 'fire' || !v.signal) continue;
+      if (v.verdict !== 'fire' || !v.signal || v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON) continue;
       const id = 'family_A_' + v.signal;
       if (sup.indexOf(id) >= 0) continue;  // warmup-suppressed per convention
       rollbackFired.push({ id, label: 'Family A ' + v.signal });
@@ -86,6 +105,7 @@ function runFamilyABetting(
   // distinguish them from Page-CUSUM fires.
   try {
     if (!tb.bettingStates) tb.bettingStates = {};
+    const routed = routedSignals(opts);
     const bettingShadow: DetectorVerdict[] = evaluateFamilyABettingShadow(
       opts.compiledConfig!,
       liveMetrics,
@@ -94,14 +114,14 @@ function runFamilyABetting(
         ...detectorCtx(liveMetrics, opts),
         ignoredSignals:    opts.ignoredSignals,
       },
-    );
+    ).map((v) => advisoryPlugin(v, routed));
     if (bettingShadow.length > 0) {
       // Extend the existing family_A_shadow array so audit consumers
       // see one contiguous Family A block; fires get a distinct
       // rollback id via the 'family_A_betting_' prefix.
       result.family_A_shadow = (result.family_A_shadow ?? []).concat(bettingShadow);
       for (const v of bettingShadow) {
-        if (v.verdict !== 'fire' || !v.signal) continue;
+        if (v.verdict !== 'fire' || !v.signal || v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON) continue;
         const id = 'family_A_betting_' + v.signal;
         if (sup.indexOf(id) >= 0) continue;
         rollbackFired.push({ id, label: 'Family A betting ' + v.signal });
