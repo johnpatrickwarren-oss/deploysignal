@@ -31,6 +31,7 @@ import {
   HealthOpts, FAMILY_A_RETIRED_RATIO_IDS,
 } from './_health-types';
 import { runFamilyA, runFamilyC, runFamilyD, runFamilyE } from './_health-detectors';
+import { runFamilyAValidPath } from './_health-valid-path';
 
 export type { HealthOpts };
 
@@ -54,6 +55,18 @@ function computeBypass(
     }
   }
   return bypass;
+}
+
+/** C64 (a) — the envelope-valid terminal path. Runs only when the caller
+ *  supplied a calibration series (`opts.validPath`); appends its verdicts
+ *  after the plug-ins' so the plug-in block is byte-identical. Independent
+ *  of `familyAPromoted`: the path has its own inputs. */
+function maybeRunFamilyAValidPath(
+  result: HealthResult, rollbackFired: FiredSignal[], sup: string[],
+  liveMetrics: Metrics, tb: TrendBufferI | null, opts?: HealthOpts,
+): void {
+  if (!opts?.validPath || !tb) return;
+  runFamilyAValidPath(result, rollbackFired, sup, liveMetrics, tb, opts);
 }
 
 /**
@@ -120,6 +133,9 @@ export function evaluateHealth(
   if (familyAPromoted && tb && opts) {
     runFamilyA(result, rollbackFired, legacyShadow, sup, liveMetrics, tb, opts);
   }
+
+  // C64 (a) — the envelope-valid terminal path; inert without `opts.validPath`.
+  maybeRunFamilyAValidPath(result, rollbackFired, sup, liveMetrics, tb, opts);
 
   // Family C (Hotelling T²) — W3 addition. End of the cascade; any fire
   // adds a `family_C` rollback entry. Stateless (per-tick test); error

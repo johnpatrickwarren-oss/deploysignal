@@ -13,6 +13,7 @@ import type { TrendBufferI } from '@johnpatrickwarren-oss/deploysignal-engine/ty
 import type { AuditWriter, AuditOpts } from './audit';
 import type { CompiledConfig } from './config';
 import type { StateGateContext } from './session';
+import type { ValidPathOpts } from '../gates/_health-valid-path';
 
 /** Inputs to evaluate(). All fields except liveMetrics/scenario are optional. */
 export interface OrchestrateParams {
@@ -22,6 +23,13 @@ export interface OrchestrateParams {
   trendBuffer?: TrendBufferI | null;
   tick: number;
   totalTicks: number;
+  /** C64 (a) — route the envelope-valid terminal path (safe two-sample t e-value at known φ)
+   *  for the Family A signals whose raw calibration series the caller supplies. Read once, on
+   *  the last tick; a fire is `family_A_safe_t_{signal}` in `rollback[]` and spends the full
+   *  per-signal Family A allocation. Absent → byte-identical behaviour. Needs a TrendBuffer.
+   *  Registered on the C64 (d) power study's ship rule (knowledge
+   *  stats/valid-path-power-2026-09-03). */
+  validPath?: ValidPathOpts;
   deployId?: string;
   targetCloud?: string;
   /** Task 2 (WS4 session-durability-argo plan) — pure data snapshot fed
