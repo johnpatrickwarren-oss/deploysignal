@@ -64,6 +64,10 @@ jobs:
           # too, so dist/ must also ship (different file from
           # engine/X.js — first is tsc emission to outDir, second is
           # transitive emission from the test compile).
+          # test/**/*.js (not only *.test.js): shared test helpers such as
+          # test/_c64-fixture.ts compile beside the tests and are required by
+          # them at runtime (C64, 2026-09-03). The shard partitioner schedules
+          # only *.test.js, so a helper is shipped but never run as a test.
           path: |
             dist/
             advisory/**/*.js
@@ -72,8 +76,8 @@ jobs:
             engine/**/*.js.map
             service/**/*.js
             service/**/*.js.map
-            test/**/*.test.js
-            test/**/*.test.js.map
+            test/**/*.js
+            test/**/*.js.map
             tools/**/*.js
             tools/**/*.js.map
           retention-days: 1
