@@ -82,12 +82,12 @@ alpha_allocation:
   # recorded in evidence_outlook and the audit record but never triggers
   # rollback and books no α.
   #
-  # At engine pin v0.6.7-pre a zero budget reads
-  # `suppressed / calibration_underpowered` on every tick
-  # (deploysignal-engine detectors/conformal.ts:246 gates on
-  # n + 1 < ceil(1/α_E) = Infinity) — silence, not advisory, until
-  # DeploySignal re-pins to an engine that evaluates a zero-budget
-  # Family E at its advisory level (reason_code advisory_zero_budget).
+  # Advisory is live since engine pin v0.6.9-pre (C65, engine
+  # detectors/conformal.ts): a zero budget evaluates at the nominal
+  # DEFAULT_ALPHA_E and a fire carries alpha_spent 0 with reason_code
+  # advisory_zero_budget. At v0.6.7-pre and v0.6.8-pre it was silence
+  # (`suppressed / calibration_underpowered` on every tick: the 1/α
+  # sample guard read n + 1 < ceil(1/0) = Infinity).
   #
   # Re-entry into the budget needs both premises the ruling names: a
   # registered coverage study showing the conformal p is super-uniform
