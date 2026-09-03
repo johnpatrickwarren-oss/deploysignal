@@ -1,0 +1,297 @@
+{
+ "E1": {
+  "d_valid_k1_canonical": {
+   "arm": "safe_t",
+   "rate": 1
+  },
+  "floor": 0.5,
+  "delta_star_valid": 1,
+  "pass": true
+ },
+ "E2": {
+  "taxes": {
+   "K1": {
+    "severity": "1.5sigma",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 1
+    },
+    "plugin": {
+     "arm": "mixture",
+     "rate": 1
+    },
+    "tax": 0
+   },
+   "K2": {
+    "severity": "K4-e0.5sigma",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 0.0687
+    },
+    "plugin": {
+     "arm": "mixture",
+     "rate": 0.2901
+    },
+    "tax": 0.2214
+   },
+   "K3": {
+    "severity": "A0.75sigma-f0.05",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 0
+    },
+    "plugin": {
+     "arm": "mixture",
+     "rate": 0
+    },
+    "tax": 0
+   },
+   "K4": {
+    "severity": "5sigma-point",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 0
+    },
+    "plugin": {
+     "arm": "mixture",
+     "rate": 0.0019
+    },
+    "tax": 0.0019
+   },
+   "K5": {
+    "severity": "slope0.01",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 0.0019
+    },
+    "plugin": {
+     "arm": "mixture",
+     "rate": 0.0076
+    },
+    "tax": 0.0057
+   },
+   "K6": {
+    "severity": "mix-d1.5",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 0
+    },
+    "plugin": {
+     "arm": "mixture",
+     "rate": 0
+    },
+    "tax": 0
+   }
+  },
+  "scored": [
+   "K1",
+   "K2",
+   "K5"
+  ],
+  "pass": true
+ },
+ "E3": {
+  "rows": [
+   {
+    "severity": "1.5sigma",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 1
+    },
+    "betting_shipped": 0.7099,
+    "pass": true
+   },
+   {
+    "severity": "0.5sigma",
+    "valid": {
+     "arm": "safe_t",
+     "rate": 0.0095
+    },
+    "betting_shipped": 0,
+    "pass": true
+   }
+  ],
+  "pass": true
+ },
+ "E4": {
+  "alpha": 0.05,
+  "arms": {
+   "safe_t": {
+    "n": 524,
+    "crossings": 0,
+    "rate": 0,
+    "bound": 0.069,
+    "pass": true
+   },
+   "universal_inference": {
+    "n": 524,
+    "crossings": 0,
+    "rate": 0,
+    "bound": 0.069,
+    "pass": true
+   },
+   "sequential_ui": {
+    "n": 524,
+    "crossings": 0,
+    "rate": 0,
+    "bound": 0.069,
+    "pass": true
+   },
+   "mixture": {
+    "n": 524,
+    "crossings": 9,
+    "rate": 0.0172,
+    "bound": 0.069,
+    "reference_eps_bound": 0.05
+   },
+   "betting": {
+    "n": 524,
+    "crossings": 20,
+    "rate": 0.0382,
+    "bound": 0.069,
+    "reference_eps_bound": 0.0592
+   },
+   "betting_shipped": {
+    "n": 524,
+    "crossings": 0,
+    "rate": 0,
+    "bound": 0.069,
+    "reference_eps_bound": 0.0592
+   }
+  },
+  "valid_arms_passing": [
+   "safe_t",
+   "universal_inference",
+   "sequential_ui"
+  ]
+ },
+ "E5": {
+  "rows": [
+   {
+    "severity": "0.25sigma",
+    "sequential_ui": {
+     "detections": 0,
+     "median_ttd": null
+    },
+    "mixture": {
+     "detections": 0,
+     "median_ttd": null
+    },
+    "betting": {
+     "detections": 0,
+     "median_ttd": null
+    }
+   },
+   {
+    "severity": "0.5sigma",
+    "sequential_ui": {
+     "detections": 0,
+     "median_ttd": null
+    },
+    "mixture": {
+     "detections": 38,
+     "median_ttd": 60
+    },
+    "betting": {
+     "detections": 16,
+     "median_ttd": null
+    }
+   },
+   {
+    "severity": "0.75sigma",
+    "sequential_ui": {
+     "detections": 6,
+     "median_ttd": null
+    },
+    "mixture": {
+     "detections": 312,
+     "median_ttd": 51
+    },
+    "betting": {
+     "detections": 203,
+     "median_ttd": 57
+    }
+   },
+   {
+    "severity": "1sigma",
+    "sequential_ui": {
+     "detections": 52,
+     "median_ttd": 61
+    },
+    "mixture": {
+     "detections": 507,
+     "median_ttd": 41
+    },
+    "betting": {
+     "detections": 438,
+     "median_ttd": 53
+    }
+   },
+   {
+    "severity": "1.5sigma",
+    "sequential_ui": {
+     "detections": 240,
+     "median_ttd": 50
+    },
+    "mixture": {
+     "detections": 524,
+     "median_ttd": 25
+    },
+    "betting": {
+     "detections": 518,
+     "median_ttd": 38
+    }
+   },
+   {
+    "severity": "2sigma",
+    "sequential_ui": {
+     "detections": 259,
+     "median_ttd": 36
+    },
+    "mixture": {
+     "detections": 524,
+     "median_ttd": 17
+    },
+    "betting": {
+     "detections": 523,
+     "median_ttd": 30
+    }
+   },
+   {
+    "severity": "2.5sigma",
+    "sequential_ui": {
+     "detections": 261,
+     "median_ttd": 30
+    },
+    "mixture": {
+     "detections": 524,
+     "median_ttd": 13
+    },
+    "betting": {
+     "detections": 524,
+     "median_ttd": 27
+    }
+   },
+   {
+    "severity": "3sigma",
+    "sequential_ui": {
+     "detections": 261,
+     "median_ttd": 25
+    },
+    "mixture": {
+     "detections": 524,
+     "median_ttd": 10
+    },
+    "betting": {
+     "detections": 524,
+     "median_ttd": 24
+    }
+   }
+  ]
+ },
+ "ship_rule": {
+  "a_routes": true,
+  "routed_arm": "safe_t",
+  "voided_cells": []
+ }
+}
