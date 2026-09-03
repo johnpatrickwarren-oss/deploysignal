@@ -10,10 +10,12 @@
 //   2. Guard: `FAMILY_E_ADVISORY` at both sites — portfolio fusion
 //      (engine/verdict.ts) and the health gate (engine/gates/
 //      _health-detectors.ts) — keyed on the constant, not on α.
-// Plus the engine-pin fact: at v0.6.7-pre a zero budget is SILENCE
-// (suppressed / calibration_underpowered), advisory only after the
-// engine re-pin that evaluates a zero-budget Family E at its advisory
-// level. The "silence" test is expected to be retired at that re-pin.
+// Plus the engine-pin fact: since engine v0.6.9-pre (C65, engine
+// detectors/conformal.ts) a zero budget evaluates at the nominal level
+// and a fire carries alpha_spent 0 / reason_code advisory_zero_budget.
+// At v0.6.7-pre and v0.6.8-pre it was SILENCE (suppressed /
+// calibration_underpowered); that test was retired at the v0.6.9-pre
+// re-pin and replaced by the end-to-end advisory test below.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -92,17 +94,37 @@ function famECfg(alphaE: number, nCal: number): { cfg: CompiledConfig; liveHigh:
 
 const CTX = { hourOfDay: 14, dayOfWeek: 3, ticksSinceDeploy: 100, deployAgeDays: 0, trafficPct: 1.0 };
 
-// ── Engine-pin fact ──────────────────────────────────────────────────
+// ── Engine-pin fact: advisory is live (v0.6.9-pre, C65) ─────────────
 
-test('C25 engine pin v0.6.7-pre: Family E at α = 0 is SILENCE — suppressed/calibration_underpowered '
-  + 'before any score is computed (advisory only after the engine re-pin; retire this test then)', () => {
+test('C25/C65 engine pin v0.6.9-pre: Family E at α = 0 on a novel vector FIRES as advisory — '
+  + 'alpha_spent 0, reason_code advisory_zero_budget; health gate records it with rollbackFired empty; '
+  + 'fusion gives no rollback from E alone', () => {
+  // α_E = 0 → the engine evaluates at its nominal DEFAULT_ALPHA_E (1e-4),
+  // so the 1/α sample guard needs ≥ 10 000 calibration scores.
   const { cfg, liveHigh } = famECfg(0, 20000);
   const v = evaluateFamilyE(cfg, liveHigh, CTX);
   assert.ok(v, 'Family E is compiled for the cell');
-  assert.equal(v!.verdict, 'suppressed');
-  assert.equal(v!.reason_code, 'calibration_underpowered');
-  assert.equal(v!.statistic, null, 'no score computed: the 1/α guard runs first');
+  assert.equal(v!.verdict, 'fire');
   assert.equal(v!.alpha_spent, 0);
+  assert.equal(v!.alpha_consumed, 0);
+  assert.equal(v!.reason_code, 'advisory_zero_budget');
+  assert.notEqual(v!.statistic, null, 'a score was computed: the guard no longer reads 1/0');
+
+  const result = emptyHealth();
+  const rollbackFired: FiredSignal[] = [];
+  runFamilyE(result, rollbackFired, [], { ...liveHigh, traffic_pct: 1.0 } as unknown as Metrics, null, {
+    compiledConfig: cfg, currentHourOfDay: 14, currentDayOfWeek: 3, ticksSinceDeploy: 100, deployAgeDays: 0,
+  });
+  assert.equal(result.family_E_verdict?.verdict, 'fire', 'recorded for evidence_outlook / audit');
+  assert.equal(result.family_E_verdict?.reason_code, 'advisory_zero_budget');
+  assert.equal(result.family_E_verdict?.alpha_spent, 0);
+  assert.deepEqual(rollbackFired.map((s) => s.id), [], 'family_E never enters the health gate rollback[]');
+
+  const fused = fuseVerdict(result, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 't', familyE: result.family_E_verdict });
+  assert.equal(fused.verdict, 'baking', 'no rollback from Family E alone');
+  assert.deepEqual(fused.firing_families, []);
+  assert.equal(fused.total_alpha_spent, 0);
+  assert.equal(fused.evidence_outlook.find((x) => x.family_id === 'E')?.state, 'fired');
 });
 
 // ── 2. Guard, site 1: portfolio fusion ───────────────────────────────

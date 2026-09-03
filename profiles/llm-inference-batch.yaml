@@ -61,8 +61,9 @@ alpha_allocation:
   # Family E held at 0 since 2026-09-02 (WORKLIST C25; ruling
   # knowledge/stats/family-e-budget-ruling, option 3) — advisory only,
   # share reserved in B's non-participating leftover, participating
-  # budget A + C + D = 7.0e-4. Silence at engine pin v0.6.7-pre
-  # (suppressed / calibration_underpowered), advisory after the re-pin.
+  # budget A + C + D = 7.0e-4. Advisory is live since engine pin
+  # v0.6.9-pre (C65): a zero budget evaluates at the nominal level and a
+  # fire carries alpha_spent 0, reason_code advisory_zero_budget.
   # Full rationale and re-entry premises (super-uniform p, epoch guard):
   # see llm-inference-streaming.yaml alpha_allocation.
   per_family:
