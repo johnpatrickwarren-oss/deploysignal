@@ -60,7 +60,8 @@ test('barrel: runtime values re-export structurally identical across submodule +
 });
 
 test('barrel: DETECTOR_REGISTRY structure preserved after split', () => {
-  assert.equal(REGISTRY_VIA_BARREL.A.length, 18);
+  // 18 through engine v0.6.9-pre; 24 at v0.6.10-pre (C64 a: six safe_t_e_value_* ids).
+  assert.equal(REGISTRY_VIA_BARREL.A.length, 24);
   assert.equal(REGISTRY_VIA_BARREL.B.length, 16);
   assert.equal(REGISTRY_VIA_BARREL.C.length, 5);
   assert.equal(REGISTRY_VIA_BARREL.D.length, 2);
