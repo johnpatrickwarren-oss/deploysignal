@@ -103,6 +103,36 @@ import { DETECTOR_REGISTRY } from './types';
  *  scores (super-uniformity), and an epoch guard on the classical block. */
 export const FAMILY_E_ADVISORY = true;
 
+/** C64 (b), 2026-09-03 — the Family A plug-ins (mixture supermartingale, betting e-process)
+ *  are ADVISORY on a signal the envelope-valid terminal path is routed for
+ *  (`OrchestrateParams.validPath`, engine/gates/_health-valid-path.ts), and α-participating
+ *  as before on every other signal. Registered ship rule of the C64 (d) power study
+ *  (knowledge stats/valid-path-power-2026-09-03): (b) demotes only where (a) routes. An
+ *  advisory plug-in fire keeps its verdict / statistic / evidence for evidence_outlook and
+ *  the audit record, books `alpha_spent: 0`, carries reason_code `advisory_valid_path_routed`,
+ *  and never enters `rollback[]` or `firing_families`. The plug-ins' estimation premise is
+ *  false in the shipped configuration (E[e|H0] → ~1e8 / ~3e9, engine
+ *  detectors/validity-envelope.ts); what they are under H0 is the `approximate_e_value` form
+ *  each Family A row carries below, mirrored from the engine's axis 3 (C61). */
+export const FAMILY_A_PLUGIN_ADVISORY: 'when_valid_path_routed' | 'never' = 'when_valid_path_routed';
+
+/** reason_code an advisory plug-in fire carries (C64 b). */
+export const FAMILY_A_PLUGIN_ADVISORY_REASON = 'advisory_valid_path_routed';
+
+/** Is the Family A plug-in verdict for `signal` advisory this tick? True iff the valid path
+ *  is routed for that signal and the flag is on. */
+export function familyAPluginAdvisory(signal: string | undefined, routed: ReadonlySet<string> | undefined): boolean {
+  return FAMILY_A_PLUGIN_ADVISORY === 'when_valid_path_routed' && !!signal && !!routed?.has(signal);
+}
+
+/** Axis 3 (Ramdas–Wang 2025 Def. 10.1), mirrored from the engine's `guarantees.ts` for the
+ *  three Family A constructions this repo dispatches. `epsilon_growing` means no constant
+ *  prices the statistic as an e-value: `E/(1+ε_T)` is one only at a stated horizon. */
+export type ApproximateEValueForm =
+  | { readonly form: 'e_value'; readonly note: string }
+  | { readonly form: 'epsilon_growing'; readonly law: string; readonly kappa?: number; readonly source: string }
+  | { readonly form: 'not_e_value'; readonly reason: string };
+
 export type ValidityClass =
   | 'ville_anytime_valid'
   | 'classical_epoch_alpha'
@@ -135,6 +165,10 @@ export interface DetectorGuarantee {
   readonly fallback_of?: DetectorId;
   /** Short literature anchor. */
   readonly citation: string;
+  /** C64 (b) — the (ε, δ)-approximate e-value form under H0 in the shipped configuration.
+   *  Carried on the Family A rows and projected onto `evidence_outlook`; absent elsewhere
+   *  (the engine's table is the authority for every row). */
+  readonly approximate_e_value?: ApproximateEValueForm;
   /** Non-literature caveat about how audit records map onto this id (e.g.
    *  a runtime signal name that doesn't match any DETECTOR_REGISTRY id, so
    *  fires get attributed to a different id than the one that produced
@@ -167,6 +201,31 @@ const FAMILY_A_BETTING_ASSUMPTIONS = [
   'GRAPA bet with ONS fallback; no operator tunable',
 ] as const;
 
+/** Mirrors engine guarantees.ts (C61) — the mixture's plug-in law. */
+const MIXTURE_APPROXIMATE_E_VALUE: ApproximateEValueForm = {
+  form: 'epsilon_growing',
+  law: 'E[M_n|H0] under an m-sample plug-in baseline grows without bound in n (engine '
+    + 'validity-envelope.ts: ~3e9 at n >> m); the per-tick rate is unmeasured for the mixture. '
+    + 'Exact at oracle parameters (H0 battery N1 CLEARED).',
+  source: 'Tessera ADR 0014; knowledge stats/validity-premise-chain; detector-audit-sequential-2026-08-05',
+};
+/** Mirrors engine guarantees.ts (C61) — the betting e-process's measured law. */
+const BETTING_APPROXIMATE_E_VALUE: ApproximateEValueForm = {
+  form: 'epsilon_growing',
+  law: 'per-tick increment excess kappa/m under an m-sample calibration (the GRAPA loop '
+    + 'converges on the calibration bias), so epsilon_T = exp(kappa·T/m) − 1: unbounded in T. '
+    + 'Measured 1.029 / 1.009 / 1.002 per tick at m = 30 / 100 / 500; exact at oracle parameters.',
+  kappa: 0.8445,
+  source: 'engine grapa-stability run-20260819T040000Z (C58); detector-audit-sequential-2026-08-05 (C23)',
+};
+/** The terminal safe-t path (C64 a): a genuine e-value at known φ. */
+const SAFE_T_APPROXIMATE_E_VALUE: ApproximateEValueForm = {
+  form: 'e_value',
+  note: 'sigma integrated out exactly: E[e|H0] = 1 at every calibration length with known phi; '
+    + 'outside the envelope (estimated phi = 0.9 from 100 samples) mean(e) = 9,710 '
+    + '(knowledge stats/terminal-evalue-2026-08-02).',
+};
+
 function familyAMixtureEntry(id: DetectorId): DetectorGuarantee {
   return {
     detector_id: id,
@@ -175,6 +234,7 @@ function familyAMixtureEntry(id: DetectorId): DetectorGuarantee {
     null_assumptions: FAMILY_A_MIXTURE_ASSUMPTIONS,
     repeated_look_policy: VILLE_POLICY,
     alpha_participating: true,
+    approximate_e_value: MIXTURE_APPROXIMATE_E_VALUE,
     citation: 'Howard, Ramdas, McAuliffe & Sekhon (2021), Annals of Statistics — '
       + 'time-uniform nonparametric confidence sequences (mixture supermartingale)',
   };
@@ -200,6 +260,7 @@ function familyASafeTEntry(id: DetectorId): DetectorGuarantee {
     null_assumptions: FAMILY_A_SAFE_T_ASSUMPTIONS,
     repeated_look_policy: EPOCH_POLICY,
     alpha_participating: true,
+    approximate_e_value: SAFE_T_APPROXIMATE_E_VALUE,
     citation: 'Pérez-Ortiz, Lardy, de Heide & Grünwald (2024) GROW e-statistics for the '
       + 'location-scale model; engine ADR 0005 (safe-t e-value); Ramdas & Wang (2025) Prop. 4.4',
     id_mapping_note: 'runtime rollback id is `family_A_safe_t_{signal}`; the audit writer maps it '
@@ -216,6 +277,7 @@ function familyABettingEntry(id: DetectorId): DetectorGuarantee {
     null_assumptions: FAMILY_A_BETTING_ASSUMPTIONS,
     repeated_look_policy: VILLE_POLICY,
     alpha_participating: true,
+    approximate_e_value: BETTING_APPROXIMATE_E_VALUE,
     citation: 'Waudby-Smith & Ramdas (2024) GRAPA + Online Newton Step fallback betting e-process',
   };
 }

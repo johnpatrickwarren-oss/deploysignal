@@ -27,6 +27,8 @@ import type {
   EvidenceSurface,
 } from './types';
 import { FAMILY_E_ADVISORY } from './guarantees';
+import type { ApproximateEValueForm } from './guarantees';
+import { isAdvisoryPluginFire, approximateEValueFor, advisoryPluginClause } from './_verdict-advisory';
 
 export interface FuseOpts {
   topology: 'cascade' | 'portfolio';
@@ -76,12 +78,13 @@ function alphaSpent(...vs: Array<DetectorVerdict | DetectorVerdict[] | null | un
   return sum;
 }
 
-/** True when any verdict in the collection is `fire`. */
+/** True when any verdict in the collection is a `fire` that may drive the verdict. */
 function anyFire(vs: DetectorVerdict[] | null | undefined): boolean {
   if (!vs) return false;
-  for (const v of vs) if (v.verdict === 'fire') return true;
+  for (const v of vs) if (v.verdict === 'fire' && !isAdvisoryPluginFire(v)) return true;
   return false;
 }
+
 
 /** True when any verdict is `indeterminate` (accumulating below threshold). */
 function anyIndeterminate(vs: DetectorVerdict[] | null | undefined): boolean {
@@ -129,6 +132,10 @@ interface FamilyEvidenceRaw {
   /** ADR 0027 surface of the detector that supplied `progress`, when
    *  that verdict carried one. See `EvidenceOutlookEntry.nats_to_threshold`. */
   evidence?: EvidenceSurface;
+  /** C64 (b) — axis-3 form of the detector that supplied `progress` (Family A only). */
+  approximate_e_value?: ApproximateEValueForm;
+  /** C64 (b) — signals whose Family A plug-in fired advisory (routed to the valid path). */
+  advisoryFiredSignals?: string[];
   firedSignals: string[];
   suppressionReason: string | null;
 }
@@ -373,11 +380,11 @@ function maxProgressOfScale(
  *  describe one wealth process. */
 function pickScaleAndProgress(
   vs: DetectorVerdict[],
-): { progress: number | null; scale: 'linear' | 'wealth' | null; evidence?: EvidenceSurface } {
+): { progress: number | null; scale: 'linear' | 'wealth' | null; evidence?: EvidenceSurface; source?: DetectorVerdict } {
   const wealth = maxProgressOfScale(vs, 'wealth');
-  if (wealth !== null) return { progress: wealth.progress, scale: 'wealth', evidence: wealth.source.evidence };
+  if (wealth !== null) return { progress: wealth.progress, scale: 'wealth', evidence: wealth.source.evidence, source: wealth.source };
   const linear = maxProgressOfScale(vs, 'linear');
-  if (linear !== null) return { progress: linear.progress, scale: 'linear', evidence: linear.source.evidence };
+  if (linear !== null) return { progress: linear.progress, scale: 'linear', evidence: linear.source.evidence, source: linear.source };
   return { progress: null, scale: null };
 }
 
@@ -401,18 +408,24 @@ function suppressionReasonFor(codes: string[]): string {
 /** Summarize a per-signal detector family (A/D/E-shaped: a flat array
  *  of DetectorVerdicts, each optionally naming its `.signal`). */
 function summarizeSignalFamily(id: FamilyLetter, vs: DetectorVerdict[]): FamilyEvidenceRaw {
-  const fired = vs.filter((v) => v.verdict === 'fire');
+  // C64 (b): an advisory plug-in fire is recorded on the entry but does not make the family
+  // `fired` — it cannot drive the verdict, and the outlook must agree with the verdict.
+  const advisory = vs.filter(isAdvisoryPluginFire);
+  const fired = vs.filter((v) => v.verdict === 'fire' && !isAdvisoryPluginFire(v));
   const state: EvidenceState = fired.length > 0 ? 'fired'
     : allSuppressed(vs) ? 'suppressed'
-    : anyIndeterminate(vs) ? 'accumulating'
+    : anyIndeterminate(vs) || advisory.length > 0 ? 'accumulating'
     : 'clean';
-  const { progress, scale, evidence } = pickScaleAndProgress(vs);
+  const { progress, scale, evidence, source } = pickScaleAndProgress(vs);
+  const form = source ? approximateEValueFor(source, progressScaleFor(source)) : undefined;
   return {
     family_id: id,
     state,
     progress,
     progress_scale: scale,
     ...(evidence ? { evidence } : {}),
+    ...(form ? { approximate_e_value: form } : {}),
+    ...(advisory.length > 0 ? { advisoryFiredSignals: advisory.map((v) => v.signal ?? 'unknown') } : {}),
     firedSignals: fired.map((v) => v.signal ?? 'unknown'),
     suppressionReason: state === 'suppressed' ? suppressionReasonFor(vs.map((v) => v.reason_code)) : null,
   };
@@ -532,11 +545,11 @@ function renderAccumulatingNote(r: FamilyEvidenceRaw): string {
 /** Render an `EvidenceOutlookEntry.note` from a family's raw summary. */
 function renderNote(r: FamilyEvidenceRaw): string {
   if (r.state === 'fired') {
-    return r.firedSignals.length > 0
+    return (r.firedSignals.length > 0
       ? `Family ${r.family_id} fired on ${r.firedSignals.join(', ')}`
-      : `Family ${r.family_id} fired`;
+      : `Family ${r.family_id} fired`) + advisoryPluginClause(r.advisoryFiredSignals);
   }
-  if (r.state === 'accumulating') return renderAccumulatingNote(r);
+  if (r.state === 'accumulating') return renderAccumulatingNote(r) + advisoryPluginClause(r.advisoryFiredSignals);
   if (r.state === 'suppressed') {
     return `${notePrefix(r)} suppressed (${r.suppressionReason ?? 'unknown'})`;
   }
@@ -570,6 +583,8 @@ function toEvidenceOutlook(raw: FamilyEvidenceRaw[]): EvidenceOutlookEntry[] {
     progress_scale: r.progress_scale,
     detector_kind: r.detector_kind,
     ...outlookEvidenceFields(r.evidence),
+    // C64 (b): the axis-3 form travels with the progress it qualifies; absent → key omitted.
+    ...(r.approximate_e_value ? { approximate_e_value: r.approximate_e_value } : {}),
     note: renderNote(r),
   }));
 }
