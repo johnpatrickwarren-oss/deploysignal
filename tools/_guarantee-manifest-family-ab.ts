@@ -39,14 +39,22 @@ export function buildFamilyASection(cfg: CompiledConfig): ManifestFamilySection 
         configured_reality: 'safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)',
       };
     }
-    const kind = id.startsWith('betting_e_process_') ? 'betting e-process co-ship'
-      : id.startsWith('page_cusum_') ? 'mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted)'
-        : 'mixture-supermartingale Page-CUSUM (emitted as this id)';
+    if (id.startsWith('betting_e_process_')) {
+      // C64 (c): what ships compares wealth to the compiled bootstrap quantile, not 1/α.
+      return {
+        detector_id: id,
+        validity_class: g.validity_class,
+        alpha_participating: g.alpha_participating,
+        configured_reality: `betting e-process co-ship — fires at the compiled bootstrap max-wealth quantile (crossing-rate control at the calibrated horizon, not an e-value bound), active on ${nSignals} monitored signal(s)`,
+      };
+    }
+    const kind = id.startsWith('page_cusum_') ? 'mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted)'
+      : 'mixture-supermartingale Page-CUSUM (emitted as this id)';
     return {
       detector_id: id,
       validity_class: g.validity_class,
       alpha_participating: g.alpha_participating,
-      configured_reality: `${kind} — Ville-bounded, active on ${nSignals} monitored signal(s)`,
+      configured_reality: `${kind} — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on ${nSignals} monitored signal(s)`,
     };
   });
   return {
