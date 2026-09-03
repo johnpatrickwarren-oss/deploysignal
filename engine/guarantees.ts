@@ -141,11 +141,25 @@ export type ValidityClass =
    *  canary): P(e ≥ 1/α) ≤ α by Markov, valid at data-dependent α (Ramdas–Wang 2025
    *  Prop. 4.4), and NOT an e-process — repeated looks are not licensed, which is why its
    *  policy is `epoch_boundaries_only`. Mirrors the engine's `e_value_terminal`. */
-  | 'e_value_terminal';
+  | 'e_value_terminal'
+  /** C64 (c), 2026-09-03 — the SHIPPED threshold is an empirical (1−α) quantile of max wealth
+   *  under a joint-AR(1) bootstrap null over a fixed horizon (Q2.B.6.2/6.3 `sliding_buffer`
+   *  calibration), in place of Ville's 1/α. That controls the CROSSING RATE at the calibrated
+   *  horizon under the bootstrap's null — the smallest valid threshold on an unstated class
+   *  (Ramdas–Wang 2025 Lemma 15.1) — and bounds no expectation: the statistic is not an
+   *  e-value on the shipped path, and the threshold sits a median 2.4×10⁴ (Family A betting)
+   *  / 3.6×10⁷⁶ (safe-Hotelling) ABOVE 1/α with a measured power cost (knowledge
+   *  stats/ville-guarantee-is-empirical; stats/valid-path-power-2026-09-03 E3: 0.29 at 1.5σ,
+   *  0.80 at 1.0σ). The construction at 1/α is Ville-valid inside its envelope (engine
+   *  guarantees.ts); this class describes what DeploySignal compiles and runs. */
+  | 'bootstrap_crossing_rate';
 
 export type RepeatedLookPolicy =
   | 'anytime_valid_continuous_peeking'
-  | 'epoch_boundaries_only';
+  | 'epoch_boundaries_only'
+  /** C64 (c) — peeks every tick; the crossing rate is controlled only within the bootstrap's
+   *  calibrated horizon (500 trajectories × 100 ticks) and under its null. Not anytime-valid. */
+  | 'bootstrap_horizon_peeking';
 
 export interface DetectorGuarantee {
   readonly detector_id: DetectorId;
@@ -179,6 +193,7 @@ export interface DetectorGuarantee {
 
 const VILLE_POLICY: RepeatedLookPolicy = 'anytime_valid_continuous_peeking';
 const EPOCH_POLICY: RepeatedLookPolicy = 'epoch_boundaries_only';
+const BOOTSTRAP_POLICY: RepeatedLookPolicy = 'bootstrap_horizon_peeking';
 
 // ── Family A — per-signal change detection ─────────────────────────
 //
@@ -199,6 +214,11 @@ const FAMILY_A_BETTING_ASSUMPTIONS = [
   'bounded-support standardized deviation z_t = clip((x-μ)/(B·σ), -1, 1), '
     + 'B=3, derived from the compiled per-cell μ/σ²',
   'GRAPA bet with ONS fallback; no operator tunable',
+  // C64 (c): the threshold that ships.
+  'fire threshold = compiled `betting_sliding_buffer_threshold`, the empirical (1−α) quantile of '
+    + 'per-trajectory MAX wealth under the joint-AR(1) bootstrap (500 × 100 ticks; tools/calibrators/'
+    + 'family-a.ts), not 1/α: a crossing-rate control at that horizon under that null, no e-value '
+    + 'bound (median 2.41×10⁴ above 1/α over 82,888 compiled cells; 3.1% of cells below it)',
 ] as const;
 
 /** Mirrors engine guarantees.ts (C61) — the mixture's plug-in law. */
@@ -273,9 +293,11 @@ function familyABettingEntry(id: DetectorId): DetectorGuarantee {
   return {
     detector_id: id,
     family: 'A',
-    validity_class: 'ville_anytime_valid',
+    // C64 (c): was ville_anytime_valid. The construction is Ville-valid at 1/α inside its
+    // envelope; what ships compares wealth to a bootstrap quantile (see the class doc).
+    validity_class: 'bootstrap_crossing_rate',
     null_assumptions: FAMILY_A_BETTING_ASSUMPTIONS,
-    repeated_look_policy: VILLE_POLICY,
+    repeated_look_policy: BOOTSTRAP_POLICY,
     alpha_participating: true,
     approximate_e_value: BETTING_APPROXIMATE_E_VALUE,
     citation: 'Waudby-Smith & Ramdas (2024) GRAPA + Online Newton Step fallback betting e-process',
@@ -311,6 +333,11 @@ const HOTELLING_CHI_SQUARE_ASSUMPTIONS = [
 const HOTELLING_SAFE_ASSUMPTIONS = [
   'mixture prior on alternative mean μ ~ N(0, τ²I_p), τ² = shrink_fraction '
     + '· trace(Σ)/p (REPLY-43b)',
+  // C64 (c): the threshold that ships.
+  'fire threshold = compiled `sliding_buffer_threshold` (types/families/c.ts: "replaces the '
+    + 'analytical 1/α threshold"), the empirical (1−α) quantile of per-trajectory MAX wealth under '
+    + 'the joint-AR(1) bootstrap with sliding-buffer evaluation: a crossing-rate control at that '
+    + 'horizon, no e-value bound (median 3.6×10⁷⁶ above 1/α over 34,481 compiled cells)',
   'DEPRECATED fallback available but not runtime-consumed: Q70 §7 '
     + 'EmpiricalProcessLILBound self-normalized e-process variant '
     + '(self_normalized_fallback on FamilyCPerCell) — SLICE 1 shipped '
@@ -451,9 +478,10 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
   hotelling_t2_safe: {
     detector_id: 'hotelling_t2_safe',
     family: 'C',
-    validity_class: 'ville_anytime_valid',
+    // C64 (c): was ville_anytime_valid — the shipped threshold is the bootstrap quantile.
+    validity_class: 'bootstrap_crossing_rate',
     null_assumptions: HOTELLING_SAFE_ASSUMPTIONS,
-    repeated_look_policy: VILLE_POLICY,
+    repeated_look_policy: BOOTSTRAP_POLICY,
     alpha_participating: true,
     citation: 'Grünwald, de Heide & Koolen (2024), JASA — safe testing / GROW e-test',
   },

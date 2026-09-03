@@ -53,7 +53,9 @@ function countBy<T extends string>(items: T[]): Record<string, number> {
 function hotellingEntry(id: DetectorId, route: HotellingRoute, counts: Record<string, number>, total: number): ManifestDetectorEntry {
   const g = DETECTOR_GUARANTEES[id];
   const n = counts[route] ?? 0;
-  const label = route === 'safe_test' ? 'safe_test [ville]' : 'chi_square [classical]';
+  // C64 (c): the safe_test route ships the compiled `sliding_buffer_threshold`, a bootstrap
+  // max-wealth quantile — a crossing-rate control, not Ville's 1/α.
+  const label = route === 'safe_test' ? 'safe_test [bootstrap crossing-rate]' : 'chi_square [classical]';
   return {
     detector_id: id,
     validity_class: g.validity_class,

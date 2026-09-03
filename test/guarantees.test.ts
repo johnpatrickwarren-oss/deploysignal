@@ -72,14 +72,23 @@ test('Family B is heuristic_structural and non-α-participating for every id', (
   }
 });
 
-test('Family A betting-e-process ids are ville_anytime_valid and α-participating', () => {
+test('C64 (c): Family A betting-e-process ids are bootstrap_crossing_rate (the shipped threshold is the bootstrap quantile), α-participating', () => {
   for (const id of DETECTOR_REGISTRY.A) {
     if (!id.startsWith('betting_e_process_')) continue;
     const g = DETECTOR_GUARANTEES[id];
-    assert.equal(g.validity_class, 'ville_anytime_valid');
+    assert.equal(g.validity_class, 'bootstrap_crossing_rate');
     assert.equal(g.alpha_participating, true);
-    assert.equal(g.repeated_look_policy, 'anytime_valid_continuous_peeking');
+    assert.equal(g.repeated_look_policy, 'bootstrap_horizon_peeking');
+    assert.ok(g.null_assumptions.some((a) => a.includes('betting_sliding_buffer_threshold')), 'names the shipped threshold field');
   }
+  const h = DETECTOR_GUARANTEES.hotelling_t2_safe;
+  assert.equal(h.validity_class, 'bootstrap_crossing_rate');
+  assert.equal(h.repeated_look_policy, 'bootstrap_horizon_peeking');
+  assert.ok(h.null_assumptions.some((a) => a.includes('sliding_buffer_threshold')));
+  // the classes that keep their labels: the mixture at 1/alpha (Ville, premise caveat on the
+  // wiki) and the terminal safe-t path
+  assert.equal(DETECTOR_GUARANTEES.mSPRT_ttft.validity_class, 'ville_anytime_valid');
+  assert.equal(DETECTOR_GUARANTEES.safe_t_e_value_ttft.validity_class, 'e_value_terminal');
 });
 
 test('Family A Page-CUSUM ids (mSPRT_* and page_cusum_*) are ville_anytime_valid — '
@@ -108,10 +117,12 @@ test('C64 (a): Family A safe_t_e_value_* ids are e_value_terminal, one look per 
 test('Family C: hotelling_t2_joint_vector is the classical chi_square fallback target; '
   + 'hotelling_t2_safe is the Ville GROW e-test and is what it falls back from', () => {
   const classical = DETECTOR_GUARANTEES['hotelling_t2_joint_vector'];
-  const ville = DETECTOR_GUARANTEES['hotelling_t2_safe'];
+  const safe = DETECTOR_GUARANTEES['hotelling_t2_safe'];
   assert.equal(classical.validity_class, 'classical_epoch_alpha');
   assert.equal(classical.fallback_of, 'hotelling_t2_safe');
-  assert.equal(ville.validity_class, 'ville_anytime_valid');
+  // C64 (c): the GROW construction is Ville-valid at 1/alpha; what ships compares wealth to the
+  // compiled bootstrap quantile (sliding_buffer_threshold), a crossing-rate control.
+  assert.equal(safe.validity_class, 'bootstrap_crossing_rate');
 });
 
 test('Family C: sequential_mmd, sequential_mmd_e_process, and '
@@ -196,12 +207,17 @@ test('fallback_of always points at a real registry id', () => {
 
 test('validity_class ↔ repeated_look_policy consistency: every ville_anytime_valid '
   + 'entry uses anytime_valid_continuous_peeking; no non-ville entry does', () => {
+  // C64 (a)/(c): two more (class, policy) pairs — the terminal e-value reads once per epoch;
+  // the bootstrap-quantile paths peek every tick with a horizon-bound crossing-rate control.
+  const POLICY_FOR: Record<string, string> = {
+    ville_anytime_valid: 'anytime_valid_continuous_peeking',
+    classical_epoch_alpha: 'epoch_boundaries_only',
+    heuristic_structural: 'epoch_boundaries_only',
+    e_value_terminal: 'epoch_boundaries_only',
+    bootstrap_crossing_rate: 'bootstrap_horizon_peeking',
+  };
   for (const g of Object.values(DETECTOR_GUARANTEES)) {
-    if (g.validity_class === 'ville_anytime_valid') {
-      assert.equal(g.repeated_look_policy, 'anytime_valid_continuous_peeking');
-    } else {
-      assert.equal(g.repeated_look_policy, 'epoch_boundaries_only');
-    }
+    assert.equal(g.repeated_look_policy, POLICY_FOR[g.validity_class], `${g.detector_id}: ${g.validity_class}`);
   }
 });
 
