@@ -106,7 +106,12 @@ export const FAMILY_E_ADVISORY = true;
 export type ValidityClass =
   | 'ville_anytime_valid'
   | 'classical_epoch_alpha'
-  | 'heuristic_structural';
+  | 'heuristic_structural'
+  /** C64 (a), 2026-09-03 — a genuine e-value read at ONE pre-scheduled look (the end of the
+   *  canary): P(e ≥ 1/α) ≤ α by Markov, valid at data-dependent α (Ramdas–Wang 2025
+   *  Prop. 4.4), and NOT an e-process — repeated looks are not licensed, which is why its
+   *  policy is `epoch_boundaries_only`. Mirrors the engine's `e_value_terminal`. */
+  | 'e_value_terminal';
 
 export type RepeatedLookPolicy =
   | 'anytime_valid_continuous_peeking'
@@ -172,6 +177,34 @@ function familyAMixtureEntry(id: DetectorId): DetectorGuarantee {
     alpha_participating: true,
     citation: 'Howard, Ramdas, McAuliffe & Sekhon (2021), Annals of Statistics — '
       + 'time-uniform nonparametric confidence sequences (mixture supermartingale)',
+  };
+}
+
+/** C64 (a) — the envelope-valid terminal path: the safe two-sample t e-value at known φ,
+ *  read once per signal at the canary's end (engine/gates/_health-valid-path.ts). Ship rule of
+ *  the C64 (d) power study (studies/valid-path-power, run 2026-09-03T18182Z): 1.0000 at the K1
+ *  canonical 1.5σ, 0/524 null crossings at α = 0.05, exactly scale-invariant. */
+const FAMILY_A_SAFE_T_ASSUMPTIONS = [
+  'two-sample t on AR(1)-whitened residuals (calibration series vs the full canary), the '
+    + 'common mean and the common innovation variance integrated out (right-Haar / GROW)',
+  'known φ supplied by the caller, or the compiled cell φ̂ with calibration ≥ 100 (ADR 0005: '
+    + 'the e-BH-relevant E[e|H0] ≤ 1 needs cal ≳ 100 under an estimated φ); maxPhiValid 0.95',
+  'one look per canary: P(e ≥ 1/α) ≤ α by Markov; a fixed-time e-value, not an e-process',
+] as const;
+
+function familyASafeTEntry(id: DetectorId): DetectorGuarantee {
+  return {
+    detector_id: id,
+    family: 'A',
+    validity_class: 'e_value_terminal',
+    null_assumptions: FAMILY_A_SAFE_T_ASSUMPTIONS,
+    repeated_look_policy: EPOCH_POLICY,
+    alpha_participating: true,
+    citation: 'Pérez-Ortiz, Lardy, de Heide & Grünwald (2024) GROW e-statistics for the '
+      + 'location-scale model; engine ADR 0005 (safe-t e-value); Ramdas & Wang (2025) Prop. 4.4',
+    id_mapping_note: 'runtime rollback id is `family_A_safe_t_{signal}`; the audit writer maps it '
+      + 'to this registry id (engine ≥ v0.6.10-pre). Inert unless the caller supplies '
+      + '`OrchestrateParams.validPath` (C64 a).',
   };
 }
 
@@ -315,6 +348,14 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
   betting_e_process_tool_success_rate: familyABettingEntry('betting_e_process_tool_success_rate'),
   betting_e_process_downstream_err: familyABettingEntry('betting_e_process_downstream_err'),
   betting_e_process_cost_req: familyABettingEntry('betting_e_process_cost_req'),
+
+  // Family A — the envelope-valid terminal path (C64 a; engine v0.6.10-pre registry ids).
+  safe_t_e_value_p99_latency: familyASafeTEntry('safe_t_e_value_p99_latency'),
+  safe_t_e_value_ttft: familyASafeTEntry('safe_t_e_value_ttft'),
+  safe_t_e_value_eval_score: familyASafeTEntry('safe_t_e_value_eval_score'),
+  safe_t_e_value_tool_success_rate: familyASafeTEntry('safe_t_e_value_tool_success_rate'),
+  safe_t_e_value_downstream_err: familyASafeTEntry('safe_t_e_value_downstream_err'),
+  safe_t_e_value_cost_req: familyASafeTEntry('safe_t_e_value_cost_req'),
 
   // Family B — structural pattern-matching.
   kv_saturation: familyBEntry('kv_saturation'),

@@ -86,10 +86,22 @@ test('Family A Page-CUSUM ids (mSPRT_* and page_cusum_*) are ville_anytime_valid
   + 'Q68 consolidation retired the classical excursion-theory path from production '
   + 'dispatch (evaluateFamilyA always delegates to the mixture-supermartingale variant)', () => {
   for (const id of DETECTOR_REGISTRY.A) {
-    if (id.startsWith('betting_e_process_')) continue;
+    if (id.startsWith('betting_e_process_') || id.startsWith('safe_t_e_value_')) continue;
     const g = DETECTOR_GUARANTEES[id];
     assert.equal(g.validity_class, 'ville_anytime_valid', `${id} should be ville_anytime_valid`);
     assert.equal(g.alpha_participating, true);
+  }
+});
+
+test('C64 (a): Family A safe_t_e_value_* ids are e_value_terminal, one look per canary, α-participating', () => {
+  const ids = DETECTOR_REGISTRY.A.filter((id) => id.startsWith('safe_t_e_value_'));
+  assert.equal(ids.length, 6, 'six Family A signals at engine v0.6.10-pre');
+  for (const id of ids) {
+    const g = DETECTOR_GUARANTEES[id];
+    assert.equal(g.validity_class, 'e_value_terminal');
+    assert.equal(g.repeated_look_policy, 'epoch_boundaries_only', 'a fixed-time e-value is read once');
+    assert.equal(g.alpha_participating, true);
+    assert.ok(g.id_mapping_note?.includes('family_A_safe_t_'), 'names the runtime rollback id');
   }
 });
 

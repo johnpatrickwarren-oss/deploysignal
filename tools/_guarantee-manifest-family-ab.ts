@@ -29,6 +29,16 @@ export function buildFamilyASection(cfg: CompiledConfig): ManifestFamilySection 
   const nSignals = familyASignalCount(cfg);
   const detectors: ManifestDetectorEntry[] = DETECTOR_REGISTRY.A.map((id: DetectorId) => {
     const g = DETECTOR_GUARANTEES[id];
+    if (id.startsWith('safe_t_e_value_')) {
+      // C64 (a): the terminal safe-t path runs only when the caller supplies a calibration
+      // series (OrchestrateParams.validPath); a compiled config alone never activates it.
+      return {
+        detector_id: id,
+        validity_class: g.validity_class,
+        alpha_participating: g.alpha_participating,
+        configured_reality: 'safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)',
+      };
+    }
     const kind = id.startsWith('betting_e_process_') ? 'betting e-process co-ship'
       : id.startsWith('page_cusum_') ? 'mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted)'
         : 'mixture-supermartingale Page-CUSUM (emitted as this id)';
