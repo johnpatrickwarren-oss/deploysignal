@@ -5,6 +5,7 @@
 import type {
   CompiledConfig, SchemaContinuityRecord,
 } from '../types';
+import type { ValidPathOpts } from './_health-valid-path';
 
 /** Week 2+3 Family A/C context. Optional — when omitted, the
  *  ratio-detector path is unchanged. When `compiledConfig.baseline_cells`
@@ -42,6 +43,13 @@ export interface HealthOpts {
    *  tenant_tier)` cells. Absent or unmapped → `'aggregate'` tier
    *  (backward compat with pre-#23 configs). */
   tenantId?: string;
+  /** C64 (a) — the envelope-valid terminal path (engine/gates/_health-valid-path.ts). Absent →
+   *  the path is inert and the gate is byte-identical. Threaded from
+   *  `OrchestrateParams.validPath`. */
+  validPath?: ValidPathOpts;
+  /** C64 (a) — true on the canary's last tick (`tick >= totalTicks − 1`); the valid path reads
+   *  its terminal e-value once, here, and never before. Set by the orchestrator. */
+  terminalLook?: boolean;
 }
 
 /** Ratio detector IDs whose per-signal job is owned by Family A CUSUM

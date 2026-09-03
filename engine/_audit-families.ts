@@ -15,23 +15,29 @@ import { DETECTOR_REGISTRY } from './types';
  *  pair in DETECTOR_REGISTRY. Returns null for unknown ids — the writer
  *  skips them to satisfy "no unknown_detector_id values in shipped
  *  records" (audit/SCHEMA.md v2 acceptance). */
+/** Family A rollback ids → registry ids, longest prefix first. Addition #17: betting fires
+ *  carry `family_A_betting_`; C64 (a): valid-path fires carry `family_A_safe_t_`
+ *  (engine/gates/_health-valid-path.ts); everything else under `family_A_` is the Page-CUSUM
+ *  path, emitted as the legacy `mSPRT_` id. `undefined` = not a Family A id. */
+const FAMILY_A_ID_PREFIXES: ReadonlyArray<readonly [string, string]> = [
+  ['family_A_safe_t_', 'safe_t_e_value_'],
+  ['family_A_betting_', 'betting_e_process_'],
+  ['family_A_', 'mSPRT_'],
+];
+function resolveFamilyAId(id: string): { family_id: FamilyId; detector_id: DetectorId } | null | undefined {
+  const hit = FAMILY_A_ID_PREFIXES.find(([prefix]) => id.startsWith(prefix));
+  if (!hit) return undefined;
+  const did = (hit[1] + id.slice(hit[0].length)) as DetectorId;
+  return (DETECTOR_REGISTRY.A as readonly string[]).indexOf(did) >= 0 ? { family_id: 'A', detector_id: did } : null;
+}
+
 function resolveDetectorId(id: string): { family_id: FamilyId; detector_id: DetectorId } | null {
   // Addition #17 (ARCHITECT-REPLY-34 D2) — betting-e-process fires come
   // through with a `family_A_betting_` prefix so the audit writer can
   // distinguish them from Page-CUSUM fires (both share `family === 'A'`).
   // Must be checked before the broader `family_A_` branch.
-  if (id.startsWith('family_A_betting_')) {
-    const signal = id.slice('family_A_betting_'.length);
-    const did = ('betting_e_process_' + signal) as DetectorId;
-    if ((DETECTOR_REGISTRY.A as readonly string[]).indexOf(did) >= 0) return { family_id: 'A', detector_id: did };
-    return null;
-  }
-  if (id.startsWith('family_A_')) {
-    const signal = id.slice('family_A_'.length);
-    const did = ('mSPRT_' + signal) as DetectorId;
-    if ((DETECTOR_REGISTRY.A as readonly string[]).indexOf(did) >= 0) return { family_id: 'A', detector_id: did };
-    return null;
-  }
+  const a = resolveFamilyAId(id);
+  if (a !== undefined) return a;
   if (id === 'family_C') return { family_id: 'C', detector_id: 'hotelling_t2_joint_vector' };
   if (id === 'family_C_mmd') return { family_id: 'C', detector_id: 'sequential_mmd' };
   if (id.startsWith('family_D_')) {
@@ -181,6 +187,12 @@ function mapSuppression(codes: string[]): FamilyVerdictV2['suppression_reason'] 
   return 'bake_profile';
 }
 
+/** C64 (a): a valid-path verdict is told apart by its reason_code, since the per-signal
+ *  Family A array carries the plug-ins and the terminal e-value alike. */
+function familyARollbackId(v: DetectorVerdict): string {
+  return (v.reason_code.startsWith('safe_t_') ? 'family_A_safe_t_' : 'family_A_') + v.signal;
+}
+
 // Family A — per-signal shadow verdicts.
 function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerdictV2): void {
   if (!hr.family_A_shadow || hr.family_A_shadow.length === 0) return;
@@ -193,7 +205,7 @@ function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerd
     else suppressCodes.push(v.reason_code);
     if (v.verdict === 'fire' && v.signal) {
       anyFire = true;
-      const rid = resolveDetectorId('family_A_' + v.signal);
+      const rid = resolveDetectorId(familyARollbackId(v));
       if (rid) {
         fa.detectors.push(tripFromVerdict(params, rid, v, 'Family A ' + v.signal, 'health_rollback'));
         alphaSum += v.alpha_spent;

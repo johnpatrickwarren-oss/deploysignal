@@ -16,6 +16,7 @@ import {
 import { evaluateApproval } from './gates/approval';
 import { evaluateState } from './gates/state';
 import { evaluateHealth } from './gates/health';
+import type { HealthOpts } from './gates/_health-types';
 import { computeVerdict } from '@johnpatrickwarren-oss/deploysignal-engine/core';
 import { fuseVerdict } from './verdict';
 import { buildAuditRecord } from './audit';
@@ -189,6 +190,13 @@ function runGateSequence(
   return { kind: 'continue', policyCtx, failFastState, ignoredSignals, effectiveRisk };
 }
 
+/** C64 (a): the valid path's HealthOpts — empty (byte-identical gate) unless the caller
+ *  routed a calibration series; the terminal look is the canary's last tick. */
+function validPathHealthOpts(params: OrchestrateParams, tick: number, total: number): Partial<HealthOpts> {
+  if (!params.validPath) return {};
+  return { validPath: params.validPath, terminalLook: tick >= total - 1 };
+}
+
 // Runs the health gate → Anvil suppression → fusion → group fan-out →
 // cascade/portfolio verdict + reason, mutating `gateResults` exactly as
 // the inline body did. Returns the final (pre-`_emit`) verdict draft.
@@ -217,6 +225,7 @@ function computeFinalVerdict(
     schemaContinuityClass: params.schemaContinuityClass,
     ignoredSignals,
     tenantId:          params.tenantId,
+    ...validPathHealthOpts(params, tick, total),
   });
   // Addition #29 / Q29 — Anvil expected-failure-pattern suppression. Gated
   // on params.expectedFailurePattern !== undefined so the pre-Anvil path
