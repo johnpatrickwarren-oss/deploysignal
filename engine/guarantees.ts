@@ -103,6 +103,18 @@ import { DETECTOR_REGISTRY } from './types';
  *  scores (super-uniformity), and an epoch guard on the classical block. */
 export const FAMILY_E_ADVISORY = true;
 
+/** C62 (b), engine ADR 0030 — the false-coverage level at which the fused verdict reports e-BY
+ *  effect-size intervals for the Family A mixture signals that fired this tick. Each selected
+ *  signal's interval is read at `E_BY_DELTA·|S|/K` (K = the mixture signals evaluated, S = the
+ *  fired, non-advisory ones), and Ramdas–Wang 2025 Theorem 13.7 gives FCR ≤ E_BY_DELTA under any
+ *  selection rule and any dependence, provided the mixture's own construction premise holds.
+ *  REPORTED, no verdict authority; a constant rather than a profile knob because nothing reads
+ *  it but the report (engine study 2026-09-e-by-fcr: FCR at most 0.27·δ at δ = 0.05 on Gaussian
+ *  signals, and under 0.04·δ except where every selected signal is a false fire read at its own
+ *  fire tick). Under an ESTIMATED baseline the interval covers the shift from the estimate
+ *  (engine study 2026-09-mixture-cs P3/P4), at this level as at every level. */
+export const E_BY_DELTA = 0.05;
+
 /** C64 (b), 2026-09-03 — the Family A plug-ins (mixture supermartingale, betting e-process)
  *  are ADVISORY on a signal the envelope-valid terminal path is routed for
  *  (`OrchestrateParams.validPath`, engine/gates/_health-valid-path.ts), and α-participating

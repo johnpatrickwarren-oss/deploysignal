@@ -130,6 +130,28 @@ export interface FusedVerdict {
    *  numerically incomparable scales and must never collapse into one
    *  `progress` ratio (2026-07 Important-finding fix). */
   evidence_outlook: EvidenceOutlookEntry[];
+  /** C62 (b) — e-BY effect-size intervals for the Family A mixture signals that fired this tick,
+   *  at level `E_BY_DELTA·|S|/K`. Present only when at least one mixture verdict carried a
+   *  confidence sequence (engine ≥ v0.6.11-pre, Gaussian mixture path); absent otherwise, so
+   *  every pre-existing verdict shape is unchanged. Empty `intervals` when nothing fired. */
+  effect_intervals?: EffectIntervalsEBy;
+}
+
+/** C62 (b) — the e-BY report (engine `fleet/e-by.ts`, ADR 0030) keyed by signal. */
+export interface EffectIntervalsEBy {
+  /** the FCR target, `E_BY_DELTA`. */
+  delta: number;
+  /** the mixture signals the selection was made from. */
+  K: number;
+  /** |S|: fired, non-advisory mixture signals. */
+  selected_count: number;
+  /** `delta·|S|/K`; 0 when nothing fired. */
+  alpha_i: number;
+  /** one per selected signal: the shift from the compiled baseline mean, whitened units when
+   *  `ar1_phi ≠ 0`, at level `alpha_i`. */
+  intervals: Array<{ signal: string; alpha_i: number; center: number; half_width: number; lower: number; upper: number }>;
+  guarantee: string;
+  note: string;
 }
 
 /** Per-family entry in `FusedVerdict.evidence_outlook` (WS5 verdict
