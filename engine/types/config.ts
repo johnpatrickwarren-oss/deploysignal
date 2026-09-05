@@ -43,6 +43,9 @@ export type {
   WorkloadProfileSliEntry,
   WorkloadProfileBakeEntry,
   WorkloadProfile,
+  ControlArmProfile,
+  ControlArmPair,
+  ControlArmCohortPair,
   CustomerOverride,
   EffectiveConfig,
 } from './_config-profiles';

@@ -95,7 +95,9 @@ test('Family A Page-CUSUM ids (mSPRT_* and page_cusum_*) are ville_anytime_valid
   + 'Q68 consolidation retired the classical excursion-theory path from production '
   + 'dispatch (evaluateFamilyA always delegates to the mixture-supermartingale variant)', () => {
   for (const id of DETECTOR_REGISTRY.A) {
-    if (id.startsWith('betting_e_process_') || id.startsWith('safe_t_e_value_')) continue;
+    // C81: contrast_null_* is ville by construction but ADVISORY (alpha_participating false);
+    // test/c81-contrast-arm.test.ts pins those six.
+    if (id.startsWith('betting_e_process_') || id.startsWith('safe_t_e_value_') || id.startsWith('contrast_null_')) continue;
     const g = DETECTOR_GUARANTEES[id];
     assert.equal(g.validity_class, 'ville_anytime_valid', `${id} should be ville_anytime_valid`);
     assert.equal(g.alpha_participating, true);

@@ -6,6 +6,7 @@ import type {
   CompiledConfig, SchemaContinuityRecord,
 } from '../types';
 import type { ValidPathOpts } from './_health-valid-path';
+import type { ContrastArmOpts } from './_health-contrast';
 
 /** Week 2+3 Family A/C context. Optional — when omitted, the
  *  ratio-detector path is unchanged. When `compiledConfig.baseline_cells`
@@ -50,6 +51,12 @@ export interface HealthOpts {
   /** C64 (a) — true on the canary's last tick (`tick >= totalTicks − 1`); the valid path reads
    *  its terminal e-value once, here, and never before. Set by the orchestrator. */
   terminalLook?: boolean;
+  /** C81 (Part 2) — the control arm's caller-supplied baseline pairs
+   *  (engine/gates/_health-contrast.ts). Absent → the arm is inert and the gate is
+   *  byte-identical. Threaded from `OrchestrateParams.contrastArm`. */
+  contrastArm?: ContrastArmOpts;
+  /** C81 (Part 2) — the canary's total ticks, for the fit ratio the arm's gate is judged on. */
+  totalTicks?: number;
 }
 
 /** Ratio detector IDs whose per-signal job is owned by Family A CUSUM

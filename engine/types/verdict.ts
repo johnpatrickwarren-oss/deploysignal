@@ -135,6 +135,32 @@ export interface FusedVerdict {
    *  confidence sequence (engine ≥ v0.6.11-pre, Gaussian mixture path); absent otherwise, so
    *  every pre-existing verdict shape is unchanged. Empty `intervals` when nothing fired. */
   effect_intervals?: EffectIntervalsEBy;
+  /** C81 (Part 2) — the control arm's report (engine/_verdict-contrast.ts): ADVISORY — never a
+   *  rollback, never α; present only when the compiled config declares `control_arm` and the
+   *  caller supplied `OrchestrateParams.contrastArm`, so every pre-existing verdict shape is
+   *  unchanged. */
+  contrast_arm?: ContrastArmReport;
+}
+
+/** C81 (Part 2) — what the fused verdict reports for the control arm. Selection through the
+ *  engine's guarded e-BH (only under the fit-ratio assertion, see `gate`), margins, the cohort
+ *  monitors, and e-BY intervals on the selected pairs' residual means at `E_BY_DELTA·|S|/K`. */
+export interface ContrastArmReport {
+  authority: 'advisory';
+  q: number;
+  fit_ticks: number;
+  fit_ratio: number | null;
+  gate: 'asserted_m_much_greater_than_n' | 'asserted_by_study_flag' | 'refused_fit_ratio' | 'no_admissible_pairs';
+  /** the universe the selection was made from: pairs whose cohort monitor is passing. */
+  K: number;
+  pairs: Array<{ pair: string; signal: string; canary: string; control: string; log_e: number; monitor_passing: boolean; selected: boolean; reason_code: string }>;
+  selected: string[];
+  log_threshold_e: number | null;
+  log_margins: Record<string, number>;
+  monitors: Record<string, boolean>;
+  /** e-BY on the selected pairs' residual means (σ² = 1 by standardization, ρ the mixing prior). */
+  effect_intervals?: EffectIntervalsEBy;
+  note: string;
 }
 
 /** C62 (b) — the e-BY report (engine `fleet/e-by.ts`, ADR 0030) keyed by signal. */

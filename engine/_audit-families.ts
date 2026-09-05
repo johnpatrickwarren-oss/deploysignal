@@ -21,6 +21,9 @@ import { DETECTOR_REGISTRY } from './types';
  *  path, emitted as the legacy `mSPRT_` id. `undefined` = not a Family A id. */
 const FAMILY_A_ID_PREFIXES: ReadonlyArray<readonly [string, string]> = [
   ['family_A_safe_t_', 'safe_t_e_value_'],
+  // C81: the control arm is ADVISORY and pushes no rollback id today; the mapping exists so a
+  // future authoritative mode names its fires by the engine's registry id.
+  ['family_A_contrast_', 'contrast_null_'],
   ['family_A_betting_', 'betting_e_process_'],
   ['family_A_', 'mSPRT_'],
 ];

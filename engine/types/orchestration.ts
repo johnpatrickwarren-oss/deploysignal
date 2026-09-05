@@ -14,6 +14,7 @@ import type { AuditWriter, AuditOpts } from './audit';
 import type { CompiledConfig } from './config';
 import type { StateGateContext } from './session';
 import type { ValidPathOpts } from '../gates/_health-valid-path';
+import type { ContrastArmOpts } from '../gates/_health-contrast';
 
 /** Inputs to evaluate(). All fields except liveMetrics/scenario are optional. */
 export interface OrchestrateParams {
@@ -30,6 +31,12 @@ export interface OrchestrateParams {
    *  Registered on the C64 (d) power study's ship rule (knowledge
    *  stats/valid-path-power-2026-09-03). */
   validPath?: ValidPathOpts;
+  /** C81 (Part 2) — the control arm's healthy baseline pairs, keyed by pair id
+   *  (`${signal}|${canary}|${control}`), for the pairs the compiled config's `control_arm`
+   *  declares; plus the cohort pairs' baselines. ADVISORY (engine ADR 0032 refused the contrast
+   *  null an admitting envelope): reported on `FusedVerdict.contrast_arm`, never a rollback,
+   *  never α. Absent → byte-identical behaviour. */
+  contrastArm?: ContrastArmOpts;
   deployId?: string;
   targetCloud?: string;
   /** Task 2 (WS4 session-durability-argo plan) — pure data snapshot fed

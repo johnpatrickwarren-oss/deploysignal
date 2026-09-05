@@ -84,6 +84,13 @@ export const DETECTOR_REGISTRY = {
     'safe_t_e_value_p99_latency', 'safe_t_e_value_ttft',
     'safe_t_e_value_eval_score', 'safe_t_e_value_tool_success_rate',
     'safe_t_e_value_downstream_err', 'safe_t_e_value_cost_req',
+    // C81 (Part 2), 2026-09-05 — the contrast null ids (engine ≥ v0.6.12-pre, ADR 0032):
+    // a mean-shift card on the standardized treatment − control residual of a declared pair.
+    // The control arm is ADVISORY (engine/gates/_health-contrast.ts) and emits no rollback id
+    // today; the ids mirror the engine registry so the audit path can name a future fire.
+    'contrast_null_p99_latency', 'contrast_null_ttft',
+    'contrast_null_eval_score', 'contrast_null_tool_success_rate',
+    'contrast_null_downstream_err', 'contrast_null_cost_req',
   ] as const,
   B: [
     'kv_saturation', 'hbm_elevation', 'hbm_spill_roll', 'mfu_collapse',

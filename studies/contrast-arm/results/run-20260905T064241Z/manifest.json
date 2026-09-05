@@ -1,0 +1,63 @@
+{
+  "study": "2026-09-contrast-arm",
+  "register": "knowledge WORKLIST C81 (Part 2)",
+  "repo_sha": "13ec0c1fcb48be5f933e1e4ae6cb13ae4cc6dbb3",
+  "engine": {
+    "pin": "git+https://github.com/johnpatrickwarren-oss/deploysignal-engine.git#v0.6.12-pre",
+    "installed": "0.6.12-pre"
+  },
+  "scenario_sha": "dd15a08e246c3e2152fc122fca6fb0eb0e6ed2f7f8b556dcfe95a0ae828f7474",
+  "n_scenarios": 131,
+  "node": "v25.9.0",
+  "constants": {
+    "ALPHAS": [
+      0.000033333333333333335,
+      0.05
+    ],
+    "Q": 0.05,
+    "FIT": 500,
+    "T_TOTAL": 100,
+    "T_INJECT": 30,
+    "DELTA": 1.5,
+    "DELTA_3": 3,
+    "SIGNALS": {
+      "p99_latency": 0.008,
+      "ttft": 0.008,
+      "cost_req": 0.006,
+      "downstream_err": 0.03
+    },
+    "VARIANTS": [
+      "null",
+      "canary",
+      "shared",
+      "contaminated",
+      "canary-3"
+    ],
+    "ARMS": [
+      "contrast",
+      "temporal"
+    ],
+    "FLOOR": 0.5,
+    "MONITOR_ALPHA": 0.01,
+    "FIT_RATIO_FLOOR": 10
+  },
+  "smoke": {
+    "null": {
+      "temporal": null,
+      "contrast": null
+    },
+    "canary-3": {
+      "temporal": 38,
+      "contrast": 34
+    }
+  },
+  "runtime_ms": 2131,
+  "exceptions": 0,
+  "exception_log": [],
+  "voided_cells": [],
+  "hashes": {
+    "harness": "62fbff6bd90c3e8601fc2e7537c84f578dad384941e41d41a01bca82e4d2810d",
+    "registration": "11ffd08b92101c65527dd8f619efedb95b47e9e9fa7eee15ddef1547d57a2e36",
+    "module": "376790fe838cbc31369c54c9f250927698dec4a52a73d7af7025c10a1c055436"
+  }
+}

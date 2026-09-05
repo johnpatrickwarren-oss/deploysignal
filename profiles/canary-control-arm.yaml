@@ -1,0 +1,45 @@
+# profiles/canary-control-arm.yaml
+#
+# C81 (Part 2) — a reference profile declaring a CONTROL ARM: per signal, which live metric keys
+# are the canary units and which are their concurrent control twins (matched pairs), plus a
+# control-vs-control cohort believed null for the calibration monitor. Extends the generic
+# microservice profile; everything else is inherited.
+#
+# The runtime gate (engine/gates/_health-contrast.ts) is ADVISORY: engine ADR 0032 (study
+# 2026-09-contrast-null) refused the contrast null an admitting envelope — the shared component
+# cancels exactly, but the contrast's estimated OFFSET is the plug-in n >> m price. The temporal
+# path keeps its authority; the arm's selection, margins, monitors and e-BY intervals ride on
+# FusedVerdict.contrast_arm.
+
+id: canary-control-arm
+version: "1.0.0"
+extends: generic-microservice
+description: >
+  Generic microservice profile with a declared control arm: one canary/control pair per Family A
+  signal and one control-vs-control cohort pair per signal. Advisory contrast gate (C81).
+
+control_arm:
+  # The healthy contrast fit window the caller supplies (ticks). The gate asserts the engine's
+  # m >> n regime only when fit_ticks >= CONTRAST_FIT_RATIO_FLOOR x the canary's total ticks.
+  fit_ticks: 500
+  pairs:
+    - signal: p99_latency
+      canary: p99_latency@canary-a
+      control: p99_latency@control-a
+    - signal: downstream_err
+      canary: downstream_err@canary-a
+      control: downstream_err@control-a
+    - signal: cost_req
+      canary: cost_req@canary-a
+      control: cost_req@control-a
+  control_cohort:
+    - signal: p99_latency
+      a: p99_latency@control-a
+      b: p99_latency@control-b
+    - signal: downstream_err
+      a: downstream_err@control-a
+      b: downstream_err@control-b
+    - signal: cost_req
+      a: cost_req@control-a
+      b: cost_req@control-b
+  q: 0.05

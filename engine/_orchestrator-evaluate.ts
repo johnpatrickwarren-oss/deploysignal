@@ -197,6 +197,13 @@ function validPathHealthOpts(params: OrchestrateParams, tick: number, total: num
   return { validPath: params.validPath, terminalLook: tick >= total - 1 };
 }
 
+/** C81 (Part 2): the control arm's HealthOpts — empty (byte-identical gate) unless the caller
+ *  supplied the pairs' baselines; the total ticks feed the fit ratio the arm's gate is judged on. */
+function contrastArmHealthOpts(params: OrchestrateParams, total: number): Partial<HealthOpts> {
+  if (!params.contrastArm) return {};
+  return { contrastArm: params.contrastArm, totalTicks: total };
+}
+
 // Runs the health gate → Anvil suppression → fusion → group fan-out →
 // cascade/portfolio verdict + reason, mutating `gateResults` exactly as
 // the inline body did. Returns the final (pre-`_emit`) verdict draft.
@@ -226,6 +233,7 @@ function computeFinalVerdict(
     ignoredSignals,
     tenantId:          params.tenantId,
     ...validPathHealthOpts(params, tick, total),
+    ...contrastArmHealthOpts(params, total),
   });
   // Addition #29 / Q29 — Anvil expected-failure-pattern suppression. Gated
   // on params.expectedFailurePattern !== undefined so the pre-Anvil path

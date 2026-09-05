@@ -131,6 +131,36 @@ export const FAMILY_A_PLUGIN_ADVISORY: 'when_valid_path_routed' | 'never' = 'whe
 /** reason_code an advisory plug-in fire carries (C64 b). */
 export const FAMILY_A_PLUGIN_ADVISORY_REASON = 'advisory_valid_path_routed';
 
+/** C81 (Part 2), 2026-09-05 — the control arm (engine/gates/_health-contrast.ts) is ADVISORY:
+ *  engine study 2026-09-contrast-null (ADR 0032, run-20260905T061348Z) refused the contrast null
+ *  an admitting envelope — the shared component cancels exactly, but the contrast's estimated
+ *  OFFSET is the plug-in n >> m price (mixture false alerts 0.34 / 0.18 / 0.03 per 1,000 ticks at
+ *  fit 60 / 300 / 2000 on iid pairs, contract 0.025). Nothing from the arm enters rollback[],
+ *  firing_families or alpha_spent; its selection, margins, monitors and e-BY intervals are
+ *  reported on FusedVerdict.contrast_arm. Reversal: an engine envelope that ADMITS the
+ *  construction at the declared fit length. */
+export const CONTRAST_ARM_AUTHORITY = 'advisory' as const;
+/** The ONE e-BH budget across pairs × signals (profile `control_arm.q` overrides). */
+export const CONTRAST_ARM_Q = 0.05;
+/** The fit-ratio floor (fit_ticks / total canary ticks) at which the gate asserts the engine's
+ *  `mMuchGreaterThanN` regime for the contrast e-values. Part 1's law: the mixture wealth's excess
+ *  under the estimated offset is about n/m nats over the horizon, so ratio 10 is epsilon ≈ 0.1 on
+ *  the reported FDR level (Ramdas–Wang 2025 Thm 10.24). Below it the selection is refused and the
+ *  raw e-values are still reported. Asserted at one call site (`selectContrastArm`), not proven. */
+export const CONTRAST_FIT_RATIO_FLOOR = 10;
+/** The cohort monitor's anytime level ('gaussian' increment, Tessera ADR 0019 / engine
+ *  fleet/calibration-monitor.ts): a signal whose control-vs-control monitor has revoked is advisory
+ *  even under the assertion. */
+export const CONTRAST_MONITOR_ALPHA = 0.01;
+/** The Gaussian mixture's mixing variance on a standardized residual (σ² = 1): ρ = 1. */
+export const CONTRAST_MIXTURE_PRIOR = 1;
+/** reason_code values the contrast verdicts carry. */
+export const CONTRAST_ARM_REASON = Object.freeze({
+  selected: 'contrast_advisory_selected',
+  clean: 'contrast_advisory_clean',
+  monitorRevoked: 'contrast_monitor_revoked',
+});
+
 /** Is the Family A plug-in verdict for `signal` advisory this tick? True iff the valid path
  *  is routed for that signal and the flag is on. */
 export function familyAPluginAdvisory(signal: string | undefined, routed: ReadonlySet<string> | undefined): boolean {
@@ -301,6 +331,50 @@ function familyASafeTEntry(id: DetectorId): DetectorGuarantee {
   };
 }
 
+/** C81 (Part 2) — the contrast null (engine per-shard/contrast.ts, ADR 0032): the Family A
+ *  mixture card on the standardized treatment − control residual of a declared pair. The engine's
+ *  envelope is a measured REFUSAL (study 2026-09-contrast-null); the arm is advisory here. */
+const CONTRAST_NULL_ASSUMPTIONS = [
+  'the contrast treatment − control of two units on the same version under the same traffic, '
+    + 'centered on a fit-window median, whitened at the fit window\'s φ and standardized by its '
+    + 'robust scale, is conditionally mean-zero with scale 1 — what the units share cancels by '
+    + 'algebra (measured: 73,500 of 73,500 alert ticks identical under a shared step)',
+  'the OFFSET is estimated from m fit ticks and read against the canary horizon n: the plug-in '
+    + 'n >> m regime (mixture false alerts 0.34 / 0.18 / 0.03 per 1,000 ticks at m = 60 / 300 / '
+    + '2000 on iid pairs, contract 0.025); the engine admits the e-value only under '
+    + '{ mMuchGreaterThanN } (this gate asserts it at fit ratio >= CONTRAST_FIT_RATIO_FLOOR) or '
+    + '{ trueBaseline } (a twin with a known offset)',
+  'the control-vs-control cohort\'s calibration monitor (gaussian increment, α_cal 0.01) is the '
+    + 'Mode gate: a revoked signal is advisory even under the assertion',
+] as const;
+
+const CONTRAST_APPROXIMATE_E_VALUE: ApproximateEValueForm = {
+  form: 'epsilon_growing',
+  law: 'the contrast offset is a median of m fit ticks, so the residual carries a persistent shift '
+    + 'of order 1/sqrt(m) and the mixture wealth grows with the horizon n at fixed m; '
+    + 'epsilon ≈ n/m nats over the horizon (engine validation/contrast-null run-20260905T061348Z)',
+  source: 'engine guarantees.ts contrast_null_ row (ADR 0032); knowledge stats/contrast-null-2026-09-05',
+};
+
+function familyAContrastEntry(id: DetectorId): DetectorGuarantee {
+  return {
+    detector_id: id,
+    family: 'A',
+    validity_class: 'ville_anytime_valid',
+    null_assumptions: CONTRAST_NULL_ASSUMPTIONS,
+    repeated_look_policy: VILLE_POLICY,
+    alpha_participating: false,
+    approximate_e_value: CONTRAST_APPROXIMATE_E_VALUE,
+    citation: 'Tessera ADR 0019 (the model-free contrast, Mode B spatial null) and ADR 0029 (the '
+      + 'action surface); engine ADR 0032 (the port and its refused envelope); Howard et al. (2021) '
+      + 'for the mixture card on the residual',
+    id_mapping_note: 'ADVISORY (CONTRAST_ARM_AUTHORITY): the control arm pushes no rollback id; '
+      + 'its verdicts ride on FusedVerdict.contrast_arm. The audit prefix `family_A_contrast_` maps '
+      + 'to this registry id for a future authoritative mode. Inert unless the compiled config '
+      + 'declares `control_arm` and the caller supplies `OrchestrateParams.contrastArm` (C81).',
+  };
+}
+
 function familyABettingEntry(id: DetectorId): DetectorGuarantee {
   return {
     detector_id: id,
@@ -451,6 +525,13 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
   betting_e_process_cost_req: familyABettingEntry('betting_e_process_cost_req'),
 
   // Family A — the envelope-valid terminal path (C64 a; engine v0.6.10-pre registry ids).
+  // C81 (Part 2) — the contrast null ids, advisory (see familyAContrastEntry).
+  contrast_null_p99_latency: familyAContrastEntry('contrast_null_p99_latency'),
+  contrast_null_ttft: familyAContrastEntry('contrast_null_ttft'),
+  contrast_null_eval_score: familyAContrastEntry('contrast_null_eval_score'),
+  contrast_null_tool_success_rate: familyAContrastEntry('contrast_null_tool_success_rate'),
+  contrast_null_downstream_err: familyAContrastEntry('contrast_null_downstream_err'),
+  contrast_null_cost_req: familyAContrastEntry('contrast_null_cost_req'),
   safe_t_e_value_p99_latency: familyASafeTEntry('safe_t_e_value_p99_latency'),
   safe_t_e_value_ttft: familyASafeTEntry('safe_t_e_value_ttft'),
   safe_t_e_value_eval_score: familyASafeTEntry('safe_t_e_value_eval_score'),

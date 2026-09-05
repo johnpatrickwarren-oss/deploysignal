@@ -28,6 +28,7 @@ import type {
 } from './types';
 import { FAMILY_E_ADVISORY } from './guarantees';
 import { eByEffectIntervals } from './_verdict-e-by';
+import { contrastArmReport } from './_verdict-contrast';
 import type { ApproximateEValueForm } from './guarantees';
 import { isAdvisoryPluginFire, approximateEValueFor, advisoryPluginClause } from './_verdict-advisory';
 
@@ -759,6 +760,7 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
   const evidence_outlook = toEvidenceOutlook(evidenceRaw);
   const verdict_rationale = buildRationale(verdict, evidenceRaw, health.extend.map((s) => s.label));
   const effect_intervals = eByEffectIntervals(famA ?? []);
+  const contrast_arm = contrastArmReport(health);
 
   return {
     verdict,
@@ -777,5 +779,6 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
     verdict_rationale,
     evidence_outlook,
     ...(effect_intervals ? { effect_intervals } : {}),
+    ...(contrast_arm ? { contrast_arm } : {}),
   };
 }
