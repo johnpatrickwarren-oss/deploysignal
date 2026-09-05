@@ -32,6 +32,7 @@ import {
 } from './_health-types';
 import { runFamilyA, runFamilyC, runFamilyD, runFamilyE } from './_health-detectors';
 import { runFamilyAValidPath } from './_health-valid-path';
+import { runContrastArm } from './_health-contrast';
 
 export type { HealthOpts };
 
@@ -136,6 +137,12 @@ export function evaluateHealth(
 
   // C64 (a) — the envelope-valid terminal path; inert without `opts.validPath`.
   maybeRunFamilyAValidPath(result, rollbackFired, sup, liveMetrics, tb, opts);
+
+  // C81 (Part 2) — the control arm (ADVISORY): inert without `compiledConfig.control_arm` and
+  // `opts.contrastArm`; writes `result.contrast_arm`, touches neither rollback nor family_A_shadow.
+  if (opts?.contrastArm && opts.compiledConfig?.control_arm && tb) {
+    runContrastArm(result, liveMetrics, tb, opts.compiledConfig, opts.contrastArm, opts.totalTicks);
+  }
 
   // Family C (Hotelling T²) — W3 addition. End of the cascade; any fire
   // adds a `family_C` rollback entry. Stateless (per-tick test); error

@@ -76,6 +76,28 @@ export interface WorkloadProfile {
     default_recovery_seconds?: number;
     default_magnitude_unit?: 'relative_fraction' | 'absolute' | 'sigma';
   };
+  /** C81 (Part 2) — the control arm: per signal, which live metric keys are canary units and
+   *  which are their concurrent control twins (matched pairs), plus a control-vs-control cohort
+   *  believed null for the Mode gate. Optional; absent → no control arm, byte-identical gate.
+   *  Passed through to `CompiledConfig.control_arm` by the compiler; the runtime gate is
+   *  engine/gates/_health-contrast.ts (ADVISORY, engine ADR 0032). */
+  control_arm?: ControlArmProfile;
+}
+
+/** C81 — one matched pair: a canary unit and its concurrent control twin, both live metric keys
+ *  (e.g. `p99_latency@canary-a`, `p99_latency@control-a`). */
+export interface ControlArmPair { signal: string; canary: string; control: string }
+/** C81 — one control-vs-control pair believed null (the calibration monitor's input). */
+export interface ControlArmCohortPair { signal: string; a: string; b: string }
+/** C81 — the `control_arm` profile block (profiles/schema/profile.schema.json). */
+export interface ControlArmProfile {
+  /** the healthy contrast fit window the caller supplies, in ticks: the regime of the engine's
+   *  contrast envelope, and the numerator of the fit ratio the gate is judged on. */
+  fit_ticks: number;
+  pairs: ControlArmPair[];
+  control_cohort: ControlArmCohortPair[];
+  /** the ONE e-BH budget across pairs × signals; default engine/guarantees.ts CONTRAST_ARM_Q. */
+  q?: number;
 }
 
 /** Customer-side override layer per REPLY-51 D8. `overrides` is a

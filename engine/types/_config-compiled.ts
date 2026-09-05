@@ -5,6 +5,7 @@
 // the engine/types/config.ts god-file; re-exported verbatim from there to
 // preserve the facade export surface.
 
+import type { ControlArmProfile } from './_config-profiles';
 import type { ConfiguredAgent } from '@johnpatrickwarren-oss/deploysignal-engine/types/agent';
 import type { TenantTier, TenantTierConfig } from './_config-tenant';
 import type { BaselineCellsConfig, BakeProfile } from './_config-baseline-bundle';
@@ -113,6 +114,10 @@ export interface CompiledConfig {
    *  hardcoded `FAMILY_C_SIGNALS`. Compiled covariance matrix +
    *  mean_vector dimensions match this inventory's length. */
   family_c_signals?: string[];
+  /** C81 (Part 2) — the profile's control arm, passed through verbatim by the compiler
+   *  (tools/calibrate/_calibrate-config-build.ts attachProfileProvenance). Absent on legacy
+   *  compiles and on profiles without the block. */
+  control_arm?: ControlArmProfile;
   /** REPLY-51b R4-2 — compile-time warnings accumulated during
    *  dispatch (e.g., `CELL_DIM_BASELINE_DEFICIENCY` when profile
    *  requests a cell dimension the baseline lacks). Programmatic

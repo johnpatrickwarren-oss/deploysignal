@@ -1,0 +1,202 @@
+[
+ {
+  "arm": "contrast",
+  "variant": "null",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 1,
+  "rate": 0.007633587786259542,
+  "median_ttd": -7,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "null",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 1,
+  "rate": 0.007633587786259542,
+  "median_ttd": -7,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "canary",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 17,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "canary",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 17,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "shared",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 1,
+  "rate": 0.007633587786259542,
+  "median_ttd": -7,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "shared",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 1,
+  "rate": 0.007633587786259542,
+  "median_ttd": -7,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "contaminated",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 1,
+  "rate": 0.007633587786259542,
+  "median_ttd": -7,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "contaminated",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 1,
+  "rate": 0.007633587786259542,
+  "median_ttd": -7,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "canary-3",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 7,
+  "exceptions": 0
+ },
+ {
+  "arm": "contrast",
+  "variant": "canary-3",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 7,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "null",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 0,
+  "rate": 0,
+  "median_ttd": null,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "null",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 14,
+  "rate": 0.10687022900763359,
+  "median_ttd": -17,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "canary",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 18,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "canary",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 9,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "shared",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 18,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "shared",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 9,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "contaminated",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 0,
+  "rate": 0,
+  "median_ttd": null,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "contaminated",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 14,
+  "rate": 0.10687022900763359,
+  "median_ttd": -17,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "canary-3",
+  "alpha": 0.000033333333333333335,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 8,
+  "exceptions": 0
+ },
+ {
+  "arm": "temporal",
+  "variant": "canary-3",
+  "alpha": 0.05,
+  "trials": 131,
+  "rollbacks": 131,
+  "rate": 1,
+  "median_ttd": 4,
+  "exceptions": 0
+ }
+]

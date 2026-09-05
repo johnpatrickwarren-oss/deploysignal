@@ -1,0 +1,89 @@
+{
+  "E1": {
+    "n": 131,
+    "contrast_null": 0.007633587786259542,
+    "bar": 0.08808387689547,
+    "temporal_null": {
+      "primary": 0,
+      "secondary": 0.10687022900763359
+    },
+    "pass": true
+  },
+  "E2": {
+    "contrast": {
+      "rate": 1,
+      "ttd": 17
+    },
+    "temporal": {
+      "rate": 1,
+      "ttd": 18
+    },
+    "contrast_3": {
+      "rate": 1,
+      "ttd": 7
+    },
+    "temporal_3": {
+      "rate": 1,
+      "ttd": 8
+    },
+    "floor": 0.5,
+    "pass": true
+  },
+  "E3": {
+    "contrast_shared": 0.007633587786259542,
+    "contrast_null": 0.007633587786259542,
+    "bar": 0.04571746468172953,
+    "temporal_shared": 1,
+    "temporal_canary": 1,
+    "pass": true
+  },
+  "E4": {
+    "per_signal": {
+      "p99_latency": {
+        "n": 131,
+        "revoked": 43,
+        "fraction": 0.3282442748091603,
+        "median_tick": 84,
+        "null_revoked": 0,
+        "null_fraction": 0
+      },
+      "ttft": {
+        "n": 131,
+        "revoked": 45,
+        "fraction": 0.3435114503816794,
+        "median_tick": 65,
+        "null_revoked": 0,
+        "null_fraction": 0
+      },
+      "cost_req": {
+        "n": 131,
+        "revoked": 38,
+        "fraction": 0.2900763358778626,
+        "median_tick": 75,
+        "null_revoked": 0,
+        "null_fraction": 0
+      },
+      "downstream_err": {
+        "n": 131,
+        "revoked": 38,
+        "fraction": 0.2900763358778626,
+        "median_tick": 75,
+        "null_revoked": 0,
+        "null_fraction": 0
+      }
+    },
+    "contrast_contaminated": 0.007633587786259542,
+    "bar": 0.08808387689547,
+    "pass_signals": [],
+    "pass": false
+  },
+  "E5": {
+    "fit_ratio": 5,
+    "floor": 10,
+    "shipped_gate_counts": {
+      "refused_fit_ratio": 655,
+      "asserted_m_much_greater_than_n": 0
+    },
+    "authority": "advisory"
+  }
+}

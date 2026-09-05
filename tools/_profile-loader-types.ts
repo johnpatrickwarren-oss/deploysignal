@@ -11,7 +11,7 @@
 
 import type {
   WorkloadProfile, CustomerOverride, EffectiveConfig,
-  WorkloadProfileSliEntry, WorkloadProfileBakeEntry,
+  WorkloadProfileSliEntry, WorkloadProfileBakeEntry, ControlArmProfile,
 } from '../engine/types';
 export type {
   WorkloadProfile, CustomerOverride, EffectiveConfig,
@@ -88,6 +88,8 @@ export interface CompileDefaults {
   /** Provenance pair — emitted on the final CompiledConfig. */
   profile_ref: string | null;
   customer_override_ref: string | null;
+  /** C81 (Part 2) — the profile's control arm, passed through verbatim. Absent on legacy path. */
+  control_arm?: ControlArmProfile;
 }
 
 export interface LegacyCompileDefaults {
