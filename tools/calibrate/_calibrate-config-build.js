@@ -280,6 +280,9 @@ function attachProfileProvenance(config, effective, compileDefaults) {
     config.policy_defaults = { ...effective.policy_defaults };
     config.family_a_signals = compileDefaults.family_a_signals.slice();
     config.family_c_signals = compileDefaults.family_c_signals.slice();
+    // C81 (Part 2) — the control arm passes through verbatim (the runtime gate reads it).
+    if (compileDefaults.control_arm)
+        config.control_arm = JSON.parse(JSON.stringify(compileDefaults.control_arm));
 }
 /** Console diagnostics emitted after the config is written. */
 function printCompileSummary(s) {
