@@ -155,8 +155,7 @@ export function makeContinuityRecord(
 
 // The per-family suppression RULE is engine-owned (detectors consult it); only the L0 schema
 // machinery above is DeploySignal's. Re-exported so `shouldSuppress` keeps its import path here.
-// `detectors/_suppression` until the next pin bump; engine PR #94 makes it public as `detectors/suppression`.
-export { familiesToSuppress, shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_suppression';
+export { familiesToSuppress, shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/suppression';
 
 /** Minimum post-deploy sample count before a rebaseline can complete.
  *  Addition #8 default; SRE policy overrides in production. */
