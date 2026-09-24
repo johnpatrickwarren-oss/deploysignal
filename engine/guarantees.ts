@@ -231,6 +231,12 @@ export interface DetectorGuarantee {
    *  them). Kept separate from `citation` so that field stays a pure
    *  literature anchor. */
   readonly id_mapping_note?: string;
+  /** 2026-09-24 — why THIS row's validity_class differs from the engine's construction row
+   *  (`guaranteeFor(detector_id)` in @johnpatrickwarren-oss/deploysignal-engine/guarantees). The
+   *  engine's table classifies the CONSTRUCTION; this table classifies the SHIPPED PATH in
+   *  DeploySignal, and where the two differ the difference is a decision, stated here. Required by
+   *  test/guarantees-vs-engine.test.ts whenever the classes do not map; absent otherwise. */
+  readonly shipped_path_note?: string;
 }
 
 const VILLE_POLICY: RepeatedLookPolicy = 'anytime_valid_continuous_peeking';
@@ -382,6 +388,9 @@ function familyABettingEntry(id: DetectorId): DetectorGuarantee {
     // C64 (c): was ville_anytime_valid. The construction is Ville-valid at 1/α inside its
     // envelope; what ships compares wealth to a bootstrap quantile (see the class doc).
     validity_class: 'bootstrap_crossing_rate',
+    shipped_path_note: 'The construction is the engine\'s ville_anytime_valid betting e-process. The SHIPPED threshold is an '
+      + 'empirical (1−α) quantile of max wealth under a joint-AR(1) bootstrap null over a fixed horizon (C64 c), '
+      + 'not Ville\'s 1/α, so this row classifies the crossing-rate control DeploySignal actually runs.',
     null_assumptions: FAMILY_A_BETTING_ASSUMPTIONS,
     repeated_look_policy: BOOTSTRAP_POLICY,
     alpha_participating: true,
@@ -573,6 +582,8 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     family: 'C',
     // C64 (c): was ville_anytime_valid — the shipped threshold is the bootstrap quantile.
     validity_class: 'bootstrap_crossing_rate',
+    shipped_path_note: 'The construction is the engine\'s ville_anytime_valid safe-Hotelling (engine axis 3 unrecorded). The SHIPPED '
+      + 'threshold is the bootstrap quantile (C64 c), a median 3.6×10⁷⁶ above 1/α; this row classifies that path.',
     null_assumptions: HOTELLING_SAFE_ASSUMPTIONS,
     repeated_look_policy: BOOTSTRAP_POLICY,
     alpha_participating: true,
@@ -586,6 +597,10 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     detector_id: 'sequential_mmd',
     family: 'C',
     validity_class: 'ville_anytime_valid',
+    shipped_path_note: 'ID SEMANTICS CONTESTED (2026-09-24). Engine row sequential_mmd = the legacy e-MMD evaluator, classical_epoch, '
+      + 'spends nothing, retired (C21). This row describes the canonical betting e-process that DeploySignal\'s audit '
+      + 'writer emits under the legacy id (see id_mapping_note). Both MMD evaluators are disabled at the calibrator '
+      + 'stamp (C21), so no shipped cell reaches either; alpha_participating is the stamped allocation, not a live spend.',
     null_assumptions: MMD_ASSUMPTIONS_CANONICAL,
     repeated_look_policy: VILLE_POLICY,
     alpha_participating: true,
@@ -648,6 +663,9 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     // — but it no longer makes an anytime-valid claim and no longer consumes alpha, so the budget
     // returns to families whose premises hold.
     validity_class: 'heuristic_structural',
+    shipped_path_note: 'The engine row is bounded_priced: NOT an e-process, E[M_T|H0] measured 1.06–1.11 (family-d-emean), priceable '
+      + 'by the c-bound. DeploySignal allocates it nothing and treats it as advisory (C12), which this row states as '
+      + 'heuristic_structural / alpha_participating false; the engine\'s class is the construction\'s, this row\'s the path\'s.',
     null_assumptions: SPECTRAL_E_DETECTOR_ASSUMPTIONS,
     repeated_look_policy: EPOCH_POLICY,
     alpha_participating: false,
@@ -663,6 +681,10 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     detector_id: 'mahalanobis_conformal_baseline',
     family: 'E',
     validity_class: 'ville_anytime_valid',
+    shipped_path_note: 'CLASS CONTESTED (2026-09-24). Engine row: exact_finite_sample (conformal exactness per evaluation, no anytime '
+      + 'claim). This row: ville_anytime_valid under the hedged-indicator e-value construction — but the kind that '
+      + 'ships (unweighted, 840/840 cells) is a p-value (C25), the budget is zero and the family advisory (C65). '
+      + 'Neither classification is exercised by a shipped cell. Recorded, not resolved: knowledge stats/two-guarantee-tables.',
     null_assumptions: CONFORMAL_ASSUMPTIONS,
     repeated_look_policy: VILLE_POLICY,
     // 2026-09-02: was alpha_participating: true. WORKLIST C25 — the kind that ships
