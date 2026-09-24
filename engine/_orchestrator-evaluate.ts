@@ -17,12 +17,12 @@ import { evaluateApproval } from './gates/approval';
 import { evaluateState } from './gates/state';
 import { evaluateHealth } from './gates/health';
 import type { HealthOpts } from './gates/_health-types';
-import { computeVerdict } from '@johnpatrickwarren-oss/deploysignal-engine/core';
+import { computeVerdict } from './core';
 import { fuseVerdict } from './verdict';
 import { buildAuditRecord } from './audit';
-import { NoReversibilitySource } from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source';
+import { NoReversibilitySource } from './o0/reversibility-source';
 import { classifyReversibility } from './g0/reversibility-classifier';
-import { translateVerdict } from '@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-translator';
+import { translateVerdict } from './o0/reversibility-translator';
 import {
   NoOpLifecycleEventEmitter, freshLifecycleState, safeEmit,
 } from './o0/lifecycle-events';

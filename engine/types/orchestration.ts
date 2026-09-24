@@ -162,7 +162,7 @@ export interface OrchestrateParams {
    *  `ScenarioReversibilitySource` (scenario-JSON-keyed Record).
    *  Absent → orchestrator uses `NoReversibilitySource` → every
    *  deploy receives the default-fallback `'forward_only'` classification. */
-  reversibilitySource?: import('@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-source').ReversibilityAnnotationSource;
+  reversibilitySource?: import('../o0/reversibility-source').ReversibilityAnnotationSource;
   /** Week 6+ Addition #5 — pre-classified reversibility for this deploy.
    *  Orchestrator populates at tick 0 via
    *  `classifyReversibility(deployId, reversibilitySource)` and returns

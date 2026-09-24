@@ -11,7 +11,7 @@ import { evaluateFamilyE, freshConformalEValueState } from '@johnpatrickwarren-o
 import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral';
 import { evaluateEMmd } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import { evaluateFamilyCBettingEProcess } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-betting-e-process';
-import { shouldSuppress } from '@johnpatrickwarren-oss/deploysignal-engine/l0/schema-continuity';
+import { shouldSuppress } from '../l0/schema-continuity';
 import { FAMILY_E_ADVISORY, FAMILY_A_PLUGIN_ADVISORY_REASON, familyAPluginAdvisory } from '../guarantees';
 import type {
   Metrics, FiredSignal, HealthResult,

@@ -63,7 +63,7 @@ export interface VerdictResult {
    *  this deploy's reversibility classification. Real O0 adapters
    *  consume this translation and invoke orchestrator-native actions
    *  (rollback / pause_and_alarm / human_confirmation_required). */
-  finalAction?: import('@johnpatrickwarren-oss/deploysignal-engine/o0/reversibility-translator').ReversibilityAction;
+  finalAction?: import('../o0/reversibility-translator').ReversibilityAction;
   /** Consolidated activation slice — aggregate Promise resolving when
    *  fan-out (topology enrichment + agent proposal) completes for a
    *  closed VerdictGroup this tick. Absent when no group closed on
