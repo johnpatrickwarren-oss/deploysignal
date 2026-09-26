@@ -7,6 +7,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      # The engine is pinned to a git TAG and re-pinned by hand in a "deps: re-pin" commit at each
+      # engine release (every bump since v0.6.x). Dependabot orders the tags as strings, so on
+      # 2026-09-25 it proposed v0.10.0-pre -> v0.6.12-pre (#105), a downgrade that does not compile.
+      - dependency-name: "@johnpatrickwarren-oss/deploysignal-engine"
 
   # GitHub Actions — patch + minor only (major bumps require manual
   # review; reference-repo posture). Major bumps for actions like
