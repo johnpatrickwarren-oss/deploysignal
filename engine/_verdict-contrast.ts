@@ -34,6 +34,7 @@ export function contrastArmReport(health: HealthResult): ContrastArmReport | und
   const effect_intervals = contrastEffectIntervals(block);
   return {
     authority: block.authority, q: block.q, fit_ticks: block.fit_ticks, fit_ratio: block.fit_ratio, gate: block.gate, K: block.K,
+    tail_premise: block.tail_premise, ...(block.increment_mean ? { increment_mean: { ...block.increment_mean } } : {}), ...(block.tail_premise_reason ? { tail_premise_reason: block.tail_premise_reason } : {}),
     pairs: block.verdicts.map((v) => ({ pair: v.pair, signal: v.signal ?? '', canary: v.canary, control: v.control, log_e: v.log_e, monitor_passing: v.monitor_passing, selected: block.selected.includes(v.pair), reason_code: v.reason_code })),
     selected: block.selected.slice(), log_threshold_e: block.log_threshold_e, log_margins: { ...block.log_margins }, monitors: { ...block.monitors },
     ...(effect_intervals ? { effect_intervals } : {}),

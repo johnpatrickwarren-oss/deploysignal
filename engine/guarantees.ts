@@ -146,7 +146,10 @@ export const CONTRAST_ARM_Q = 0.05;
  *  `mMuchGreaterThanN` regime for the contrast e-values. Part 1's law: the mixture wealth's excess
  *  under the estimated offset is about n/m nats over the horizon, so ratio 10 is epsilon ≈ 0.1 on
  *  the reported FDR level (Ramdas–Wang 2025 Thm 10.24). Below it the selection is refused and the
- *  raw e-values are still reported. Asserted at one call site (`selectContrastArm`), not proven. */
+ *  raw e-values are still reported. Asserted at one call site (`selectContrastArm`), not proven.
+ *  Since engine v0.11.0-pre (h0-battery A7) the envelope also carries the mixture's mgf tail
+ *  premise: the cohort's pooled increment mean is measured and passed, and the gate refuses
+ *  (`refused_tail_premise`) while it is inconclusive unless a study states its ground. */
 export const CONTRAST_FIT_RATIO_FLOOR = 10;
 /** The cohort monitor's anytime level ('gaussian' increment, Tessera ADR 0019 / engine
  *  fleet/calibration-monitor.ts): a signal whose control-vs-control monitor has revoked is advisory

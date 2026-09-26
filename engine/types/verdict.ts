@@ -150,7 +150,11 @@ export interface ContrastArmReport {
   q: number;
   fit_ticks: number;
   fit_ratio: number | null;
-  gate: 'asserted_m_much_greater_than_n' | 'asserted_by_study_flag' | 'refused_fit_ratio' | 'no_admissible_pairs';
+  gate: 'asserted_m_much_greater_than_n' | 'asserted_by_study_flag' | 'refused_fit_ratio' | 'refused_tail_premise' | 'no_admissible_pairs';
+  /** engine v0.11.0-pre / h0-battery A7: how the mixture's mgf tail premise was met this tick. */
+  tail_premise: 'cleared' | 'promised' | 'inconclusive' | 'refuted' | 'unmeasured';
+  increment_mean?: { lower95: number; upper95: number; n: number };
+  tail_premise_reason?: string;
   /** the universe the selection was made from: pairs whose cohort monitor is passing. */
   K: number;
   pairs: Array<{ pair: string; signal: string; canary: string; control: string; log_e: number; monitor_passing: boolean; selected: boolean; reason_code: string }>;
