@@ -32,7 +32,7 @@ import type { FusedVerdict } from '../dist/engine/types/verdict';
 import { evaluateHealth } from '../dist/engine/gates/health';
 import { fuseVerdict } from '../dist/engine/verdict';
 import {
-  contrastResidualStep, pairId, cohortId, selectContrastArm, type ContrastArmOpts, type ContrastArmHealth,
+  contrastResidualStep, pairId, cohortId, selectContrastArm, contrastTailPremise, type ContrastArmOpts, type ContrastArmHealth,
 } from '../dist/engine/gates/_health-contrast';
 import {
   DETECTOR_GUARANTEES, CONTRAST_ARM_AUTHORITY, CONTRAST_ARM_Q, CONTRAST_FIT_RATIO_FLOOR, CONTRAST_ARM_REASON,
@@ -81,6 +81,9 @@ function armOpts(u: ReturnType<typeof units>, extra: Partial<ContrastArmOpts> = 
   return {
     baseline: { [pairId(PAIR)]: { treatment: u.base.canary, control: u.base.controlA } },
     cohortBaseline: { [cohortId(COHORT)]: { treatment: u.base.controlA, control: u.base.controlB } },
+    // engine v0.11.0-pre (h0-battery A7): the units here are a Gaussian generator, the stated ground
+    // for the mixture's mgf premise; a test of the live default passes assertLightTails: false.
+    assertLightTails: true,
     ...extra,
   };
 }
@@ -207,7 +210,8 @@ test('C81: below the fit-ratio floor the selection is refused and the e-values s
   assert.deepEqual(asserted.selected, [pairId(PAIR)]);
   // selectContrastArm itself: refused gate → nothing, asserted → e-BH at q
   assert.deepEqual(selectContrastArm([{ pair: 'x', log_e: 10 }], 0.05, FIT, 'refused_fit_ratio').selected, []);
-  assert.deepEqual(selectContrastArm([{ pair: 'x', log_e: 10 }], 0.05, FIT, 'asserted_m_much_greater_than_n').selected, ['x']);
+  assert.deepEqual(selectContrastArm([{ pair: 'x', log_e: 10 }], 0.05, FIT, 'refused_tail_premise').selected, []);
+  assert.deepEqual(selectContrastArm([{ pair: 'x', log_e: 10 }], 0.05, FIT, 'asserted_m_much_greater_than_n', { mMuchGreaterThanN: true, lightTails: true }).selected, ['x']);
 });
 
 // ── through orchestrate() ───────────────────────────────────────────
@@ -274,4 +278,34 @@ test('C81: the six contrast ids are in the table, non-α-participating, and the 
   }
   const src = fs.readFileSync(path.resolve(__dirname, '..', 'engine', '_audit-families.ts'), 'utf8');
   assert.ok(src.includes("['family_A_contrast_', 'contrast_null_']"));
+});
+
+
+// ── engine v0.11.0-pre (h0-battery A7): the tail premise ─────────────
+
+test('A7: with no promise the live default measures the cohort increment mean and the gate reads it — on this substrate the residual is over-standardised and the Gaussian increment CLEARS (a conservative e-value), so the selection proceeds with tail_premise cleared', () => {
+  const u = units(3, { canary: 3 });
+  const b = drive(cfgWithArm(CONTRAST_FIT_RATIO_FLOOR * T), u, armOpts(u, { assertLightTails: false })).block!;
+  assert.ok(b.increment_mean && b.increment_mean.n === T, JSON.stringify(b.increment_mean));
+  assert.ok(b.increment_mean!.upper95 < 1.0005, `cleared at the card bound: ${JSON.stringify(b.increment_mean)}`);
+  assert.equal(b.tail_premise, 'cleared');
+  assert.equal(b.gate, 'asserted_m_much_greater_than_n');
+  assert.equal(b.tail_premise_reason, undefined);
+  assert.deepEqual(b.selected, [pairId(PAIR)]);
+  const promised = drive(cfgWithArm(CONTRAST_FIT_RATIO_FLOOR * T), u, armOpts(u)).block!;
+  assert.equal(promised.tail_premise, 'cleared', 'a measured clearance outranks the promise in the token');
+});
+
+test('A7: the five tail-premise readings, from the engine gate itself — a refutation refuses over the promise, an inconclusive measurement refuses without it', () => {
+  const t = (a: Parameters<typeof contrastTailPremise>[0]) => contrastTailPremise(a);
+  assert.deepEqual(t({ mMuchGreaterThanN: true, incrementMean: { lower95: 0.9952, upper95: 0.9983 } }), { token: 'cleared' });
+  assert.equal(t({ mMuchGreaterThanN: true, lightTails: true }).token, 'promised');
+  const inc = t({ mMuchGreaterThanN: true, incrementMean: { lower95: 0.99, upper95: 1.01 } });
+  assert.equal(inc.token, 'inconclusive'); assert.match(inc.reason ?? '', /mgf exists.*inconclusive/s);
+  const ref = t({ mMuchGreaterThanN: true, lightTails: true, incrementMean: { lower95: 1.5997, upper95: 1.6157 } });
+  assert.equal(ref.token, 'refuted'); assert.match(ref.reason ?? '', /REFUTES.*no promise overrides/s);
+  const un = t({ mMuchGreaterThanN: true });
+  assert.equal(un.token, 'unmeasured'); assert.match(un.reason ?? '', /no increment mean was measured/);
+  // and the gate honours a refusal: nothing selected, the guard is not reached
+  assert.deepEqual(selectContrastArm([{ pair: 'x', log_e: 10 }], 0.05, FIT, 'refused_tail_premise', { mMuchGreaterThanN: true }).selected, []);
 });

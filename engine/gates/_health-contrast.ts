@@ -33,8 +33,9 @@
 import { fitContrast, type ContrastFit } from '@johnpatrickwarren-oss/deploysignal-engine/per-shard/contrast';
 import { evaluatePageCusumMixtureSupermartingale, freshMixtureSupermartingaleState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-a-mixture-supermartingale';
 import type { MixtureSupermartingaleState } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-a-mixture-supermartingale';
-import { eBenjaminiHochbergGuarded } from '@johnpatrickwarren-oss/deploysignal-engine/fleet/e-bh-guarded';
-import { freshCalibrationMonitor, updateCalibration, type CalibrationMonitorState } from '@johnpatrickwarren-oss/deploysignal-engine/fleet/calibration-monitor';
+import { eBenjaminiHochbergGuarded, envelopeFor } from '@johnpatrickwarren-oss/deploysignal-engine/fleet/e-bh-guarded';
+import { freshCalibrationMonitor, updateCalibration, freshIncrementEstimator, updateIncrementEstimator, incrementEstimate, gInc, type CalibrationMonitorState, type IncrementEstimatorState } from '@johnpatrickwarren-oss/deploysignal-engine/fleet/calibration-monitor';
+import { assertValidForFdrPath, type FdrPathAssertions } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/validity-envelope';
 import type { Metrics, HealthResult, TrendBufferI, DetectorVerdict, CompiledConfig } from '../types';
 import type { ControlArmPair, ControlArmCohortPair, ControlArmProfile } from '../types/_config-profiles';
 import {
@@ -59,6 +60,11 @@ export interface ContrastArmOpts {
   /** STUDY-ONLY: force the `mMuchGreaterThanN` assertion regardless of the fit ratio, so a
    *  registered harness can measure the would-be decision below the floor. The report names it. */
   assertFitRatio?: boolean;
+  /** STUDY-ONLY (engine v0.11.0-pre, h0-battery A7): promise the mixture's `mgf` tail premise
+   *  (`lightTails`) where the substrate states its ground — a synthetic Gaussian generator. Live
+   *  telemetry promises nothing: the cohort's measured increment mean is passed instead and the gate
+   *  refuses (`refused_tail_premise`) while it is inconclusive. The report names which. */
+  assertLightTails?: boolean;
 }
 
 export const pairId = (p: ControlArmPair): string => `${p.signal}|${p.canary}|${p.control}`;
@@ -77,7 +83,7 @@ interface PairState {
   /** last residual (for the report). */
   lastResidual: number | null;
 }
-interface CohortState { fit: ContrastFit; dcPrev: number | null; monitor: CalibrationMonitorState; ticks: number }
+interface CohortState { fit: ContrastFit; dcPrev: number | null; monitor: CalibrationMonitorState; estimator: IncrementEstimatorState; ticks: number }
 interface ArmStore { pairs: Record<string, PairState>; cohort: Record<string, CohortState> }
 type StoreHost = { contrastArmState?: ArmStore };
 
@@ -101,7 +107,9 @@ function newPairState(b: ContrastBaselinePair): PairState {
 }
 function newCohortState(b: ContrastBaselinePair): CohortState {
   const d = b.treatment.map((x, i) => x - b.control[i]);
-  return { fit: fitContrast(d), dcPrev: null, monitor: freshCalibrationMonitor({ alpha: CONTRAST_MONITOR_ALPHA, incrementKind: 'gaussian' }), ticks: 0 };
+  // The estimator beside the monitor, same family ('gaussian', gInc): the C26 instrument on the
+  // known-null cohort residual, pooled across cohort pairs into the gate's `incrementMean` (A7).
+  return { fit: fitContrast(d), dcPrev: null, monitor: freshCalibrationMonitor({ alpha: CONTRAST_MONITOR_ALPHA, incrementKind: 'gaussian' }), estimator: freshIncrementEstimator(), ticks: 0 };
 }
 
 // ── the per-tick evaluation ──────────────────────────────────────────────────────────
@@ -133,7 +141,15 @@ export interface ContrastArmHealth {
   /** fit_ticks / totalTicks, the ratio the assertion is judged on. */
   fit_ratio: number | null;
   /** how the guarded e-BH was reached this tick. */
-  gate: 'asserted_m_much_greater_than_n' | 'asserted_by_study_flag' | 'refused_fit_ratio' | 'no_admissible_pairs';
+  gate: 'asserted_m_much_greater_than_n' | 'asserted_by_study_flag' | 'refused_fit_ratio' | 'refused_tail_premise' | 'no_admissible_pairs';
+  /** engine v0.11.0-pre / h0-battery A7: how the mixture's `mgf` tail premise was met this tick —
+   *  `cleared` (the cohort's measured increment mean clears the card bound), `promised` (the study
+   *  flag), `inconclusive` / `refuted` / `unmeasured` (the gate refuses: `refused_tail_premise`). */
+  tail_premise: 'cleared' | 'promised' | 'inconclusive' | 'refuted' | 'unmeasured';
+  /** the pooled cohort increment mean the assertion carried, when measured. */
+  increment_mean?: { lower95: number; upper95: number; n: number };
+  /** the engine's own words when it refused the tail premise. */
+  tail_premise_reason?: string;
   /** the universe the selection was made from (pairs whose monitor is passing). */
   K: number;
   verdicts: ContrastPairVerdict[];
@@ -163,6 +179,37 @@ function advanceCohort_(st: CohortState, d: number): void {
   if (!Number.isFinite(r)) return;
   st.ticks += 1;
   updateCalibration(st.monitor, r);
+  updateIncrementEstimator(st.estimator, Math.log(gInc(r)));
+}
+
+/** Chan–Golub–LeVeque pooling of two Welford states (the estimator's shape). */
+function mergeIncrementStates(a: IncrementEstimatorState, b: IncrementEstimatorState): IncrementEstimatorState {
+  if (a.n === 0) return { ...b }; if (b.n === 0) return { ...a };
+  const n = a.n + b.n; const delta = b.mean - a.mean;
+  return { n, mean: a.mean + delta * b.n / n, m2: a.m2 + b.m2 + delta * delta * a.n * b.n / n, max: Math.max(a.max, b.max) };
+}
+/** The arm's pooled cohort increment mean, once at least two increments are in. */
+function incrementMeanFor(s: ArmStore): { lower95: number; upper95: number; n: number } | undefined {
+  let acc = freshIncrementEstimator();
+  for (const st of Object.values(s.cohort)) acc = mergeIncrementStates(acc, st.estimator);
+  if (acc.n < 2) return undefined;
+  const e = incrementEstimate(acc);
+  return Number.isFinite(e.lower95) && Number.isFinite(e.upper95) ? { lower95: e.lower95, upper95: e.upper95, n: e.n } : undefined;
+}
+/** The assertions the guarded e-BH sees: fit ≫ horizon, plus the measured increment mean and/or the
+ *  study-only promise for the tail premise (engine v0.11.0-pre). */
+function contrastAssertions(incrementMean: { lower95: number; upper95: number } | undefined, lightTails: boolean | undefined): FdrPathAssertions {
+  return { mMuchGreaterThanN: true, ...(incrementMean ? { incrementMean } : {}), ...(lightTails ? { lightTails: true } : {}) };
+}
+/** How the tail premise is met, and the engine's reason when it is not. Exported so the test and the
+ *  registered study read the same decision the gate makes. */
+export function contrastTailPremise(assertions: FdrPathAssertions): { token: ContrastArmHealth['tail_premise']; reason?: string } {
+  const env = envelopeFor('contrast_null_mixture')!;
+  const m = assertions.incrementMean;
+  let admitted = true, reason: string | undefined;
+  try { assertValidForFdrPath(env, assertions); } catch (e) { admitted = false; reason = (e as Error).message; }
+  if (admitted) return { token: m && m.upper95 < 1.0005 ? 'cleared' : 'promised' };
+  return { token: m === undefined ? 'unmeasured' : m.lower95 > 1.0005 ? 'refuted' : 'inconclusive', reason };
 }
 
 function read(m: Metrics, key: string): number | null {
@@ -196,15 +243,18 @@ function verdictFor(p: ControlArmPair, st: PairState, passing: boolean, selected
  *  so the registered study reads the same function the gate runs. */
 export function selectContrastArm(
   candidates: ReadonlyArray<{ pair: string; log_e: number }>, q: number, fitTicks: number, gate: ContrastArmHealth['gate'],
+  assertions: FdrPathAssertions = { mMuchGreaterThanN: true },
 ): { selected: string[]; log_threshold_e: number | null; log_margins: Record<string, number> } {
-  if (candidates.length === 0 || gate === 'refused_fit_ratio' || gate === 'no_admissible_pairs') {
+  if (candidates.length === 0 || gate === 'refused_fit_ratio' || gate === 'refused_tail_premise' || gate === 'no_admissible_pairs') {
     return { selected: [], log_threshold_e: null, log_margins: {} };
   }
   // The one assertion site. Part 1's law: the mixture wealth's excess under the estimated offset is
   // about n/m nats over the horizon, so a fit of >= CONTRAST_FIT_RATIO_FLOOR canary lengths is
   // epsilon ~ 1/CONTRAST_FIT_RATIO_FLOOR on the FDR level (Ramdas-Wang Thm 10.24). Asserted, not proven.
+  // Since engine v0.11.0-pre the envelope also carries the mixture's mgf tail premise; the caller
+  // passes the cohort's measured increment mean and/or the study-only promise (h0-battery A7).
   const out = eBenjaminiHochbergGuarded(
-    candidates.map((c) => ({ detectorId: 'contrast_null_mixture', eValue: Math.exp(c.log_e), assertions: { mMuchGreaterThanN: true }, calLen: fitTicks })), q,
+    candidates.map((c) => ({ detectorId: 'contrast_null_mixture', eValue: Math.exp(c.log_e), assertions, calLen: fitTicks })), q,
   );
   const selected = out.selected.map((i) => candidates[i].pair);
   const log_margins: Record<string, number> = {};
@@ -244,10 +294,12 @@ function advancePairs(spec: ControlArmProfile, s: ArmStore, opts: ContrastArmOpt
 const logEOf = (st: PairState): number => finite(Math.log(Math.max(st.mixture.M_t ?? 1, 1e-300)));
 
 /** Which route to the guarded e-BH this tick. */
-function gateFor(nCandidates: number, fitRatio: number | null, studyFlag: boolean | undefined): ContrastArmHealth['gate'] {
+function gateFor(nCandidates: number, fitRatio: number | null, studyFlag: boolean | undefined, tailOk: boolean): ContrastArmHealth['gate'] {
   if (nCandidates === 0) return 'no_admissible_pairs';
-  if (fitRatio !== null && fitRatio >= CONTRAST_FIT_RATIO_FLOOR) return 'asserted_m_much_greater_than_n';
-  return studyFlag ? 'asserted_by_study_flag' : 'refused_fit_ratio';
+  const fit: ContrastArmHealth['gate'] = fitRatio !== null && fitRatio >= CONTRAST_FIT_RATIO_FLOOR ? 'asserted_m_much_greater_than_n'
+    : studyFlag ? 'asserted_by_study_flag' : 'refused_fit_ratio';
+  if (fit === 'refused_fit_ratio') return fit;
+  return tailOk ? fit : 'refused_tail_premise';
 }
 
 /** The control arm, one tick. Appends nothing to family_A_shadow and pushes nothing to rollback:
@@ -264,11 +316,15 @@ export function runContrastArm(
   const rows = advancePairs(spec, s, opts, liveMetrics, monitors);
   const candidates = rows.filter((r) => r.passing && r.st.ticks > 0).map((r) => ({ pair: pairId(r.p), log_e: logEOf(r.st) })).filter((c) => Number.isFinite(c.log_e));
   const fitRatio = totalTicks && totalTicks > 0 ? spec.fit_ticks / totalTicks : null;
-  const gate = gateFor(candidates.length, fitRatio, opts.assertFitRatio);
-  const sel = selectContrastArm(candidates, spec.q ?? CONTRAST_ARM_Q, spec.fit_ticks, gate);
+  const incrementMean = incrementMeanFor(s);
+  const assertions = contrastAssertions(incrementMean, opts.assertLightTails);
+  const tail = contrastTailPremise(assertions);
+  const gate = gateFor(candidates.length, fitRatio, opts.assertFitRatio, tail.reason === undefined);
+  const sel = selectContrastArm(candidates, spec.q ?? CONTRAST_ARM_Q, spec.fit_ticks, gate, assertions);
   const chosen = new Set(sel.selected);
   const block: ContrastArmHealth = {
     authority: CONTRAST_ARM_AUTHORITY, q: spec.q ?? CONTRAST_ARM_Q, fit_ticks: spec.fit_ticks, fit_ratio: fitRatio, gate, K: candidates.length,
+    tail_premise: tail.token, ...(incrementMean ? { increment_mean: incrementMean } : {}), ...(tail.reason ? { tail_premise_reason: tail.reason } : {}),
     verdicts: rows.map(({ p, st, passing }) => verdictFor(p, st, passing, chosen.has(pairId(p)), sel.log_threshold_e)),
     selected: sel.selected, log_threshold_e: sel.log_threshold_e, log_margins: sel.log_margins, monitors,
   };
