@@ -73,3 +73,48 @@ test('loader: twin-generic keeps its empty sli_list (twin_arm exemption)', () =>
   assert.equal(p.sli_list.length, 0);
   assert.doesNotThrow(() => resolveEffectiveConfig(p, null));
 });
+
+// ── fix round 1: checkSliList at load time ──
+//
+// loadProfile reads profiles/<id>.yaml from the repo. The tests below serve a virtual file through
+// a per-test fs mock (this process only), so no invalid profile is ever written to profiles/, where
+// test/profile-schema-validation.test.ts loads every *.yaml.
+
+import type { TestContext } from 'node:test';
+import * as yaml from 'js-yaml';
+
+function serveVirtualProfile(t: TestContext, id: string, sli_list: unknown[]): void {
+  const base = yaml.load(fs.readFileSync(
+    path.resolve(__dirname, '..', 'profiles', 'generic-microservice.yaml'), 'utf8')) as Record<string, unknown>;
+  const text = yaml.dump({ ...base, id, sli_list });
+  const suffix = path.join('profiles', `${id}.yaml`);
+  // The module object itself (the loader reads it through getters); `import * as fs` is a copy.
+  const nodeFs = require('node:fs') as typeof fs;
+  const realExists = nodeFs.existsSync;
+  const realRead = nodeFs.readFileSync;
+  t.mock.method(nodeFs, 'existsSync', (p: fs.PathLike) => String(p).endsWith(suffix) || realExists(p));
+  t.mock.method(nodeFs, 'readFileSync', ((p: fs.PathOrFileDescriptor, o?: unknown) =>
+    String(p).endsWith(suffix) ? text : (realRead as (a: unknown, b?: unknown) => unknown)(p, o)) as typeof fs.readFileSync);
+}
+
+test('loadProfile: a duplicate sli_list signal is rejected at load', (t) => {
+  serveVirtualProfile(t, 'virtual-dup-signal', [P99, ERR, { ...P99, δ_min: 0.1 }]);
+  assert.throws(() => loadProfile('virtual-dup-signal@1.0.0'),
+    /resolved profile "virtual-dup-signal" sli_list names signal "p99_latency" more than once \(\[0\] and \[2\]\)/);
+});
+
+test('loadProfile: an identical duplicate sli_list entry is rejected at load (schema uniqueItems)', (t) => {
+  serveVirtualProfile(t, 'virtual-dup-entry', [P99, P99]);
+  assert.throws(() => loadProfile('virtual-dup-entry@1.0.0'), /uniqueItems/);
+});
+
+test('loadProfile: an empty sli_list on a profile without twin_arm is rejected at load', (t) => {
+  serveVirtualProfile(t, 'virtual-empty-sli', []);
+  assert.throws(() => loadProfile('virtual-empty-sli@1.0.0'),
+    /resolved profile "virtual-empty-sli" sli_list is empty; only a profile declaring twin_arm/);
+});
+
+test('loadProfile: the virtual profile with a valid sli_list loads (the mock is not what rejects)', (t) => {
+  serveVirtualProfile(t, 'virtual-valid-sli', [P99, ERR]);
+  assert.equal(loadProfile('virtual-valid-sli@1.0.0').sli_list.length, 2);
+});

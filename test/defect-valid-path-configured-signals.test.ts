@@ -80,21 +80,31 @@ test('defect 2026-09-25: a config without family_a_signals keeps the six-signal 
   assert.deepEqual(signals, ['p99_latency']);
 });
 
-/** A compiled config whose cells carry Family A params for `http_5xx_rate` beside the six and
- *  whose `family_a_signals` names only `http_5xx_rate` — the shape the calibrator emits for a
- *  profile with a custom sli_list (bonferroni_factor = the list length). */
-function customSignalCfg(): CompiledConfig {
+/** A compiled config whose cells carry Family A params for `signals` (copies of downstream_err's)
+ *  beside the six, and whose `family_a_signals` names only `signals` — the shape the calibrator
+ *  emits for a profile with a custom sli_list. Each copied cell's betting α is stamped for the
+ *  factor N = signals.length, as the calibrator does (α_A / N · ½). `bonferroni_factor` is N when
+ *  `explicitFactor`, and absent otherwise so the engine's length default applies. */
+function customSignalCfg(signals: string[] = ['http_5xx_rate'], explicitFactor = true): CompiledConfig {
   const cfg = loadCfg();
+  const alphaA = cfg.alpha_budget.per_family.A!;
   const cells = [...cfg.baseline_cells!.cells, cfg.baseline_cells!.aggregate_fallback];
   for (const c of cells) {
     const ps = c.family_A?.per_signal;
-    if (ps?.downstream_err) ps.http_5xx_rate = { ...ps.downstream_err };
+    if (!ps?.downstream_err) continue;
+    for (const s of signals) {
+      ps[s] = { ...ps.downstream_err, betting_e_process_alpha: (alphaA / signals.length) * 0.5 };
+      delete (ps[s] as { betting_sliding_buffer_threshold?: number }).betting_sliding_buffer_threshold;
+    }
   }
-  return { ...cfg, family_a_signals: ['http_5xx_rate'], bonferroni_factor: 1 } as CompiledConfig;
+  const out = { ...cfg, family_a_signals: signals } as CompiledConfig;
+  if (explicitFactor) out.bonferroni_factor = signals.length;
+  else delete (out as { bonferroni_factor?: number }).bonferroni_factor;
+  return out;
 }
 
 /** Drive `n` ticks of runFamilyA (Page-CUSUM mixture + betting) at hour 20 / day 3. */
-function runA(cfg: CompiledConfig, http5xx: number[]) {
+function runA(cfg: CompiledConfig, http5xx: number[], extra: Record<string, number[]> = {}) {
   const tb = new TrendBuffer(10);
   let result = emptyHealth();
   let rollback: FiredSignal[] = [];
@@ -102,7 +112,8 @@ function runA(cfg: CompiledConfig, http5xx: number[]) {
   for (let i = 0; i < http5xx.length; i++) {
     result = emptyHealth();
     rollback = [];
-    const m = { ...scenarioBaseline(cfg), http_5xx_rate: http5xx[i] } as unknown as Metrics;
+    const m = { ...scenarioBaseline(cfg), http_5xx_rate: http5xx[i], ...Object.fromEntries(
+      Object.entries(extra).map(([k, v]) => [k, v[i]])) } as unknown as Metrics;
     runFamilyA(result, rollback, [], [], m, tb, {
       compiledConfig: cfg, currentHourOfDay: 20, currentDayOfWeek: 3, ticksSinceDeploy: i, deployAgeDays: 0,
     });
@@ -124,4 +135,29 @@ test('engine v0.12.1-pre: Family A evaluates the configured signal and none of t
   for (const s of SIGNALS) assert.ok(!shadow.some((v) => v.signal === s), `no verdict for ${s}`);
   assert.ok(seen.has('family_A_http_5xx_rate') || seen.has('family_A_betting_http_5xx_rate'),
     `the step drives a Family A rollback on the configured signal; saw ${[...seen].join(', ')}`);
+});
+
+test('engine v0.12.1-pre: with no bonferroni_factor the engine splits α over the configured list', () => {
+  const signals = ['http_5xx_rate', 'queue_depth'];
+  const cfg = customSignalCfg(signals, false);
+  assert.equal(cfg.bonferroni_factor, undefined);
+  const alphaA = cfg.alpha_budget.per_family.A!;
+  const cell = cfg.baseline_cells!.cells.find((c) => c.key.hour_of_day === 20 && c.key.day_of_week === 3)!;
+  const p = cell.family_A!.per_signal.http_5xx_rate!;
+  const law = { mean: p.baseline_mean, sigma: Math.sqrt(p.baseline_sigma_squared) };
+  const { result } = runA(cfg, cellSeries(law, 12, 40), { queue_depth: cellSeries(law, 13, 40) });
+  const shadow = result.family_A_shadow ?? [];
+  assert.deepEqual([...new Set(shadow.map((v) => v.signal))].sort(), [...signals].sort());
+  assert.equal(shadow.length, 4, 'one mixture and one betting verdict per configured signal');
+  for (const s of SIGNALS) assert.ok(!shadow.some((v) => v.signal === s), `no verdict for ${s}`);
+  // Default factor 2 (the list length), not the pre-v0.12.1 fixed 6. Per-signal budget α_A/2; betting
+  // takes the stamped α_A/2·½ and the mixture the rest (engine _page-cusum-mixture.ts:145-146), so both
+  // Ville thresholds are 4/α_A. Under a factor of 6 the mixture's would be 12/α_A.
+  const rel = (a: number | null | undefined, b: number) => assert.ok(a != null && Math.abs(a - b) / b < 1e-9, `expected ${b}, got ${a}`);
+  // runFamilyA writes the mixture verdicts first and appends the betting ones
+  // (engine/gates/_health-detectors.ts runFamilyACusum, then runFamilyABetting's concat).
+  const mixture = shadow.slice(0, 2);
+  const betting = shadow.slice(2);
+  for (const v of mixture) rel(v.threshold, 4 / alphaA);
+  for (const v of betting) rel(v.threshold, 4 / alphaA);
 });
