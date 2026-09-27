@@ -11,7 +11,7 @@
 
 import type {
   WorkloadProfile, CustomerOverride, EffectiveConfig,
-  WorkloadProfileSliEntry, WorkloadProfileBakeEntry, ControlArmProfile, TwinArmProfile,
+  WorkloadProfileSliEntry, WorkloadProfileBakeEntry, ControlArmProfile, TwinArmProfile, SliMeta,
 } from '../engine/types';
 export type {
   WorkloadProfile, CustomerOverride, EffectiveConfig,
@@ -95,6 +95,8 @@ export interface CompileDefaults {
   control_arm?: ControlArmProfile;
   /** Plan B — the profile's randomized twin, passed through verbatim. Absent on legacy path. */
   twin_arm?: TwinArmProfile;
+  /** Defect 2026-09-25 — the profile's sli_list direction_of_better / δ_min. Absent on legacy path. */
+  sli_meta?: SliMeta;
 }
 
 export interface LegacyCompileDefaults {

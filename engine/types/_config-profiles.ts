@@ -25,6 +25,15 @@ export interface WorkloadProfileSliEntry {
   δ_min: number;
 }
 
+/** Defect 2026-09-25 — a profile's sli_list as read by the runtime: per signal, the direction of
+ *  better and δ_min (relative detection magnitude). Emitted on CompileDefaults and CompiledConfig
+ *  as `sli_meta` for profile-routed compiles; legacy compiles carry none. */
+export interface SliMetaEntry {
+  direction_of_better: 'higher' | 'lower';
+  delta_min: number;
+}
+export type SliMeta = Record<string, SliMetaEntry>;
+
 export interface WorkloadProfileBakeEntry {
   signal: string;
   min_ticks_before_eligible: number;

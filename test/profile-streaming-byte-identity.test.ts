@@ -48,6 +48,9 @@ function canonicalHash(cfgPath: string): string {
   // match across paths (covered by the rest of the JSON).
   delete cfg.family_a_signals;
   delete cfg.family_c_signals;
+  // Defect 2026-09-25 — sli_meta is the profile's sli_list (direction_of_better / δ_min) carried
+  // for the recalibrate classifier: profile-layer metadata, absent on legacy compiles.
+  delete cfg.sli_meta;
   const canonical = JSON.stringify(cfg, Object.keys(cfg).sort());
   return crypto.createHash('sha256').update(canonical).digest('hex');
 }

@@ -318,6 +318,8 @@ export function attachProfileProvenance(
   if (compileDefaults.control_arm) config.control_arm = JSON.parse(JSON.stringify(compileDefaults.control_arm));
   // Plan B — the randomized twin passes through verbatim (evaluateHealth runs only its path).
   if (compileDefaults.twin_arm) config.twin_arm = JSON.parse(JSON.stringify(compileDefaults.twin_arm));
+  // Defect 2026-09-25 — the profile's direction_of_better / δ_min, read by the recalibrate classifier.
+  if (compileDefaults.sli_meta) config.sli_meta = JSON.parse(JSON.stringify(compileDefaults.sli_meta));
 }
 
 export interface SummaryArgs {

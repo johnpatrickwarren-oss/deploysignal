@@ -121,7 +121,15 @@ export function effectiveOrDefaults(
     customer_override_ref: effective.customer_override_ref,
     ...(effective.control_arm ? { control_arm: effective.control_arm } : {}),
     ...(effective.twin_arm ? { twin_arm: effective.twin_arm } : {}),
+    ...(effective.sli_list.length > 0 ? { sli_meta: _sliMeta(effective.sli_list) } : {}),
   };
+}
+
+/** Defect 2026-09-25 — the profile's sli_list keyed by signal, δ_min renamed to delta_min. */
+function _sliMeta(slis: EffectiveConfig['sli_list']): NonNullable<CompileDefaults['sli_meta']> {
+  const out: NonNullable<CompileDefaults['sli_meta']> = {};
+  for (const e of slis) out[e.signal] = { direction_of_better: e.direction_of_better, delta_min: e['δ_min'] };
+  return out;
 }
 
 /** Legacy α derivation — CLI fraction × total, with B absorbing

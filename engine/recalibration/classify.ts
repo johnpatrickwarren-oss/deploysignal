@@ -18,6 +18,7 @@
 
 import { directionOfBetter, CLASSIFICATION_EXCLUDED_SIGNALS } from './direction-metadata';
 import type { DirectionClassification, PerSignalDirection } from '../types';
+import type { SliMeta } from '../types/_config-profiles';
 import { RECALIBRATION_REASON_CODES } from '../types';
 
 /** OQ-3: default unchanged dead-band, in relative terms (1%).
@@ -35,6 +36,11 @@ export interface ClassificationOptions {
    *  direction-metadata.ts's directionOfBetter contract — throws
    *  otherwise). Threaded straight through to directionOfBetter. */
   overrides?: Record<string, 'higher' | 'lower'>;
+  /** Defect 2026-09-25 — the profile's sli_list (CompiledConfig.sli_meta): a configured signal's
+   *  direction is read before DIRECTION_OF_BETTER, and its δ_min replaces `epsilon` as that
+   *  signal's unchanged dead-band (both are relative shifts: δ_min is the smallest one the profile
+   *  says matters). */
+  configured?: SliMeta;
 }
 
 export interface ClassifyRecalibrationResult {
@@ -79,10 +85,10 @@ export function classifySignal(
 ): PerSignalDirection | null {
   if ((CLASSIFICATION_EXCLUDED_SIGNALS as readonly string[]).includes(signal)) return null;
 
-  const direction = directionOfBetter(signal, opts.overrides);
+  const direction = directionOfBetter(signal, opts.overrides, opts.configured);
   if (direction === null) return null;
 
-  const epsilon = opts.epsilon ?? DEFAULT_UNCHANGED_EPSILON;
+  const epsilon = opts.configured?.[signal]?.delta_min ?? opts.epsilon ?? DEFAULT_UNCHANGED_EPSILON;
   const deltaRel = relativeDelta(activeMean, candidateMean);
   if (Math.abs(deltaRel) < epsilon) return 'unchanged';
 

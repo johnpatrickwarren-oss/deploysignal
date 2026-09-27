@@ -15,6 +15,13 @@
 // fixture, untouched by this addition (plan §A5).
 //
 // D6 (engine/tools split): pure, no fs, no I/O.
+//
+// Defect 2026-09-25: this table was the ONLY direction source — a profile's
+// sli_list direction_of_better and δ_min were never read. A configured
+// direction (CompiledConfig.sli_meta) is now read first; the table is the
+// fallback for signals the profile does not declare.
+
+import type { SliMeta } from '../types/_config-profiles';
 
 /** 'informational' signals are tracked (cost, tokens, cache, corpus
  *  churn) but have no inherent better/worse direction — an operator
@@ -50,6 +57,15 @@ export const DIRECTION_OF_BETTER: Readonly<Record<string, DirectionOfBetter>> = 
  *  improvement/degradation classification. */
 export const CLASSIFICATION_EXCLUDED_SIGNALS: readonly string[] = ['traffic_pct'];
 
+/** Defect 2026-09-25: the profile's own direction for `signal` (CompiledConfig.sli_meta, from the
+ *  profile's sli_list), or null. A configured direction is read BEFORE the table above, so a
+ *  profile's non-LLM signals are classifiable and a profile may give an 'informational' table
+ *  signal a direction. */
+export function configuredDirection(signal: string, configured?: SliMeta): 'higher' | 'lower' | null {
+  if (!configured || !Object.prototype.hasOwnProperty.call(configured, signal)) return null;
+  return configured[signal].direction_of_better;
+}
+
 /** Resolve a signal's direction-of-better, honoring an optional
  *  operator override map.
  *
@@ -70,10 +86,10 @@ export const CLASSIFICATION_EXCLUDED_SIGNALS: readonly string[] = ['traffic_pct'
 export function directionOfBetter(
   signal: string,
   overrides?: Record<string, 'higher' | 'lower'>,
+  configured?: SliMeta,
 ): DirectionOfBetter | null {
-  const base = Object.prototype.hasOwnProperty.call(DIRECTION_OF_BETTER, signal)
-    ? DIRECTION_OF_BETTER[signal]
-    : null;
+  const base = configuredDirection(signal, configured)
+    ?? (Object.prototype.hasOwnProperty.call(DIRECTION_OF_BETTER, signal) ? DIRECTION_OF_BETTER[signal] : null);
 
   if (overrides && Object.prototype.hasOwnProperty.call(overrides, signal)) {
     if (base !== 'informational') {

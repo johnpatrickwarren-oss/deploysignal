@@ -22,7 +22,7 @@ import type {
 import { RECALIBRATION_REASON_CODES } from '../../engine/types/recalibration';
 import type { CompiledConfig } from '../../engine/types';
 import { transition } from '../../engine/recalibration/state-machine';
-import { classifyRecalibration } from '../../engine/recalibration/classify';
+import { classifyRecalibration, type ClassificationOptions } from '../../engine/recalibration/classify';
 import {
   compareCandidateVsActive, evaluateReadinessGates, extractSignalMeansPerCellWeighted,
   type ReadinessGateResult, type ExclusionWindow,
@@ -138,6 +138,24 @@ export function buildProposedCandidate(input: ProposeInput): ProposeOutcome {
   return { record, readiness, accepted: readiness.all_passed };
 }
 
+/** The classifier's options: the store-meta dead-band and overrides, plus the profile's
+ *  sli_list carried on the two configs (defect 2026-09-25: never read before). The candidate's
+ *  entry wins per signal; absent on both → no `configured` (legacy behaviour). */
+export function classificationOptionsFor(
+  activeConfig: CompiledConfig,
+  candidateConfig: CompiledConfig,
+  meta: { unchanged_epsilon_rel: number; informational_direction_overrides: Record<string, 'higher' | 'lower'> },
+): ClassificationOptions {
+  const configured = activeConfig.sli_meta || candidateConfig.sli_meta
+    ? { ...(activeConfig.sli_meta ?? {}), ...(candidateConfig.sli_meta ?? {}) }
+    : undefined;
+  return {
+    epsilon: meta.unchanged_epsilon_rel,
+    overrides: meta.informational_direction_overrides,
+    ...(configured ? { configured } : {}),
+  };
+}
+
 function classifyCandidate(
   activeConfig: CompiledConfig,
   candidateConfig: CompiledConfig,
@@ -147,7 +165,7 @@ function classifyCandidate(
     return classifyRecalibration(
       buildSignalMeans(activeConfig),
       buildSignalMeans(candidateConfig),
-      { epsilon: meta.unchanged_epsilon_rel, overrides: meta.informational_direction_overrides },
+      classificationOptionsFor(activeConfig, candidateConfig, meta),
     );
   } catch (_err) {
     // Empty signal intersection — nothing to classify. Conservative

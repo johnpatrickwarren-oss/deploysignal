@@ -48,6 +48,8 @@ export type {
   ControlArmCohortPair,
   TwinArmProfile,
   TwinArmMetricProfile,
+  SliMeta,
+  SliMetaEntry,
   CustomerOverride,
   EffectiveConfig,
 } from './_config-profiles';
