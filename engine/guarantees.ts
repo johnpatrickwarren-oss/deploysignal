@@ -140,6 +140,16 @@ export const FAMILY_A_PLUGIN_ADVISORY_REASON = 'advisory_valid_path_routed';
  *  reported on FusedVerdict.contrast_arm. Reversal: an engine envelope that ADMITS the
  *  construction at the declared fit length. */
 export const CONTRAST_ARM_AUTHORITY = 'advisory' as const;
+/** Plan B, 2026-09-26 — the randomized twin (engine ADR 0036, engine/gates/_health-twin.ts, the gate
+ *  service's `mode: "twin"` sessions) is ADVISORY. Engine study 2026-09-twin-null
+ *  (run-20260926T053339Z) met its ship rule on synthetic arms, but the premise it rests on — no
+ *  arm-level effect on any tick under randomized routing — is untested on a real service. While
+ *  this is 'advisory' no code path turns a twin verdict into an automatic rollback or a failed
+ *  rollout: nothing enters rollback[], firing_families or alpha_spent, a twin session's record is
+ *  `mode: 'shadow'` (GET /v1/verdict serves code 0), responses carry `"authority": "advisory"`, and
+ *  the Argo template runs the metric in dryRun. Reversal: a separate authority ADR after a
+ *  registered real-service A/A run (engine plan D; DORMANCY.md). test/twin-authority.test.ts. */
+export const TWIN_ARM_AUTHORITY = 'advisory' as const;
 /** The ONE e-BH budget across pairs × signals (profile `control_arm.q` overrides). */
 export const CONTRAST_ARM_Q = 0.05;
 /** The fit-ratio floor (fit_ticks / total canary ticks) at which the gate asserts the engine's

@@ -16,8 +16,9 @@
 // relative form numerically meaningless, so the module falls back to an
 // absolute-delta comparison against the same epsilon.
 
-import { directionOfBetter, CLASSIFICATION_EXCLUDED_SIGNALS } from './direction-metadata';
+import { resolveDirection, CLASSIFICATION_EXCLUDED_SIGNALS, type DirectionConflict } from './direction-metadata';
 import type { DirectionClassification, PerSignalDirection } from '../types';
+import type { SliMeta } from '../types/_config-profiles';
 import { RECALIBRATION_REASON_CODES } from '../types';
 
 /** OQ-3: default unchanged dead-band, in relative terms (1%).
@@ -30,17 +31,31 @@ export interface ClassificationOptions {
   /** Relative-delta dead-band below which a signal is 'unchanged'.
    *  Defaults to DEFAULT_UNCHANGED_EPSILON (OQ-3). */
   epsilon?: number;
-  /** Per-signal direction override, permitted only for signals whose
-   *  base direction-of-better is 'informational' (see
-   *  direction-metadata.ts's directionOfBetter contract — throws
-   *  otherwise). Threaded straight through to directionOfBetter. */
+  /** Per-signal operator direction override. Precedence against `configured` and the throw
+   *  case are in direction-metadata.ts's resolveDirection. */
   overrides?: Record<string, 'higher' | 'lower'>;
+  /** Defect 2026-09-25 — the profile's sli_list (CompiledConfig.sli_meta): a configured signal's
+   *  direction is read before DIRECTION_OF_BETTER, and its δ_min replaces `epsilon` as that
+   *  signal's unchanged dead-band (both are relative shifts: δ_min is the smallest one the profile
+   *  says matters). */
+  configured?: SliMeta;
 }
 
 export interface ClassifyRecalibrationResult {
   direction_classification: DirectionClassification;
   per_signal_direction: Record<string, PerSignalDirection>;
   suggested_reason_codes: string[];
+  /** Override-vs-configured disagreements (direction-metadata.ts resolveDirection). */
+  direction_conflicts: DirectionConflict[];
+}
+
+/** Thrown by classifyRecalibration when the two baselines share no signal. The only error the
+ *  propose flow converts to a conservative 'mixed' record; every other error propagates. */
+export class EmptySignalIntersectionError extends Error {
+  constructor() {
+    super('classifyRecalibration: empty signal intersection between active and candidate baselines');
+    this.name = 'EmptySignalIntersectionError';
+  }
 }
 
 /** relativeDeviationMean, single-value form (baseline-drift-detector.ts
@@ -76,13 +91,15 @@ export function classifySignal(
   activeMean: number,
   candidateMean: number,
   opts: ClassificationOptions = {},
+  onConflict?: (c: DirectionConflict) => void,
 ): PerSignalDirection | null {
   if ((CLASSIFICATION_EXCLUDED_SIGNALS as readonly string[]).includes(signal)) return null;
 
-  const direction = directionOfBetter(signal, opts.overrides);
+  const { direction, conflict } = resolveDirection(signal, opts.overrides, opts.configured);
+  if (conflict && onConflict) onConflict(conflict);
   if (direction === null) return null;
 
-  const epsilon = opts.epsilon ?? DEFAULT_UNCHANGED_EPSILON;
+  const epsilon = opts.configured?.[signal]?.delta_min ?? opts.epsilon ?? DEFAULT_UNCHANGED_EPSILON;
   const deltaRel = relativeDelta(activeMean, candidateMean);
   if (Math.abs(deltaRel) < epsilon) return 'unchanged';
 
@@ -110,14 +127,13 @@ export function classifyRecalibration(
   const activeSignals = new Set(Object.keys(activeMeans));
   const intersection = Object.keys(candidateMeans).filter((s) => activeSignals.has(s));
   if (intersection.length === 0) {
-    throw new Error(
-      'classifyRecalibration: empty signal intersection between active and candidate baselines',
-    );
+    throw new EmptySignalIntersectionError();
   }
 
   const per_signal_direction: Record<string, PerSignalDirection> = {};
+  const direction_conflicts: DirectionConflict[] = [];
   for (const signal of intersection) {
-    const verdict = classifySignal(signal, activeMeans[signal], candidateMeans[signal], opts);
+    const verdict = classifySignal(signal, activeMeans[signal], candidateMeans[signal], opts, (c) => direction_conflicts.push(c));
     if (verdict === null) continue;
     per_signal_direction[signal] = verdict;
   }
@@ -139,5 +155,5 @@ export function classifyRecalibration(
     ? []
     : [...RECALIBRATION_REASON_CODES];
 
-  return { direction_classification, per_signal_direction, suggested_reason_codes };
+  return { direction_classification, per_signal_direction, suggested_reason_codes, direction_conflicts };
 }

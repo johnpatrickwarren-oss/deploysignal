@@ -115,7 +115,32 @@ export function loadProfile(profile_ref: string): WorkloadProfile {
       + `does not equal per_family sum (${sum})`,
     );
   }
+  // Plan B: a zero detector-family budget is legal only for a twin profile, whose alphas live in
+  // `twin_arm` (the schema's `minimum: 0` admits 0; this is the rest of the rule).
+  if (!(finalProfile.alpha_allocation.total > 0) && !finalProfile.twin_arm) {
+    throw new Error(
+      `resolved profile "${id}" alpha_allocation.total must be > 0 (only a profile declaring twin_arm may allocate 0)`,
+    );
+  }
+  if (finalProfile.twin_arm) checkTwinArm(id, finalProfile.twin_arm);
   return finalProfile;
+}
+
+/** Plan B: the schema checks the twin block's shape; the engine's checkTwinGateConfig checks what
+ *  the schema cannot (a sign metric at unequal weights, a rate metric at unequal weights without
+ *  the opt-in, tolerance ranges, duplicate ids). Runtime value from the built engine, the
+ *  require()-the-build-artifact convention of service/gate-http (tools are compiled by
+ *  tsconfig.test.json, which does not build engine/). */
+function checkTwinArm(id: string, arm: NonNullable<WorkloadProfile['twin_arm']>): void {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const twin = require('../dist/engine/gates/_health-twin');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const gate = require('@johnpatrickwarren-oss/deploysignal-engine/per-shard/twin-gate');
+  try {
+    gate.checkTwinGateConfig(twin.twinGateConfig(arm));
+  } catch (e) {
+    throw new Error(`resolved profile "${id}" twin_arm refused by the engine: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }
 
 /** D4 field-level merge. Scalars → child replaces. Arrays → child

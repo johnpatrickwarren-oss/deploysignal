@@ -9,6 +9,7 @@ import * as fs from 'fs';
 
 import type { AuditWriter } from '../../engine/types';
 import { SessionStore } from '../session/session-store';
+import type { SessionRecord } from '../session/types';
 import { resolveActiveCalibration, ActiveCalibrationError } from '../session/active-calibration';
 import {
   GateSessionRuntime,
@@ -16,6 +17,7 @@ import {
 import type { GateHttpConfig } from './_gate-config';
 import type { MaintenanceScheduler } from './_gate-maintenance';
 import { isSafeIdentifier } from './_gate-http-util';
+import { parseTwinArm, TwinRequestError } from './_gate-twin';
 
 export interface HandlerDeps {
   runtime: GateSessionRuntime;
@@ -51,6 +53,7 @@ export function handleBeginSession(deps: HandlerDeps, rawBody: string): HandlerR
   const parsed = parseJsonBody(rawBody);
   if (!parsed.ok) return parsed.error;
   const body = parsed.value;
+  if (body.mode === 'twin') return handleBeginTwinSession(deps, body);
 
   if (typeof body.deploy_ref !== 'string' || !body.deploy_ref) return badRequest('deploy_ref is required');
   // m4 fix (final-review): deploy_ref flows straight into the
@@ -98,12 +101,51 @@ export function handleBeginSession(deps: HandlerDeps, rawBody: string): HandlerR
   }
 }
 
+// ── Plan B: mode "twin" (service/gate-http/_gate-twin.ts) ─────────
+
+function twinError(e: unknown): HandlerResult {
+  if (e instanceof TwinRequestError) return { status: e.status, body: { error: e.message, ...(e.body ?? {}) } };
+  throw e;
+}
+
+/** POST /v1/sessions {"mode":"twin","twin_arm":{…}} -> 201 {session_id, mode:"twin"}. No
+ *  scenario.baseline: the twin's nulls are observed per tick, nothing is estimated. */
+function handleBeginTwinSession(deps: HandlerDeps, body: Record<string, unknown>): HandlerResult {
+  try {
+    const twinArm = parseTwinArm(body.twin_arm);
+    if (body.deploy_ref !== undefined && typeof body.deploy_ref !== 'string') return badRequest('deploy_ref must be a string');
+    const { record, created } = deps.runtime.twin.begin({
+      twin_arm: twinArm,
+      deploy_ref: body.deploy_ref as string | undefined,
+      deploy_id: typeof body.deploy_id === 'string' ? body.deploy_id : undefined,
+      service_id: typeof body.service_id === 'string' ? body.service_id : undefined,
+      requested_at_ts: typeof body.requested_at_ts === 'number' ? body.requested_at_ts : undefined,
+    });
+    return { status: created ? 201 : 200, body: { session_id: record.session_id, mode: 'twin' } };
+  } catch (e) {
+    return twinError(e);
+  }
+}
+
+/** POST /v1/sessions/{id}/ticks on a twin session -> 200 {verdict, engine_verdict, authority,
+ *  tick, srm_e, metrics, ticks_to_detect?}. */
+function handleTwinTick(deps: HandlerDeps, session: SessionRecord, body: Record<string, unknown>): HandlerResult {
+  try {
+    return { status: 200, body: deps.runtime.twin.tick(session, body) };
+  } catch (e) {
+    return twinError(e);
+  }
+}
+
 // ── POST /v1/sessions/{id}/ticks ───────────────────────────────────
 
 export function handleTick(deps: HandlerDeps, sessionId: string, rawBody: string): HandlerResult {
   const parsed = parseJsonBody(rawBody);
   if (!parsed.ok) return parsed.error;
   const body = parsed.value;
+  const twinSession = deps.store.getSession(sessionId);
+  if (twinSession?.twin_arm) return handleTwinTick(deps, twinSession, body);
+  if (!twinSession && 'canary_requests' in body) return { status: 404, body: { error: `unknown session_id: ${sessionId}` } };
 
   if (typeof body.emitted_at_ts !== 'number') return badRequest('emitted_at_ts is required (unix seconds)');
   if (typeof body.metrics !== 'object' || body.metrics === null) return badRequest('metrics is required');

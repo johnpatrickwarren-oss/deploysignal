@@ -15,6 +15,13 @@
 // fixture, untouched by this addition (plan §A5).
 //
 // D6 (engine/tools split): pure, no fs, no I/O.
+//
+// Defect 2026-09-25: this table was the ONLY direction source — a profile's
+// sli_list direction_of_better and δ_min were never read. A configured
+// direction (CompiledConfig.sli_meta) is now read first; the table is the
+// fallback for signals the profile does not declare.
+
+import type { SliMeta } from '../types/_config-profiles';
 
 /** 'informational' signals are tracked (cost, tokens, cache, corpus
  *  churn) but have no inherent better/worse direction — an operator
@@ -50,40 +57,78 @@ export const DIRECTION_OF_BETTER: Readonly<Record<string, DirectionOfBetter>> = 
  *  improvement/degradation classification. */
 export const CLASSIFICATION_EXCLUDED_SIGNALS: readonly string[] = ['traffic_pct'];
 
-/** Resolve a signal's direction-of-better, honoring an optional
- *  operator override map.
+/** Defect 2026-09-25: the profile's own direction for `signal` (CompiledConfig.sli_meta, from the
+ *  profile's sli_list), or null. A configured direction is read BEFORE the table above, so a
+ *  profile's non-LLM signals are classifiable and a profile may give an 'informational' table
+ *  signal a direction. */
+export function configuredDirection(signal: string, configured?: SliMeta): 'higher' | 'lower' | null {
+  if (!configured || !Object.prototype.hasOwnProperty.call(configured, signal)) return null;
+  return configured[signal].direction_of_better;
+}
+
+/** A disagreement between a store-level operator override and the profile's configured direction
+ *  for the same signal. `applied` names the side that was used. Recorded on the classification
+ *  result (and the CandidateRecord) instead of thrown. */
+export interface DirectionConflict {
+  signal: string;
+  override: 'higher' | 'lower';
+  configured: 'higher' | 'lower';
+  applied: 'override' | 'configured';
+}
+
+/** Resolve a signal's direction-of-better from three sources: the store's operator override,
+ *  the profile's configured direction (CompiledConfig.sli_meta), and the DIRECTION_OF_BETTER
+ *  table.
  *
- *  Overrides are permitted ONLY for signals whose base classification
- *  is 'informational' (per plan §B store-meta
- *  `informational_direction_overrides`) — e.g. an operator who has
- *  decided cost_req should count as 'higher is better' for their
- *  service. Attempting to override a signal that already has an
- *  inherent 'higher' | 'lower' direction — or a signal not in the
- *  table at all — throws, since silently flipping an established
- *  direction (or inventing one for an unknown signal) would corrupt
- *  classification (Task 3) without an explicit, auditable decision.
+ *  Precedence (review finding on the 2026-09-25 fix, which threw whenever a profile configured a
+ *  signal the store also overrode, e.g. cost_req in every shipped profile):
+ *    1. An override on a signal the TABLE classes 'informational' wins, including over a
+ *       configured direction. This is the documented store-meta mechanism
+ *       (`informational_direction_overrides`) and an explicit per-service operator decision.
+ *    2. An override on any other signal that the profile configures is ignored; the configured
+ *       direction applies.
+ *    3. An override on a signal that is neither table-informational nor configured throws, as
+ *       before: silently flipping an established direction, or inventing one for an unknown
+ *       signal, would corrupt classification without an auditable decision.
+ *  In cases 1 and 2 a disagreement between override and configured direction is returned as
+ *  `conflict`; agreement is not a conflict.
  *
- *  Returns `null` for signals absent from the table (including
- *  CLASSIFICATION_EXCLUDED_SIGNALS members, which are deliberately not
- *  present in DIRECTION_OF_BETTER) — callers treat `null` as "skip,
- *  unclassifiable". */
+ *  `direction` is `null` for signals neither configured nor in the table (including
+ *  CLASSIFICATION_EXCLUDED_SIGNALS members) — callers treat `null` as "skip, unclassifiable". */
+export function resolveDirection(
+  signal: string,
+  overrides?: Record<string, 'higher' | 'lower'>,
+  configured?: SliMeta,
+): { direction: DirectionOfBetter | null; conflict?: DirectionConflict } {
+  const table = Object.prototype.hasOwnProperty.call(DIRECTION_OF_BETTER, signal) ? DIRECTION_OF_BETTER[signal] : null;
+  const fromProfile = configuredDirection(signal, configured);
+
+  if (overrides && Object.prototype.hasOwnProperty.call(overrides, signal)) {
+    const override = overrides[signal];
+    if (table === 'informational') {
+      return fromProfile !== null && fromProfile !== override
+        ? { direction: override, conflict: { signal, override, configured: fromProfile, applied: 'override' } }
+        : { direction: override };
+    }
+    if (fromProfile !== null) {
+      return fromProfile !== override
+        ? { direction: fromProfile, conflict: { signal, override, configured: fromProfile, applied: 'configured' } }
+        : { direction: fromProfile };
+    }
+    throw new Error(
+      `direction override for '${signal}' is not permitted: overrides are only `
+      + `allowed for 'informational' signals (base direction: ${table ?? 'unknown signal'})`,
+    );
+  }
+
+  return { direction: fromProfile ?? table };
+}
+
+/** `resolveDirection` without the conflict record. */
 export function directionOfBetter(
   signal: string,
   overrides?: Record<string, 'higher' | 'lower'>,
+  configured?: SliMeta,
 ): DirectionOfBetter | null {
-  const base = Object.prototype.hasOwnProperty.call(DIRECTION_OF_BETTER, signal)
-    ? DIRECTION_OF_BETTER[signal]
-    : null;
-
-  if (overrides && Object.prototype.hasOwnProperty.call(overrides, signal)) {
-    if (base !== 'informational') {
-      throw new Error(
-        `direction override for '${signal}' is not permitted: overrides are only `
-        + `allowed for 'informational' signals (base direction: ${base ?? 'unknown signal'})`,
-      );
-    }
-    return overrides[signal];
-  }
-
-  return base;
+  return resolveDirection(signal, overrides, configured).direction;
 }

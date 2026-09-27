@@ -234,6 +234,7 @@ function computeFinalVerdict(
     tenantId:          params.tenantId,
     ...validPathHealthOpts(params, tick, total),
     ...contrastArmHealthOpts(params, total),
+    ...(params.twinArm ? { twinArm: params.twinArm } : {}),
   });
   // Addition #29 / Q29 — Anvil expected-failure-pattern suppression. Gated
   // on params.expectedFailurePattern !== undefined so the pre-Anvil path

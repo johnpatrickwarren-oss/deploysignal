@@ -5,7 +5,7 @@
 // the engine/types/config.ts god-file; re-exported verbatim from there to
 // preserve the facade export surface.
 
-import type { ControlArmProfile } from './_config-profiles';
+import type { ControlArmProfile, TwinArmProfile, SliMeta } from './_config-profiles';
 import type { ConfiguredAgent } from '@johnpatrickwarren-oss/deploysignal-engine/types/agent';
 import type { TenantTier, TenantTierConfig } from './_config-tenant';
 import type { BaselineCellsConfig, BakeProfile } from './_config-baseline-bundle';
@@ -107,6 +107,10 @@ export interface CompiledConfig {
    *  SIGNALS` when absent. Under A3, runtime operates on compiled
    *  shape; no per-tick signal projection. */
   family_a_signals?: string[];
+  /** Defect 2026-09-25 — the profile's sli_list direction_of_better and δ_min per signal, for
+   *  the consumers that classify direction (engine/recalibration/classify.ts via the recalibrate
+   *  CLI). Profile-routed compiles only; absent on legacy compiles. */
+  sli_meta?: SliMeta;
   /** REPLY-51b v2 R4-1 — Family C/E joint-vector signal inventory.
    *  Profile-routed compiles emit the effective `joint_vector.
    *  signals` array; legacy compiles omit. Runtime detectors
@@ -118,6 +122,10 @@ export interface CompiledConfig {
    *  (tools/calibrate/_calibrate-config-build.ts attachProfileProvenance). Absent on legacy
    *  compiles and on profiles without the block. */
   control_arm?: ControlArmProfile;
+  /** Plan B (engine ADR 0036) — the profile's randomized twin, passed through verbatim by the
+   *  compiler like `control_arm`. Present → evaluateHealth runs ONLY the twin path
+   *  (engine/gates/_health-twin.ts), ADVISORY. Absent on legacy compiles and other profiles. */
+  twin_arm?: TwinArmProfile;
   /** REPLY-51b R4-2 — compile-time warnings accumulated during
    *  dispatch (e.g., `CELL_DIM_BASELINE_DEFICIENCY` when profile
    *  requests a cell dimension the baseline lacks). Programmatic

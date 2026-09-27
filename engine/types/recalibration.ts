@@ -130,6 +130,9 @@ export interface CandidateRecord extends RecalibrationCandidate {
     excluded_windows_applied: number;
   };
   compiled_config_path: string;
+  /** Override-vs-configured direction disagreements found at propose time
+   *  (engine/recalibration/direction-metadata.ts resolveDirection). Absent when none. */
+  direction_conflicts?: Array<{ signal: string; override: 'higher' | 'lower'; configured: 'higher' | 'lower'; applied: 'override' | 'configured' }>;
   drift_output?: object;
   readiness?: object;
   comparison?: object;

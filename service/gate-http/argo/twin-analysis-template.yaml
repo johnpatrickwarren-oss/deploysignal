@@ -1,0 +1,108 @@
+# service/gate-http/argo/twin-analysis-template.yaml — Plan B: the randomized twin (engine ADR
+# 0036) under Argo Rollouts. Two documents:
+#
+#   1. AnalysisTemplate `deploysignal-twin-gate` — the Level-1 web provider, polling
+#      GET /v1/verdict/{deploy-ref} for a `mode: "twin"` session and reading its `twin.verdict`
+#      block (rollback | proceed | extend | hold | halt).
+#   2. An example Rollout whose canary strategy runs an EXPERIMENT step: a `baseline` ReplicaSet on
+#      the stable (old) spec and a `canary` ReplicaSet on the new spec, at the same traffic weight.
+#      That is the twin's topology: a FRESH control arm on the old version at the canary's weight,
+#      both arms taking randomized per-request traffic. Testing the canary against the warm stable
+#      fleet instead violates the premise at start-up (a cold canary; ADR 0036 "Consequences").
+#
+# ADVISORY. While TWIN_ARM_AUTHORITY (engine/guarantees.ts) is 'advisory' the template RECORDS the
+# twin verdict and never fails the analysis:
+#   - the metric is listed under spec.dryRun, so its measurements never decide the AnalysisRun;
+#   - successCondition is the literal "true", with no failureCondition or inconclusiveCondition;
+#   - consecutiveErrorLimit exceeds count, so an unreachable gate cannot error the run either.
+# The measured value (the twin verdict string) stays on the AnalysisRun for a person to read.
+# Changing any of this is part of the authority ADR that follows a real-service A/A run
+# (DORMANCY.md), not an edit to this file alone; test/twin-argo-template.test.ts pins it.
+#
+# Session bootstrap and ticks. Argo only polls. Before the experiment starts, something upstream
+# creates the session — POST /v1/sessions {"mode":"twin","deploy_ref":"<same ref>","twin_arm":{…}}
+# — and a metrics source pushes one tick per interval to POST /v1/sessions/{id}/ticks with each
+# arm's request counts and per-metric observations, splitting pods by the `ds-twin-arm` label
+# below (Plan C's sources and CodeDeploy hook call the same contract). See README.md "Twin mode".
+#
+# Namespace, Service DNS name, port, image and the traffic-routing block are illustrative.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: deploysignal-twin-gate
+spec:
+  args:
+    - name: deploy-ref
+  dryRun:
+    - metricName: twin-verdict   # advisory: recorded, never decides the run
+  metrics:
+    - name: twin-verdict
+      interval: 30s
+      count: 120                 # matches twin_arm.max_ticks in profiles/twin-generic.yaml
+      successCondition: "true"   # every measurement succeeds; the verdict is the recorded value
+      consecutiveErrorLimit: 121 # above count: a gate outage cannot error the AnalysisRun
+      provider:
+        web:
+          url: "http://deploysignal-gate.<ns>.svc:8790/v1/verdict/{{args.deploy-ref}}"
+          method: GET
+          timeoutSeconds: 5
+          jsonPath: "{$.twin.verdict}"
+          # Uncomment if DS_GATE_SHARED_SECRET is set on the gate deployment:
+          # headers:
+          #   - key: x-ds-gate-token
+          #     value: "{{ secrets.deploysignal-gate-token }}"
+---
+# Example Rollout (illustrative). The experiment step is the part that matters: `baseline` and
+# `canary` at the SAME weight (canary_weight 0.5 within the experiment), the same replica count,
+# and the twin AnalysisTemplate running beside them without being required for completion.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: example-twin-rollout
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+        - name: app
+          image: example.invalid/app:new
+  strategy:
+    canary:
+      trafficRouting:            # weighted experiment templates need a traffic router
+        istio:
+          virtualService:
+            name: example-vsvc
+            routes:
+              - primary
+      steps:
+        - experiment:
+            duration: 60m        # max_ticks × tick interval, with margin
+            templates:
+              - name: baseline
+                specRef: stable  # the OLD version, a fresh ReplicaSet: the control arm
+                replicas: 2
+                weight: 5
+                metadata:
+                  labels:
+                    ds-twin-arm: control
+              - name: canary
+                specRef: canary  # the NEW version
+                replicas: 2
+                weight: 5
+                metadata:
+                  labels:
+                    ds-twin-arm: canary
+            analyses:
+              - name: twin
+                templateName: deploysignal-twin-gate
+                args:
+                  - name: deploy-ref
+                    valueFrom:
+                      podTemplateHashValue: Latest
+        - pause: {}              # advisory: a person reads the twin verdict and promotes or aborts

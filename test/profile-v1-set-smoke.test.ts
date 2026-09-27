@@ -66,6 +66,9 @@ function stripForDiff(cfg: Record<string, unknown>): Record<string, unknown> {
   // legacy omits. Strip for the byte-identity equivalence.
   delete out.family_a_signals;
   delete out.family_c_signals;
+  // Defect 2026-09-25 — sli_meta (the profile's direction_of_better / δ_min for the recalibrate
+  // classifier) is profile-layer metadata, absent on legacy compiles.
+  delete out.sli_meta;
   return out;
 }
 

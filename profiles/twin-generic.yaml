@@ -1,0 +1,81 @@
+# profiles/twin-generic.yaml
+#
+# Plan B (engine ADR 0036) — the randomized twin for any HTTP service. The canary is tested against
+# a CONCURRENT control arm on the old version, both taking requests under randomized per-request
+# routing at equal weight; each metric's null is observed in the same tick or fixed, so nothing is
+# estimated from history and no baseline is fitted.
+#
+# No LLM signal and no detector family: a profile that declares `twin_arm` runs ONLY the twin path
+# (engine/gates/_health-twin.ts). Family A–E are off, the structural rules are off, and the detector
+# budget below is 0 because the twin's alphas live in its own block.
+#
+# AUTHORITY: ADVISORY (engine/guarantees.ts TWIN_ARM_AUTHORITY). No twin verdict becomes an automatic
+# rollback or a failed rollout. The authority ADR comes after a real-service A/A run (DORMANCY.md).
+#
+# Root profile (no `extends:`).
+
+id: twin-generic
+version: "1.0.0"
+extends: null
+description: >
+  Randomized twin for a generic HTTP service: two rate metrics (5xx responses, successes) and one
+  sign metric (p99 latency) tested canary-against-control at equal routing weight. Advisory.
+
+sli_list: []
+
+structural_detectors:
+  enabled: false
+  dependencies: []
+
+joint_vector:
+  signals: []
+  include_in_family_c: false
+  include_in_family_e: false
+
+alpha_allocation:
+  per_family:
+    A: 0
+    B: 0
+    C: 0
+    D: 0
+    E: 0
+  total: 0
+
+cell_dimensions:
+  hour_of_day: false
+  day_of_week: false
+  workload_class: false
+  tenant_tier: false
+  region: false
+
+bake_profiles: []
+
+policy_defaults:
+  reversibility_threshold_minutes: 30
+  # The twin is advisory: nothing here may roll back automatically.
+  auto_rollback_enabled: false
+  default_risk_tier: medium
+
+twin_arm:
+  # Equal weights: the sign metric's null needs them, and a rate metric at an unequal split is
+  # refused without allow_unequal_rate_split (engine ADR 0036, study P2).
+  canary_weight: 0.5
+  alpha_rollback: 0.05
+  alpha_proceed: 0.05
+  alpha_srm: 0.001
+  max_ticks: 120
+  metrics:
+    # rate: per tick, bad events over requests in each arm; tolerance is an excess odds ratio.
+    - id: http_5xx
+      kind: rate
+      worse: higher
+      tolerance: 0.2
+    - id: success
+      kind: rate
+      worse: lower
+      tolerance: 0.2
+    # sign: per tick, is the canary's value worse than the control's; tolerance is P(worse) − ½.
+    - id: p99_latency_ms
+      kind: sign
+      worse: higher
+      tolerance: 0.15

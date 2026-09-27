@@ -36,7 +36,17 @@ export interface GateHttpConfig {
    *  default resolution of the recalibrate CLI entry point (see
    *  _gate-maintenance.ts's resolveRecalibrateBin). */
   maintenanceRecalibrateBin: string | null;
+  /** DS_GATE_TWIN_MAX_TICK_COUNT — the largest count a twin tick may carry (canary_requests,
+   *  control_requests, and each rate metric's events/totals). Above it the tick is a 400. The
+   *  pinned engine's Fisher noncentral mean is O(N) in time and memory on the request thread, so
+   *  an unbounded count (e.g. a cumulative counter sent as a delta) stalls or crashes the shared
+   *  gate process. Optional here so hand-built configs default to DEFAULT_TWIN_MAX_TICK_COUNT. */
+  twinMaxTickCount?: number;
 }
+
+/** Default per-tick count cap for twin sessions (about 0.6 s per full score with the pinned
+ *  engine, measured at review 2026-09-26). */
+export const DEFAULT_TWIN_MAX_TICK_COUNT = 1e7;
 
 /** Thrown by loadConfigFromEnv when the env combination is
  *  self-contradictory in a way no fallback can safely resolve — thrown at
@@ -57,6 +67,16 @@ function intFromEnv(env: NodeJS.ProcessEnv, key: string, fallback: number): numb
   if (!raw) return fallback;
   const n = parseInt(raw, 10);
   return Number.isFinite(n) ? n : fallback;
+}
+
+/** A positive integer; `Number()` rather than parseInt so '1e7' reads as 10000000. Unset falls
+ *  back; a set but invalid value is a startup error (the cap never silently becomes permissive). */
+function positiveIntFromEnv(env: NodeJS.ProcessEnv, key: string, fallback: number): number {
+  const raw = env[key];
+  if (!raw) return fallback;
+  const n = Number(raw);
+  if (!Number.isSafeInteger(n) || n <= 0) throw new GateConfigError(`${key} must be a positive integer, got '${raw}'`);
+  return n;
 }
 
 function oneOf<T extends string>(env: NodeJS.ProcessEnv, key: string, allowed: readonly T[], fallback: T): T {
@@ -103,5 +123,6 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): GateHtt
     maintenanceRefreshBundleDir,
     maintenanceRefreshWindow,
     maintenanceRecalibrateBin: env.DS_GATE_RECALIBRATE_BIN || null,
+    twinMaxTickCount: positiveIntFromEnv(env, 'DS_GATE_TWIN_MAX_TICK_COUNT', DEFAULT_TWIN_MAX_TICK_COUNT),
   };
 }
