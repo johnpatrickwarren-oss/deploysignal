@@ -167,3 +167,12 @@ test('histogram exceedance: an empty events result with traffic is missing, not 
   const body = await new PrometheusTwinSource(cfg(fetch, [spec])).fetchTick(T0, T0 + 60_000);
   assert.equal('slow_requests' in body.observations, false);
 });
+
+test('an AbortSignal passed to fetchTick reaches every query fetch', async () => {
+  const seen: unknown[] = [];
+  const { fetch: inner } = fakeFetch(reqAnswers);
+  const fetch: FetchLike = async (url, init) => { seen.push(init?.signal); return inner(url, init); };
+  const ac = new AbortController();
+  await new PrometheusTwinSource(cfg(fetch, [])).fetchTick(T0, T0 + 60_000, ac.signal);
+  assert.deepEqual(seen, [ac.signal, ac.signal]);
+});

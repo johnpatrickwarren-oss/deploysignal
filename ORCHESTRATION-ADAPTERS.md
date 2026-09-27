@@ -415,7 +415,18 @@ applies.
 `createAfterAllowTrafficHandler(deps)` takes injected clients: the CodeDeploy client, a gate client
 (`integrations/codedeploy/twin-gate-client.ts`), a `MetricSource`, the twin arm, and the tick length.
 It stops on any verdict other than `extend`, at `max_ticks`, or before the Lambda deadline (the last
-two end as `hold`), then calls `PutLifecycleEventHookExecutionStatus` once.
+two end as `hold`), then calls `PutLifecycleEventHookExecutionStatus`.
+
+Every gate and source call races a deadline: `callTimeoutMs` (default 60 s), capped by the Lambda's
+remaining time less `safetyMs` (default 30 s, kept back for the Put). A call past its deadline has its
+`AbortSignal` fired (the gate client passes it to `fetch`, the CloudWatch source to `send` as
+`abortSignal`, the Prometheus source to `fetch`) and ends the run as a gate error. No window starts
+unless its wait, `tickReserveMs` (default 10 s) and `safetyMs` fit. The Put is tried up to
+`putAttempts` times (default 3), each bounded by `putTimeoutMs` (default 5 s) and the remaining time,
+with `putBackoffMs × n` between attempts. The handler resolves even when every attempt fails
+(`reported: false`, each failure logged): a rejected Lambda invocation is retried by Lambda and would
+run the gate again. A hook whose Put never lands is timed out by CodeDeploy, which fails the
+deployment; that path is reached only when CodeDeploy itself refuses the call for the whole budget.
 
 | gate verdict | reported status (default) | with `enforce: true` and a non-advisory gate authority |
 |--------------|---------------------------|--------------------------------------------------------|
@@ -424,7 +435,7 @@ two end as `hold`), then calls `PutLifecycleEventHookExecutionStatus` once.
 | hold         | Succeeded                 | Failed                                                 |
 | halt         | Succeeded                 | Failed                                                 |
 | rollback     | Succeeded                 | Failed                                                 |
-| gate error   | Succeeded                 | Failed only if a tick response already stated a non-advisory authority |
+| gate or source error, or a call past its deadline | Succeeded | Failed only if a tick response already stated a non-advisory authority |
 
 `enforce` defaults to false. When it is true and the gate's response says `"authority":"advisory"`,
 the hook still reports `Succeeded` and logs that enforcement was overridden. Every tick and the final

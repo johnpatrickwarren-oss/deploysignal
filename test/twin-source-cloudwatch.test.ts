@@ -3,7 +3,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GetMetricDataCommand } from '@aws-sdk/client-cloudwatch';
+import { CloudWatchClient, GetMetricDataCommand } from '@aws-sdk/client-cloudwatch';
 import type { GetMetricDataCommandOutput } from '@aws-sdk/client-cloudwatch';
 
 import { CloudWatchTwinSource } from '../service/sources/cloudwatch';
@@ -143,4 +143,19 @@ test('a query that CloudWatch reports as failed is an error, not a zero', async 
   };
   const src = new CloudWatchTwinSource({ client, loadBalancer: LB, targetGroups: TG });
   await assert.rejects(() => src.fetchTick(T0, T0 + 60_000), /rc_canary.*InternalError/);
+});
+
+test('an AbortSignal passed to fetchTick reaches GetMetricData as abortSignal', async () => {
+  const seen: unknown[] = [];
+  const client: CloudWatchLike = {
+    async send(_cmd, opts) { seen.push(opts?.abortSignal); return { $metadata: {}, MetricDataResults: [] }; },
+  };
+  const ac = new AbortController();
+  await new CloudWatchTwinSource({ client, loadBalancer: LB, targetGroups: TG }).fetchTick(T0, T0 + 60_000, ac.signal);
+  assert.deepEqual(seen, [ac.signal]);
+});
+
+test('a real CloudWatchClient satisfies CloudWatchLike (type check; constructing it makes no call)', () => {
+  const real: CloudWatchLike = new CloudWatchClient({ region: 'us-east-1' });
+  assert.equal(typeof real.send, 'function');
 });

@@ -4,7 +4,14 @@
 // Flow: open a twin session (POST /v1/sessions, mode "twin"), then per tick wait for the window
 // to close (+ settleMs for metric publication lag), fetch the window from the MetricSource, post
 // it (POST /v1/sessions/{id}/ticks), and stop on any verdict other than "extend", at max_ticks,
-// or before the Lambda deadline. Finally call PutLifecycleEventHookExecutionStatus once.
+// or before the Lambda deadline. Finally call PutLifecycleEventHookExecutionStatus.
+//
+// DEADLINES. Every gate and source call races a deadline: callTimeoutMs, capped by the Lambda's
+// remaining time minus safetyMs. On timeout the call's AbortSignal fires and the run ends as an
+// error, which reports "Succeeded" like any other error. The Put itself is tried up to putAttempts
+// times, each bounded by putTimeoutMs and the remaining time; the handler resolves even when every
+// attempt fails, because a rejected async Lambda invocation is retried by Lambda and would run the
+// whole gate again. A hook whose Put never lands is timed out by CodeDeploy.
 //
 // AUTHORITY. The twin arm is advisory (TWIN_ARM_AUTHORITY = 'advisory'; the gate's responses
 // carry "authority": "advisory"). While advisory, no path here turns a twin verdict into a failed
@@ -34,13 +41,15 @@ import type {
 
 /** The slice of CodeDeployClient this hook uses; a CodeDeployClient satisfies it. */
 export interface CodeDeployLike {
-  send(command: PutLifecycleEventHookExecutionStatusCommand): Promise<PutLifecycleEventHookExecutionStatusCommandOutput>;
+  send(
+    command: PutLifecycleEventHookExecutionStatusCommand, options?: { abortSignal?: AbortSignal },
+  ): Promise<PutLifecycleEventHookExecutionStatusCommandOutput>;
 }
 
 /** The slice of TwinGateClient this hook uses. */
 export interface TwinGateLike {
-  openSession(twinArm: TwinArmBody): Promise<TwinSessionResponse>;
-  tick(sessionId: string, body: TwinTickBody): Promise<TwinTickResponse>;
+  openSession(twinArm: TwinArmBody, signal?: AbortSignal): Promise<TwinSessionResponse>;
+  tick(sessionId: string, body: TwinTickBody, signal?: AbortSignal): Promise<TwinTickResponse>;
 }
 
 export interface AfterAllowTrafficDeps {
@@ -52,8 +61,18 @@ export interface AfterAllowTrafficDeps {
   tickMs: number;
   /** Wait after a window closes before fetching it (CloudWatch ALB metrics lag 1–3 min). Default 0. */
   settleMs?: number;
-  /** Stop when the Lambda has less than this left after the next window. Default 30 s. */
+  /** Time kept back for the Put: calls are cut this long before the Lambda deadline. Default 30 s. */
   safetyMs?: number;
+  /** Time a window needs after it closes for its fetch and tick; no window starts without it. Default 10 s. */
+  tickReserveMs?: number;
+  /** Upper bound on each gate or source call, with or without a Lambda context. Default 60 s. */
+  callTimeoutMs?: number;
+  /** PutLifecycleEventHookExecutionStatus attempts. Default 3. */
+  putAttempts?: number;
+  /** Bound on each Put attempt. Default 5 s. */
+  putTimeoutMs?: number;
+  /** Wait before Put retry n is putBackoffMs * n. Default 500 ms. */
+  putBackoffMs?: number;
   /** Default false. Only honoured when the gate's response authority is not "advisory". */
   enforce?: boolean;
   now?: () => number;
@@ -79,6 +98,8 @@ export interface AfterAllowTrafficOutcome {
   /** The authority the gate last stated, or null when no tick response arrived. */
   authority: string | null;
   reason: string;
+  /** Whether a PutLifecycleEventHookExecutionStatus call succeeded. */
+  reported: boolean;
 }
 
 interface RunResult {
@@ -95,19 +116,29 @@ export function createAfterAllowTrafficHandler(deps: AfterAllowTrafficDeps) {
   const log = deps.log ?? ((entry: Record<string, unknown>) => console.log(JSON.stringify(entry)));
   const settleMs = deps.settleMs ?? 0;
   const safetyMs = deps.safetyMs ?? 30_000;
+  const tickReserveMs = deps.tickReserveMs ?? 10_000;
+  const callTimeoutMs = deps.callTimeoutMs ?? 60_000;
+  const putAttempts = Math.max(1, deps.putAttempts ?? 3);
+  const putTimeoutMs = deps.putTimeoutMs ?? 5_000;
+  const putBackoffMs = deps.putBackoffMs ?? 500;
 
   const hasTimeFor = (windowEnd: number, ctx?: LambdaContextLike): boolean =>
-    !ctx || ctx.getRemainingTimeInMillis() >= windowEnd + settleMs - now() + safetyMs;
+    !ctx || ctx.getRemainingTimeInMillis() >= windowEnd + settleMs - now() + tickReserveMs + safetyMs;
+
+  /** Time a gate or source call may take now. */
+  const callBudget = (ctx?: LambdaContextLike): number =>
+    ctx ? Math.min(callTimeoutMs, ctx.getRemainingTimeInMillis() - safetyMs) : callTimeoutMs;
 
   async function run(event: AfterAllowTrafficEvent, ctx: LambdaContextLike | undefined, r: RunResult): Promise<void> {
-    const session = await deps.gate.openSession(deps.twinArm);
+    const session = await bounded('gate openSession', callBudget(ctx), (signal) => deps.gate.openSession(deps.twinArm, signal));
     log({ event: 'twin_gate_session', deployment_id: event.DeploymentId, session_id: session.session_id });
     let start = Math.ceil(now() / deps.tickMs) * deps.tickMs;
     while (r.ticks < deps.twinArm.max_ticks && hasTimeFor(start + deps.tickMs, ctx)) {
       const end = start + deps.tickMs;
       const wait = end + settleMs - now();
       if (wait > 0) await sleep(wait);
-      const res = await deps.gate.tick(session.session_id, await deps.source.fetchTick(start, end));
+      const body = await bounded('source fetchTick', callBudget(ctx), (signal) => deps.source.fetchTick(start, end, signal));
+      const res = await bounded('gate tick', callBudget(ctx), (signal) => deps.gate.tick(session.session_id, body, signal));
       r.ticks += 1;
       r.authority = res.authority;
       r.verdict = res.verdict;
@@ -131,13 +162,57 @@ export function createAfterAllowTrafficHandler(deps: AfterAllowTrafficDeps) {
     const { status, reason } = decideStatus(r, deps.enforce === true);
     log({ event: 'twin_gate_final', deployment_id: event.DeploymentId, verdict: r.verdict, ticks: r.ticks,
       authority: r.authority, status, reason });
-    await deps.codedeploy.send(new PutLifecycleEventHookExecutionStatusCommand({
+    const reported = await put(event, status, ctx);
+    return { status, verdict: r.verdict, ticks: r.ticks, authority: r.authority, reason, reported };
+  };
+
+  async function put(event: AfterAllowTrafficEvent, status: HookStatus, ctx?: LambdaContextLike): Promise<boolean> {
+    const command = new PutLifecycleEventHookExecutionStatusCommand({
       deploymentId: event.DeploymentId,
       lifecycleEventHookExecutionId: event.LifecycleEventHookExecutionId,
       status,
-    }));
-    return { status, verdict: r.verdict, ticks: r.ticks, authority: r.authority, reason };
-  };
+    });
+    for (let attempt = 1; attempt <= putAttempts; attempt++) {
+      if (attempt > 1) {
+        const backoff = putBackoffMs * (attempt - 1);
+        if (ctx && ctx.getRemainingTimeInMillis() - backoff <= 0) break;
+        await sleep(backoff);
+      }
+      const budget = ctx ? Math.min(putTimeoutMs, ctx.getRemainingTimeInMillis()) : putTimeoutMs;
+      if (!(budget > 0)) break;
+      try {
+        await bounded('PutLifecycleEventHookExecutionStatus', budget,
+          (signal) => deps.codedeploy.send(command, { abortSignal: signal }));
+        return true;
+      } catch (e) {
+        log({ event: 'twin_gate_put_error', deployment_id: event.DeploymentId, attempt, status,
+          error: e instanceof Error ? e.message : String(e) });
+      }
+    }
+    return false;
+  }
+}
+
+/**
+ * Run `call` with an AbortSignal and reject once `ms` passes, aborting the signal. A call that
+ * ignores the signal is abandoned; the caller does not wait for it.
+ */
+export async function bounded<T>(label: string, ms: number, call: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  if (!(ms > 0)) throw new Error(`${label}: timed out (no time left before the deadline)`);
+  const ac = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(`${label}: timed out after ${ms} ms`);
+      ac.abort(err);
+      reject(err);
+    }, ms);
+  });
+  try {
+    return await Promise.race([Promise.resolve().then(() => call(ac.signal)), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Advisory unless enforce is set AND the gate itself stated a non-advisory authority. */

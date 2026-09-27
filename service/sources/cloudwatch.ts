@@ -25,7 +25,7 @@ import type { TwinObservationBody, TwinTickBody } from './twin-contract';
 
 /** The slice of CloudWatchClient this source uses; a CloudWatchClient satisfies it. */
 export interface CloudWatchLike {
-  send(command: GetMetricDataCommand): Promise<GetMetricDataCommandOutput>;
+  send(command: GetMetricDataCommand, options?: { abortSignal?: AbortSignal }): Promise<GetMetricDataCommandOutput>;
 }
 
 export interface CloudWatchTwinSourceConfig {
@@ -61,7 +61,7 @@ export class CloudWatchTwinSource implements MetricSource {
     }
   }
 
-  async fetchTick(windowStartMs: number, windowEndMs: number): Promise<TwinTickBody> {
+  async fetchTick(windowStartMs: number, windowEndMs: number, signal?: AbortSignal): Promise<TwinTickBody> {
     const spanMs = windowEndMs - windowStartMs;
     if (!(spanMs > 0) || spanMs % MINUTE_MS !== 0) {
       throw new Error(`CloudWatchTwinSource: window must be a positive multiple of 60 s, got ${spanMs} ms`);
@@ -69,7 +69,7 @@ export class CloudWatchTwinSource implements MetricSource {
     if (windowStartMs % MINUTE_MS !== 0) {
       throw new Error('CloudWatchTwinSource: window must start on a minute boundary');
     }
-    const values = await this.fetchAll(this.queries(spanMs / 1000), windowStartMs, windowEndMs);
+    const values = await this.fetchAll(this.queries(spanMs / 1000), windowStartMs, windowEndMs, signal);
     return this.toBody(values);
   }
 
@@ -99,7 +99,9 @@ export class CloudWatchTwinSource implements MetricSource {
     return out;
   }
 
-  private async fetchAll(queries: MetricDataQuery[], startMs: number, endMs: number): Promise<Map<string, number[]>> {
+  private async fetchAll(
+    queries: MetricDataQuery[], startMs: number, endMs: number, signal?: AbortSignal,
+  ): Promise<Map<string, number[]>> {
     const values = new Map<string, number[]>();
     let nextToken: string | undefined;
     do {
@@ -108,7 +110,7 @@ export class CloudWatchTwinSource implements MetricSource {
         StartTime: new Date(startMs),
         EndTime: new Date(endMs),
         NextToken: nextToken,
-      }));
+      }), signal ? { abortSignal: signal } : undefined);
       for (const r of out.MetricDataResults ?? []) {
         if (!r.Id) continue;
         if (r.StatusCode === 'InternalError' || r.StatusCode === 'Forbidden') {

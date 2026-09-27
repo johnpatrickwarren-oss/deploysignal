@@ -27,7 +27,7 @@ export interface FetchLikeResponse {
   status: number;
   json(): Promise<unknown>;
 }
-export type FetchLike = (url: string, init?: { headers?: Record<string, string> }) => Promise<FetchLikeResponse>;
+export type FetchLike = (url: string, init?: { headers?: Record<string, string>; signal?: AbortSignal }) => Promise<FetchLikeResponse>;
 
 export interface PromRateSpec {
   id: string;
@@ -75,13 +75,13 @@ export class PrometheusTwinSource implements MetricSource {
     }
   }
 
-  async fetchTick(windowStartMs: number, windowEndMs: number): Promise<TwinTickBody> {
+  async fetchTick(windowStartMs: number, windowEndMs: number, signal?: AbortSignal): Promise<TwinTickBody> {
     const spanMs = windowEndMs - windowStartMs;
     if (!(spanMs > 0) || spanMs % 1000 !== 0) {
       throw new Error(`PrometheusTwinSource: window must be a positive whole number of seconds, got ${spanMs} ms`);
     }
     const q = (template: string, arm: Arm): Promise<number | null> =>
-      this.query(this.render(template, arm, spanMs / 1000), windowEndMs / 1000);
+      this.query(this.render(template, arm, spanMs / 1000), windowEndMs / 1000, signal);
 
     const [canaryReq, controlReq, ...perMetric] = await Promise.all([
       q(this.cfg.requests, 'canary'),
@@ -124,11 +124,11 @@ export class PrometheusTwinSource implements MetricSource {
   }
 
   /** One instant query; null for an empty result. */
-  private async query(promql: string, timeSeconds: number): Promise<number | null> {
+  private async query(promql: string, timeSeconds: number, signal?: AbortSignal): Promise<number | null> {
     const url = new URL('/api/v1/query', this.cfg.baseUrl);
     url.searchParams.set('query', promql);
     url.searchParams.set('time', String(timeSeconds));
-    const res = await this.cfg.fetch(url.toString(), { headers: this.cfg.headers });
+    const res = await this.cfg.fetch(url.toString(), signal ? { headers: this.cfg.headers, signal } : { headers: this.cfg.headers });
     const body = (await res.json()) as PromResponse;
     if (!res.ok || body.status !== 'success' || !body.data) {
       throw new Error(`PrometheusTwinSource: HTTP ${res.status} for ${promql}: ${body.error ?? body.status}`);

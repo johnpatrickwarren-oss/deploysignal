@@ -9,6 +9,9 @@ import type { TwinTickBody } from './twin-contract';
 export type { TwinTickBody } from './twin-contract';
 
 export interface MetricSource {
-  /** Observations for [windowStartMs, windowEndMs), epoch milliseconds. */
-  fetchTick(windowStartMs: number, windowEndMs: number): Promise<TwinTickBody>;
+  /**
+   * Observations for [windowStartMs, windowEndMs), epoch milliseconds. The caller may pass a
+   * signal that aborts when its deadline passes; a source should hand it to its transport.
+   */
+  fetchTick(windowStartMs: number, windowEndMs: number, signal?: AbortSignal): Promise<TwinTickBody>;
 }

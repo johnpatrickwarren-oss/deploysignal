@@ -4,7 +4,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PutLifecycleEventHookExecutionStatusCommand } from '@aws-sdk/client-codedeploy';
+import { CodeDeployClient, PutLifecycleEventHookExecutionStatusCommand } from '@aws-sdk/client-codedeploy';
 
 import { createAfterAllowTrafficHandler } from '../integrations/codedeploy/after-allow-traffic';
 import type { AfterAllowTrafficDeps, CodeDeployLike, TwinGateLike } from '../integrations/codedeploy/after-allow-traffic';
@@ -132,11 +132,13 @@ test('max_ticks reached while the gate says extend ends as hold, Succeeded under
 
 test('the Lambda deadline stops ticking early (hold) and still reports', async () => {
   const h = harness([], { settleMs: 0 });
-  let remaining = 200_000;
+  const now = h.deps.now!;
+  const deadline = now() + 200_000; // on the fake clock the harness advances in sleep()
   const out = await createAfterAllowTrafficHandler(h.deps)(EVENT, {
-    getRemainingTimeInMillis: () => { remaining -= 60_000; return remaining; },
+    getRemainingTimeInMillis: () => deadline - now(),
   });
-  assert.ok(h.ticks.length < TWIN_ARM.max_ticks);
+  // 200 s left, 30 s safety, 10 s tick reserve: the windows ending 79.9 s and 139.9 s in fit, the next does not.
+  assert.equal(h.ticks.length, 2);
   assert.equal(out.verdict, 'hold');
   assert.equal(putStatus(h), 'Succeeded');
 });
@@ -180,10 +182,117 @@ test('enforce: true with an error before any gate response reports Succeeded (au
   assert.equal(putStatus(h), 'Succeeded');
 });
 
-test('a failing PutLifecycleEventHookExecutionStatus call propagates (CodeDeploy then times the hook out)', async () => {
+// ── Deadlines: a hanging gate, source or CodeDeploy call must not outlive the Lambda ─────────────
+
+/** A Lambda context on the real clock with `budgetMs` of usable time beyond `safetyMs`. */
+function realCtx(safetyMs: number, budgetMs: number): { getRemainingTimeInMillis(): number } {
+  const t0 = Date.now();
+  return { getRemainingTimeInMillis: () => safetyMs + budgetMs - (Date.now() - t0) };
+}
+const never = <T>(): Promise<T> => new Promise<T>(() => {});
+
+async function assertBounded<T>(p: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const guard = new Promise<never>((_, rej) => { timer = setTimeout(() => rej(new Error(`handler still pending after ${ms} ms`)), ms); });
+  try { return await Promise.race([p, guard]); } finally { clearTimeout(timer); }
+}
+
+test('a gate openSession that never resolves is cut at the Lambda deadline: one Put, Succeeded', async () => {
+  const h = harness([]);
+  const signals: Array<AbortSignal | undefined> = [];
+  h.deps.gate = { openSession: (_arm, signal) => { signals.push(signal); return never(); }, tick: never };
+  h.deps.safetyMs = 30_000;
+  const out = await assertBounded(createAfterAllowTrafficHandler(h.deps)(EVENT, realCtx(30_000, 50)), 2_000);
+  assert.equal(putStatus(h), 'Succeeded');
+  assert.equal(out.verdict, 'error');
+  assert.equal(out.status, 'Succeeded');
+  assert.match(String(h.logs.find((l) => l.event === 'twin_gate_error')?.error), /openSession.*timed out/);
+  assert.equal(signals[0]?.aborted, true, 'the hung call is aborted, not only abandoned');
+});
+
+test('a gate tick that never resolves is cut at the Lambda deadline: one Put, Succeeded', async () => {
+  const h = harness([]);
+  h.deps.gate = { openSession: async () => ({ session_id: 'sess-1', mode: 'twin' }), tick: () => never() };
+  h.deps.tickMs = 1; // the first window closes within 1 fake ms, so the real-clock budget covers the calls
+  h.deps.tickReserveMs = 0;
+  const out = await assertBounded(createAfterAllowTrafficHandler(h.deps)(EVENT, realCtx(30_000, 300)), 3_000);
+  assert.equal(putStatus(h), 'Succeeded');
+  assert.equal(out.verdict, 'error');
+});
+
+test('a metric source that never resolves is cut by callTimeoutMs with no Lambda context: one Put, Succeeded', async () => {
+  const h = harness([]);
+  const signals: Array<AbortSignal | undefined> = [];
+  h.deps.source = { fetchTick: (_s, _e, signal) => { signals.push(signal); return never(); } };
+  h.deps.callTimeoutMs = 50;
+  const out = await assertBounded(createAfterAllowTrafficHandler(h.deps)(EVENT), 2_000);
+  assert.equal(putStatus(h), 'Succeeded');
+  assert.equal(out.verdict, 'error');
+  assert.match(String(h.logs.find((l) => l.event === 'twin_gate_error')?.error), /fetchTick.*timed out/);
+  assert.equal(signals[0]?.aborted, true);
+});
+
+test('enforce: true with a hung gate still reports Succeeded (no authority was stated)', async () => {
+  const h = harness([], { enforce: true });
+  h.deps.gate = { openSession: () => never(), tick: () => never() };
+  h.deps.callTimeoutMs = 50;
+  await assertBounded(createAfterAllowTrafficHandler(h.deps)(EVENT), 2_000);
+  assert.equal(putStatus(h), 'Succeeded');
+});
+
+test('a throwing PutLifecycleEventHookExecutionStatus is retried, and the handler resolves once one lands', async () => {
+  const h = harness(['rollback']);
+  const sent: PutLifecycleEventHookExecutionStatusCommand[] = [];
+  let calls = 0;
+  h.deps.codedeploy = {
+    async send(cmd) {
+      calls += 1;
+      if (calls < 3) throw new Error('ThrottlingException');
+      sent.push(cmd);
+      return { $metadata: {} };
+    },
+  };
+  const out = await createAfterAllowTrafficHandler(h.deps)(EVENT);
+  assert.equal(calls, 3);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].input.status, 'Succeeded');
+  assert.equal(out.reported, true);
+  assert.equal(h.logs.filter((l) => l.event === 'twin_gate_put_error').length, 2);
+});
+
+test('a Put that always throws is tried putAttempts times and the handler resolves (no Lambda retry of the whole gate)', async () => {
   const h = harness(['proceed']);
-  h.deps.codedeploy = { async send() { throw new Error('AccessDenied'); } };
-  await assert.rejects(() => createAfterAllowTrafficHandler(h.deps)(EVENT), /AccessDenied/);
+  let calls = 0;
+  h.deps.codedeploy = { async send() { calls += 1; throw new Error('AccessDenied'); } };
+  const out = await createAfterAllowTrafficHandler(h.deps)(EVENT);
+  assert.equal(calls, 3);
+  assert.equal(out.reported, false);
+  assert.equal(out.status, 'Succeeded');
+  const putErrors = h.logs.filter((l) => l.event === 'twin_gate_put_error');
+  assert.equal(putErrors.length, 3);
+  assert.match(String(putErrors[putErrors.length - 1].error), /AccessDenied/);
+});
+
+test('a Put that never resolves is bounded per attempt and the handler resolves', async () => {
+  const h = harness(['proceed']);
+  let calls = 0;
+  h.deps.codedeploy = { send: () => { calls += 1; return never(); } };
+  h.deps.putTimeoutMs = 30;
+  const out = await assertBounded(createAfterAllowTrafficHandler(h.deps)(EVENT), 2_000);
+  assert.equal(calls, 3);
+  assert.equal(out.reported, false);
+});
+
+test('Put retries stop when the Lambda has no time left', async () => {
+  const h = harness(['proceed']);
+  let calls = 0;
+  h.deps.codedeploy = { async send() { calls += 1; throw new Error('boom'); } };
+  const now = h.deps.now!;
+  const deadline = now() + 120_000; // enough for one tick; then backoff sleeps exhaust it
+  h.deps.putBackoffMs = 60_000;
+  const out = await createAfterAllowTrafficHandler(h.deps)(EVENT, { getRemainingTimeInMillis: () => deadline - now() });
+  assert.ok(calls >= 1 && calls < 3, `attempts ${calls}`);
+  assert.equal(out.reported, false);
 });
 
 test('refuses a non-positive tickMs at construction', () => {
@@ -236,4 +345,20 @@ test('TwinGateClient throws on an unexpected status with the gate error text', a
   await assert.rejects(() => c.openSession(TWIN_ARM), /400.*twin_arm\.metrics required/);
   const ok200 = recordingFetch(200, { session_id: 'x', mode: 'twin' });
   await assert.rejects(() => new TwinGateClient({ baseUrl: 'http://g', fetch: ok200.fetch }).openSession(TWIN_ARM), /200/);
+});
+
+test('TwinGateClient forwards an AbortSignal to fetch', async () => {
+  const { fetch, calls } = recordingFetch(200, response('extend', 1));
+  const c = new TwinGateClient({ baseUrl: 'http://gate:8080', fetch });
+  const ac = new AbortController();
+  await c.tick('s', TICK_BODY, ac.signal);
+  assert.equal(calls[0].init.signal, ac.signal);
+  const opened = recordingFetch(201, { session_id: 's', mode: 'twin' });
+  await new TwinGateClient({ baseUrl: 'http://gate:8080', fetch: opened.fetch }).openSession(TWIN_ARM, ac.signal);
+  assert.equal(opened.calls[0].init.signal, ac.signal);
+});
+
+test('a real CodeDeployClient satisfies CodeDeployLike (type check; constructing it makes no call)', () => {
+  const real: CodeDeployLike = new CodeDeployClient({ region: 'us-east-1' });
+  assert.equal(typeof real.send, 'function');
 });
