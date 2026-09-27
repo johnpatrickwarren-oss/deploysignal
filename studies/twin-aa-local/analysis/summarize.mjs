@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { voidReasons, upstreamSplit, TICK_WALL_BOUND_MS } from './executability.mjs';
 
 const ALPHA = 0.05;
 const REGISTERED = [
@@ -100,13 +101,16 @@ function cellSummary(reg, raw) {
   };
 }
 
-function held(b) { return b ? 'HELD' : 'NOT HELD'; }
+function held(b) { return b === 'VOID' ? 'VOID' : b ? 'HELD' : 'NOT HELD'; }
 
 export function compute(runDir) {
   const cells = {};
+  const raws = [];
   for (const reg of REGISTERED) {
     const p = path.join(runDir, `cell-${reg.name}.json`);
-    cells[reg.name] = cellSummary(reg, fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null);
+    const raw = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+    if (raw) raws.push(raw);
+    cells[reg.name] = cellSummary(reg, raw);
   }
   const aa5 = cells['AA-w0.5'];
   const aa1 = cells['AA-w0.1'];
@@ -132,7 +136,31 @@ export function compute(runDir) {
     P7: aa5.sign !== null && Math.abs(aa5.sign.frac_canary_worse - 0.5) <= 3 * aa5.sign.se,
   };
   const all = Object.values(endpoints).every((v) => v === true);
-  return { cells, endpoints, predictions, ship_rule_met: all && Object.values(cells).every(ex) };
+  const res = { cells, endpoints, predictions, ship_rule_met: all && Object.values(cells).every(ex) };
+  const mp = path.join(runDir, 'manifest.json');
+  const manifest = fs.existsSync(mp) ? JSON.parse(fs.readFileSync(mp, 'utf8')) : {};
+  // Run 1 predates Amendment 1; its manifest has no `amendment` and its output keeps its shape.
+  if (manifest.amendment === 1) applyAmendment1(res, runDir, manifest, raws);
+  return res;
+}
+
+/** Amendment 1 (c) void rule and (d) upstream-error split, added to a run registered under it. */
+function applyAmendment1(res, runDir, manifest, raws) {
+  const plp = path.join(runDir, 'power-log.txt');
+  const reasons = voidReasons({ powerLog: fs.existsSync(plp) ? fs.readFileSync(plp, 'utf8') : null, cells: raws });
+  for (const raw of raws) {
+    const c = res.cells[raw.name];
+    c.upstream = upstreamSplit(raw.runs);
+    let mx = null;
+    for (const r of raw.runs) for (const t of r.ticks) if (typeof t.ms === 'number' && (mx === null || t.ms > mx)) mx = t.ms;
+    c.max_tick_ms = mx;
+  }
+  res.amendment1 = { seed_offset: manifest.seed_offset, tick_wall_bound_ms: TICK_WALL_BOUND_MS, executable: reasons.length === 0, void_reasons: reasons };
+  if (reasons.length) {
+    for (const k of Object.keys(res.endpoints)) res.endpoints[k] = 'VOID';
+    for (const k of Object.keys(res.predictions)) res.predictions[k] = 'VOID';
+    res.ship_rule_met = false;
+  }
 }
 
 export function renderTables(res) {
@@ -166,8 +194,35 @@ export function renderTables(res) {
     L.push(`| ${c.name} | ${c.sign.ticks} | ${f4(c.sign.frac_canary_worse)} | ${f4(c.sign.se)} | ${f4(c.sign.lag1_autocorr)} | ${f4(c.sign.mean_log_ratio)} |`);
   }
   L.push('');
+  if (res.amendment1) renderAmendment1(res, L);
   L.push(`Ship rule (§7): ${res.ship_rule_met ? 'MET' : 'NOT MET'}`);
   return L.join('\n');
+}
+
+function renderAmendment1(res, L) {
+  const a = res.amendment1;
+  L.push(`Run executable (Amendment 1 (c)): ${a.executable ? 'YES' : 'VOID'} (seed offset ${a.seed_offset}, tick wall bound ${a.tick_wall_bound_ms} ms, ${a.void_reasons.length} void reason(s))`);
+  for (const r of a.void_reasons.slice(0, 20)) L.push(`- void: ${r}`);
+  if (a.void_reasons.length > 20) L.push(`- void: … ${a.void_reasons.length - 20} more`);
+  L.push('');
+  L.push('| cell | longest tick (ms) | upstream errors canary | upstream errors control | upstream-error ticks |');
+  L.push('|---|---|---|---|---|');
+  for (const c of Object.values(res.cells)) {
+    if (!c.upstream) continue;
+    L.push(`| ${c.name} | ${c.max_tick_ms === null ? '–' : c.max_tick_ms.toFixed(1)} | ${c.upstream.canary} | ${c.upstream.control} | ${c.upstream.ticks.length} |`);
+  }
+  L.push('');
+  const ticks = Object.values(res.cells).flatMap((c) => (c.upstream ? c.upstream.ticks.map((t) => ({ cell: c.name, ...t })) : []));
+  if (ticks.length === 0) {
+    L.push('Upstream-error split (Amendment 1 (d), report-only): no upstream-error ticks');
+  } else {
+    L.push('Upstream-error split (Amendment 1 (d), report-only):');
+    L.push('');
+    L.push('| cell | run | tick | upstream canary | upstream control | requests canary | requests control | z | near traffic share |');
+    L.push('|---|---|---|---|---|---|---|---|---|');
+    for (const t of ticks) L.push(`| ${t.cell} | ${t.run} | ${t.t} | ${t.uc} | ${t.uk} | ${t.nc} | ${t.nk} | ${t.z === null ? '–' : t.z.toFixed(2)} | ${t.near ? 'yes' : 'no'} |`);
+  }
+  L.push('');
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

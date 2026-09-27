@@ -3,8 +3,11 @@
 // processes (same file) and the router, warms up, runs R gate sessions of up to T count-based ticks
 // of n requests, and stops every process it started.
 //
-//   node studies/twin-aa-local/harness/run.mjs --mode full
-//       writes studies/twin-aa-local/results/run-<UTC>/ (refuses an existing directory)
+//   caffeinate -dims node studies/twin-aa-local/harness/run.mjs --mode full --seed-offset 1000000
+//       writes studies/twin-aa-local/results/run-<UTC>/ (refuses an existing directory); run 2 under
+//       Amendment 1 (seed offset 1000000; offset 0, the default, reproduces run 1's seeds). Records
+//       each scored tick's wall duration (`ms`), the run's start and end, and power-log.txt (the
+//       `pmset -g log` lines between them) for the Amendment 1 (c) void rule.
 //   node studies/twin-aa-local/harness/run.mjs --mode smoke --out <dir outside the repo>
 //       the §6 instrument checks; not a result
 //
@@ -17,6 +20,7 @@ import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from './_keyed.mjs';
+import { powerLogWindow } from '../analysis/executability.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const STUDY = path.resolve(HERE, '..');
@@ -25,6 +29,7 @@ const PORTS = { gate: 18290, router: 18200, control: 18201, canary: 18202 };
 const S0 = 20260926;
 const CONCURRENCY = 128;
 const WARMUP = 2000;
+let SEED_OFFSET = 0; // Amendment 1 (a); set from --seed-offset in main()
 
 const RATE = { id: 'http_5xx', kind: 'rate', worse: 'higher', tolerance: 0.2 };
 const SIGN = { id: 'p99_latency_ms', kind: 'sign', worse: 'higher', tolerance: 0.15 };
@@ -183,6 +188,7 @@ async function runOne(cell, run) {
   let ticksToDetect = null;
   let verdict = 'extend';
   for (let t = 0; t < cell.T && verdict === 'extend'; t++) {
+    const tickStart = process.hrtime.bigint();
     const odd = await issueTick(run, t, cell.n);
     if (odd.length > 0) fail(cell, `run ${run} tick ${t}: ${odd.length} lost/odd responses (${odd[0]})`);
     const agg = (await httpJson(PORTS.router, 'GET', `/agg?run=${run}&tick=${t}`)).body;
@@ -197,8 +203,9 @@ async function runOne(cell, run) {
     if (r.body.authority !== 'advisory') fail(cell, `run ${run} tick ${t}: authority ${r.body.authority}`);
     if (ticksToDetect === null && r.body.ticks_to_detect !== undefined) ticksToDetect = r.body.ticks_to_detect;
     verdict = r.body.engine_verdict;
+    const ms = Math.round(Number(process.hrtime.bigint() - tickStart) / 1e5) / 10; // first request to gate response
     ticks.push({
-      t, nc: agg.canary.requests, nk: agg.control.requests, ec: agg.canary.e5xx, ek: agg.control.e5xx,
+      t, ms, nc: agg.canary.requests, nk: agg.control.requests, ec: agg.canary.e5xx, ek: agg.control.e5xx,
       uc: agg.canary.upstream_errors, uk: agg.control.upstream_errors, p99c: agg.canary.p99, p99k: agg.control.p99,
       mc: agg.canary.requests ? agg.canary.latency_sum / agg.canary.requests : null,
       mk: agg.control.requests ? agg.control.latency_sum / agg.control.requests : null,
@@ -210,7 +217,8 @@ async function runOne(cell, run) {
 }
 
 async function runCell(cell, gate) {
-  const seeds = { router: S0 + 7919 * cell.i, control: S0 + 7919 * cell.i + 1, canary: S0 + 7919 * cell.i + 2 };
+  const base = S0 + SEED_OFFSET + 7919 * cell.i;
+  const seeds = { router: base, control: base + 1, canary: base + 2 };
   const svc = path.join(HERE, 'service.mjs');
   const control = await startProcess('control', [svc, '--port', String(PORTS.control), '--seed', String(seeds.control)], {}, /listening/, 'stdout');
   const canary = await startProcess('canary', [svc, '--port', String(PORTS.canary), '--seed', String(seeds.canary), ...cell.flags], {}, /listening/, 'stdout');
@@ -265,10 +273,25 @@ function listenersOnPorts() {
   return busy;
 }
 
+/** Amendment 1 (c): the `pmset -g log` lines between start and end. A missing log voids the run. */
+function savePowerLog(outDir, startedMs, endedMs, manifest) {
+  let text;
+  try {
+    text = execFileSync('pmset', ['-g', 'log'], { encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 });
+  } catch (e) {
+    manifest.power_log_error = e.message;
+    process.stderr.write(`power log unavailable: ${e.message}\n`);
+    return;
+  }
+  fs.writeFileSync(path.join(outDir, 'power-log.txt'), powerLogWindow(text, startedMs, endedMs));
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const mode = args.mode;
   if (mode !== 'full' && mode !== 'smoke') throw new Error('--mode full|smoke');
+  SEED_OFFSET = args['seed-offset'] === undefined ? 0 : Number(args['seed-offset']);
+  if (!Number.isSafeInteger(SEED_OFFSET) || SEED_OFFSET < 0) throw new Error('--seed-offset must be a non-negative integer');
   const busy = listenersOnPorts();
   if (busy.length) throw new Error(`ports already in use: ${busy.join(', ')}`);
 
@@ -296,10 +319,13 @@ async function main() {
     engine: JSON.parse(fs.readFileSync(path.join(REPO, 'node_modules', '@johnpatrickwarren-oss', 'deploysignal-engine', 'package.json'), 'utf8')).version,
     engine_resolved: JSON.parse(fs.readFileSync(path.join(REPO, 'package-lock.json'), 'utf8')).packages['node_modules/@johnpatrickwarren-oss/deploysignal-engine'].resolved,
     node: process.version, platform: `${process.platform} ${os.release()}`, cpus: os.cpus().length,
-    seed_scheme: 'router = 20260926 + 7919 i, control = +1, canary = +2; draws keyed on (seed, run, tick, idx, stream)',
+    seed_scheme: 'router = 20260926 + seed_offset + 7919 i, control = +1, canary = +2; draws keyed on (seed, run, tick, idx, stream)',
+    amendment: 1, seed_offset: SEED_OFFSET,
     concurrency: CONCURRENCY, warmup_requests: WARMUP, ports: PORTS,
     command: `node ${path.relative(REPO, fileURLToPath(import.meta.url))} ${process.argv.slice(2).join(' ')}`,
   };
+  const startedMs = Date.now(); // wall clock for the power-log window only; no draw depends on it
+  manifest.started_at = new Date(startedMs).toISOString();
   const t0 = process.hrtime.bigint();
   const summary = [];
   try {
@@ -316,6 +342,9 @@ async function main() {
     ctlAgent.destroy();
   }
   manifest.wall_seconds = Math.round(Number(process.hrtime.bigint() - t0) / 1e9);
+  const endedMs = Date.now();
+  manifest.ended_at = new Date(endedMs).toISOString();
+  savePowerLog(outDir, startedMs, endedMs, manifest);
   manifest.cells = summary;
   manifest.harness_failures = failures;
   manifest.listeners_left = listenersOnPorts();
