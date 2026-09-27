@@ -66,6 +66,7 @@ export function createGateServer(cfg: GateHttpConfig): GateServerHandle {
     totalTicksDefault: cfg.totalTicksDefault,
     sessionTtlSeconds: cfg.sessionTtlSeconds,
     compiledConfigOverride: cfg.compiledConfigOverride,
+    ...(cfg.twinMaxTickCount !== undefined ? { twinMaxTickCount: cfg.twinMaxTickCount } : {}),
   };
   const runtime = new GateSessionRuntime(runtimeCfg, store, emitter, auditWriter);
   runtime.sweepOnBoot(); // OQ-1 declare-void-and-restart

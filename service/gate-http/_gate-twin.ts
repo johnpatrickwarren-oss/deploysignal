@@ -35,6 +35,7 @@ import type {
 } from '../../engine/gates/_health-twin';
 import type { TwinObservation } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/twin-contrast';
 import { isSafeIdentifier } from './_gate-http-util';
+import { DEFAULT_TWIN_MAX_TICK_COUNT } from './_gate-config';
 
 // Runtime values from the built engine (the require()-the-build-artifact convention of
 // _gate-session-runtime.ts: service/ is compiled by tsconfig.test.json, which does not build engine/).
@@ -113,10 +114,20 @@ export function parseTwinArm(raw: unknown): TwinArmProfile {
 
 const RATE_KEYS = ['canary_events', 'canary_total', 'control_events', 'control_total'] as const;
 
-function parseRateObs(id: string, o: Record<string, unknown>): TwinObservation {
+/** A per-tick count above `cap` is refused before the engine sees it (review 2026-09-26: the
+ *  engine's Fisher noncentral mean is O(N) on the request thread; see DEFAULT_TWIN_MAX_TICK_COUNT). */
+function checkCap(where: string, v: number, cap: number): void {
+  if (v > cap) {
+    throw bad(`${where} = ${v} exceeds the per-tick cap ${cap} (DS_GATE_TWIN_MAX_TICK_COUNT); `
+      + 'send per-tick deltas, not cumulative counters');
+  }
+}
+
+function parseRateObs(id: string, o: Record<string, unknown>, cap: number): TwinObservation {
   rejectExtraKeys(o, new Set(RATE_KEYS), `observations.${id}`);
   for (const k of RATE_KEYS) {
     if (!isNonNegInt(o[k])) throw bad(`observations.${id}.${k} must be a non-negative integer (a rate metric takes counts)`);
+    checkCap(`observations.${id}.${k}`, o[k] as number, cap);
   }
   return {
     canaryEvents: o.canary_events as number, canaryTotal: o.canary_total as number,
@@ -131,25 +142,31 @@ function signValue(id: string, k: 'canary' | 'control', v: unknown): number {
   return v;
 }
 
-function parseObservation(m: TwinArmMetricProfile, raw: unknown): TwinObservation {
+function parseObservation(m: TwinArmMetricProfile, raw: unknown, cap: number): TwinObservation {
   if (!isObj(raw)) throw bad(`observations.${m.id} must be an object`);
-  if (m.kind === 'rate') return parseRateObs(m.id, raw);
+  if (m.kind === 'rate') return parseRateObs(m.id, raw, cap);
   rejectExtraKeys(raw, new Set(['canary', 'control']), `observations.${m.id}`);
   return { canary: signValue(m.id, 'canary', raw.canary), control: signValue(m.id, 'control', raw.control) };
 }
 
 /** The tick body as the engine's TwinTickInput. A metric absent from `observations` stays absent:
  *  while the canary takes traffic the engine counts it missing (½ penalty, engine ADR 0036). */
-export function parseTwinTick(arm: TwinArmProfile, body: Record<string, unknown>): TwinTickInput {
+export function parseTwinTick(
+  arm: TwinArmProfile,
+  body: Record<string, unknown>,
+  maxTickCount: number = DEFAULT_TWIN_MAX_TICK_COUNT,
+): TwinTickInput {
   if (!isNonNegInt(body.canary_requests)) throw bad('canary_requests must be a non-negative integer');
   if (!isNonNegInt(body.control_requests)) throw bad('control_requests must be a non-negative integer');
+  checkCap('canary_requests', body.canary_requests, maxTickCount);
+  checkCap('control_requests', body.control_requests, maxTickCount);
   if (!isObj(body.observations)) throw bad('observations is required (an object keyed by metric id)');
   const byId = new Map(arm.metrics.map((m) => [m.id, m]));
   const observations: Record<string, TwinObservation> = {};
   for (const [id, raw] of Object.entries(body.observations)) {
     const m = byId.get(id);
     if (!m) throw bad(`observations: unknown metric id '${id}' (declared: ${arm.metrics.map((x) => x.id).join(', ')})`);
-    observations[id] = parseObservation(m, raw);
+    observations[id] = parseObservation(m, raw, maxTickCount);
   }
   return { canaryRequests: body.canary_requests, controlRequests: body.control_requests, observations };
 }
@@ -186,7 +203,7 @@ export class TwinSessionRuntime {
 
   constructor(
     private readonly store: SessionStore,
-    private readonly cfg: { serviceId: string; failPolicy: 'fail_open' | 'fail_closed' },
+    private readonly cfg: { serviceId: string; failPolicy: 'fail_open' | 'fail_closed'; twinMaxTickCount?: number },
     private readonly uniquify: (base: string) => string,
   ) {}
 
@@ -242,7 +259,7 @@ export class TwinSessionRuntime {
       return this.store.getStoredTickResponse(session.session_id, key)!.twin!;
     }
     if (session.status !== 'active') throw this.notActive(session);
-    const input = parseTwinTick(arm, body);
+    const input = parseTwinTick(arm, body, this.cfg.twinMaxTickCount ?? DEFAULT_TWIN_MAX_TICK_COUNT);
     const run = this.runFor(session);
     let step: { run: TwinArmRun; report: TwinArmReport };
     try {

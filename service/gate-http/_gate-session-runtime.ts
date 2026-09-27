@@ -113,6 +113,8 @@ export interface GateRuntimeConfig {
   /** DS_GATE_COMPILED_CONFIG escape hatch — bypasses active.json
    *  resolution entirely when set. */
   compiledConfigOverride?: string;
+  /** DS_GATE_TWIN_MAX_TICK_COUNT (service/gate-http/_gate-config.ts). */
+  twinMaxTickCount?: number;
 }
 
 export interface BeginSessionRequest {

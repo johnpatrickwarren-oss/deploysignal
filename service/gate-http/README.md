@@ -107,6 +107,13 @@ POST /v1/sessions/{id}/ticks
   factor on both tests; ADR 0036 "Consequences"); a `sign` value of `null` is missing too. An
   unknown metric id, an observation of the wrong kind or a non-integer count is `400` and leaves
   the gate state untouched.
+- Every count on a tick (`canary_requests`, `control_requests`, and each rate metric's events and
+  totals) is capped at `DS_GATE_TWIN_MAX_TICK_COUNT` (default `10000000`; a set value that is not
+  a positive integer stops startup). Above the cap the tick is `400` and the gate state is
+  untouched. The cap exists because the pinned engine's Fisher noncentral mean is O(N) in time and
+  memory on the request thread: about 2 s per call at 1e7 events, a heap OOM at 4e8 on a 1 GB
+  heap. A source sending cumulative counters instead of per-tick deltas reaches that range, and a
+  crashed gate voids every active session on restart.
 - `ticks_to_detect` (when present) is the planning figure from the engine's
   `per-shard/twin-planning.ts`: ticks from the start for the rollback test to catch a regression of
   each metric's tolerance at `alpha_rollback / N`, the maximum over metrics. It is absent until
