@@ -1,0 +1,66 @@
+{
+  "study": "2026-09-twin-aa-local",
+  "mode": "full",
+  "repo_head": "3b531d174488707e8df60508839428da74a64f4a",
+  "branch": "wt/twin-aa-run2",
+  "tracked_changes": [
+    "M tools/calibrate/_calibrate-constants.js"
+  ],
+  "engine": "0.12.0-pre",
+  "engine_resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#10c96910cc9f293c2b02bdfdb707f883d9cefb77",
+  "node": "v25.9.0",
+  "platform": "darwin 25.6.0",
+  "cpus": 10,
+  "seed_scheme": "router = 20260926 + seed_offset + 7919 i, control = +1, canary = +2; draws keyed on (seed, run, tick, idx, stream)",
+  "amendment": 1,
+  "seed_offset": 1000000,
+  "concurrency": 128,
+  "warmup_requests": 2000,
+  "ports": {
+    "gate": 18290,
+    "router": 18200,
+    "control": 18201,
+    "canary": 18202
+  },
+  "command": "node studies/twin-aa-local/harness/run.mjs --mode full --seed-offset 1000000",
+  "started_at": "2026-09-27T17:20:45.619Z",
+  "power_source_at_start": "Now drawing from 'AC Power'",
+  "wall_seconds": 1512,
+  "ended_at": "2026-09-27T17:45:57.807Z",
+  "power_source_at_end": "Now drawing from 'AC Power'",
+  "cells": [
+    {
+      "name": "AA-w0.5",
+      "runs": 100,
+      "harness_failures": 0,
+      "wall_seconds": 681,
+      "requests_per_second": 7339
+    },
+    {
+      "name": "AA-w0.1",
+      "runs": 100,
+      "harness_failures": 0,
+      "wall_seconds": 706,
+      "requests_per_second": 7078
+    },
+    {
+      "name": "AB-rate-x2",
+      "runs": 40,
+      "harness_failures": 0,
+      "wall_seconds": 73,
+      "requests_per_second": 7202
+    },
+    {
+      "name": "AB-lat-x1.2",
+      "runs": 40,
+      "harness_failures": 0,
+      "wall_seconds": 50,
+      "requests_per_second": 6115
+    }
+  ],
+  "harness_failures": {
+    "count": 0,
+    "first": []
+  },
+  "listeners_left": []
+}

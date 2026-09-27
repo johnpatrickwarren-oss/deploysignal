@@ -198,3 +198,61 @@ Real services, separate hosts or pods, cold fleets, AZ imbalance, production tra
 mechanisms, the Argo or CodeDeploy integrations, the proceed side (the rate proceed premise and a
 usable `alpha_proceed` beyond the replay in §1), the missingness penalty (no observation is
 withheld), and the false-rollback rate at a resolution finer than §2 states.
+
+## Amendment 1 — 2026-09-27, before run 2
+
+Written after run 1 (`results/run-20260927T050717Z/`, merged at bdf3f01) and before any harness
+change for run 2. Run 1's ship rule was NOT MET on E6 alone; its REPORT.md attributes both
+upstream-error ticks, post-hoc, to the host suspending (clamshell sleep, then maintenance sleeps).
+This amendment registers a second run that holds the host awake and voids itself if the host
+suspends anyway. Run 1 stands as recorded and is not re-cut.
+
+- **(a) Same design, disjoint seeds.** Run 2 keeps §3's four cells, their order, w, flags, R
+  (100, 100, 40, 40), T = 100, n = 500 requests per tick, 128 in flight, the 2000-request warm-up,
+  §1's gate configuration (α_rollback 0.05, α_proceed 1e-12, α_srm 0.001, tolerances 0.2 and 0.15)
+  and §2's bar B = 0.1062. The only change to the draws is a seed offset of exactly 1 000 000:
+  `router_seed = S₀ + 1 000 000 + 7919 i`, `control_seed = … + 1`, `canary_seed = … + 2`, with
+  S₀ = 20260926 and i = 1..4 as in §3. The largest seed run 1 or its smoke used is S₀ + 728 550
+  (smoke cell i = 92), so the run-2 seeds (S₀ + 1 007 919 to S₀ + 1 031 678) are disjoint from
+  every seed used so far. The harness takes the offset as `--seed-offset 1000000` and records it in
+  manifest.json; offset 0 reproduces run 1's seeds.
+- **(b) Host held awake.** The run is launched as
+  `caffeinate -dims node studies/twin-aa-local/harness/run.mjs --mode full --seed-offset 1000000`
+  from the repo root. `caffeinate` holds display, idle, disk and (on AC power only) system sleep
+  assertions for the life of the process. It does not prevent clamshell sleep: the lid stays open
+  for the whole run. Run 1's power log shows an earlier `caffeinate` ending 96 s before that run
+  started, so the assertion is tied to the harness process here, not to a separate command.
+- **(c) NOT-EXECUTABLE rule for host suspension.** The harness records the run's start and end
+  wall-clock times in manifest.json and the wall duration of every scored tick (from the first
+  request of the tick to the gate's response to that tick). At exit it saves the lines of
+  `pmset -g log` that fall between start and end, inclusive, as `power-log.txt` in the run
+  directory. The run is **void** (not executable; neither passed nor failed) if either:
+  1. `power-log.txt` contains any line whose event type is `Sleep` or `DarkWake`; or
+  2. any scored tick's wall duration exceeds **2000 ms**.
+
+  The bound comes from run 1's cells that ran while the host was awake: AA-w0.5 took 663 s for
+  10 000 ticks (66 ms per tick, warm-up and session creation included) and AA-w0.1 735 s for
+  10 000 ticks (74 ms). Outside the two suspended ticks, the largest per-tick arm p99 in any cell
+  was 207 ms. 2000 ms is about 27 times the mean tick and equal to the router's upstream timeout,
+  so a tick can exceed it only if a request stalled past the timeout without the timeout firing,
+  which is what host suspension produced in run 1 (28.5 s and 898.7 s stalls). A void run is
+  reported with its raw data and the reason, and none of its endpoints or predictions is scored.
+  It may be repeated once under this amendment, with the same seed offset. If the repeat is also
+  void, the study stops and reports; there is no third attempt without a new amendment.
+- **(d) Per-arm upstream errors, and a split check.** Run 1's raw cell files already hold the
+  per-tick, per-arm counts (`uc`, `uk`; written by harness/run.mjs line 202), but
+  analysis/summarize.mjs reported only a per-cell total, and the canary/control split of the
+  AB-rate-x2 error tick (49 and 4) was found by hand. For run 2 the summary reports, per cell, the
+  canary and control upstream-error totals and every tick with an upstream error: its run, tick,
+  canary and control upstream errors, and canary and control requests. New report-only line, no
+  bar and no verdict: for each such tick with U = canary + control upstream errors and canary
+  traffic share s = canary requests / n in that tick, z = (canary upstream errors − U·s) /
+  √(U·s·(1 − s)); the split is **near the traffic share** if |z| ≤ 3. The report lists each tick's z
+  and whether it is near. Applied to run 1 for reference only: the AA-w0.1 tick gives z = 1.94
+  (near) and the AB-rate-x2 tick z = 6.01 (not near). If run 2 has no upstream errors, the line
+  reads "no upstream-error ticks".
+- **(e) Unchanged.** E1–E6, P1–P7, the NOT-EXECUTABLE conditions of §6 (which still apply
+  alongside (c)) and the §7 ship rule are otherwise unchanged. E6 still counts every upstream
+  error in an executable run. Expected wall time with the host awake is about 25 minutes (run 1's
+  awake cells at about 7000 requests/s, and about 1800 A/B ticks), inside §3's 60-minute budget;
+  run 1's 70.6 minutes came from time suspended.
