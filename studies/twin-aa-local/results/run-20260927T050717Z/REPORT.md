@@ -122,3 +122,26 @@ The deployed replay re-reads the same tick responses at `alpha_proceed` 0.05 and
 Real services, separate hosts, pods or AZs, cold fleets, production traffic, real 5xx mechanisms,
 the Argo and CodeDeploy integrations, the proceed side beyond the report-only replay, the
 missingness penalty, and any false-rollback rate below what R = 100 resolves.
+
+## Post-run notes (2026-09-27, independent review; no numbers or verdicts above are changed)
+
+- The host-suspension attribution in the post-hoc section explains the STALL of the AB-rate-x2 error
+  tick (run 20, tick 13: both arms' p99 at 898.7 s against a 901 s maintenance sleep). It does not
+  explain the SPLIT: 49 canary and 4 control upstream errors against 256 and 244 requests. A sleep
+  that suspends both arms equally predicts a split near the traffic share, as the AA-w0.1 error tick
+  shows. The canary process in this cell carried the registered 2× 5xx fault flag; whether that flag,
+  the router's timeout path, or something else produced the skew is unexplained. The tick added
+  spurious 5xx to the canary side of the scored rate statistic (canary 5xx 17 → 60 → 6 over ticks
+  12–14; rollback e-value 3.61 → 4.96). The cell detected the fault in 40 of 40 runs, so it moved
+  no endpoint except E6.
+- At run time the worktree carried an uncommitted change to tracked
+  `tools/calibrate/_calibrate-constants.js` (recorded in manifest.json `tracked_changes`; the
+  known stale compiled artifact, Family E α fraction 0.10 → 0). No file on the twin path imports it
+  (checked: service/, engine/). It is not committed.
+- No sleep-prevention assertion was active during the run: `pmset` shows a `caffeinate` assertion
+  ending ("ClientDied") at 22:05:41, 96 s before the run started at 22:07:17.
+- `analysis/summarize.mjs` writes `endpoints.json` into the run directory when invoked from the
+  command line (summarize.mjs:172-176); its header comment ("reads only the run directory") omits
+  that. `check_report.mjs` imports it and does not write.
+- A second run is registered separately as a dated amendment (host held awake; a not-executable
+  rule for host suspension; per-arm upstream errors recorded). This run's verdict stands as recorded.
