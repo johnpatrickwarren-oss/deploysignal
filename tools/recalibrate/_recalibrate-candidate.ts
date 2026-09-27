@@ -22,7 +22,8 @@ import type {
 import { RECALIBRATION_REASON_CODES } from '../../engine/types/recalibration';
 import type { CompiledConfig } from '../../engine/types';
 import { transition } from '../../engine/recalibration/state-machine';
-import { classifyRecalibration, type ClassificationOptions } from '../../engine/recalibration/classify';
+import { classifyRecalibration, EmptySignalIntersectionError, type ClassificationOptions } from '../../engine/recalibration/classify';
+import type { DirectionConflict } from '../../engine/recalibration/direction-metadata';
 import {
   compareCandidateVsActive, evaluateReadinessGates, extractSignalMeansPerCellWeighted,
   type ReadinessGateResult, type ExclusionWindow,
@@ -112,6 +113,7 @@ export function buildProposedCandidate(input: ProposeInput): ProposeOutcome {
     direction_classification: classification.direction_classification,
     per_signal_direction: classification.per_signal_direction,
     suggested_reason_codes: classification.suggested_reason_codes,
+    ...(classification.direction_conflicts.length > 0 ? { direction_conflicts: classification.direction_conflicts } : {}),
     shadow_mode_validated_at: null,
     timeout_at: computeTimeoutAt(input.nowIso, meta.timeout_days),
     status: 'candidate',
@@ -156,18 +158,22 @@ export function classificationOptionsFor(
   };
 }
 
-function classifyCandidate(
+/** Exported for test/defect-override-vs-configured.test.ts. */
+export function classifyCandidate(
   activeConfig: CompiledConfig,
   candidateConfig: CompiledConfig,
   meta: { unchanged_epsilon_rel: number; informational_direction_overrides: Record<string, 'higher' | 'lower'> },
-): { direction_classification: CandidateRecord['direction_classification']; per_signal_direction: CandidateRecord['per_signal_direction']; suggested_reason_codes: string[] } {
+): { direction_classification: CandidateRecord['direction_classification']; per_signal_direction: CandidateRecord['per_signal_direction']; suggested_reason_codes: string[]; direction_conflicts: DirectionConflict[] } {
   try {
     return classifyRecalibration(
       buildSignalMeans(activeConfig),
       buildSignalMeans(candidateConfig),
       classificationOptionsFor(activeConfig, candidateConfig, meta),
     );
-  } catch (_err) {
+  } catch (err) {
+    // Only the empty-intersection error is converted; any other classification error (e.g. an
+    // override on an unconfigured non-informational signal) propagates to the caller.
+    if (!(err instanceof EmptySignalIntersectionError)) throw err;
     // Empty signal intersection — nothing to classify. Conservative
     // 'mixed' + full reason-code list (same shape as a degradation/mixed
     // verdict) so the record still routes to operator review rather
@@ -176,6 +182,7 @@ function classifyCandidate(
       direction_classification: 'mixed',
       per_signal_direction: {},
       suggested_reason_codes: [...RECALIBRATION_REASON_CODES],
+      direction_conflicts: [],
     };
   }
 }
