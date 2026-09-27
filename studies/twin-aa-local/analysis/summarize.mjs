@@ -1,5 +1,6 @@
 // studies/twin-aa-local/analysis/summarize.mjs — scores a run against PREREGISTRATION.md §2, §4, §5.
-// Written before the run; reads only the run directory.
+// Written before the run; reads only the run directory. Run from the command line it also writes
+// <run-dir>/endpoints.json (check_report.mjs imports compute/renderTables and writes nothing).
 //
 //   node studies/twin-aa-local/analysis/summarize.mjs <run-dir>   -> <run-dir>/endpoints.json, tables on stdout
 
