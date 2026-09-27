@@ -71,11 +71,30 @@ test('upstreamSplit reproduces the run-1 reference z values (1.94 near, 6.01 not
   assert.deepEqual(upstreamSplit([{ run: 0, ticks: [{ t: 0, nc: 250, nk: 250, uc: 0, uk: 0 }] }]), { canary: 0, control: 0, ticks: [] });
 });
 
-test('run 1 (no amendment in its manifest) scores exactly as its committed endpoints.json', async () => {
+// Numbers are compared to 1e-12 relative, not byte for byte: endpoints.json was written on Node 25,
+// and Math.log differs in the last bit across Node versions (CI runs Node 24: mean_log_ratio
+// 0.0005072219821384026 vs ...017). Every non-numeric field, and every verdict, must match exactly.
+function assertCloseJson(actual: unknown, expected: unknown, at = '$'): void {
+  if (typeof actual === 'number' && typeof expected === 'number') {
+    const tol = 1e-12 * Math.max(1, Math.abs(expected));
+    assert.ok(Math.abs(actual - expected) <= tol, `${at}: ${actual} vs ${expected}`);
+    return;
+  }
+  if (actual !== null && expected !== null && typeof actual === 'object' && typeof expected === 'object') {
+    assert.deepEqual(Object.keys(actual as object), Object.keys(expected as object), `${at}: keys`);
+    for (const k of Object.keys(expected as object)) {
+      assertCloseJson((actual as Record<string, unknown>)[k], (expected as Record<string, unknown>)[k], `${at}.${k}`);
+    }
+    return;
+  }
+  assert.equal(actual, expected, at);
+}
+
+test('run 1 (no amendment in its manifest) scores as its committed endpoints.json', async () => {
   const { compute } = await summarize();
   const dir = path.join(STUDY, 'results', 'run-20260927T050717Z');
-  const stored = fs.readFileSync(path.join(dir, 'endpoints.json'), 'utf8');
-  assert.equal(`${JSON.stringify(compute(dir), null, 2)}\n`, stored);
+  const stored = JSON.parse(fs.readFileSync(path.join(dir, 'endpoints.json'), 'utf8'));
+  assertCloseJson(JSON.parse(JSON.stringify(compute(dir))), stored);
 });
 
 function fakeRun(dir: string, { powerLog, tickMs }: { powerLog: string | null; tickMs: number }): void {
