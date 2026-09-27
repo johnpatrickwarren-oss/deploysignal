@@ -273,6 +273,15 @@ function listenersOnPorts() {
   return busy;
 }
 
+/** The first line of `pmset -g batt` ("Now drawing from 'AC Power'"), recorded, not scored. */
+function powerSource() {
+  try {
+    return execFileSync('pmset', ['-g', 'batt'], { encoding: 'utf8' }).split('\n')[0].trim();
+  } catch (e) {
+    return `unavailable: ${e.message}`;
+  }
+}
+
 /** Amendment 1 (c): the `pmset -g log` lines between start and end. A missing log voids the run. */
 function savePowerLog(outDir, startedMs, endedMs, manifest) {
   let text;
@@ -326,6 +335,7 @@ async function main() {
   };
   const startedMs = Date.now(); // wall clock for the power-log window only; no draw depends on it
   manifest.started_at = new Date(startedMs).toISOString();
+  manifest.power_source_at_start = powerSource();
   const t0 = process.hrtime.bigint();
   const summary = [];
   try {
@@ -344,6 +354,7 @@ async function main() {
   manifest.wall_seconds = Math.round(Number(process.hrtime.bigint() - t0) / 1e9);
   const endedMs = Date.now();
   manifest.ended_at = new Date(endedMs).toISOString();
+  manifest.power_source_at_end = powerSource();
   savePowerLog(outDir, startedMs, endedMs, manifest);
   manifest.cells = summary;
   manifest.harness_failures = failures;
