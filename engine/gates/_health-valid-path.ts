@@ -45,7 +45,9 @@ import type { HealthOpts } from './_health-types';
 /** Caller-supplied inputs for the valid path. Absent → the path is inert (byte-identical gate). */
 export interface ValidPathOpts {
   /** Raw calibration series per Family A signal (pre-deploy telemetry, same units as
-   *  `liveMetrics[signal]`). Signals outside FAMILY_A_PRIMARY_SIGNALS are ignored. */
+   *  `liveMetrics[signal]`). Signals outside the configured Family A set are ignored: the
+   *  compiled config's `family_a_signals` (the profile's sli_list), or FAMILY_A_PRIMARY_SIGNALS
+   *  when the config carries none (see `validPathSignals`). */
   calibration: Record<string, ReadonlyArray<number>>;
   /** Known AR(1) φ per signal (the envelope-valid regime). Optional per signal. */
   ar1Phi?: Record<string, number>;
@@ -160,6 +162,14 @@ function routeSignal(
   return terminalVerdictFor(signal, calibration, series, alpha, phi);
 }
 
+/** The signals the valid path may route: the compiled config's `family_a_signals` (profile-routed
+ *  compiles emit the profile's sli_list there), else the engine's six-signal default — the same
+ *  fallback the engine's primary Family A loops use. Defect 2026-09-25: this loop read the default
+ *  unconditionally, so a profile's own signals were never routed. */
+export function validPathSignals(cfg: CompiledConfig | null | undefined): readonly string[] {
+  return cfg?.family_a_signals ?? FAMILY_A_PRIMARY_SIGNALS;
+}
+
 /** Family A valid path (C64 a). Appends one verdict per routed signal to `family_A_shadow`;
  *  a terminal fire pushes `family_A_safe_t_{signal}` into rollback. */
 export function runFamilyAValidPath(
@@ -171,7 +181,7 @@ export function runFamilyAValidPath(
   const store = seriesStore(tb);
   const alpha = validPathAlpha(opts.compiledConfig, vp.alphaPerSignal);
   const out: DetectorVerdict[] = [];
-  for (const signal of FAMILY_A_PRIMARY_SIGNALS) {
+  for (const signal of validPathSignals(opts.compiledConfig)) {
     const calibration = vp.calibration[signal];
     if (!calibration) continue;
     const v = routeSignal(signal, calibration, store, liveMetrics, alpha, opts);
