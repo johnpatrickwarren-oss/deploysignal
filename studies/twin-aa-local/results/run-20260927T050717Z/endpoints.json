@@ -1,0 +1,149 @@
+{
+  "cells": {
+    "AA-w0.5": {
+      "name": "AA-w0.5",
+      "kind": "AA",
+      "registered_R": 100,
+      "runs": 100,
+      "rollbacks": 0,
+      "rate": 0,
+      "se": 0,
+      "bar": 0.10622979637167469,
+      "median_rollback_tick": null,
+      "median_ticks_to_detect": 116,
+      "rollbacks_by_metric": {},
+      "invalid_experiment": 0,
+      "inconclusive": 100,
+      "harness_failures": 0,
+      "upstream_errors": 0,
+      "executable": true,
+      "canary_share_requests": 0.4997738,
+      "canary_share_5xx": 0.5005308812628964,
+      "deployed_replay": {
+        "proceed": 32,
+        "no_terminal_by_T": 68
+      },
+      "sign": {
+        "ticks": 10000,
+        "frac_canary_worse": 0.5029,
+        "se": 0.004999915899292707,
+        "lag1_autocorr": 0.01355951974224562,
+        "mean_log_ratio": 0.0005072219821384026
+      },
+      "wall_seconds": 663,
+      "requests_per_second": 7543
+    },
+    "AA-w0.1": {
+      "name": "AA-w0.1",
+      "kind": "AA",
+      "registered_R": 100,
+      "runs": 100,
+      "rollbacks": 0,
+      "rate": 0,
+      "se": 0,
+      "bar": 0.10622979637167469,
+      "median_rollback_tick": null,
+      "median_ticks_to_detect": 206,
+      "rollbacks_by_metric": {},
+      "invalid_experiment": 0,
+      "inconclusive": 100,
+      "harness_failures": 0,
+      "upstream_errors": 125,
+      "executable": true,
+      "canary_share_requests": 0.100287,
+      "canary_share_5xx": 0.10042929621438793,
+      "deployed_replay": {
+        "no_terminal_by_T": 100
+      },
+      "sign": null,
+      "wall_seconds": 735,
+      "requests_per_second": 6802
+    },
+    "AB-rate-x2": {
+      "name": "AB-rate-x2",
+      "kind": "AB",
+      "registered_R": 40,
+      "runs": 40,
+      "rollbacks": 40,
+      "rate": 1,
+      "se": 0,
+      "bar": null,
+      "median_rollback_tick": 27,
+      "median_ticks_to_detect": 104,
+      "rollbacks_by_metric": {
+        "http_5xx": 40
+      },
+      "invalid_experiment": 0,
+      "inconclusive": 0,
+      "harness_failures": 0,
+      "upstream_errors": 53,
+      "executable": true,
+      "canary_share_requests": 0.49959815668202767,
+      "canary_share_5xx": 0.6629810365062697,
+      "deployed_replay": {
+        "rollback": 40
+      },
+      "sign": {
+        "ticks": 1085,
+        "frac_canary_worse": 0.4728110599078341,
+        "se": 0.015156959483059902,
+        "lag1_autocorr": -0.013444440863795289,
+        "mean_log_ratio": -0.005228437278429937
+      },
+      "wall_seconds": 979,
+      "requests_per_second": 554
+    },
+    "AB-lat-x1.2": {
+      "name": "AB-lat-x1.2",
+      "kind": "AB",
+      "registered_R": 40,
+      "runs": 40,
+      "rollbacks": 40,
+      "rate": 1,
+      "se": 0,
+      "bar": null,
+      "median_rollback_tick": 15.5,
+      "median_ticks_to_detect": 112,
+      "rollbacks_by_metric": {
+        "p99_latency_ms": 40
+      },
+      "invalid_experiment": 0,
+      "inconclusive": 0,
+      "harness_failures": 0,
+      "upstream_errors": 0,
+      "executable": true,
+      "canary_share_requests": 0.5004265129682998,
+      "canary_share_5xx": 0.5029800843145806,
+      "deployed_replay": {
+        "rollback": 40
+      },
+      "sign": {
+        "ticks": 694,
+        "frac_canary_worse": 0.8645533141210374,
+        "se": 0.012989736647079222,
+        "lag1_autocorr": 0.0009347599484946089,
+        "mean_log_ratio": 0.18226129058511487
+      },
+      "wall_seconds": 1857,
+      "requests_per_second": 187
+    }
+  },
+  "endpoints": {
+    "E1": true,
+    "E2": true,
+    "E3": true,
+    "E4": true,
+    "E5": true,
+    "E6": false
+  },
+  "predictions": {
+    "P1": true,
+    "P2": true,
+    "P3": true,
+    "P4": true,
+    "P5": true,
+    "P6": false,
+    "P7": true
+  },
+  "ship_rule_met": false
+}

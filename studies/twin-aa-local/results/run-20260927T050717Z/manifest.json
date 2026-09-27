@@ -1,0 +1,60 @@
+{
+  "study": "2026-09-twin-aa-local",
+  "mode": "full",
+  "repo_head": "bf951642612f59044bb02ad9d0b2800ac38b2091",
+  "branch": "wt/twin-aa-local",
+  "tracked_changes": [
+    "M tools/calibrate/_calibrate-constants.js"
+  ],
+  "engine": "0.12.0-pre",
+  "engine_resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#10c96910cc9f293c2b02bdfdb707f883d9cefb77",
+  "node": "v25.9.0",
+  "platform": "darwin 25.6.0",
+  "cpus": 10,
+  "seed_scheme": "router = 20260926 + 7919 i, control = +1, canary = +2; draws keyed on (seed, run, tick, idx, stream)",
+  "concurrency": 128,
+  "warmup_requests": 2000,
+  "ports": {
+    "gate": 18290,
+    "router": 18200,
+    "control": 18201,
+    "canary": 18202
+  },
+  "command": "node studies/twin-aa-local/harness/run.mjs --mode full",
+  "wall_seconds": 4235,
+  "cells": [
+    {
+      "name": "AA-w0.5",
+      "runs": 100,
+      "harness_failures": 0,
+      "wall_seconds": 663,
+      "requests_per_second": 7543
+    },
+    {
+      "name": "AA-w0.1",
+      "runs": 100,
+      "harness_failures": 0,
+      "wall_seconds": 735,
+      "requests_per_second": 6802
+    },
+    {
+      "name": "AB-rate-x2",
+      "runs": 40,
+      "harness_failures": 0,
+      "wall_seconds": 979,
+      "requests_per_second": 554
+    },
+    {
+      "name": "AB-lat-x1.2",
+      "runs": 40,
+      "harness_failures": 0,
+      "wall_seconds": 1857,
+      "requests_per_second": 187
+    }
+  ],
+  "harness_failures": {
+    "count": 0,
+    "first": []
+  },
+  "listeners_left": []
+}
