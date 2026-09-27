@@ -93,7 +93,7 @@ var METRIC_META = {
 };
 
 function fmtVal(v,k){if(v===null||v===undefined)return'—';if(k==='p99_latency'||k==='ttft')return Math.round(v);if(k==='tokens_turn')return Math.round(v);if(k==='kv_cache')return(v*100).toFixed(1);if(k==='cost_req')return v.toFixed(4);if(k==='downstream_err')return v.toFixed(2);if(k==='mfu')return(v*100).toFixed(1);if(k==='hbm_spill')return(v*100).toFixed(2);if(k==='collective_ops')return(v*100).toFixed(3);if(k==='corpus_delta')return(v*100).toFixed(1);if(k==='traffic_pct')return(v*100).toFixed(0);if(k==='eval_score')return(v*100).toFixed(1);if(k==='refusal_rate')return(v*100).toFixed(2);if(k==='output_len_p50')return Math.round(v);return String(v);}
-function metricStatus(live,base,k){if(live===null||live===undefined||!base)return'ok';var r=live/base;if(k==='kv_cache')return live<0.85?'alert':live<base*0.97?'warn':'ok';if(k==='collective_ops')return live<0.9995?'alert':live<base*0.9997?'warn':'ok';if(k==='corpus_delta')return live>base*1.15?'alert':live>base*1.08?'warn':'ok';if(k==='mfu')return Math.abs(live-base)/base>0.10?'warn':'ok';if(k==='hbm_spill')return live>base*1.30?'warn':'ok';if(k==='traffic_pct')return live<0.60?'warn':'ok';if(k==='eval_score')return live<base*0.92?'alert':live<base*0.96?'warn':'ok';if(k==='refusal_rate')return live>base*3.0?'alert':live>base*2.0?'warn':'ok';return r>1.25?'alert':r>1.10?'warn':'ok';}
+function metricStatus(live,base,k){if(live===null||live===undefined||!base)return'ok';var r=live/base;if(k==='kv_cache')return live<0.85?'alert':live<base*0.97?'warn':'ok';if(k==='collective_ops')return live<0.9995?'alert':live<base*0.9997?'warn':'ok';if(k==='corpus_delta')return live>base*1.15?'alert':live>base*1.08?'warn':'ok';if(k==='mfu')return Math.abs(live-base)/base>0.10?'warn':'ok';if(k==='hbm_spill')return live>base*1.30?'warn':'ok';if(k==='traffic_pct')return live<base*0.60?'warn':'ok';if(k==='eval_score')return live<base*0.92?'alert':live<base*0.96?'warn':'ok';if(k==='refusal_rate')return live>base*3.0?'alert':live>base*2.0?'warn':'ok';return r>1.25?'alert':r>1.10?'warn':'ok';}
 
 // ── ROLLBACK_DEFS ─────────────────────────────────────────────────
 // Base signal definitions — thresholds tuned by the self-improving loop.
@@ -595,7 +595,8 @@ var EXTEND_DEFS = [
     return m.hbm_spill>b.hbm_spill*thr;
   }},
   {id:'mem_pressure',label:'Memory Pressure',check:function(m,b){return(m.kv_cache<b.kv_cache*0.95||m.kv_cache<0.85)&&m.hbm_spill>0.025;}},
-  {id:'low_traffic',label:'Traffic Volume',check:function(m,b){return m.traffic_pct<0.60;}},
+  // Defect 2026-09-25 (mirrors engine/gates/_health-defs.ts): relative to the baseline share.
+  {id:'low_traffic',label:'Traffic Volume',check:function(m,b){var l=m.traffic_pct,s=b&&b.traffic_pct;if(!Number.isFinite(l)||!Number.isFinite(s)||s<=0)return false;return l<s*0.60;}},
   {id:'mixed',label:'Signal Consistency',check:function(m,b,f,ctx,tb){
     var base=ctx&&ctx.riskLevel==='critical'&&ctx.changeType==='model_weights'?1.15:1.20;
     var t=tb?tb.get('p99_latency'):null;

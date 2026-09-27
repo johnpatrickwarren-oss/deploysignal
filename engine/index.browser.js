@@ -1102,8 +1102,12 @@ const EXTEND_DEFS = [
             return (m.kv_cache < b.kv_cache * 0.95 || m.kv_cache < 0.85)
                 && m.hbm_spill > 0.025;
         } },
-    { id: 'low_traffic', label: 'Traffic Volume', check: function (m) {
-            return m.traffic_pct < 0.60;
+    // Defect 2026-09-25 (mirrors engine/gates/_health-defs.ts): relative to the baseline share.
+    { id: 'low_traffic', label: 'Traffic Volume', check: function (m, b) {
+            const live = m.traffic_pct;
+            const base = b.traffic_pct;
+            if (!Number.isFinite(live) || !Number.isFinite(base) || base <= 0) return false;
+            return live < base * 0.60;
         } },
     { id: 'mixed', label: 'Signal Consistency', check: function (m, b, _f, pol, tb) {
             const base = pol.thresholds.p99 ? (pol.thresholds.p99.base ?? 1.20) : 1.20;

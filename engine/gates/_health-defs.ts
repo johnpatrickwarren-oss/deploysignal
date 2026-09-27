@@ -345,8 +345,14 @@ export const EXTEND_DEFS: ExtendDef[] = ([
     return ((m.kv_cache as number) < (b.kv_cache as number) * 0.95 || (m.kv_cache as number) < 0.85)
         && (m.hbm_spill as number) > 0.025;
   } },
-  { id: 'low_traffic', label: 'Traffic Volume', check: function (m) {
-    return (m.traffic_pct as number) < 0.60;
+  // Defect 2026-09-25: was `traffic_pct < 0.60`, an absolute share, so a canary at its planned
+  // 10% slice extended on every tick and could never proceed. Low traffic is live traffic below
+  // 0.60 of the baseline's share; without a positive baseline share the rule cannot say.
+  { id: 'low_traffic', label: 'Traffic Volume', check: function (m, b) {
+    const live = m.traffic_pct as number;
+    const base = b.traffic_pct as number;
+    if (!Number.isFinite(live) || !Number.isFinite(base) || base <= 0) return false;
+    return live < base * 0.60;
   } },
   { id: 'mixed', label: 'Signal Consistency', check: function (m, b, _f, pol, tb) {
     const base = pol.thresholds.p99 ? (pol.thresholds.p99.base ?? 1.20) : 1.20;
