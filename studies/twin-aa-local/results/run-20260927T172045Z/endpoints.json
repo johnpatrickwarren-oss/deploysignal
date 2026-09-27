@@ -1,0 +1,179 @@
+{
+  "cells": {
+    "AA-w0.5": {
+      "name": "AA-w0.5",
+      "kind": "AA",
+      "registered_R": 100,
+      "runs": 100,
+      "rollbacks": 0,
+      "rate": 0,
+      "se": 0,
+      "bar": 0.10622979637167469,
+      "median_rollback_tick": null,
+      "median_ticks_to_detect": 116,
+      "rollbacks_by_metric": {},
+      "invalid_experiment": 0,
+      "inconclusive": 100,
+      "harness_failures": 0,
+      "upstream_errors": 0,
+      "executable": true,
+      "canary_share_requests": 0.5002886,
+      "canary_share_5xx": 0.5008451554482343,
+      "deployed_replay": {
+        "proceed": 33,
+        "no_terminal_by_T": 67
+      },
+      "sign": {
+        "ticks": 10000,
+        "frac_canary_worse": 0.4957,
+        "se": 0.0049998150965810725,
+        "lag1_autocorr": -0.01186697728163798,
+        "mean_log_ratio": -0.0014865445949895852
+      },
+      "wall_seconds": 681,
+      "requests_per_second": 7339,
+      "upstream": {
+        "canary": 0,
+        "control": 0,
+        "ticks": []
+      },
+      "max_tick_ms": 138.5
+    },
+    "AA-w0.1": {
+      "name": "AA-w0.1",
+      "kind": "AA",
+      "registered_R": 100,
+      "runs": 100,
+      "rollbacks": 0,
+      "rate": 0,
+      "se": 0,
+      "bar": 0.10622979637167469,
+      "median_rollback_tick": null,
+      "median_ticks_to_detect": 206,
+      "rollbacks_by_metric": {},
+      "invalid_experiment": 0,
+      "inconclusive": 100,
+      "harness_failures": 0,
+      "upstream_errors": 0,
+      "executable": true,
+      "canary_share_requests": 0.1002364,
+      "canary_share_5xx": 0.10115134855185053,
+      "deployed_replay": {
+        "no_terminal_by_T": 100
+      },
+      "sign": null,
+      "wall_seconds": 706,
+      "requests_per_second": 7078,
+      "upstream": {
+        "canary": 0,
+        "control": 0,
+        "ticks": []
+      },
+      "max_tick_ms": 277.9
+    },
+    "AB-rate-x2": {
+      "name": "AB-rate-x2",
+      "kind": "AB",
+      "registered_R": 40,
+      "runs": 40,
+      "rollbacks": 40,
+      "rate": 1,
+      "se": 0,
+      "bar": null,
+      "median_rollback_tick": 26,
+      "median_ticks_to_detect": 103,
+      "rollbacks_by_metric": {
+        "http_5xx": 40
+      },
+      "invalid_experiment": 0,
+      "inconclusive": 0,
+      "harness_failures": 0,
+      "upstream_errors": 0,
+      "executable": true,
+      "canary_share_requests": 0.49923222748815166,
+      "canary_share_5xx": 0.6711068823342848,
+      "deployed_replay": {
+        "rollback": 40
+      },
+      "sign": {
+        "ticks": 1055,
+        "frac_canary_worse": 0.5052132701421801,
+        "se": 0.015392890025307405,
+        "lag1_autocorr": -0.04081626778026154,
+        "mean_log_ratio": 0.00431082734754084
+      },
+      "wall_seconds": 73,
+      "requests_per_second": 7202,
+      "upstream": {
+        "canary": 0,
+        "control": 0,
+        "ticks": []
+      },
+      "max_tick_ms": 114.6
+    },
+    "AB-lat-x1.2": {
+      "name": "AB-lat-x1.2",
+      "kind": "AB",
+      "registered_R": 40,
+      "runs": 40,
+      "rollbacks": 40,
+      "rate": 1,
+      "se": 0,
+      "bar": null,
+      "median_rollback_tick": 13,
+      "median_ticks_to_detect": 112,
+      "rollbacks_by_metric": {
+        "p99_latency_ms": 40
+      },
+      "invalid_experiment": 0,
+      "inconclusive": 0,
+      "harness_failures": 0,
+      "upstream_errors": 0,
+      "executable": true,
+      "canary_share_requests": 0.4994253246753247,
+      "canary_share_5xx": 0.4947535771065183,
+      "deployed_replay": {
+        "rollback": 40
+      },
+      "sign": {
+        "ticks": 616,
+        "frac_canary_worse": 0.8928571428571429,
+        "se": 0.012461842103550946,
+        "lag1_autocorr": -0.07506493506493528,
+        "mean_log_ratio": 0.19068463023146545
+      },
+      "wall_seconds": 50,
+      "requests_per_second": 6115,
+      "upstream": {
+        "canary": 0,
+        "control": 0,
+        "ticks": []
+      },
+      "max_tick_ms": 150.8
+    }
+  },
+  "endpoints": {
+    "E1": true,
+    "E2": true,
+    "E3": true,
+    "E4": true,
+    "E5": true,
+    "E6": true
+  },
+  "predictions": {
+    "P1": true,
+    "P2": true,
+    "P3": true,
+    "P4": true,
+    "P5": true,
+    "P6": true,
+    "P7": true
+  },
+  "ship_rule_met": true,
+  "amendment1": {
+    "seed_offset": 1000000,
+    "tick_wall_bound_ms": 2000,
+    "executable": true,
+    "void_reasons": []
+  }
+}
