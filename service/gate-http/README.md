@@ -68,6 +68,94 @@ The `AnalysisTemplate`'s `successCondition`/`failureCondition`/
 `inconclusiveCondition` reference these three codes directly
 (`result == 0` / `result == 1` / `result == -1`).
 
+## Twin mode — the randomized twin, advisory (engine ADR 0036)
+
+A `mode: "twin"` session tests the canary against a **concurrent control arm on the old
+version** under randomized per-request routing, with statistics whose null is observed in the same
+tick or fixed. Nothing is estimated from history, so a twin session needs no `scenario.baseline`
+and no compiled config. The gate path is `engine/gates/_health-twin.ts` (a wrapper over the
+engine's `per-shard/twin-gate.ts`); the service side is `service/gate-http/_gate-twin.ts`.
+
+### Contract (JSON, snake_case)
+
+```
+POST /v1/sessions
+  {"mode":"twin",
+   "twin_arm":{"canary_weight":0.5,"alpha_rollback":0.05,"alpha_proceed":0.05,"alpha_srm":0.001,
+               "max_ticks":120,"allow_unequal_rate_split":false,
+               "metrics":[{"id":"http_5xx","kind":"rate","worse":"higher","tolerance":0.2},
+                          {"id":"p99_latency_ms","kind":"sign","worse":"higher","tolerance":0.15}]}}
+  -> 201 {"session_id":"…","mode":"twin"}
+
+POST /v1/sessions/{id}/ticks
+  {"canary_requests":1000,"control_requests":1000,
+   "observations":{"http_5xx":{"canary_events":12,"canary_total":1000,"control_events":9,"control_total":1000},
+                   "p99_latency_ms":{"canary":212.0,"control":205.5}}}
+  -> 200 {"verdict":"extend","engine_verdict":"extend","authority":"advisory","tick":1,"srm_e":…,
+          "metrics":[{"id","rollback_e","rollback_threshold","proceed_e","proceed_threshold",
+                      "used","skipped","ties","missing"}],"ticks_to_detect":…}
+```
+
+- `verdict` maps the engine verdict: `rollback → rollback`, `proceed → proceed`,
+  `extend → extend`, `inconclusive → hold`, `invalid_experiment → halt` (the sample-ratio guard:
+  shift traffic back and stop; never a pass).
+- `twin_arm` is shape-checked here and range-checked by the engine's `checkTwinGateConfig`; a
+  refusal is `400` with the engine's reason. A `sign` metric needs `canary_weight: 0.5`; a `rate`
+  metric at another weight needs `allow_unequal_rate_split`, which belongs where an A/A run at that
+  split shows no arm-level effect.
+- A metric absent from `observations` while the canary takes traffic is scored missing (a ½ wealth
+  factor on both tests; ADR 0036 "Consequences"); a `sign` value of `null` is missing too. An
+  unknown metric id, an observation of the wrong kind or a non-integer count is `400` and leaves
+  the gate state untouched.
+- `ticks_to_detect` (when present) is the planning figure from the engine's
+  `per-shard/twin-planning.ts`: ticks from the start for the rollback test to catch a regression of
+  each metric's tolerance at `alpha_rollback / N`, the maximum over metrics. It is absent until
+  every metric has one usable tick. It is a power figure; nothing reads it.
+- Optional on create: `deploy_ref` (the same active ref with the same `twin_arm` returns `200`,
+  with a different one `409`), `requested_at_ts`, `deploy_id`, `service_id`. Optional on a tick:
+  `emitted_at_ts`, the idempotency key; a retry with the same value replays the stored body.
+- An engine terminal verdict (anything but `extend`) finishes the session; a later tick is `409`
+  with `last_verdict`.
+
+Persistence is the existing runtime's (OQ-1): the `SessionRecord` (with `twin_arm`) and one
+verdict-history line per tick are durable, the gate state is in memory, and a restart voids every
+active session. A twin session whose state is missing mid-bake is voided `twin_state_lost`.
+
+### Authority: advisory
+
+`TWIN_ARM_AUTHORITY = 'advisory'` (`engine/guarantees.ts`, beside `CONTRAST_ARM_AUTHORITY`). No code
+path turns a twin verdict into an automatic rollback or a failed rollout:
+
+- every tick body carries `"authority":"advisory"`;
+- a twin session's record is `mode: "shadow"`, so `GET /v1/verdict/{deploy_ref}` serves
+  `verdict_code: 0`, with the real code on `shadow_verdict_code` and the twin verdict on a `twin`
+  block (`{verdict, engine_verdict, authority, tick}`);
+- a twin `rollback` never sets the deployment phase to `rolled_back`;
+- inside the engine, a compiled config with `twin_arm` runs only the twin path and puts nothing on
+  `rollback[]`, `firing_families` or `alpha_spent`.
+
+`test/twin-authority.test.ts` drives a regressed canary to an engine `rollback` on each of these
+surfaces and checks that none of them rolls back.
+
+### Argo Rollouts
+
+`argo/twin-analysis-template.yaml` holds the `deploysignal-twin-gate` AnalysisTemplate and an
+example Rollout. The Rollout's experiment step runs a `baseline` ReplicaSet on the stable spec and a
+`canary` ReplicaSet on the new spec at the **same weight**, labelled `ds-twin-arm: control` and
+`ds-twin-arm: canary` so a metrics source can split the two arms. That is the twin's topology: a
+fresh control arm at the canary's weight. A canary measured against the warm stable fleet breaks
+the premise at start-up.
+
+While the authority is advisory the template records the verdict and never fails the analysis: the
+metric is listed under `spec.dryRun`, its `successCondition` is `"true"` with no
+`failureCondition`, and `consecutiveErrorLimit` exceeds `count`. The measured value on the
+AnalysisRun is the twin verdict string, and the example Rollout pauses after the experiment for a
+person to promote or abort. As with the Level-1 template, Argo only polls: the session is created
+upstream (same `deploy_ref`) and ticks are pushed by a metrics source.
+
+Flipping the authority is a separate ADR after a registered real-service A/A run (see
+`DORMANCY.md`), together with this template's `dryRun` entry and conditions.
+
 ## fail_open / fail_closed / shadow
 
 - **`DS_GATE_FAIL_POLICY`** governs every place an internal failure could
