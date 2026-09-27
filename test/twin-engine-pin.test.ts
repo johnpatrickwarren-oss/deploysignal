@@ -1,6 +1,7 @@
-// test/twin-engine-pin.test.ts — Plan B Task 1: the engine is pinned at v0.12.0-pre, the first tag
-// that carries the randomized twin (engine ADR 0036: detectors/twin-contrast.ts,
-// per-shard/twin-gate.ts, per-shard/twin-planning.ts).
+// test/twin-engine-pin.test.ts — Plan B Task 1: the engine is pinned at a tag that carries the
+// randomized twin (engine ADR 0036: detectors/twin-contrast.ts, per-shard/twin-gate.ts,
+// per-shard/twin-planning.ts), first shipped in v0.12.0-pre. Pin now v0.12.1-pre (Family A
+// evaluates `family_a_signals`); the twin library is unchanged between the two tags.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,13 +10,13 @@ import * as path from 'node:path';
 
 const ROOT = path.resolve(__dirname, '..');
 
-test('Plan B: package.json pins the engine at #v0.12.0-pre and the installed copy is 0.12.0-pre', () => {
+test('Plan B: package.json pins the engine at #v0.12.1-pre and the installed copy is 0.12.1-pre', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   const spec: string = pkg.dependencies['@johnpatrickwarren-oss/deploysignal-engine'];
-  assert.ok(spec.endsWith('#v0.12.0-pre'), `engine pin is ${spec}`);
+  assert.ok(spec.endsWith('#v0.12.1-pre'), `engine pin is ${spec}`);
   const installed = JSON.parse(fs.readFileSync(
     path.join(ROOT, 'node_modules', '@johnpatrickwarren-oss', 'deploysignal-engine', 'package.json'), 'utf8'));
-  assert.equal(installed.version, '0.12.0-pre');
+  assert.equal(installed.version, '0.12.1-pre');
 });
 
 test('Plan B: the twin library entry points resolve through the package export map', () => {

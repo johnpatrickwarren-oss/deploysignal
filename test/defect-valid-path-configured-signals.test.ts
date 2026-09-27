@@ -4,14 +4,21 @@
 // sli_list). A profile-routed config for a non-LLM service got no valid-path verdict on its own
 // signals, and a calibration series for one of the six LLM signals was still routed when the
 // profile did not monitor it. The fix reads `family_a_signals` and falls back to the six only when
-// the config carries none (the fallback the engine's primary Family A loops use).
+// the config carries none.
+//
+// The engine's own Family A evaluators (evaluateFamilyAShadowMixture, evaluateFamilyABettingShadow)
+// ignored `family_a_signals` and iterated the six up to and including deploysignal-engine
+// v0.12.0-pre; from v0.12.1-pre they read `familyASignals(cfg)` (the configured list, deduplicated,
+// or the six when absent) and default the Bonferroni factor to its length. The last test below
+// drives this repo's Family A runner end to end on a configured non-LLM signal.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { CompiledConfig, FiredSignal, HealthResult, Metrics } from '../dist/engine/types';
 import { runFamilyAValidPath, VALID_PATH_ROLLBACK_PREFIX } from '../dist/engine/gates/_health-valid-path';
-import { loadCfg, cellSeries, gauss } from './_c64-fixture';
+import { runFamilyA } from '../dist/engine/gates/_health-detectors';
+import { loadCfg, cellSeries, gauss, scenarioBaseline, SIGNALS } from './_c64-fixture';
 
 const engine = require('../shared');
 const { TrendBuffer } = engine;
@@ -71,4 +78,50 @@ test('defect 2026-09-25: a config without family_a_signals keeps the six-signal 
   const { result } = run(cfg, cal, live, N);
   const signals = (result.family_A_shadow ?? []).map((x) => x.signal);
   assert.deepEqual(signals, ['p99_latency']);
+});
+
+/** A compiled config whose cells carry Family A params for `http_5xx_rate` beside the six and
+ *  whose `family_a_signals` names only `http_5xx_rate` — the shape the calibrator emits for a
+ *  profile with a custom sli_list (bonferroni_factor = the list length). */
+function customSignalCfg(): CompiledConfig {
+  const cfg = loadCfg();
+  const cells = [...cfg.baseline_cells!.cells, cfg.baseline_cells!.aggregate_fallback];
+  for (const c of cells) {
+    const ps = c.family_A?.per_signal;
+    if (ps?.downstream_err) ps.http_5xx_rate = { ...ps.downstream_err };
+  }
+  return { ...cfg, family_a_signals: ['http_5xx_rate'], bonferroni_factor: 1 } as CompiledConfig;
+}
+
+/** Drive `n` ticks of runFamilyA (Page-CUSUM mixture + betting) at hour 20 / day 3. */
+function runA(cfg: CompiledConfig, http5xx: number[]) {
+  const tb = new TrendBuffer(10);
+  let result = emptyHealth();
+  let rollback: FiredSignal[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < http5xx.length; i++) {
+    result = emptyHealth();
+    rollback = [];
+    const m = { ...scenarioBaseline(cfg), http_5xx_rate: http5xx[i] } as unknown as Metrics;
+    runFamilyA(result, rollback, [], [], m, tb, {
+      compiledConfig: cfg, currentHourOfDay: 20, currentDayOfWeek: 3, ticksSinceDeploy: i, deployAgeDays: 0,
+    });
+    for (const r of rollback) seen.add(r.id);
+  }
+  return { result, seen };
+}
+
+test('engine v0.12.1-pre: Family A evaluates the configured signal and none of the six', () => {
+  const cfg = customSignalCfg();
+  const cell = cfg.baseline_cells!.cells.find((c) => c.key.hour_of_day === 20 && c.key.day_of_week === 3)!;
+  const p = cell.family_A!.per_signal.http_5xx_rate!;
+  const law = { mean: p.baseline_mean, sigma: Math.sqrt(p.baseline_sigma_squared) };
+  const { result, seen } = runA(cfg, cellSeries(law, 11, N, 30, 4)); // a 4σ step from tick 30
+  const shadow = result.family_A_shadow ?? [];
+  assert.deepEqual([...new Set(shadow.map((v) => v.signal))], ['http_5xx_rate'],
+    'Family A verdicts only for the configured signal (the six have cells but are not configured)');
+  assert.equal(shadow.length, 2, 'one mixture and one betting verdict');
+  for (const s of SIGNALS) assert.ok(!shadow.some((v) => v.signal === s), `no verdict for ${s}`);
+  assert.ok(seen.has('family_A_http_5xx_rate') || seen.has('family_A_betting_http_5xx_rate'),
+    `the step drives a Family A rollback on the configured signal; saw ${[...seen].join(', ')}`);
 });
