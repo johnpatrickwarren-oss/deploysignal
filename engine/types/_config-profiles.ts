@@ -82,6 +82,35 @@ export interface WorkloadProfile {
    *  Passed through to `CompiledConfig.control_arm` by the compiler; the runtime gate is
    *  engine/gates/_health-contrast.ts (ADVISORY, engine ADR 0032). */
   control_arm?: ControlArmProfile;
+  /** Plan B (engine ADR 0036) — the randomized twin: the canary against a concurrent control arm on
+   *  the old version under randomized per-request routing. Optional; absent → no twin path. A
+   *  profile that declares it runs ONLY the twin path (engine/gates/_health-twin.ts): no Family
+   *  A–E and no structural rules. ADVISORY (engine/guarantees.ts TWIN_ARM_AUTHORITY). */
+  twin_arm?: TwinArmProfile;
+}
+
+/** Plan B — one twin metric, the engine's TwinMetricSpec in profile form. `rate`: the tolerance is
+ *  an excess odds ratio; `sign`: an excess probability over ½. */
+export interface TwinArmMetricProfile {
+  id: string;
+  kind: 'rate' | 'sign';
+  worse: 'higher' | 'lower';
+  tolerance: number;
+}
+
+/** Plan B — the `twin_arm` profile block (profiles/schema/profile.schema.json), field for field the
+ *  HTTP contract's `twin_arm` (service/gate-http/README.md "Twin mode"). */
+export interface TwinArmProfile {
+  /** routing share of the canary within the experiment, w_c / (w_c + w_k). */
+  canary_weight: number;
+  alpha_rollback: number;
+  alpha_proceed: number;
+  alpha_srm: number;
+  max_ticks: number;
+  /** opt in to `rate` metrics at canary_weight ≠ 0.5 (engine ADR 0036: only where an A/A run at
+   *  that split shows no arm-level effect). */
+  allow_unequal_rate_split?: boolean;
+  metrics: TwinArmMetricProfile[];
 }
 
 /** C81 — one matched pair: a canary unit and its concurrent control twin, both live metric keys

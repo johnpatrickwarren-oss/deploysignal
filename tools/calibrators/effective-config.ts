@@ -120,6 +120,7 @@ export function effectiveOrDefaults(
     profile_ref: effective.profile_ref,
     customer_override_ref: effective.customer_override_ref,
     ...(effective.control_arm ? { control_arm: effective.control_arm } : {}),
+    ...(effective.twin_arm ? { twin_arm: effective.twin_arm } : {}),
   };
 }
 

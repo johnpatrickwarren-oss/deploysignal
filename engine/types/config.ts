@@ -46,6 +46,8 @@ export type {
   ControlArmProfile,
   ControlArmPair,
   ControlArmCohortPair,
+  TwinArmProfile,
+  TwinArmMetricProfile,
   CustomerOverride,
   EffectiveConfig,
 } from './_config-profiles';

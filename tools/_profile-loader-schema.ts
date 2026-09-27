@@ -49,7 +49,8 @@ export function overrideSchema(): SchemaNode {
 //
 // Covers the subset of Draft-07 the profile/override schemas use:
 // type, enum, pattern, required, additionalProperties (bool and
-// schema), properties, items, minLength, minimum, exclusiveMinimum.
+// schema), properties, items, minLength, minimum, exclusiveMinimum,
+// maximum, exclusiveMaximum, minItems.
 // Avoids pulling ajv as a second runtime dep — scope per brief's
 // "schema validation path already precedented" framing.
 
@@ -80,13 +81,9 @@ function _walk(value: unknown, schema: SchemaNode, p: string, errors: string[]):
   if (schema.minLength !== undefined && typeof value === 'string' && value.length < schema.minLength) {
     errors.push(`${p}: string shorter than minLength ${schema.minLength}`);
   }
-  if (typeof value === 'number') {
-    if (schema.minimum !== undefined && value < schema.minimum) {
-      errors.push(`${p}: number ${value} < minimum ${schema.minimum}`);
-    }
-    if (schema.exclusiveMinimum !== undefined && value <= schema.exclusiveMinimum) {
-      errors.push(`${p}: number ${value} <= exclusiveMinimum ${schema.exclusiveMinimum}`);
-    }
+  if (typeof value === 'number') _checkNumber(value, schema, p, errors);
+  if (Array.isArray(value) && schema.minItems !== undefined && value.length < schema.minItems) {
+    errors.push(`${p}: array shorter than minItems ${schema.minItems}`);
   }
   if (Array.isArray(value) && schema.items) {
     for (let i = 0; i < value.length; i++) {
@@ -113,6 +110,21 @@ function _walk(value: unknown, schema: SchemaNode, p: string, errors: string[]):
         if (!allowed.has(k)) errors.push(`${p}: additional property "${k}" not permitted`);
       }
     }
+  }
+}
+
+function _checkNumber(value: number, schema: SchemaNode, p: string, errors: string[]): void {
+  if (schema.minimum !== undefined && value < schema.minimum) {
+    errors.push(`${p}: number ${value} < minimum ${schema.minimum}`);
+  }
+  if (schema.exclusiveMinimum !== undefined && value <= schema.exclusiveMinimum) {
+    errors.push(`${p}: number ${value} <= exclusiveMinimum ${schema.exclusiveMinimum}`);
+  }
+  if (schema.maximum !== undefined && value > schema.maximum) {
+    errors.push(`${p}: number ${value} > maximum ${schema.maximum}`);
+  }
+  if (schema.exclusiveMaximum !== undefined && value >= schema.exclusiveMaximum) {
+    errors.push(`${p}: number ${value} >= exclusiveMaximum ${schema.exclusiveMaximum}`);
   }
 }
 

@@ -283,6 +283,9 @@ function attachProfileProvenance(config, effective, compileDefaults) {
     // C81 (Part 2) — the control arm passes through verbatim (the runtime gate reads it).
     if (compileDefaults.control_arm)
         config.control_arm = JSON.parse(JSON.stringify(compileDefaults.control_arm));
+    // Plan B — the randomized twin passes through verbatim (evaluateHealth runs only its path).
+    if (compileDefaults.twin_arm)
+        config.twin_arm = JSON.parse(JSON.stringify(compileDefaults.twin_arm));
 }
 /** Console diagnostics emitted after the config is written. */
 function printCompileSummary(s) {

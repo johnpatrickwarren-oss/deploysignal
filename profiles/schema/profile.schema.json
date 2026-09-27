@@ -171,8 +171,8 @@
         },
         "total": {
           "type": "number",
-          "exclusiveMinimum": 0,
-          "description": "Must equal per_family.A + .B + .C + .D + .E (loader enforces the invariant)."
+          "description": "Must equal per_family.A + .B + .C + .D + .E (loader enforces the invariant). Must be > 0 unless the profile declares `twin_arm`, whose alphas live in that block (loader enforces).",
+          "minimum": 0
         }
       }
     },
@@ -364,6 +364,91 @@
           "exclusiveMinimum": 0,
           "maximum": 1,
           "description": "The one e-BH budget across pairs × signals; default engine/guarantees.ts CONTRAST_ARM_Q."
+        }
+      }
+    },
+    "twin_arm": {
+      "type": "object",
+      "description": "Plan B (engine ADR 0036) — the randomized twin: the canary against a concurrent control arm on the old version under randomized per-request routing. Field for field the gate service's HTTP contract `twin_arm`. Optional; absent → no twin path. A profile that declares it runs ONLY the twin path (engine/gates/_health-twin.ts): no Family A–E, no structural rules. ADVISORY (engine/guarantees.ts TWIN_ARM_AUTHORITY).",
+      "required": [
+        "canary_weight",
+        "alpha_rollback",
+        "alpha_proceed",
+        "alpha_srm",
+        "max_ticks",
+        "metrics"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "canary_weight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Routing share of the canary within the experiment, w_c / (w_c + w_k). A sign metric needs 0.5; a rate metric at another weight needs allow_unequal_rate_split."
+        },
+        "alpha_rollback": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Level of the rollback test across all metrics (Bonferroni: N/α per metric)."
+        },
+        "alpha_proceed": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Level of the proceed test (every metric's proceed wealth over 1/α)."
+        },
+        "alpha_srm": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Level of the sample-ratio guard (invalid_experiment)."
+        },
+        "max_ticks": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Ticks after which a gate with no rollback and no proceed ends inconclusive."
+        },
+        "allow_unequal_rate_split": {
+          "type": "boolean",
+          "description": "Opt in to rate metrics at canary_weight ≠ 0.5 — only where an A/A run at that split shows no arm-level effect (engine ADR 0036)."
+        },
+        "metrics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "kind",
+              "worse",
+              "tolerance"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "rate",
+                  "sign"
+                ]
+              },
+              "worse": {
+                "enum": [
+                  "higher",
+                  "lower"
+                ]
+              },
+              "tolerance": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "rate: an excess odds ratio; sign: an excess probability over ½, below 0.5. The engine checks the range (checkTwinMetricSpec)."
+              }
+            }
+          }
         }
       }
     }

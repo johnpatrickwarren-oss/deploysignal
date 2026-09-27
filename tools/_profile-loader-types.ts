@@ -11,7 +11,7 @@
 
 import type {
   WorkloadProfile, CustomerOverride, EffectiveConfig,
-  WorkloadProfileSliEntry, WorkloadProfileBakeEntry, ControlArmProfile,
+  WorkloadProfileSliEntry, WorkloadProfileBakeEntry, ControlArmProfile, TwinArmProfile,
 } from '../engine/types';
 export type {
   WorkloadProfile, CustomerOverride, EffectiveConfig,
@@ -34,6 +34,9 @@ export interface SchemaNode {
   minLength?: number;
   minimum?: number;
   exclusiveMinimum?: number;
+  maximum?: number;
+  exclusiveMaximum?: number;
+  minItems?: number;
 }
 
 export type CompileFamilyLetter = 'A' | 'B' | 'C' | 'D' | 'E';
@@ -90,6 +93,8 @@ export interface CompileDefaults {
   customer_override_ref: string | null;
   /** C81 (Part 2) — the profile's control arm, passed through verbatim. Absent on legacy path. */
   control_arm?: ControlArmProfile;
+  /** Plan B — the profile's randomized twin, passed through verbatim. Absent on legacy path. */
+  twin_arm?: TwinArmProfile;
 }
 
 export interface LegacyCompileDefaults {

@@ -115,6 +115,13 @@ export function loadProfile(profile_ref: string): WorkloadProfile {
       + `does not equal per_family sum (${sum})`,
     );
   }
+  // Plan B: a zero detector-family budget is legal only for a twin profile, whose alphas live in
+  // `twin_arm` (the schema's `minimum: 0` admits 0; this is the rest of the rule).
+  if (!(finalProfile.alpha_allocation.total > 0) && !finalProfile.twin_arm) {
+    throw new Error(
+      `resolved profile "${id}" alpha_allocation.total must be > 0 (only a profile declaring twin_arm may allocate 0)`,
+    );
+  }
   return finalProfile;
 }
 

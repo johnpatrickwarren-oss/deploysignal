@@ -316,6 +316,8 @@ export function attachProfileProvenance(
   config.family_c_signals = compileDefaults.family_c_signals.slice();
   // C81 (Part 2) — the control arm passes through verbatim (the runtime gate reads it).
   if (compileDefaults.control_arm) config.control_arm = JSON.parse(JSON.stringify(compileDefaults.control_arm));
+  // Plan B — the randomized twin passes through verbatim (evaluateHealth runs only its path).
+  if (compileDefaults.twin_arm) config.twin_arm = JSON.parse(JSON.stringify(compileDefaults.twin_arm));
 }
 
 export interface SummaryArgs {
