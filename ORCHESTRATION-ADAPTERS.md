@@ -314,3 +314,130 @@ Each implements `ChaosOrchestrationAdapter` — the base `OrchestrationAdapter` 
 - **Follow-on Q2:** Level 2 (Job adapter) or Level 3 (operator + CRDs), depending on platform-team appetite.
 
 — Architect
+
+## Twin gate: metric sources and the CodeDeploy hook
+
+_Added 2026-09-26. Engine pin for the claims below: deploysignal-engine v0.12.0-pre (ADR 0036, the
+randomized twin). Authority: advisory (`TWIN_ARM_AUTHORITY`); nothing here fails a rollout on a twin
+verdict._
+
+The twin gate tests the canary against a concurrent control arm on the old version under per-request
+randomized routing. Its rollback null holds when requests reach the two arms at random,
+independently of outcome, and neither arm carries an effect on any tick (ADR 0036, "The premise,
+stated"). The code in this section feeds it:
+
+- `service/sources/metric-source.ts`: `MetricSource.fetchTick(windowStartMs, windowEndMs)` returns
+  the tick body of `POST /v1/sessions/{id}/ticks` (wire types in `service/sources/twin-contract.ts`).
+- `service/sources/cloudwatch.ts`: ALB per-target-group `HTTPCode_Target_5XX_Count` / `RequestCount`
+  as a `rate`, `TargetResponseTime` p99 as a `sign`.
+- `service/sources/prometheus.ts`: counters as a `rate`, histogram exceedance
+  (`count - bucket{le=L}`) as a `rate`, gauges as a `sign`.
+- `integrations/codedeploy/after-allow-traffic.ts`: an ECS blue/green `AfterAllowTraffic` hook
+  that opens a twin session, ticks a source, and reports `Succeeded` for every verdict while the
+  authority is advisory.
+
+### The topology the premise needs
+
+Three target groups behind one listener rule, as a weighted forward action:
+
+| target group   | version | weight          | arm in the twin |
+|----------------|---------|-----------------|-----------------|
+| `prod-old`     | old     | 1 − 2w          | none            |
+| `baseline-old` | old     | w               | control         |
+| `canary-new`   | new     | w               | canary          |
+
+`baseline-old` is a fresh set of tasks on the old version, started at the same time as
+`canary-new` and sized like it. The twin compares `canary-new` against `baseline-old` only.
+`prod-old` serves the rest of the traffic and is not an arm.
+
+The twin's `canary_weight` is the canary's share within the experiment, w_c / (w_c + w_k)
+(`per-shard/twin-gate.ts:47` at v0.12.0-pre), not its share of all traffic. In this topology it is
+0.5 whatever w is, because both arms carry w.
+
+Why not CodeDeploy's own canary. A CodeDeploy ECS canary (for example
+`CodeDeployDefault.ECSCanary10Percent5Minutes`) shifts a share of traffic from the original task
+set to the replacement task set. Used as the two arms, the control is the warm production fleet
+(filled caches, established connection pools, compiled code paths) and the canary starts cold. That
+is arm-specific persistent state under H0, which ADR 0036 lists as breaking validity at any routing
+split. A cold-start latency or error excess in the new task set reads as a regression before the
+new version has done anything wrong. A fresh `baseline-old` goes through the same start-up as
+`canary-new`, so start-up effects appear in both arms.
+
+Two further conditions on the listener:
+
+- Target-group stickiness on the forward action must be off. With it on, a client stays on one
+  target group, so arm assignment follows client identity rather than each request, and ADR 0036's
+  premise is stated for per-request routing.
+- The same metric must be read from both arms over the same window. The sources take one window per
+  tick and query both arms in it.
+
+Not verified here: how CodeDeploy's rewrite of the production listener during a blue/green shift
+interacts with a third target group on the same rule. There is no AWS account on the machine this
+was built on, so the hook is tested only against fakes. A deployment that keeps the three-group rule
+on a listener rule CodeDeploy does not manage avoids the question; that arrangement is also
+unverified.
+
+### Why `sign` needs equal weights
+
+A `sign` observation compares one tick statistic per arm (for example a p99) and asks how often the
+canary's is worse. Under exchangeable arms of equal size that probability is 1/2. With unequal arm
+sizes a skewed statistic has a different median in each arm with no regression at all: a p99 over
+100 requests and a p99 over 900 requests from the same distribution are not equally likely to be
+the larger. The engine therefore refuses a `sign` metric at `canary_weight != 0.5` with no opt-in
+(`per-shard/twin-gate.ts:108` at v0.12.0-pre), and `CloudWatchTwinSource` refuses its p99 sign at
+construction when a `canaryWeight` other than 0.5 is declared.
+
+`rate` conditions on the observed arm totals, so latency expressed as an exceedance rate
+(requests slower than L out of all requests) does not share that equal-size requirement. The engine
+still refuses `rate` at `canary_weight != 0.5` unless the session sets `allow_unequal_rate_split`
+(`per-shard/twin-gate.ts:114`), because study `2026-09-twin-null` P2 measured 0.755 false rollback
+at w 0.1 under per-tick arm-level shocks. The opt-in belongs only where an A/A run at that split
+shows no arm-level effect. With the topology above the split is 0.5 and neither restriction
+applies.
+
+### Source notes
+
+- CloudWatch: one `GetMetricData` call per window with `Period` equal to the window, which must be a
+  positive multiple of 60 s starting on a minute boundary. Sums are rounded to integers (the engine
+  throws on non-integers). ALB publishes no zero datapoints, so an absent 5XX series is zero errors;
+  an absent p99 omits the sign observation, which the engine scores as missing (a ½ wealth factor
+  while the canary has traffic). ALB metrics arrive one to three minutes late: set the hook's
+  `settleMs` accordingly.
+- Prometheus: instant queries at the window end, templates with `$arm` and `$window`, each reduced
+  to one series. `increase()` extrapolates to the window edges, so counts are approximate before
+  rounding. `histogramExceedance(id, histogram, le)` reads an empty events result with traffic as
+  missing rather than zero, so an `le` that matches no bucket cannot report zero slow requests. The
+  opt-in integration test (`DS_PROM_INTEGRATION=1`, Docker or `DS_PROM_BIN`) runs the source against
+  a real Prometheus.
+
+### The CodeDeploy hook
+
+`createAfterAllowTrafficHandler(deps)` takes injected clients: the CodeDeploy client, a gate client
+(`integrations/codedeploy/twin-gate-client.ts`), a `MetricSource`, the twin arm, and the tick length.
+It stops on any verdict other than `extend`, at `max_ticks`, or before the Lambda deadline (the last
+two end as `hold`), then calls `PutLifecycleEventHookExecutionStatus`.
+
+Every gate and source call races a deadline: `callTimeoutMs` (default 60 s), capped by the Lambda's
+remaining time less `safetyMs` (default 30 s, kept back for the Put). A call past its deadline has its
+`AbortSignal` fired (the gate client passes it to `fetch`, the CloudWatch source to `send` as
+`abortSignal`, the Prometheus source to `fetch`) and ends the run as a gate error. No window starts
+unless its wait, `tickReserveMs` (default 10 s) and `safetyMs` fit. The Put is tried up to
+`putAttempts` times (default 3), each bounded by `putTimeoutMs` (default 5 s) and the remaining time,
+with `putBackoffMs × n` between attempts. The handler resolves even when every attempt fails
+(`reported: false`, each failure logged): a rejected Lambda invocation is retried by Lambda and would
+run the gate again. A hook whose Put never lands is timed out by CodeDeploy, which fails the
+deployment; that path is reached only when CodeDeploy itself refuses the call for the whole budget.
+
+| gate verdict | reported status (default) | with `enforce: true` and a non-advisory gate authority |
+|--------------|---------------------------|--------------------------------------------------------|
+| proceed      | Succeeded                 | Succeeded                                              |
+| extend at max_ticks or deadline | Succeeded (logged `hold`) | Failed                                  |
+| hold         | Succeeded                 | Failed                                                 |
+| halt         | Succeeded                 | Failed                                                 |
+| rollback     | Succeeded                 | Failed                                                 |
+| gate or source error, or a call past its deadline | Succeeded | Failed only if a tick response already stated a non-advisory authority |
+
+`enforce` defaults to false. When it is true and the gate's response says `"authority":"advisory"`,
+the hook still reports `Succeeded` and logs that enforcement was overridden. Every tick and the final
+outcome are logged as JSON lines. A Lambda runs at most 15 minutes: `max_ticks × tickMs + settleMs`
+has to fit, or the hook stops at the deadline.

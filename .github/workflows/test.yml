@@ -76,6 +76,8 @@ jobs:
             engine/**/*.js.map
             service/**/*.js
             service/**/*.js.map
+            integrations/**/*.js
+            integrations/**/*.js.map
             test/**/*.js
             test/**/*.js.map
             tools/**/*.js
