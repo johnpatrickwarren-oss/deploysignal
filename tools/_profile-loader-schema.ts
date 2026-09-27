@@ -50,7 +50,8 @@ export function overrideSchema(): SchemaNode {
 // Covers the subset of Draft-07 the profile/override schemas use:
 // type, enum, pattern, required, additionalProperties (bool and
 // schema), properties, items, minLength, minimum, exclusiveMinimum,
-// maximum, exclusiveMaximum, minItems.
+// maximum, exclusiveMaximum, minItems, uniqueItems (Draft-07 value
+// equality: object key order is ignored, 1 and "1" differ).
 // Avoids pulling ajv as a second runtime dep — scope per brief's
 // "schema validation path already precedented" framing.
 
@@ -85,6 +86,7 @@ function _walk(value: unknown, schema: SchemaNode, p: string, errors: string[]):
   if (Array.isArray(value) && schema.minItems !== undefined && value.length < schema.minItems) {
     errors.push(`${p}: array shorter than minItems ${schema.minItems}`);
   }
+  if (Array.isArray(value) && schema.uniqueItems === true) _checkUnique(value, p, errors);
   if (Array.isArray(value) && schema.items) {
     for (let i = 0; i < value.length; i++) {
       _walk(value[i], schema.items, `${p}[${i}]`, errors);
@@ -111,6 +113,29 @@ function _walk(value: unknown, schema: SchemaNode, p: string, errors: string[]):
       }
     }
   }
+}
+
+function _checkUnique(value: unknown[], p: string, errors: string[]): void {
+  const seen = new Map<string, number>();
+  for (let i = 0; i < value.length; i++) {
+    const key = _canonical(value[i]);
+    const first = seen.get(key);
+    if (first !== undefined) {
+      errors.push(`${p}: array items at [${first}] and [${i}] are equal (uniqueItems)`);
+    } else {
+      seen.set(key, i);
+    }
+  }
+}
+
+/** JSON text with object keys sorted, so two values are equal exactly when their texts are. */
+function _canonical(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(_canonical).join(',')}]`;
+  if (v !== null && typeof v === 'object') {
+    const o = v as Record<string, unknown>;
+    return `{${Object.keys(o).sort().map((k) => `${JSON.stringify(k)}:${_canonical(o[k])}`).join(',')}}`;
+  }
+  return JSON.stringify(v) ?? 'undefined';
 }
 
 function _checkNumber(value: number, schema: SchemaNode, p: string, errors: string[]): void {

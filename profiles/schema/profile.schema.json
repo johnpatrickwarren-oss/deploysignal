@@ -41,7 +41,8 @@
     },
     "sli_list": {
       "type": "array",
-      "description": "Family A monitored signals. Array replaces parent entirely on override (per D4 array semantics).",
+      "description": "Family A monitored signals. Array replaces parent entirely on override (per D4 array semantics). Entries are unique; the loader additionally refuses the same `signal` named twice, and an empty list on a profile without twin_arm.",
+      "uniqueItems": true,
       "items": {
         "type": "object",
         "required": [
