@@ -48,6 +48,7 @@ import type { SessionStatus, DeploymentPhase } from '../session/types';
 import { resolveActiveCalibration } from '../session/active-calibration';
 import type { ActiveCalibration } from '../session/active-calibration';
 import { SoakController } from './_gate-soak';
+import { TwinSessionRuntime, twinVerdictBlock } from './_gate-twin';
 import type { SoakServedOutcome, SoakCandidateOutcome, SoakShadowState } from './_gate-soak';
 
 // Runtime VALUES from the built engine. `service/` is compiled by
@@ -170,6 +171,8 @@ export interface VerdictResponse {
   shadow_verdict_code?: number;
   degraded?: boolean;
   error?: string;
+  /** Plan B — present on a twin session: the advisory twin verdict. */
+  twin?: { verdict: string; engine_verdict: string; authority: 'advisory'; tick: number };
 }
 
 interface SessionRuntimeState {
@@ -249,6 +252,9 @@ export class GateSessionRuntime {
   // and the served path is byte-identical to pre-soak behavior. See
   // maybeSoakTick below for the non-interference contract.
   private readonly soak: SoakController;
+  /** Plan B — `mode: "twin"` sessions (service/gate-http/_gate-twin.ts): same store, same lock,
+   *  same OQ-1 persistence; their own in-memory gate state. */
+  readonly twin: TwinSessionRuntime;
 
   constructor(
     private readonly cfg: GateRuntimeConfig,
@@ -258,6 +264,7 @@ export class GateSessionRuntime {
   ) {
     this.lockPath = acquireStoreLock(cfg.storeDir);
     this.soak = new SoakController({ recalServiceDir: path.join(cfg.baselineHistoryDir, cfg.serviceId) });
+    this.twin = new TwinSessionRuntime(store, cfg, (base) => this.uniquifySessionId(base));
   }
 
   /** Test-only seam: injects a stand-in for the real engine `evaluate()`
@@ -324,6 +331,7 @@ export class GateSessionRuntime {
       if (nowTs - lastActivityTs > this.cfg.sessionTtlSeconds) {
         this.store.voidSession(rec.session_id, 'session_ttl_expired');
         this.soak.dropSession(rec.session_id);
+        this.twin.drop(rec.session_id);
       }
     }
   }
@@ -688,6 +696,7 @@ export class GateSessionRuntime {
   finish(sessionId: string, reason?: string): SessionRecord {
     const result = this.store.finishSession(sessionId, reason);
     this.soak.dropSession(sessionId);
+    this.twin.drop(sessionId);
     return result;
   }
 
@@ -724,6 +733,9 @@ export class GateSessionRuntime {
       extra.shadow_verdict_code = verdictCodeVal;
       verdict = 'proceed'; verdictCodeVal = 0;
     }
+    // Plan B: a twin session is always shadow (TWIN_ARM_AUTHORITY 'advisory'); its verdict rides
+    // on `twin`, never on the served code.
+    if (session.twin_arm) extra.twin = twinVerdictBlock(session);
 
     return {
       verdict_code: verdictCodeVal,

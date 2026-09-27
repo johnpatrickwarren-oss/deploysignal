@@ -13,6 +13,8 @@
 import type {
   DeploymentPhase, SessionStatus, StateGateContext,
 } from '../../engine/types/session';
+import type { TwinArmProfile } from '../../engine/types/_config-profiles';
+import type { TwinArmReport } from '../../engine/gates/_health-twin';
 
 export type { DeploymentPhase, SessionStatus, StateGateContext };
 
@@ -33,7 +35,13 @@ export interface LastVerdict {
   tick: number;
   alpha_consumed: number;
   fires: string[];
+  /** Plan B — a twin session's engine verdict (the `verdict` above is the mapped one). */
+  engine_verdict?: string;
 }
+
+/** Plan B — the tick response body of a twin session (the HTTP contract), stored on the verdict
+ *  history line so a retried tick replays it verbatim. */
+export type TwinTickResponse = Omit<TwinArmReport, 'srm_threshold'>;
 
 export interface SessionDeployment {
   phase: DeploymentPhase;
@@ -72,6 +80,10 @@ export interface SessionRecord {
   last_verdict: LastVerdict | null;
   deployment: SessionDeployment;
   scenario: SessionScenario;
+  /** Plan B (engine ADR 0036) — present on a `mode: "twin"` session: the twin_arm it was begun
+   *  with. Such a record is `mode: 'shadow'` (TWIN_ARM_AUTHORITY 'advisory'), its scenario carries
+   *  no baseline, and its ticks go to the twin path (service/gate-http/_gate-twin.ts). */
+  twin_arm?: TwinArmProfile;
 }
 
 export interface VerdictHistoryEntry {
@@ -92,6 +104,8 @@ export interface VerdictHistoryEntry {
   // 'proceed' despite the underlying evaluation failure).
   error?: string;
   degraded?: boolean;
+  /** Plan B — a twin session's full tick response (replayed verbatim on a retry). */
+  twin?: TwinTickResponse;
 }
 
 /** Input to SessionStore.beginSession(): everything a caller (Task 6's
