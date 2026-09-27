@@ -104,7 +104,9 @@ elsewhere.
   or more with probability about 0.9 and cannot separate 0.05 from 0.10. The 95% upper bound from
   0/100 is 0.030 (rule of three), on this machine and this service only. Pooling with run 1 is not
   registered and is not done here.
-- AA-w0.1 passes by construction unless the pipeline is broken (disclosure (b)). It does not show
+- The 5xx draw is independent per request inside each process, so the rate metric's A/A cells
+  (both AA-w0.5 and AA-w0.1) test the pipeline and the routing, not a real arm-level mechanism
+  (disclosure (b)). AA-w0.1 passes by construction unless the pipeline is broken. It does not show
   that any real service may set `allow_unequal_rate_split`.
 - The sign metric carried real per-process latency noise: over 10 000 AA-w0.5 ticks the canary's
   p99 was worse on 0.4957 of them, lag-1 autocorrelation -0.0119, mean log ratio -0.0015. On one
