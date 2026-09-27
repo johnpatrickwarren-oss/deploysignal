@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import type { ValidPathOpts } from './_health-valid-path';
 import type { ContrastArmOpts } from './_health-contrast';
+import type { TwinTickInput } from './_health-twin';
 
 /** Week 2+3 Family A/C context. Optional — when omitted, the
  *  ratio-detector path is unchanged. When `compiledConfig.baseline_cells`
@@ -57,6 +58,11 @@ export interface HealthOpts {
   contrastArm?: ContrastArmOpts;
   /** C81 (Part 2) — the canary's total ticks, for the fit ratio the arm's gate is judged on. */
   totalTicks?: number;
+  /** Plan B (engine ADR 0036) — this tick's twin input (arm request counts and per-metric
+   *  observations). Read only when `compiledConfig.twin_arm` is set, in which case the twin path
+   *  is the whole evaluation (engine/gates/_health-twin.ts). Threaded from
+   *  `OrchestrateParams.twinArm`. */
+  twinArm?: TwinTickInput;
 }
 
 /** Ratio detector IDs whose per-signal job is owned by Family A CUSUM

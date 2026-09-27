@@ -33,6 +33,7 @@ import {
 import { runFamilyA, runFamilyC, runFamilyD, runFamilyE } from './_health-detectors';
 import { runFamilyAValidPath } from './_health-valid-path';
 import { runContrastArm } from './_health-contrast';
+import { evaluateTwinOnly } from './_health-twin';
 
 export type { HealthOpts };
 
@@ -85,6 +86,9 @@ export function evaluateHealth(
   opts?: HealthOpts,
 ): HealthResult {
   const warmup = policyCtx.warmup || { active: false, suppressedIds: [], grace: false, pct: 100 };
+  // Plan B — a compiled config that declares `twin_arm` runs ONLY the twin path (engine ADR 0036,
+  // ADVISORY): no structural rules, no Family A/C/D/E, nothing on rollback[] or extend[].
+  if (opts?.compiledConfig?.twin_arm) return evaluateTwinOnly(opts.compiledConfig, tb, opts.twinArm, warmup);
   const sup = warmup.suppressedIds || [];
   const bypass = computeBypass(liveMetrics, baseline, policyCtx);
 

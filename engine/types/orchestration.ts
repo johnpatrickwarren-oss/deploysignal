@@ -15,6 +15,7 @@ import type { CompiledConfig } from './config';
 import type { StateGateContext } from './session';
 import type { ValidPathOpts } from '../gates/_health-valid-path';
 import type { ContrastArmOpts } from '../gates/_health-contrast';
+import type { TwinTickInput } from '../gates/_health-twin';
 
 /** Inputs to evaluate(). All fields except liveMetrics/scenario are optional. */
 export interface OrchestrateParams {
@@ -37,6 +38,11 @@ export interface OrchestrateParams {
    *  null an admitting envelope): reported on `FusedVerdict.contrast_arm`, never a rollback,
    *  never α. Absent → byte-identical behaviour. */
   contrastArm?: ContrastArmOpts;
+  /** Plan B (engine ADR 0036) — this tick's twin input: arm request counts and per-metric
+   *  observations, keyed by the compiled config's `twin_arm.metrics[].id`. Read only when the
+   *  config declares `twin_arm`; then the twin path is the whole health evaluation. ADVISORY
+   *  (TWIN_ARM_AUTHORITY): reported on `HealthResult.twin_arm`, never a rollback, never α. */
+  twinArm?: TwinTickInput;
   deployId?: string;
   targetCloud?: string;
   /** Task 2 (WS4 session-durability-argo plan) — pure data snapshot fed
