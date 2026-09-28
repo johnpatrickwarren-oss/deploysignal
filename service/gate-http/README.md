@@ -110,6 +110,19 @@ POST /v1/sessions/{id}/ticks
   factor on both tests; ADR 0036 "Consequences"); a `sign` value of `null` is missing too. An
   unknown metric id, an observation of the wrong kind or a non-integer count is `400` and leaves
   the gate state untouched.
+- **Operator guidance from the engine's gate-level study** (`2026-09-twin-gate`, T1, α 0.05 on all
+  three tests; engine ADR 0036 "Gate-level measurements"):
+  - `tolerance` is the smallest regression you would block. Below it the proceed test usually wins:
+    a ×1.2 rate regression under tolerance 0.5 ended `proceed` in 72% of runs.
+  - Keep a metric's source near-complete. At a ×1.2 regression, rollback detection fell from 1.00
+    to 0.83 at 5% missing ticks and 0.01 at 10%; at 30% every A/A run ended `hold`. Watch
+    `missing` in the tick response.
+  - A `rate` metric's proceed test compares the arms' pooled odds. A regression spread over requests
+    with very different failure rates can pool small (every request ×1.5 with 1% of requests
+    failing at 0.95 pooled to ×1.18 and ended `proceed` in 96.5% of runs). Give such traffic
+    classes separate `rate` metrics.
+  - `halt` catches a canary with no traffic within about 11 ticks, but a small routing skew slowly
+    (median 76 ticks at 45/55, 374 at 49/51). Check the router's configured weights directly.
 - Every count on a tick (`canary_requests`, `control_requests`, and each rate metric's events and
   totals) is capped at `DS_GATE_TWIN_MAX_TICK_COUNT` (default `10000000`; a set value that is not
   a positive integer stops startup). Above the cap the tick is `400` and the gate state is
