@@ -5,7 +5,20 @@
 
 import { trendStrength, effectiveThreshold } from '../core';
 import { QUALITY_ROLLBACK_DEFS, QUALITY_EXTEND_DEFS } from '../signals/quality';
-import type { RollbackDef, ExtendDef } from '../types';
+import type { RollbackDef, ExtendDef, TrendBufferI, TrendSnapshot } from '../types';
+
+/** The trend the artifact gate counts observations on. p99_latency when buffered (every shipped
+ *  profile has it, so their behavior is unchanged); otherwise the longest-buffered signal, first by
+ *  name on a tie. Before 2026-09-28 the gate read p99_latency only, so a profile without it never
+ *  fired an artifact finding. */
+function artifactReference(tb: TrendBufferI | null): TrendSnapshot | null {
+  if (!tb) return null;
+  if ((tb.data['p99_latency'] ?? []).length > 0) return tb.get('p99_latency');
+  const keys = Object.keys(tb.data).filter((k) => tb.data[k].length > 0).sort();
+  if (keys.length === 0) return null;
+  const longest = keys.reduce((best, k) => (tb.data[k].length > tb.data[best].length ? k : best), keys[0]);
+  return tb.get(longest);
+}
 
 // ── Rollback signal definitions ──────────────────────────────────
 // Each check receives: (live, baseline, flags, policyCtx, trendBuffer)
@@ -300,7 +313,7 @@ export const ROLLBACK_DEFS: RollbackDef[] = ([
     id: 'artifact', label: 'Artifact Content',
     check: function (_m, _b, f, _pol, tb) {
       if (!f || !f.artifact_content) return false;
-      const tAny = tb ? tb.get('p99_latency') : null;
+      const tAny = artifactReference(tb);
       const obsCount = tAny ? tAny.n : 0;
       if (obsCount < 4) return false;
       if (tAny && !tAny.insufficient && tAny.cv >= 0.15 && obsCount < 5) return false;
