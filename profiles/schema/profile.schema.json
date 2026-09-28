@@ -65,7 +65,7 @@
           "δ_min": {
             "type": "number",
             "exclusiveMinimum": 0,
-            "description": "Per-signal detection magnitude (fractional; e.g., 0.01 = 1% relative shift)."
+            "description": "Per-signal relative-shift dead-band (fractional; e.g., 0.01 = 1% relative shift). Sets the recalibration classifier's per-signal 'unchanged' threshold when comparing baselines (engine/recalibration/classify.ts). Does NOT set Family A's detection effect size: the compiler derives that itself as max(0.05·mean, 2·stddev) (tools/calibrators/family-a.ts), independent of this value."
           }
         }
       }
