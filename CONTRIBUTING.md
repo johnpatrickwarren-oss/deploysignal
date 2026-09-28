@@ -78,6 +78,10 @@ PR checklist:
 - [ ] Existing detector statistical guarantees preserved
 - [ ] PR description explains the change + cites any relevant papers/specs
 
+Study PRs (anything under `studies/`) merge with a **merge commit, never a squash**: the commit
+order is the evidence that the pre-registration came before the harness and the results. See
+`~/concord/knowledge/methodology/pages/pre-registration-discipline.md` rule 9.
+
 ### Code style
 
 Follow existing patterns. Project uses TypeScript with strict mode; no automated formatter (prose-style hand-formatted code).
