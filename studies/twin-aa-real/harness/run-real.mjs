@@ -44,6 +44,8 @@ export const REGISTERED = Object.freeze({
   fetchRetryMs: 20_000,
   callTimeoutMs: 30_000,
   stallBoundMs: 300_000,
+  armReadyMaxLagMs: 300_000,
+  armReadyMaxLeadMs: 60_000,
   minArmRequests: 500,
   minMean5xxPerTick: 2,
   cells: Object.freeze(['AA', 'AB-5xx', 'AB-lat']),
@@ -92,6 +94,14 @@ export function validateConfig(cfg) {
     'gate.token_env must be an environment variable name or null');
 }
 
+/** Amendment 1 (g)1: the runner starts at most 300 s after arm-ready (and at most 60 s before it). */
+export function checkArmReady(armReadyMs, nowMs) {
+  if (!Number.isFinite(armReadyMs)) throw new Error('arm-ready time is required (Amendment 1 (g)1)');
+  if (nowMs - armReadyMs > REGISTERED.armReadyMaxLagMs || armReadyMs - nowMs > REGISTERED.armReadyMaxLeadMs) {
+    throw new Error(`arm-ready ${new Date(armReadyMs).toISOString()} is outside [start - 300 s, start + 60 s] (Amendment 1 (g)1)`);
+  }
+}
+
 export function firstWindowStart(nowMs) {
   return Math.ceil(nowMs / REGISTERED.tickMs) * REGISTERED.tickMs;
 }
@@ -111,7 +121,18 @@ async function bounded(label, ms, call) {
 }
 
 class GateError extends Error {}
-class AuthorityError extends Error {}
+class AuthorityError extends Error {
+  constructor(stated, window) { super(`gate stated authority "${stated}"; this study is observe-only`); this.stated = stated; this.window = window; }
+}
+
+/** Amendment 1 (e): authorization failures void the window without retry. */
+const AUTH_ERROR_NAMES = new Set([
+  'AccessDeniedException', 'AccessDenied', 'UnrecognizedClientException', 'InvalidClientTokenId',
+  'ExpiredTokenException', 'ExpiredToken',
+]);
+export function isAuthError(e) {
+  return AUTH_ERROR_NAMES.has(e?.name) || /returned Forbidden/.test(e?.message ?? '');
+}
 
 function gateClient(baseUrl, fetchFn, token) {
   const base = baseUrl.replace(/\/+$/, '');
@@ -127,6 +148,11 @@ function gateClient(baseUrl, fetchFn, token) {
     return json;
   }
   return {
+    healthz: async () => {
+      const res = await bounded('gate /healthz', REGISTERED.callTimeoutMs,
+        (signal) => fetchFn(`${base}/healthz`, { method: 'GET', headers: {}, signal }));
+      return res.json().catch(() => null);
+    },
     open: async (deployRef, arm) => (await post('/v1/sessions', { mode: 'twin', deploy_ref: deployRef, twin_arm: arm }, 201)).session_id,
     tick: (sessionId, body) => post(`/v1/sessions/${encodeURIComponent(sessionId)}/ticks`, body, 200),
   };
@@ -168,14 +194,33 @@ async function fetchHealth(cloudwatch, cfg, ws, we) {
   }
 }
 
-async function fetchWindow(source, ws, we, entry, now, sleep) {
+/** Wraps the client to keep every raw GetMetricData response of one attempt. */
+function recordingClient(cloudwatch, sink) {
+  return {
+    async send(cmd, opts) {
+      const out = await cloudwatch.send(cmd, opts);
+      sink.push({ MetricDataResults: out.MetricDataResults ?? [], NextToken: out.NextToken ?? null });
+      return out;
+    },
+  };
+}
+
+async function fetchWindow(cloudwatch, cfg, ws, we, entry, now, sleep) {
   for (let attempt = 1; attempt <= REGISTERED.fetchAttempts; attempt++) {
+    const raw = [];
+    const source = new CloudWatchTwinSource({
+      client: recordingClient(cloudwatch, raw), loadBalancer: cfg.load_balancer, targetGroups: cfg.target_groups,
+      errorRateId: RATE_ID, latencyP99Id: SIGN_ID, canaryWeight: 0.5,
+    });
     try {
       const body = await bounded('source fetchTick', REGISTERED.callTimeoutMs, (signal) => source.fetchTick(ws, we, signal));
       entry.attempts.push({ at_ms: now(), ok: true });
+      entry.raw = raw;
       return body;
     } catch (e) {
-      entry.attempts.push({ at_ms: now(), error: e instanceof Error ? e.message : String(e) });
+      const auth = isAuthError(e);
+      entry.attempts.push({ at_ms: now(), error: e instanceof Error ? `${e.name}: ${e.message}` : String(e), auth, raw });
+      if (auth) { entry.auth_failed = true; return null; }
       if (attempt < REGISTERED.fetchAttempts) await sleep(REGISTERED.fetchRetryMs);
     }
   }
@@ -187,40 +232,41 @@ async function fetchWindow(source, ws, we, entry, now, sleep) {
  * `settleMs` after it closes. Returns the run record; errors are recorded on it, not thrown.
  */
 export async function runOne({
-  cfg, cell, run, cloudwatch, fetch: fetchFn, now = Date.now, sleep, log = () => {}, env = {}, onProgress = () => {},
+  cfg, cell, run, armReadyMs, cloudwatch, fetch: fetchFn, now = Date.now, sleep, log = () => {}, env = {}, onWindow = () => {}, onRecord = () => {},
 }) {
   validateConfig(cfg);
   if (!REGISTERED.cells.includes(cell)) throw new Error(`cell must be one of ${REGISTERED.cells.join(', ')}`);
   if (!Number.isInteger(run) || run < 0) throw new Error('run must be a non-negative integer');
+  const t0 = now();
+  checkArmReady(armReadyMs, t0);
   const { warmupTicks: W, scoredTicks: T, tickMs, settleMs } = REGISTERED;
   const ref = `t3-${cell}-l${cfg.lane}-r${run}`;
   const token = cfg.gate.token_env ? env[cfg.gate.token_env] : undefined;
   const gate = gateClient(cfg.gate.base_url, fetchFn, token);
-  const source = new CloudWatchTwinSource({
-    client: cloudwatch, loadBalancer: cfg.load_balancer, targetGroups: cfg.target_groups,
-    errorRateId: RATE_ID, latencyP99Id: SIGN_ID, canaryWeight: 0.5,
-  });
   const record = {
     study_id: REGISTERED.studyId, cell, lane: cfg.lane, run, deploy_ref: ref, registered: REGISTERED,
     twin_arm: { scored: twinArm(T), w0: twinArm(W + T) },
-    started_at_ms: now(), first_window_start_ms: null, windows: [],
+    arm_ready_ms: armReadyMs, started_at_ms: t0, first_window_start_ms: null, gate_healthz: null, windows: [],
     scored: { session_id: null, verdict: null, ticks: 0, window: null },
     w0: { session_id: null, verdict: null, ticks: 0, window: null },
-    complete: false,
+    complete: false, authority: { violation: false, stated: null, window: null },
   };
+  onRecord(record);
+  const flushed = new Set();
+  const flush = (entry) => { if (!flushed.has(entry.k)) { flushed.add(entry.k); onWindow(entry); } };
   const feed = async (arm, entry, body) => {
     const res = await gate.tick(record[arm].session_id, body);
     entry[arm] = res;
     Object.assign(record[arm], { verdict: res.verdict, ticks: res.tick, window: entry.k });
-    if (res.authority !== 'advisory') throw new AuthorityError(`gate stated authority "${res.authority}"; this study is observe-only`);
+    if (res.authority !== 'advisory') throw new AuthorityError(res.authority, entry.k);
     return res.verdict === 'extend';
   };
   try {
+    record.gate_healthz = await gate.healthz();
     record.scored.session_id = await gate.open(ref, record.twin_arm.scored);
     record.w0.session_id = await gate.open(`${ref}-w0`, record.twin_arm.w0);
     const start = firstWindowStart(now());
     record.first_window_start_ms = start;
-    onProgress(record);
     let scoredLive = true;
     let w0Live = true;
     let failed = false;
@@ -231,24 +277,28 @@ export async function runOne({
       if (now() < due) await sleep(due - now());
       const entry = { k, window_start_ms: ws, window_end_ms: we, attempts: [] };
       record.windows.push(entry);
-      const body = await fetchWindow(source, ws, we, entry, now, sleep);
+      const body = await fetchWindow(cloudwatch, cfg, ws, we, entry, now, sleep);
       entry.lag_ms = now() - due;
-      if (body === null) { entry.fetch_failed = true; failed = true; break; }
+      if (body === null) { entry.fetch_failed = true; failed = true; flush(entry); break; }
       entry.body = body;
       entry.health = await fetchHealth(cloudwatch, cfg, ws, we);
       assertTwinTickBody(body);
       const tickBody = { ...body, emitted_at_ts: we / 1000 };
       if (w0Live) w0Live = await feed('w0', entry, tickBody);
       if (k >= W && scoredLive) { entry.scored_tick = true; scoredLive = await feed('scored', entry, tickBody); }
-      log({ event: 't3_tick', ref, k, lag_ms: entry.lag_ms, w0: entry.w0?.verdict ?? null, scored: entry.scored?.verdict ?? null });
-      onProgress(record);
+      flush(entry);
+      log({ event: 't3_progress', ref, window: k + 1, of: W + T });
     }
     record.complete = !failed;
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (e instanceof GateError) record.gate_error = msg;
+    if (e instanceof AuthorityError) {
+      record.authority = { violation: true, stated: e.stated, window: e.window };
+    } else if (e instanceof GateError) record.gate_error = msg;
     else record.runner_error = msg;
-    log({ event: 't3_error', ref, error: msg });
+    const last = record.windows[record.windows.length - 1];
+    if (last) flush(last); // the window in flight when the run stopped still reaches the file
+    log({ event: 't3_error', ref, error: e instanceof AuthorityError ? 'authority violation (see files)' : msg });
   }
   record.ended_at_ms = now();
   return record;
@@ -257,10 +307,18 @@ export async function runOne({
 /** The mechanical void rules V1–V5 (PREREGISTRATION.md §7). V6 and V7 need AWS event evidence. */
 export function voidReasons(record) {
   const out = [];
+  if (record.authority?.violation) {
+    out.push(`AUTHORITY gate stated "${record.authority.stated}" at window ${record.authority.window}; study NOT EXECUTABLE from this run on`);
+  }
+  if (record.operator_abort) out.push('V5 aborted by operator');
   if (record.gate_error) out.push(`V5 gate error: ${record.gate_error}`);
   if (record.runner_error) out.push(`V5 runner error: ${record.runner_error}`);
   for (const w of record.windows) {
-    if (w.fetch_failed) out.push(`V3 fetch failed for window ${w.k} after ${w.attempts.length} attempts`);
+    if (w.fetch_failed) {
+      out.push(w.auth_failed
+        ? `V3 authorization failure for window ${w.k} (no retry): ${w.attempts[w.attempts.length - 1].error}`
+        : `V3 fetch failed for window ${w.k} after ${w.attempts.length} attempts`);
+    }
     if (w.lag_ms > REGISTERED.stallBoundMs) {
       out.push(`V5 stall: window ${w.k} fetched ${w.lag_ms} ms after window end + settle (bound ${REGISTERED.stallBoundMs} ms)`);
     }
@@ -289,14 +347,52 @@ export function voidReasons(record) {
   return out;
 }
 
-/** The run's output file; refuses a (cell, lane, run) already recorded in `dir`. */
-export function claimOutputPath(dir, cell, lane, run, stamp) {
+/** Amendment 1 (a): does this run add to E2's count? */
+export function countsForE2(summary) {
+  if (summary.operator_abort) return true;
+  if (summary.scored?.verdict === 'rollback') return true;
+  return summary.void_reasons.length > 0 && summary.w0?.verdict === 'rollback';
+}
+
+/** The once-written summary: every run-level field, no per-window lines. */
+export function summaryOf(record, manifest) {
+  const { windows, ...rest } = record;
+  const void_reasons = voidReasons(record);
+  const s = { ...rest, window_count: windows.length, manifest, void_reasons };
+  s.counts_for_e2 = countsForE2(s);
+  return s;
+}
+
+/** The run's two output files; refuses a (cell, run index) already recorded in any lane. */
+export function claimOutputPaths(dir, cell, lane, run, stamp) {
   if (!REGISTERED.cells.includes(cell)) throw new Error(`cell must be one of ${REGISTERED.cells.join(', ')}`);
-  const prefix = `${cell}-l${lane}-r${run}-`;
   fs.mkdirSync(dir, { recursive: true });
-  const prior = fs.readdirSync(dir).filter((f) => f.startsWith(prefix));
-  if (prior.length) throw new Error(`run ${prefix.slice(0, -1)} already recorded (${prior.join(', ')}); a new run takes the next index`);
-  return path.join(dir, `${prefix}${stamp}.json`);
+  const taken = new RegExp(`^${cell.replace('-', '\\-')}-l\\d+-r${run}-`);
+  const prior = fs.readdirSync(dir).filter((f) => taken.test(f));
+  if (prior.length) throw new Error(`${cell} run ${run} already recorded (${prior.join(', ')}); a new run takes the next index`);
+  const base = path.join(dir, `${cell}-l${lane}-r${run}-${stamp}`);
+  return { jsonl: `${base}.jsonl`, summary: `${base}.summary.json` };
+}
+
+/** Exclusive-create files: the jsonl is only appended to, the summary written once. */
+export function appendOnlyWriter(paths) {
+  const fd = fs.openSync(paths.jsonl, 'wx');
+  let summarized = false;
+  return {
+    line(obj) { fs.writeSync(fd, JSON.stringify(obj) + '\n'); },
+    summary(obj) {
+      if (summarized) throw new Error('summary is written once');
+      summarized = true;
+      fs.writeFileSync(paths.summary, JSON.stringify(obj, null, 1) + '\n', { flag: 'wx' });
+      fs.closeSync(fd);
+    },
+  };
+}
+
+/** Amendment 1 (i): the only modified tracked file tolerated is the build-regenerated constants. */
+const TOLERATED_DIRT = new Set(['tools/calibrate/_calibrate-constants.js']);
+export function disallowedDirt(porcelain) {
+  return porcelain.split('\n').filter((l) => l.trim()).map((l) => l.slice(3).trim()).filter((p) => !TOLERATED_DIRT.has(p));
 }
 
 function arg(argv, name) {
@@ -304,16 +400,22 @@ function arg(argv, name) {
   return i >= 0 ? argv[i + 1] : undefined;
 }
 
+function git(...a) {
+  try { return execFileSync('git', a, { cwd: REPO, encoding: 'utf8' }); } catch { return null; }
+}
+
 function provenance(cfgRaw) {
-  const git = (...a) => { try { return execFileSync('git', a, { cwd: REPO, encoding: 'utf8' }).trim(); } catch { return null; } };
   let engine = null;
   try {
     const lock = JSON.parse(fs.readFileSync(path.join(REPO, 'package-lock.json'), 'utf8'));
     const e = lock.packages?.['node_modules/@johnpatrickwarren-oss/deploysignal-engine'];
     engine = e ? { version: e.version, resolved: e.resolved } : null;
   } catch { /* recorded as null */ }
+  const tolerated = [...TOLERATED_DIRT].map((p) => ({
+    path: p, diff_sha256: crypto.createHash('sha256').update(git('diff', '--', p) ?? '').digest('hex'),
+  }));
   return {
-    repo_sha: git('rev-parse', 'HEAD'), repo_dirty: git('status', '--porcelain', '--untracked-files=no') !== '',
+    repo_sha: git('rev-parse', 'HEAD')?.trim() ?? null, tolerated_dirt: tolerated,
     node: process.version, platform: `${process.platform} ${process.arch}`, engine,
     config_sha256: crypto.createHash('sha256').update(cfgRaw).digest('hex'),
   };
@@ -329,38 +431,41 @@ export async function main(argv) {
     console.log(`config ok: lane ${cfg.lane}, region ${cfg.region}, canary ${cfg.target_groups.canary}, control ${cfg.target_groups.control}`);
     return 0;
   }
+  const porcelain = git('status', '--porcelain', '--untracked-files=no');
+  if (porcelain === null) throw new Error('cannot read git status; refusing to run (Amendment 1 (i))');
+  const dirt = disallowedDirt(porcelain);
+  if (dirt.length) throw new Error(`modified tracked files: ${dirt.join(', ')}; commit or restore them first (Amendment 1 (i))`);
   const cell = arg(argv, '--cell');
   const run = Number(arg(argv, '--run'));
   if (!Number.isInteger(run) || run < 0) throw new Error('--run <k> must be a non-negative integer');
+  const armReadyMs = Date.parse(arg(argv, '--arm-ready') ?? '');
+  if (!Number.isFinite(armReadyMs)) throw new Error('--arm-ready <ISO-8601 time> is required (Amendment 1 (g)1)');
+  checkArmReady(armReadyMs, Date.now()); // before any file is created, so a refused start burns no run index
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
-  const out = claimOutputPath(arg(argv, '--out') ?? path.join(STUDY, 'results', 'runs'), cell, cfg.lane, run, stamp);
+  const paths = claimOutputPaths(arg(argv, '--out') ?? path.join(STUDY, 'results', 'runs'), cell, cfg.lane, run, stamp);
   const manifest = { command: ['node', ...argv].join(' '), ...provenance(cfgRaw) };
-  // The file is created once (wx) and rewritten after every window, so an interrupted run keeps
-  // its ticks; an operator abort (SIGINT) is recorded as a runner error (V5).
-  let created = false;
-  const save = (r) => {
-    const body = JSON.stringify({ ...r, manifest, void_reasons: voidReasons(r) }, null, 1) + '\n';
-    fs.writeFileSync(out, body, { flag: created ? 'w' : 'wx' });
-    created = true;
-  };
-  let last = null;
-  process.once('SIGINT', () => {
-    if (last) save({ ...last, runner_error: 'aborted by operator (SIGINT)', ended_at_ms: Date.now() });
-    console.error(`aborted; partial record in ${out}`);
+  const writer = appendOnlyWriter(paths);
+  writer.line({ type: 'run', study_id: REGISTERED.studyId, cell, lane: cfg.lane, run, arm_ready_ms: armReadyMs, manifest });
+  let current = null;
+  const onSigint = () => {
+    if (current) writer.summary(summaryOf({ ...current, operator_abort: true, ended_at_ms: Date.now() }, manifest));
+    console.error(`aborted; partial record in ${paths.jsonl}`);
     process.exit(130);
-  });
+  };
+  process.once('SIGINT', onSigint);
   const { CloudWatchClient } = require('@aws-sdk/client-cloudwatch');
-  const record = await runOne({
-    cfg, cell, run, cloudwatch: new CloudWatchClient({ region: cfg.region }), fetch: globalThis.fetch,
+  // `current` is the live record object; onWindow appends each finished window as one line.
+  const pending = runOne({
+    cfg, cell, run, armReadyMs, cloudwatch: new CloudWatchClient({ region: cfg.region }), fetch: globalThis.fetch,
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)), log: (e) => console.log(JSON.stringify(e)), env: process.env,
-    onProgress: (r) => { last = r; save(r); },
+    onWindow: (w) => writer.line({ type: 'window', ...w }),
+    onRecord: (r) => { current = r; },
   });
-  save(record);
-  record.void_reasons = voidReasons(record);
-  console.log(`wrote ${out}`);
-  console.log(`scored: ${record.scored.verdict} at tick ${record.scored.ticks}; W0: ${record.w0.verdict} at tick ${record.w0.ticks}`);
-  console.log(record.void_reasons.length ? `VOID (mechanical): ${record.void_reasons.join('; ')}` : 'mechanical void rules V1-V5: none apply');
-  return record.gate_error || record.runner_error ? 2 : 0;
+  const record = await pending;
+  process.off('SIGINT', onSigint);
+  writer.summary(summaryOf(record, manifest));
+  console.log(`wrote ${paths.jsonl} and ${paths.summary}`);
+  return record.gate_error || record.runner_error || record.authority.violation ? 2 : 0;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
