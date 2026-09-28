@@ -92,11 +92,13 @@ tools/calibrators/*.js
 # Addition #15 (recalibrate CLI) — same tsconfig.test.json compiled-
 # artifact story as tools/calibrators/*.js above; .ts is source of truth.
 tools/recalibrate/*.js
-# ...but keep the .js that are intentionally committed (a browser bundle and
-# two calibrator modules already in the tree; preserves current tracked state).
+# Compiled by tsconfig.test.json from their .ts sources, like tools/*.js above. Until 2026-09-28 13
+# files here and tools/calibrators/family-{a,c}.js were tracked; tools/calibrate/_calibrate-constants.js had gone stale against its .ts
+# (FAMILY_E_ALPHA_FRACTION 0.10 against 0), and every build left the tree dirty. Nothing runs them
+# unbuilt: tools/calibrate.ts also needs the untracked tools/calibrators/family-e.js.
+tools/calibrate/*.js
+# ...but keep the browser bundle, which is committed (demos/demo.html inlines it).
 !engine/index.browser.js
-!tools/calibrators/family-a.js
-!tools/calibrators/family-c.js
 
 # Scratch compiled-config outputs from local calibration runs (the tracked
 # v1–v9a configs are the intentional fixtures; test-* and *-parity-run* are throwaway
