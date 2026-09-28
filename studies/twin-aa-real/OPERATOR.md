@@ -70,6 +70,7 @@ executable AA runs, 4 decimal places). It does not change within the cell. Each 
 ```sh
 npm ci && npm run build && npx tsc -p tsconfig.test.json
 git status --porcelain --untracked-files=no      # only tools/calibrate/_calibrate-constants.js may show
+npm ls @johnpatrickwarren-oss/deploysignal-engine  # 0.12.2-pre (Amendment 3 (a))
 DS_GATE_SHARED_SECRET=<secret> node service/gate-http/server.js &     # binds 127.0.0.1:8790
 node studies/twin-aa-real/harness/run-real.mjs --config studies/twin-aa-real/lane0.json --check-config
 ```
@@ -93,6 +94,11 @@ Per run, in order:
    before you look at the run's verdict.
 4. When the runner exits, note the per-run items of §8 (digests, task ARNs and AZs, event
    evidence), then stop both arms.
+
+**A failure no void rule covers** (Amendment 3 (b)): record its evidence from AWS events or host
+and runner logs, never from the run's verdicts or counts, and start no further run until a dated
+amendment adds it as a void rule. That rule is then applied to every run, before and after,
+whatever its verdict; a voided run whose session rolled back still counts toward E2.
 
 The runner creates `results/runs/<cell>-l<lane>-r<k>-<UTC>.jsonl` and appends one line per window
 (raw `GetMetricData` responses, the tick body, both sessions' responses), then writes
