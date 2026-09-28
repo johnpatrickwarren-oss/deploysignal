@@ -34,6 +34,11 @@ const TSCONFIG   = path.join(ROOT, 'tsconfig.browser.json');
 const SRC_DIR    = path.join(ROOT, 'dist-browser', 'engine');
 const OUT_PATH   = path.join(ROOT, 'engine', 'index.browser.js');
 const NODE_BIN   = new Set(['fs', 'path', 'crypto']);
+// The engine library (ADR 0033): DeploySignal imports it by package specifier, and it ships
+// CommonJS. Its modules are bundled into a lazy CommonJS registry (__CJS__) that the ESM module
+// IIFEs bind from; see collectCjs / renderCjsRegistry.
+const PKG      = '@johnpatrickwarren-oss/deploysignal-engine';
+const PKG_DIR  = path.join(ROOT, 'node_modules', '@johnpatrickwarren-oss', 'deploysignal-engine');
 
 const checkMode = process.argv.includes('--check');
 
@@ -62,7 +67,47 @@ const PUBLIC_EXPORTS = [
   'DRIFT_ALPHA_DEFAULT', 'DRIFT_SAMPLE_WINDOW_MAX',
 ];
 
+// Public exports that live only in the engine library (no DeploySignal module
+// re-exports them): published from the named engine module after the module IIFEs.
+const PKG_PUBLIC = {
+  FAMILY_A_PRIMARY_SIGNALS: PKG + '/detectors/_page-cusum-core',
+  FAMILY_C_SIGNALS: PKG + '/detectors/hotelling',
+  FAMILY_D_SIGNALS: PKG + '/detectors/spectral',
+};
+
 // ── Module graph walker ─────────────────────────────────────────────
+
+function isPkg(spec) { return spec === PKG || spec.startsWith(PKG + '/'); }
+
+/** Resolve an engine package specifier through its package.json `exports` map. */
+function resolvePkg(spec) {
+  const exportsMap = JSON.parse(fs.readFileSync(path.join(PKG_DIR, 'package.json'), 'utf8')).exports;
+  const sub = spec === PKG ? '.' : '.' + spec.slice(PKG.length);
+  const target = (ent) => (typeof ent === 'string' ? ent : (ent.require || ent.default));
+  if (exportsMap[sub]) return path.join(PKG_DIR, target(exportsMap[sub]));
+  // Subpath patterns (`./detectors/*`): the single `*` substitutes into the target.
+  for (const key of Object.keys(exportsMap)) {
+    const star = key.indexOf('*');
+    if (star < 0) continue;
+    const pre = key.slice(0, star), post = key.slice(star + 1);
+    if (sub.startsWith(pre) && sub.endsWith(post) && sub.length >= pre.length + post.length) {
+      const hit = sub.slice(pre.length, sub.length - post.length);
+      return path.join(PKG_DIR, target(exportsMap[key]).replace('*', hit));
+    }
+  }
+  throw new Error(`engine subpath '${sub}' is not in the package exports map`);
+}
+
+function specKind(spec) {
+  if (spec.startsWith('.')) return 'rel';
+  return isPkg(spec) ? 'pkg' : 'node';
+}
+
+function resolveSpec(fromFile, spec) {
+  const kind = specKind(spec);
+  if (kind === 'rel') return resolveModule(fromFile, spec);
+  return kind === 'pkg' ? resolvePkg(spec) : null;
+}
 
 function resolveModule(fromFile, spec) {
   if (!spec.startsWith('.')) return null;
@@ -108,8 +153,8 @@ function parseImports(source, fromFile) {
     const namedClause = m[1];
     const nsAlias = m[2];
     const spec = m[3];
-    const kind = spec.startsWith('.') ? 'rel' : 'node';
-    const resolved = kind === 'rel' ? resolveModule(fromFile, spec) : null;
+    const kind = specKind(spec);
+    const resolved = resolveSpec(fromFile, spec);
     if (nsAlias) {
       out.push({ kind, spec, resolved, names: null, ns: nsAlias, reexport: false });
     } else {
@@ -128,18 +173,18 @@ function parseImports(source, fromFile) {
   REEXPORT_STAR_RE.lastIndex = 0;
   while ((m = REEXPORT_STAR_RE.exec(source)) !== null) {
     const spec = m[1];
-    if (!spec.startsWith('.')) continue;  // bare-specifier re-export (none expected)
-    const resolved = resolveModule(fromFile, spec);
-    out.push({ kind: 'rel', spec, resolved, names: null, ns: null, reexport: true });
+    const kind = specKind(spec);
+    if (kind === 'node') continue;
+    out.push({ kind, spec, resolved: resolveSpec(fromFile, spec), names: null, ns: null, reexport: 'star' });
   }
   // `export { A } from './x'` — same dependency-edge treatment as the
   // star form; the export registration itself happens in rewriteExports.
   REEXPORT_NAMED_RE.lastIndex = 0;
   while ((m = REEXPORT_NAMED_RE.exec(source)) !== null) {
     const spec = m[2];
-    if (!spec.startsWith('.')) continue;
-    const resolved = resolveModule(fromFile, spec);
-    out.push({ kind: 'rel', spec, resolved, names: null, ns: null, reexport: true });
+    const kind = specKind(spec);
+    if (kind === 'node') continue;
+    out.push({ kind, spec, resolved: resolveSpec(fromFile, spec), names: null, ns: null, reexport: 'named' });
   }
   return out;
 }
@@ -149,7 +194,8 @@ function readModule(file) {
   const imports = parseImports(source, file);
   const relImports = imports.filter(i => i.kind === 'rel').map(i => i.resolved);
   const nodeImports = imports.filter(i => i.kind === 'node').map(i => i.spec);
-  return { source, imports, relImports, nodeImports };
+  const pkgFiles = imports.filter(i => i.kind === 'pkg').map(i => i.resolved);
+  return { source, imports, relImports, nodeImports, pkgFiles };
 }
 
 function topoSort(entries) {
@@ -207,10 +253,11 @@ function rewriteExports(source) {
   // epilogue re-publishes via `__NS__.C = __NS__.B` (no-op unless renamed).
   // MUST run before the bare `export { ... };` rule below, whose regex
   // would otherwise not match but is kept ordered for clarity.
-  out = out.replace(/^export\s+\{([^}]*)\}\s+from\s+['"][^'"]+['"]\s*;?\s*$/gm, (_, inner) => {
+  out = out.replace(/^export\s+\{([^}]*)\}\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/gm, (_, inner, spec) => {
+    const pkgKey = isPkg(spec) ? cjsKey(resolvePkg(spec)) : null;
     inner.split(',').map(s => s.trim()).filter(Boolean).forEach(piece => {
       const parts = piece.split(/\s+as\s+/);
-      reexports.push({ source: parts[0].trim(), exported: (parts[1] || parts[0]).trim() });
+      reexports.push({ source: parts[0].trim(), exported: (parts[1] || parts[0]).trim(), pkgKey });
     });
     return '';
   });
@@ -245,6 +292,8 @@ function buildImportPrelude(imports) {
   for (const imp of imports) {
     if (imp.kind === 'node') continue; // shim provides via outer scope
     if (imp.reexport) continue;         // graph-edge only; no local binding needed
+    const from = imp.kind === 'pkg' ? `__NS__.__cjsRequire(${JSON.stringify(cjsKey(imp.resolved))})` : '__NS__';
+    if (imp.ns && imp.kind === 'pkg') { lines.push(`  var ${imp.ns} = ${from};`); continue; }
     if (imp.ns) {
       // `import * as ns from './x'` — not used in current sources, but
       // handled for safety: bind ns to the whole namespace.
@@ -255,19 +304,110 @@ function buildImportPrelude(imports) {
     const destructure = imp.names
       .map(n => n.imported === n.local ? n.local : `${n.imported}: ${n.local}`)
       .join(', ');
-    lines.push(`  var { ${destructure} } = __NS__;`);
+    lines.push(`  var { ${destructure} } = ${from};`);
   }
   return lines.join('\n');
 }
 
-function buildExportEpilogue(exports, reexports) {
+function buildExportEpilogue(exports, reexports, imports) {
   const lines = exports.map(e => `  __NS__.${e.exported} = ${e.local};`);
   // Named re-exports: the symbol lives in __NS__ (published by its source
-  // module, bundled earlier in topo order), not in this IIFE's scope.
+  // module, bundled earlier in topo order), not in this IIFE's scope — or,
+  // for an engine package re-export, in the CommonJS registry.
   for (const r of (reexports || [])) {
-    lines.push(`  __NS__.${r.exported} = __NS__.${r.source};`);
+    const src = r.pkgKey ? `__NS__.__cjsRequire(${JSON.stringify(r.pkgKey)})` : '__NS__';
+    lines.push(`  __NS__.${r.exported} = ${src}.${r.source};`);
+  }
+  // `export * from '<engine package>'`: publish every export of that module.
+  for (const imp of (imports || [])) {
+    if (imp.kind === 'pkg' && imp.reexport === 'star') {
+      lines.push(`  __NS__.__cjsPublish(__NS__.__cjsRequire(${JSON.stringify(cjsKey(imp.resolved))}));`);
+    }
   }
   return lines.join('\n');
+}
+
+// ── Engine package: CommonJS registry ───────────────────────────────
+
+const REQUIRE_RE = /\brequire\("([^"]+)"\)/g;
+
+function cjsKey(file) { return path.relative(PKG_DIR, file).replace(/\\/g, '/'); }
+
+/** Resolve a require() specifier inside an engine CommonJS file: a key, `@<shim>` for a Node
+ *  built-in the bundle shims, or an error. */
+function resolveCjs(fromFile, spec) {
+  if (isPkg(spec)) return cjsKey(resolvePkg(spec));
+  if (!spec.startsWith('.')) {
+    const builtin = spec.replace(/^node:/, '');
+    if (NODE_BIN.has(builtin)) return '@' + builtin;
+    throw new Error(`unsupported require('${spec}') in ${fromFile}`);
+  }
+  const base = path.resolve(path.dirname(fromFile), spec);
+  for (const f of [base, base + '.js', path.join(base, 'index.js')]) {
+    if (fs.existsSync(f) && fs.statSync(f).isFile()) return cjsKey(f);
+  }
+  throw new Error(`cannot resolve require('${spec}') in ${fromFile}`);
+}
+
+/** Every engine CommonJS file reachable from `roots`, keyed, with its require map. */
+function collectCjs(roots) {
+  const mods = new Map();
+  const queue = roots.map(cjsKey);
+  while (queue.length > 0) {
+    const key = queue.shift();
+    if (mods.has(key)) continue;
+    const file = path.join(PKG_DIR, key);
+    const source = fs.readFileSync(file, 'utf8');
+    const deps = {};
+    REQUIRE_RE.lastIndex = 0;
+    let m;
+    while ((m = REQUIRE_RE.exec(source)) !== null) {
+      const target = resolveCjs(file, m[1]);
+      deps[m[1]] = target;
+      if (!target.startsWith('@')) queue.push(target);
+    }
+    mods.set(key, { source, deps });
+  }
+  return new Map([...mods.entries()].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
+}
+
+const CJS_RUNTIME = `// ─── Engine library: CommonJS registry ────────────────────────────────
+// @johnpatrickwarren-oss/deploysignal-engine ships CommonJS. Each of its modules
+// is a factory below, run once on first require (cached before it runs, so a
+// require cycle sees partial exports, as in Node). The registry lives in one
+// IIFE; module IIFEs reach it as __NS__.__cjsRequire / __NS__.__cjsPublish.
+(function () {
+const __CJS__ = {};
+const __CJS_CACHE__ = {};
+const __CJS_SHIMS__ = { fs: fs, path: path, crypto: crypto };
+function __cjsRequire(key) {
+  const hit = __CJS_CACHE__[key];
+  if (hit) return hit.exports;
+  const factory = __CJS__[key];
+  if (!factory) throw new Error('browser bundle: engine module not bundled: ' + key);
+  const module = { exports: {} };
+  __CJS_CACHE__[key] = module;
+  factory(module, module.exports);
+  return module.exports;
+}
+function __cjsPublish(mod) {
+  for (const k of Object.keys(mod)) if (k !== '__esModule') __NS__[k] = mod[k];
+}
+__NS__.__cjsRequire = __cjsRequire;
+__NS__.__cjsPublish = __cjsPublish;
+`;
+
+function renderCjsRegistry(mods) {
+  let out = CJS_RUNTIME + '\n';
+  for (const [key, mod] of mods) {
+    out += '// From: ' + PKG + '/' + key + '\n';
+    out += '__CJS__[' + JSON.stringify(key) + '] = function (module, exports) {\n';
+    out += '  var __deps = ' + JSON.stringify(mod.deps) + ';\n';
+    out += '  var require = function (s) { var k = __deps[s]; return k.charAt(0) === \'@\' ? __CJS_SHIMS__[k.slice(1)] : __cjsRequire(k); };\n';
+    out += mod.source.trim() + '\n';
+    out += '};\n\n';
+  }
+  return out + '})();\n';
 }
 
 // ── Browser shim block ──────────────────────────────────────────────
@@ -355,13 +495,8 @@ function build() {
     path.join(SRC_DIR, 'audit.js'),
     path.join(SRC_DIR, 'verdict.js'),
     path.join(SRC_DIR, 'l0', 'schema-continuity.js'),
-    // Family A detectors — Page-CUSUM (renamed from mSPRT 2026-04-20) +
-    // its co-shipped betting e-process counterpart per Addition #17.
-    path.join(SRC_DIR, 'detectors', 'page-cusum.js'),
-    path.join(SRC_DIR, 'detectors', 'betting-e-process.js'),
-    path.join(SRC_DIR, 'detectors', 'hotelling.js'),
-    path.join(SRC_DIR, 'detectors', 'spectral.js'),
-    path.join(SRC_DIR, 'detectors', 'conformal.js'),
+    // The detectors moved to the engine library (ADR 0033); they are reached
+    // through the package imports and bundled into the CommonJS registry.
     path.join(SRC_DIR, 'drift', 'baseline-drift-detector.js'),
   ];
 
@@ -382,6 +517,7 @@ function build() {
   let body = '// engine/index.browser.js — GENERATED by tools/build-browser-bundle.js\n';
   body += '// Source of truth: engine/**/*.ts. DO NOT hand-edit — re-run the generator.\n';
   body += '// Build cmd:  node tools/build-browser-bundle.js\n';
+  body += '// Engine library: bundled from node_modules at the pinned tag into __CJS__.\n';
   body += '// Drift gate: test/browser-parity.test.js (Node engine ↔ browser module).\n';
   body += '// Module isolation: each engine/*.ts module is wrapped in an IIFE so its\n';
   body += '// internal `let/var/const` cannot collide with sibling modules or with\n';
@@ -391,6 +527,8 @@ function build() {
   body += '// Shared namespace populated by each module IIFE. Cross-module imports\n';
   body += '// destructure from this object at the top of their IIFE.\n';
   body += 'const __NS__ = {};\n\n';
+  body += renderCjsRegistry(collectCjs(order.flatMap((f) => cache.get(f).pkgFiles)));
+  body += '\n';
 
   for (const file of order) {
     const mod = cache.get(file);
@@ -398,7 +536,7 @@ function build() {
     const stripped = stripImportLines(mod.source);
     const { rewritten, exports, reexports } = rewriteExports(stripped);
     const prelude = buildImportPrelude(mod.imports);
-    const epilogue = buildExportEpilogue(exports, reexports);
+    const epilogue = buildExportEpilogue(exports, reexports, mod.imports);
 
     body += '// ══════════════════════════════════════════════════════════════════════\n';
     body += '// From: engine/' + rel.replace(/\\/g, '/') + '\n';
@@ -415,6 +553,9 @@ function build() {
   body += '// Public ES module exports — rebound from the shared namespace so\n';
   body += '// `import { evaluate } from "./engine/index.browser.js"` works.\n';
   body += '// ══════════════════════════════════════════════════════════════════════\n';
+  for (const [name, spec] of Object.entries(PKG_PUBLIC)) {
+    body += '__NS__.' + name + ' = __NS__.__cjsRequire(' + JSON.stringify(cjsKey(resolvePkg(spec))) + ').' + name + ';\n';
+  }
   body += 'const {\n';
   for (const name of PUBLIC_EXPORTS) body += '  ' + name + ',\n';
   body += '} = __NS__;\n\n';

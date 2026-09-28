@@ -180,8 +180,27 @@ async function main() {
     failures.push('demo.html freshness');
   }
 
+  // Test A2: engine/index.browser.js is what the generator produces. The generator
+  // could not run from the ADR 0033 move (2026-09-23) to 2026-09-28 and the bundle
+  // was patched by hand; this gate makes that visible.
+  process.stdout.write('Test A2: engine/index.browser.js freshness ... ');
+  try {
+    execSync('node tools/build-browser-bundle.js --check', { cwd: ROOT, stdio: 'pipe' });
+    console.log('PASS');
+    passed++;
+  } catch (e) {
+    console.log('FAIL — engine/index.browser.js is stale or the generator fails. Run: node tools/build-browser-bundle.js');
+    failures.push('index.browser.js freshness');
+  }
+
   // Load browser engine
   var browser = await loadBrowserEngine();
+
+  // Test A3: every public export is defined (a missing __NS__ publish is silent otherwise).
+  process.stdout.write('Test A3: bundle public exports defined ... ');
+  var undefinedExports = Object.keys(browser).filter(function (k) { return browser[k] === undefined; });
+  if (undefinedExports.length === 0) { console.log('PASS'); passed++; }
+  else { console.log('FAIL — undefined: ' + undefinedExports.join(', ')); failures.push('undefined bundle exports: ' + undefinedExports.join(', ')); }
 
   // Test B: 10-scenario parity (Node vs browser module)
   console.log('\nTest B: 10-scenario verdict parity (Node engine vs browser module)\n');
@@ -460,60 +479,18 @@ async function main() {
   }
 
   // Summary
-  // expected pass count: 1 (test A) + 10 (test B) + 3 (test C portfolio) + 1 (test D) + 1 (test E) = 16
-  var expected = 1 + DEMO_SCENARIOS.length + (V4 ? 3 + 1 : 0) + (canned && V4 ? 1 : 0);
-
-  // Q72 SLICE 2 Phase 3.B architect-pick — 4 known-deferred bundle-wiring
-  // mismatches partitioned out per architect routing 2026-05-07. The
-  // browser bundle's IIFE/__NS__ orchestrator-dispatch pattern fails to
-  // wire Family A page_cusum mixture-supermartingale + Family C MMD
-  // betting-e-process + Family E conformal at runtime (categorical
-  // divergence: Browser families[A|C|E].detectors.length === 0 across
-  // every scenario; Node fires correctly). Divergence is on bundle-
-  // wiring (orchestrator-dispatch in IIFE/NS bundle pattern), NOT on
-  // Ville-bound detector math. Cross-engine numerical-precision-class
-  // is EQUIVALENT on detector COMPUTATION (same .ts source compiled to
-  // both Node + browser); the bundle-wiring layer inserts the
-  // orchestrator-dispatch divergence. Phase D core thesis (anytime-
-  // valid Ville-bounded determinism) PRESERVED.
-  // Q74 follow-on topic SPAWNED for orchestrator-dispatch fix in
-  // IIFE/NS bundle pattern (TAGGED post-Phase-D-close architect-direct
-  // emit forward-cycle). See test/browser-parity-q74-todos.test.ts
-  // for explicit {todo} markers per the §C1/§C2 right-reasons pattern.
-  var Q74_KNOWN_DEFERRED_PREFIXES = [
-    'portfolio-adv_slowbleed:',
-    'portfolio-adv_slow_downstream:',
-    'portfolio-adv_mfu_drop_no_lat_corr:',
-    'schema-continuity parity:',
-  ];
-  var unexpectedFailures = failures.filter(function(f) {
-    for (var i = 0; i < Q74_KNOWN_DEFERRED_PREFIXES.length; i++) {
-      if (f.indexOf(Q74_KNOWN_DEFERRED_PREFIXES[i]) === 0) return false;
-    }
-    return true;
-  });
-  var deferredFailures = failures.length - unexpectedFailures.length;
+  // expected pass count: 1 (test A) + 1 (A2) + 1 (A3) + 10 (test B) + 3 (test C portfolio)
+  // + 1 (test D) + 1 (test E) = 18. Q74 (the 4 bundle-wiring mismatches deferred 2026-05-07)
+  // closed 2026-09-28: the regenerated bundle carries the engine library, and Test C/D pass.
+  var expected = 3 + DEMO_SCENARIOS.length + (V4 ? 3 + 1 : 0) + (canned && V4 ? 1 : 0);
 
   console.log('\n' + '='.repeat(60));
-  if (deferredFailures > 0) {
-    console.log('Q72 SLICE 2 Phase 3.B caveat: ' + deferredFailures +
-                ' Q74 known-deferred bundle-wiring mismatches (todo'
-                + 'd separately at test/browser-parity-q74-todos.test.ts):');
-    failures.filter(function(f) {
-      for (var i = 0; i < Q74_KNOWN_DEFERRED_PREFIXES.length; i++) {
-        if (f.indexOf(Q74_KNOWN_DEFERRED_PREFIXES[i]) === 0) return true;
-      }
-      return false;
-    }).forEach(function(f) { console.log('  · TODO Q74: ' + f); });
-  }
-
-  if (unexpectedFailures.length === 0) {
-    console.log('ALL PASSED (' + passed + '/' + expected + ' strict pass count; ' +
-                deferredFailures + ' Q74-deferred)');
+  if (failures.length === 0) {
+    console.log('ALL PASSED (' + passed + '/' + expected + ')');
     process.exit(0);
   } else {
-    console.log('FAILED (' + unexpectedFailures.length + ' unexpected failures, NOT in Q74 deferral list):');
-    unexpectedFailures.forEach(function(f) { console.log('  - ' + f); });
+    console.log('FAILED (' + failures.length + '):');
+    failures.forEach(function(f) { console.log('  - ' + f); });
     process.exit(1);
   }
 }
