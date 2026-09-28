@@ -34,6 +34,23 @@ Field-level override semantics (D4, propagated to override layer via D8):
 
 Single-parent inheritance only. Circular chains (A extends B extends A) are rejected at load time.
 
+## Custom Family A signals and rollback authority
+
+`sli_list` may name any signal, and the engine (v0.12.1-pre on) runs Family A's two plug-ins, the mixture supermartingale and the betting e-process, on each one. Both are `validUnderEstimatedBaseline: false` (engine `detectors/validity-envelope.ts`): their false-rollback bound assumes a known baseline, and a compiled baseline is estimated. So a Family A fire rolls a deploy back only on an authorized signal:
+
+1. one of the six defaults (`p99_latency`, `ttft`, `eval_score`, `tool_success_rate`, `downstream_err`, `cost_req`);
+2. a signal routed through the valid path (`OrchestrateParams.validPath` calibration), where the terminal safe-t e-value decides and the plug-ins are advisory (C64 b);
+3. a signal listed in the optional `family_a_rollback_signals`.
+
+Listing a signal in `family_a_rollback_signals` is an operator decision to accept the plug-in envelope's limitation for it. Each entry must also appear in `sli_list`. A fire on any other signal is advisory: it appears in `evidence_outlook` and in the audit record (`families.A.advisory_fires`, reason_code `advisory_signal_not_rollback_authorized`), spends no α, and never rolls back or fails a rollout. The rule is `FAMILY_A_ROLLBACK_AUTHORITY` in `engine/guarantees.ts`; see also `DORMANCY.md`.
+
+```yaml
+sli_list:
+  - { signal: p99_latency,   direction_of_better: lower, δ_min: 0.05 }
+  - { signal: http_5xx_rate, direction_of_better: lower, δ_min: 0.05 }
+family_a_rollback_signals: [http_5xx_rate]   # operator accepts the plug-in envelope for this signal
+```
+
 ## Customer overrides
 
 Customers supply a YAML of the form:
