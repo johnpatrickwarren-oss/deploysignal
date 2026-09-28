@@ -78,9 +78,11 @@ PR checklist:
 - [ ] Existing detector statistical guarantees preserved
 - [ ] PR description explains the change + cites any relevant papers/specs
 
-Study PRs (anything under `studies/`) merge with a **merge commit, never a squash**: the commit
-order is the evidence that the pre-registration came before the harness and the results. See
-`~/concord/knowledge/methodology/pages/pre-registration-discipline.md` rule 9.
+Study PRs (anything under `studies/`) must keep every commit on `main`, in order: the commit order
+is the evidence that the pre-registration came before the harness and the results. This repo's
+`main` ruleset requires linear history, so study PRs merge with **rebase-merge** (`gh pr merge
+--rebase`), never a squash. See `~/concord/knowledge/methodology/pages/pre-registration-discipline.md`
+rule 9.
 
 ### Code style
 
