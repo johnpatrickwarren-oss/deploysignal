@@ -167,3 +167,23 @@ missingness penalty, and any false-rollback rate below what R = 100 resolves.
   which the rate statistic reads as many independent events. Run 2 (no stall; longest tick
   277.9 ms) says nothing about this. The T3 registration's Amendment 2 records per-arm stall data and
   a report-only stall-burst analysis.
+
+## Post-run note 3 (2026-09-28, pre-registration rule 7 widened; no number changes)
+
+- **Status: NOT EXECUTABLE.** Rule 7 of the pre-registration discipline (knowledge
+  `methodology/pre-registration-discipline`) was widened on 2026-09-28, at the architect's ruling: a
+  run may be declared not-executable, and rerun, when an execution failure the registration's
+  fallback rules did not cover is shown by evidence independent of the endpoints; the added
+  fallback rule then applies to every run of the study, whatever its verdict. Amendment 1 (c)
+  (host suspension) is that rule for this study, and applied to this run it voids it on both
+  conditions:
+  1. `power-log.posthoc-2026-09-28.txt` (this directory; the `pmset -g log` lines from 22:07:17 to
+     23:17:52 local, the run's start and start + `wall_seconds` 4235, captured post hoc on
+     2026-09-28 because this run predates the harness's own capture) holds 8 `Sleep` or `DarkWake`
+     events, the first at 22:29:58 ("Clamshell Sleep").
+  2. Two scored ticks exceeded 2000 ms of wall time: the AA-w0.1 error tick (both arms' p99 about
+     28.5 s) and the AB-rate-x2 error tick (p99 898.7 s). A tick cannot finish before its requests,
+     so its wall time is at least its p99. This run did not record tick wall times directly.
+- The verdict as computed, **ship rule NOT MET on E6 alone**, and every number above stand as
+  recorded and remain the run's output; the run is no longer scored. The study's scored run is
+  run 2 (`../run-20260927T172045Z/`), ship rule MET under Amendment 1.

@@ -503,3 +503,38 @@ random given the totals; a correlated burst allocated by a timing race is outsid
   infrastructure is part of the real environment an authority ADR would face. The analysis in (b)
   attributes a rollback to a stall; it never excuses one, never removes a run, and never changes a
   verdict.
+
+## Amendment 3 — 2026-09-28, before run 0 (re-pin; unforeseen execution failures)
+
+Written before any run, AWS resource or data. Nothing has been measured. It changes no bar,
+endpoint, prediction or existing void rule.
+
+- **(a) Re-pin.** The runs execute from the DeploySignal commit on `main` that carries this
+  amendment, or a later one reached only by a further dated amendment, with the engine at
+  `v0.12.2-pre`, resolved `0434afcdc7a4716788dc81427295c6c4cd14e019` (package-lock.json). The
+  changes on the twin path since the registration's `9c689ba` and `v0.12.1-pre`:
+  1. Each entry of a tick response's `metrics[]` gains `detector_id`, the engine registry id
+     `twin_<kind>_<id>` (DeploySignal #119). The runner stores responses verbatim (Amendment 1 (h))
+     and reads `verdict` and `tick` only (`harness/run-real.mjs`), so the added field changes
+     nothing it scores.
+  2. The engine adds `DETECTOR_KINDS.twin` to its registry (engine #107). No file under the
+     engine's `per-shard/` or `detectors/` differs between `v0.12.1-pre` and `v0.12.2-pre`, so
+     the references to `per-shard/twin-gate.ts` at `v0.12.1-pre` in §2 and Amendment 1 (d) hold
+     unchanged.
+
+  DeploySignal changes off the twin path (Family B authority #118, the browser bundle #121, the
+  artifact policy gate #123) do not reach a `mode: "twin"` session: the gate service steps the twin
+  arm directly (`service/gate-http/_gate-twin.ts`, `stepTwinArm`) and runs no rule table.
+- **(b) Unforeseen execution failures.** Pre-registration rule 7 was widened on 2026-09-28
+  (knowledge `methodology/pre-registration-discipline`). For this study it reads:
+  1. A failure that V1–V7, §7's NOT-EXECUTABLE conditions and Amendments 1–2 do not cover may void
+     a run only on evidence independent of the gate responses and of every endpoint: AWS events
+     (CloudTrail, ECS service events, AWS Health), the runner's or the host's logs, or CloudWatch
+     series the gate does not read. A verdict, an e-value, or a 5xx count is never such evidence.
+  2. Before the next run, a dated amendment adds the failure as a void rule the runner or the
+     operator can apply mechanically, and applies it to every run already executed and every later
+     run, whatever each run's verdict.
+  3. A run voided that way stays in E2's count if either of its sessions reached `rollback`
+     (Amendment 1 (a)), so a void rule added mid-study can never remove a rollback from E2.
+  4. A voided run is replaced by the next run index (§7), inside the 150-attempt cap. It is not
+     repeated under its own index.
