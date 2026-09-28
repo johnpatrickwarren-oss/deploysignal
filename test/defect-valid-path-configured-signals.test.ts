@@ -109,6 +109,8 @@ function runA(cfg: CompiledConfig, http5xx: number[], extra: Record<string, numb
   let result = emptyHealth();
   let rollback: FiredSignal[] = [];
   const seen = new Set<string>();
+  const fired = new Set<string>();
+  const reasons = new Set<string>();
   for (let i = 0; i < http5xx.length; i++) {
     result = emptyHealth();
     rollback = [];
@@ -118,8 +120,13 @@ function runA(cfg: CompiledConfig, http5xx: number[], extra: Record<string, numb
       compiledConfig: cfg, currentHourOfDay: 20, currentDayOfWeek: 3, ticksSinceDeploy: i, deployAgeDays: 0,
     });
     for (const r of rollback) seen.add(r.id);
+    for (const v of result.family_A_shadow ?? []) {
+      if (v.verdict !== 'fire') continue;
+      fired.add(v.signal!);
+      reasons.add(v.reason_code);
+    }
   }
-  return { result, seen };
+  return { result, seen, fired, reasons };
 }
 
 test('engine v0.12.1-pre: Family A evaluates the configured signal and none of the six', () => {
@@ -127,14 +134,19 @@ test('engine v0.12.1-pre: Family A evaluates the configured signal and none of t
   const cell = cfg.baseline_cells!.cells.find((c) => c.key.hour_of_day === 20 && c.key.day_of_week === 3)!;
   const p = cell.family_A!.per_signal.http_5xx_rate!;
   const law = { mean: p.baseline_mean, sigma: Math.sqrt(p.baseline_sigma_squared) };
-  const { result, seen } = runA(cfg, cellSeries(law, 11, N, 30, 4)); // a 4σ step from tick 30
+  const { result, seen, fired, reasons } = runA(cfg, cellSeries(law, 11, N, 30, 4)); // a 4σ step from tick 30
   const shadow = result.family_A_shadow ?? [];
   assert.deepEqual([...new Set(shadow.map((v) => v.signal))], ['http_5xx_rate'],
     'Family A verdicts only for the configured signal (the six have cells but are not configured)');
   assert.equal(shadow.length, 2, 'one mixture and one betting verdict');
   for (const s of SIGNALS) assert.ok(!shadow.some((v) => v.signal === s), `no verdict for ${s}`);
-  assert.ok(seen.has('family_A_http_5xx_rate') || seen.has('family_A_betting_http_5xx_rate'),
-    `the step drives a Family A rollback on the configured signal; saw ${[...seen].join(', ')}`);
+  // The step fires on the configured signal. http_5xx_rate is not one of the six defaults, so under
+  // FAMILY_A_ROLLBACK_AUTHORITY (engine/guarantees.ts) the fire is advisory and never reaches
+  // rollback[]; test/family-a-rollback-authority.test.ts covers the operator opt-in.
+  assert.ok(fired.has('http_5xx_rate'), 'the step fires on the configured signal');
+  assert.deepEqual([...reasons], ['advisory_signal_not_rollback_authorized'], 'every fire carries the unauthorized-advisory reason');
+  assert.ok(!seen.has('family_A_http_5xx_rate') && !seen.has('family_A_betting_http_5xx_rate'),
+    `an unauthorized custom signal drives no Family A rollback; saw ${[...seen].join(', ')}`);
 });
 
 test('engine v0.12.1-pre: with no bonferroni_factor the engine splits α over the configured list', () => {

@@ -12,7 +12,10 @@ import { evaluateFamilyD, FAMILY_D_SIGNALS, freshSpectralEDetectorState } from '
 import { evaluateEMmd } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/sequential-mmd';
 import { evaluateFamilyCBettingEProcess } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/family-c-betting-e-process';
 import { shouldSuppress } from '../l0/schema-continuity';
-import { FAMILY_E_ADVISORY, FAMILY_A_PLUGIN_ADVISORY_REASON, familyAPluginAdvisory } from '../guarantees';
+import {
+  FAMILY_E_ADVISORY, FAMILY_A_PLUGIN_ADVISORY_REASON, familyAPluginAdvisory,
+  FAMILY_A_UNAUTHORIZED_ADVISORY_REASON, familyARollbackAuthorized,
+} from '../guarantees';
 import type {
   Metrics, FiredSignal, HealthResult,
   TrendBufferI, DetectorVerdict,
@@ -40,15 +43,29 @@ function routedSignals(opts: HealthOpts): ReadonlySet<string> | undefined {
   return cal ? new Set(Object.keys(cal)) : undefined;
 }
 
-/** C64 (b) — a plug-in verdict on a routed signal keeps its verdict / statistic / evidence
- *  for evidence_outlook and the audit record, books no α, and a fire carries the advisory
+/** The advisory reason for a plug-in verdict on `signal`, or null when it may drive rollback.
+ *  C64 (b) first (a routed signal), then FAMILY_A_ROLLBACK_AUTHORITY (engine/guarantees.ts): a
+ *  signal that is not a default, not routed and not in the compiled `family_a_rollback_signals`. */
+function pluginAdvisoryReason(signal: string | undefined, routed: ReadonlySet<string> | undefined, opts: HealthOpts): string | null {
+  if (familyAPluginAdvisory(signal, routed)) return FAMILY_A_PLUGIN_ADVISORY_REASON;
+  if (signal && !familyARollbackAuthorized(signal, routed, opts.compiledConfig?.family_a_rollback_signals)) {
+    return FAMILY_A_UNAUTHORIZED_ADVISORY_REASON;
+  }
+  return null;
+}
+
+/** An advisory plug-in verdict (C64 b, or an unauthorized signal) keeps its verdict / statistic /
+ *  evidence for evidence_outlook and the audit record, books no α, and a fire carries the advisory
  *  reason_code so fusion and the audit can tell it from a rollback-driving fire. */
-function advisoryPlugin(v: DetectorVerdict, routed: ReadonlySet<string> | undefined): DetectorVerdict {
-  if (!familyAPluginAdvisory(v.signal, routed)) return v;
-  return {
-    ...v, alpha_consumed: 0, alpha_spent: 0,
-    reason_code: v.verdict === 'fire' ? FAMILY_A_PLUGIN_ADVISORY_REASON : v.reason_code,
-  };
+function advisoryPlugin(v: DetectorVerdict, routed: ReadonlySet<string> | undefined, opts: HealthOpts): DetectorVerdict {
+  const reason = pluginAdvisoryReason(v.signal, routed, opts);
+  if (reason === null) return v;
+  return { ...v, alpha_consumed: 0, alpha_spent: 0, reason_code: v.verdict === 'fire' ? reason : v.reason_code };
+}
+
+/** Is this plug-in verdict an advisory fire (never promoted to rollback[])? */
+function isAdvisoryFire(v: DetectorVerdict): boolean {
+  return v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON || v.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON;
 }
 
 /** Family A Page-CUSUM dispatch + promotion (silent-shadow). */
@@ -74,14 +91,14 @@ function runFamilyACusum(
         ...detectorCtx(liveMetrics, opts),
         ignoredSignals:    opts.ignoredSignals,
       },
-    ).map((v) => advisoryPlugin(v, routed));
+    ).map((v) => advisoryPlugin(v, routed, opts));
     result.family_A_shadow = shadow;
     // Promote Page-CUSUM fires to primary rollback entries. Provenance
     // (S_n, threshold, α) lives in `family_A_shadow` — the rollback
     // array carries the minimum v1-schema-compatible surface.
-    // C64 (b): an advisory fire (routed signal) is recorded, not promoted.
+    // An advisory fire (C64 b routed signal, or an unauthorized signal) is recorded, not promoted.
     for (const v of shadow) {
-      if (v.verdict !== 'fire' || !v.signal || v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON) continue;
+      if (v.verdict !== 'fire' || !v.signal || isAdvisoryFire(v)) continue;
       const id = 'family_A_' + v.signal;
       if (sup.indexOf(id) >= 0) continue;  // warmup-suppressed per convention
       rollbackFired.push({ id, label: 'Family A ' + v.signal });
@@ -114,14 +131,14 @@ function runFamilyABetting(
         ...detectorCtx(liveMetrics, opts),
         ignoredSignals:    opts.ignoredSignals,
       },
-    ).map((v) => advisoryPlugin(v, routed));
+    ).map((v) => advisoryPlugin(v, routed, opts));
     if (bettingShadow.length > 0) {
       // Extend the existing family_A_shadow array so audit consumers
       // see one contiguous Family A block; fires get a distinct
       // rollback id via the 'family_A_betting_' prefix.
       result.family_A_shadow = (result.family_A_shadow ?? []).concat(bettingShadow);
       for (const v of bettingShadow) {
-        if (v.verdict !== 'fire' || !v.signal || v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON) continue;
+        if (v.verdict !== 'fire' || !v.signal || isAdvisoryFire(v)) continue;
         const id = 'family_A_betting_' + v.signal;
         if (sup.indexOf(id) >= 0) continue;
         rollbackFired.push({ id, label: 'Family A betting ' + v.signal });

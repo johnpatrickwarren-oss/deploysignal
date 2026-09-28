@@ -98,6 +98,8 @@ export interface CompileDefaults {
   twin_arm?: TwinArmProfile;
   /** Defect 2026-09-25 — the profile's sli_list direction_of_better / δ_min. Absent on legacy path. */
   sli_meta?: SliMeta;
+  /** The profile's `family_a_rollback_signals`, passed through. Absent when the profile has none. */
+  family_a_rollback_signals?: string[];
 }
 
 export interface LegacyCompileDefaults {

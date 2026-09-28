@@ -107,6 +107,11 @@ export interface CompiledConfig {
    *  SIGNALS` when absent. Under A3, runtime operates on compiled
    *  shape; no per-tick signal projection. */
   family_a_signals?: string[];
+  /** The profile's `family_a_rollback_signals`, passed through verbatim: signals outside the
+   *  engine's six defaults whose Family A plug-in fires the operator lets reach rollback[]
+   *  (engine/guarantees.ts FAMILY_A_ROLLBACK_AUTHORITY). Absent on legacy compiles and on profiles
+   *  without the field. */
+  family_a_rollback_signals?: string[];
   /** Defect 2026-09-25 — the profile's sli_list direction_of_better and δ_min per signal, for
    *  the consumers that classify direction (engine/recalibration/classify.ts via the recalibrate
    *  CLI). Profile-routed compiles only; absent on legacy compiles. */

@@ -132,7 +132,9 @@ export function loadProfile(profile_ref: string): WorkloadProfile {
  *  the same signal named twice with different fields (which the engine would evaluate once, under
  *  one of two δ_min), and an empty list — except beside twin_arm, which runs only the twin path
  *  (the exemption the zero detector budget above has). */
-export function checkSliList(label: string, profile: Pick<WorkloadProfile, 'sli_list' | 'twin_arm'>): void {
+export function checkSliList(
+  label: string, profile: Pick<WorkloadProfile, 'sli_list' | 'twin_arm' | 'family_a_rollback_signals'>,
+): void {
   const first = new Map<string, number>();
   profile.sli_list.forEach((e, i) => {
     const j = first.get(e.signal);
@@ -143,6 +145,14 @@ export function checkSliList(label: string, profile: Pick<WorkloadProfile, 'sli_
   });
   if (profile.sli_list.length === 0 && !profile.twin_arm) {
     throw new Error(`${label} sli_list is empty; only a profile declaring twin_arm may monitor no Family A signal`);
+  }
+  // Family A rollback authority (engine/guarantees.ts FAMILY_A_ROLLBACK_AUTHORITY): the operator may
+  // authorize only a signal the profile monitors. Checked post-merge, so an override that replaces
+  // sli_list and drops a listed signal is refused too.
+  for (const sig of profile.family_a_rollback_signals ?? []) {
+    if (!first.has(sig)) {
+      throw new Error(`${label} family_a_rollback_signals names "${sig}", which sli_list does not`);
+    }
   }
 }
 

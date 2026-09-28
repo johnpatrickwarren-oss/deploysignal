@@ -8,6 +8,7 @@ import type {
   CompiledConfig, BaselineCellEntry, TrippedEntry,
 } from './types';
 import { DETECTOR_REGISTRY } from './types';
+import { isAdvisoryPluginFire } from './_verdict-advisory';
 
 // ── v2 record construction helpers (W4 §4.1.h) ──────────────────────
 
@@ -202,8 +203,10 @@ function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerd
   let anyFire = false, anyIndet = false, allSuppressed = true, anyEvaluated = false;
   let alphaSum = 0;
   const suppressCodes: string[] = [];
+  const advisory: Array<{ signal: string; reason_code: string }> = [];
   for (const v of hr.family_A_shadow) {
     anyEvaluated = true;
+    if (v.signal && isAdvisoryPluginFire(v)) advisory.push({ signal: v.signal, reason_code: v.reason_code });
     if (v.verdict !== 'suppressed') allSuppressed = false;
     else suppressCodes.push(v.reason_code);
     if (v.verdict === 'fire' && v.signal) {
@@ -223,6 +226,7 @@ function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerd
   else if (anyIndet) fa.verdict = 'indeterminate';
   else fa.verdict = 'clean';
   fa.alpha_spent = alphaSum;
+  if (advisory.length > 0) fa.advisory_fires = advisory;
 }
 
 // Family B — structural rule detectors from rollback[] (post-Family-A-promotion).

@@ -70,6 +70,13 @@
         }
       }
     },
+    "family_a_rollback_signals": {
+      "type": "array",
+      "description": "Operator decision: sli_list signals outside the engine's six Family A defaults (p99_latency, ttft, eval_score, tool_success_rate, downstream_err, cost_req) whose Family A plug-in fires (mixture supermartingale, betting e-process) may reach rollback[]. Listing a signal accepts the plug-in envelope's limitation for it: both plug-ins are validUnderEstimatedBaseline: false (engine detectors/validity-envelope.ts), so their false-rollback bound does not hold when the baseline is estimated, as compiled baseline moments are. Absent or omitting a custom signal: that signal's Family A fires are advisory (recorded with reason_code advisory_signal_not_rollback_authorized, no α spent, never a rollback). The six defaults and signals routed through the valid path need no entry. Each entry must also appear in sli_list (the loader refuses otherwise). Non-empty when present: omit the field rather than list nothing. The six defaults are authorized by grandfathering, not on validity grounds: they carry the same plug-in envelope. An advisory fire's α is dropped, not reallocated, while the Bonferroni split still counts every sli_list signal, which is conservative. Array replaces parent entirely on override (D4).",
+      "uniqueItems": true,
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
     "structural_detectors": {
       "type": "object",
       "required": [

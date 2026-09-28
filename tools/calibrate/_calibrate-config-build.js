@@ -292,6 +292,9 @@ function attachProfileProvenance(config, effective, compileDefaults) {
     // Defect 2026-09-25 — the profile's direction_of_better / δ_min, read by the recalibrate classifier.
     if (compileDefaults.sli_meta)
         config.sli_meta = JSON.parse(JSON.stringify(compileDefaults.sli_meta));
+    // Family A rollback authority — the operator's list of custom signals whose plug-in fires may roll back.
+    if (compileDefaults.family_a_rollback_signals)
+        config.family_a_rollback_signals = compileDefaults.family_a_rollback_signals.slice();
 }
 /** Console diagnostics emitted after the config is written. */
 function printCompileSummary(s) {
