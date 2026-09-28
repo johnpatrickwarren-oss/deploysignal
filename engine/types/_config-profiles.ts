@@ -96,6 +96,12 @@ export interface WorkloadProfile {
    *  profile that declares it runs ONLY the twin path (engine/gates/_health-twin.ts): no Family
    *  A–E and no structural rules. ADVISORY (engine/guarantees.ts TWIN_ARM_AUTHORITY). */
   twin_arm?: TwinArmProfile;
+  /** Signals outside the engine's six Family A defaults whose plug-in fires may reach rollback[]
+   *  (engine/guarantees.ts FAMILY_A_ROLLBACK_AUTHORITY). An operator decision that accepts the
+   *  plug-ins' `validUnderEstimatedBaseline: false` envelope for these signals. Each entry must be
+   *  in sli_list (tools/_profile-loader-loading.ts checkSliList). Optional; absent → a custom
+   *  signal's Family A fires are advisory. */
+  family_a_rollback_signals?: string[];
 }
 
 /** Plan B — one twin metric, the engine's TwinMetricSpec in profile form. `rate`: the tolerance is

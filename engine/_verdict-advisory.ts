@@ -1,15 +1,31 @@
-// engine/_verdict-advisory.ts — C64 (b) helpers for the fusion layer (engine/verdict.ts):
-// the advisory plug-in fire, the axis-3 form for the evidence outlook, and the note clause.
+// engine/_verdict-advisory.ts — advisory Family A helpers for the fusion layer (engine/verdict.ts):
+// the advisory plug-in fire (C64 b, and FAMILY_A_ROLLBACK_AUTHORITY), the axis-3 form for the
+// evidence outlook, and the note clauses.
 // Split out so verdict.ts stays under the repo's file-size ratchet; no fusion logic lives here.
 
 import type { DetectorVerdict } from './types';
-import { FAMILY_A_PLUGIN_ADVISORY_REASON, DETECTOR_GUARANTEES } from './guarantees';
+import { FAMILY_A_PLUGIN_ADVISORY_REASON, FAMILY_A_UNAUTHORIZED_ADVISORY_REASON, DETECTOR_GUARANTEES } from './guarantees';
 import type { ApproximateEValueForm } from './guarantees';
 
-/** A Family A plug-in fire on a signal the valid path is routed for: recorded, never a
- *  rollback trigger, books no α (engine/gates/_health-detectors.ts `advisoryPlugin`). */
+/** An advisory Family A plug-in fire — on a signal the valid path is routed for (C64 b), or on a
+ *  signal without rollback authority (FAMILY_A_ROLLBACK_AUTHORITY): recorded, never a rollback
+ *  trigger, books no α (engine/gates/_health-detectors.ts `advisoryPlugin`). */
 export function isAdvisoryPluginFire(v: DetectorVerdict): boolean {
-  return v.verdict === 'fire' && v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON;
+  return v.verdict === 'fire'
+    && (v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON || v.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON);
+}
+
+/** The advisory fires split by reason, as the FamilyEvidenceRaw fields; a list is present only
+ *  when non-empty, so a family without advisory fires gets no keys. */
+export function advisoryFireFields(advisory: ReadonlyArray<DetectorVerdict>): {
+  advisoryFiredSignals?: string[]; unauthorizedFiredSignals?: string[];
+} {
+  const routed = advisory.filter((v) => v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON).map((v) => v.signal ?? 'unknown');
+  const unauth = advisory.filter((v) => v.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON).map((v) => v.signal ?? 'unknown');
+  return {
+    ...(routed.length > 0 ? { advisoryFiredSignals: routed } : {}),
+    ...(unauth.length > 0 ? { unauthorizedFiredSignals: [...new Set(unauth)] } : {}),
+  };
 }
 
 /** The axis-3 form of the Family A detector that produced `v`, read off this repo's guarantee
@@ -26,9 +42,16 @@ export function approximateEValueFor(v: DetectorVerdict, scale: 'linear' | 'weal
   return (DETECTOR_GUARANTEES as Record<string, { approximate_e_value?: ApproximateEValueForm }>)[id]?.approximate_e_value;
 }
 
-/** Trailing note clause naming advisory plug-in fires on routed signals; empty when none. */
-export function advisoryPluginClause(advisoryFiredSignals: ReadonlyArray<string> | undefined): string {
-  return advisoryFiredSignals && advisoryFiredSignals.length > 0
-    ? `; plug-in fired advisory on ${advisoryFiredSignals.join(', ')} (routed to the valid path; no α spent)`
+/** Trailing note clauses naming advisory plug-in fires: on routed signals (C64 b), then on
+ *  signals without Family A rollback authority. Empty when none. */
+export function advisoryPluginClause(r: {
+  advisoryFiredSignals?: ReadonlyArray<string>; unauthorizedFiredSignals?: ReadonlyArray<string>;
+}): string {
+  const routed = r.advisoryFiredSignals && r.advisoryFiredSignals.length > 0
+    ? `; plug-in fired advisory on ${r.advisoryFiredSignals.join(', ')} (routed to the valid path; no α spent)`
     : '';
+  const unauth = r.unauthorizedFiredSignals && r.unauthorizedFiredSignals.length > 0
+    ? `; plug-in fired advisory on ${r.unauthorizedFiredSignals.join(', ')} (signal not authorized for Family A rollback; no α spent)`
+    : '';
+  return routed + unauth;
 }

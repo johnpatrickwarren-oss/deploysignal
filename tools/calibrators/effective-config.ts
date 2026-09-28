@@ -122,6 +122,7 @@ export function effectiveOrDefaults(
     ...(effective.control_arm ? { control_arm: effective.control_arm } : {}),
     ...(effective.twin_arm ? { twin_arm: effective.twin_arm } : {}),
     ...(effective.sli_list.length > 0 ? { sli_meta: _sliMeta(effective.sli_list) } : {}),
+    ...(effective.family_a_rollback_signals ? { family_a_rollback_signals: effective.family_a_rollback_signals.slice() } : {}),
   };
 }
 

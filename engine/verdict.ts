@@ -30,7 +30,7 @@ import { FAMILY_E_ADVISORY } from './guarantees';
 import { eByEffectIntervals } from './_verdict-e-by';
 import { contrastArmReport } from './_verdict-contrast';
 import type { ApproximateEValueForm } from './guarantees';
-import { isAdvisoryPluginFire, approximateEValueFor, advisoryPluginClause } from './_verdict-advisory';
+import { isAdvisoryPluginFire, approximateEValueFor, advisoryPluginClause, advisoryFireFields } from './_verdict-advisory';
 
 export interface FuseOpts {
   topology: 'cascade' | 'portfolio';
@@ -138,6 +138,8 @@ interface FamilyEvidenceRaw {
   approximate_e_value?: ApproximateEValueForm;
   /** C64 (b) — signals whose Family A plug-in fired advisory (routed to the valid path). */
   advisoryFiredSignals?: string[];
+  /** FAMILY_A_ROLLBACK_AUTHORITY — signals whose plug-in fired advisory (no rollback authority). */
+  unauthorizedFiredSignals?: string[];
   firedSignals: string[];
   suppressionReason: string | null;
 }
@@ -427,7 +429,7 @@ function summarizeSignalFamily(id: FamilyLetter, vs: DetectorVerdict[]): FamilyE
     progress_scale: scale,
     ...(evidence ? { evidence } : {}),
     ...(form ? { approximate_e_value: form } : {}),
-    ...(advisory.length > 0 ? { advisoryFiredSignals: advisory.map((v) => v.signal ?? 'unknown') } : {}),
+    ...advisoryFireFields(advisory),
     firedSignals: fired.map((v) => v.signal ?? 'unknown'),
     suppressionReason: state === 'suppressed' ? suppressionReasonFor(vs.map((v) => v.reason_code)) : null,
   };
@@ -549,9 +551,9 @@ function renderNote(r: FamilyEvidenceRaw): string {
   if (r.state === 'fired') {
     return (r.firedSignals.length > 0
       ? `Family ${r.family_id} fired on ${r.firedSignals.join(', ')}`
-      : `Family ${r.family_id} fired`) + advisoryPluginClause(r.advisoryFiredSignals);
+      : `Family ${r.family_id} fired`) + advisoryPluginClause(r);
   }
-  if (r.state === 'accumulating') return renderAccumulatingNote(r) + advisoryPluginClause(r.advisoryFiredSignals);
+  if (r.state === 'accumulating') return renderAccumulatingNote(r) + advisoryPluginClause(r);
   if (r.state === 'suppressed') {
     return `${notePrefix(r)} suppressed (${r.suppressionReason ?? 'unknown'})`;
   }

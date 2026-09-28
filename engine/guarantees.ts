@@ -87,6 +87,7 @@
 
 import type { DetectorId, FamilyId } from './types';
 import { DETECTOR_REGISTRY } from './types';
+import { FAMILY_A_PRIMARY_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_page-cusum-core';
 
 /** Family E is ADVISORY — WORKLIST C25, ruling knowledge/stats/family-e-budget-ruling
  *  option 3 (operator, 2026-09-02). The shipped `unweighted` kind is a per-tick
@@ -130,6 +131,37 @@ export const FAMILY_A_PLUGIN_ADVISORY: 'when_valid_path_routed' | 'never' = 'whe
 
 /** reason_code an advisory plug-in fire carries (C64 b). */
 export const FAMILY_A_PLUGIN_ADVISORY_REASON = 'advisory_valid_path_routed';
+
+/** Family A rollback authority by signal, 2026-09-27. Engine v0.12.1-pre (re-pinned in #112)
+ *  evaluates the two plug-ins on every signal a profile's sli_list names, and both are
+ *  `validUnderEstimatedBaseline: false` (engine detectors/validity-envelope.ts, the betting and
+ *  mixture envelopes). While this is 'authorized_signals_only' a plug-in fire reaches rollback[]
+ *  and firing_families only when `familyARollbackAuthorized` holds for its signal:
+ *    (i)   one of the engine's six defaults (FAMILY_A_PRIMARY_SIGNALS) — the pre-v0.12.1 set, so
+ *          shipped profiles (all six-signal subsets) are unchanged;
+ *    (ii)  routed through the valid path (`OrchestrateParams.validPath` calibration) — there the
+ *          plug-ins are already C64 (b) advisory and the terminal safe-t fire decides;
+ *    (iii) listed in the profile's `family_a_rollback_signals` — an operator decision that accepts
+ *          the plug-in envelope's limitation for that signal.
+ *  Any other plug-in fire is ADVISORY: recorded (evidence_outlook, `families.A.advisory_fires` in
+ *  the audit record) with reason_code FAMILY_A_UNAUTHORIZED_ADVISORY_REASON and `alpha_spent: 0`,
+ *  never on rollback[] or firing_families, so it never fails a rollout or changes the verdict.
+ *  Reversal: an engine envelope that admits the plug-ins under an estimated baseline. */
+export const FAMILY_A_ROLLBACK_AUTHORITY: 'authorized_signals_only' | 'any_configured_signal' = 'authorized_signals_only';
+
+/** reason_code an advisory fire on an unauthorized signal carries (FAMILY_A_ROLLBACK_AUTHORITY). */
+export const FAMILY_A_UNAUTHORIZED_ADVISORY_REASON = 'advisory_signal_not_rollback_authorized';
+
+/** May a Family A plug-in fire on `signal` reach rollback[]? (i) a default signal, (ii) routed to
+ *  the valid path this tick, or (iii) listed in the compiled `family_a_rollback_signals`. */
+export function familyARollbackAuthorized(
+  signal: string | undefined, routed: ReadonlySet<string> | undefined,
+  operatorSignals: ReadonlyArray<string> | undefined,
+): boolean {
+  if (FAMILY_A_ROLLBACK_AUTHORITY === 'any_configured_signal') return !!signal;
+  if (!signal) return false;
+  return (FAMILY_A_PRIMARY_SIGNALS as readonly string[]).includes(signal) || !!routed?.has(signal) || !!operatorSignals?.includes(signal);
+}
 
 /** C81 (Part 2), 2026-09-05 — the control arm (engine/gates/_health-contrast.ts) is ADVISORY:
  *  engine study 2026-09-contrast-null (ADR 0032, run-20260905T061348Z) refused the contrast null

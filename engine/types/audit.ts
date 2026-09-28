@@ -185,6 +185,11 @@ export interface FamilyVerdictV2 {
     | 'ignore_threshold'
     | 'expected_failure_pattern'
     | null;
+  /** Family A only, present only when non-empty: the advisory plug-in fires this tick, each with
+   *  the reason it is advisory (`advisory_valid_path_routed`, C64 b; or
+   *  `advisory_signal_not_rollback_authorized`, FAMILY_A_ROLLBACK_AUTHORITY). None of them reached
+   *  rollback[]. A custom signal has no registry id, so this is the only place its fire appears. */
+  advisory_fires?: Array<{ signal: string; reason_code: string }>;
 }
 
 /** v2 audit record. Strict-additive over v1. v1 readers treat the v2

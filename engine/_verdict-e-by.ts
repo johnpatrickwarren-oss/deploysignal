@@ -4,17 +4,19 @@
 
 import type { DetectorVerdict } from './types';
 import type { EffectIntervalsEBy } from './types/verdict';
-import { FAMILY_A_PLUGIN_ADVISORY_REASON, E_BY_DELTA } from './guarantees';
+import { E_BY_DELTA } from './guarantees';
+import { isAdvisoryPluginFire } from './_verdict-advisory';
 import { eBenjaminiYekutieli } from '@johnpatrickwarren-oss/deploysignal-engine/fleet/e-by';
 
 /** C62 (b), engine ADR 0030 — e-BY intervals for the fired mixture signals. K is every Family A
  *  verdict carrying a confidence sequence this tick (the mixture path; betting and safe-t
- *  entries carry none), S the fired ones that are not advisory plug-in fires (C64 b). Absent
+ *  entries carry none), S the fired ones that are not advisory plug-in fires (C64 b, or an
+ *  unauthorized signal under FAMILY_A_ROLLBACK_AUTHORITY). Absent
  *  when no verdict carries a CS, so pre-0030 pins and the Beta path leave the verdict unchanged. */
 export function eByEffectIntervals(famA: DetectorVerdict[]): EffectIntervalsEBy | undefined {
   const withCs = famA.filter((v) => v.signal && v.evidence?.confidence_sequence);
   if (withCs.length === 0) return undefined;
-  const fired = withCs.filter((v) => v.verdict === 'fire' && v.reason_code !== FAMILY_A_PLUGIN_ADVISORY_REASON);
+  const fired = withCs.filter((v) => v.verdict === 'fire' && !isAdvisoryPluginFire(v));
   const out = eBenjaminiYekutieli(
     fired.map((v) => ({ id: v.signal!, level_free: v.evidence!.confidence_sequence!.level_free })), withCs.length, E_BY_DELTA,
   );
