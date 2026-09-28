@@ -34,6 +34,21 @@ Field-level override semantics (D4, propagated to override layer via D8):
 
 Single-parent inheritance only. Circular chains (A extends B extends A) are rejected at load time.
 
+## What `δ_min` sets (and doesn't)
+
+A `sli_list[].δ_min` sets the recalibration classifier's per-signal dead-band: the relative shift
+below which a baseline comparison reads "unchanged" (`engine/recalibration/classify.ts`, read via
+`classificationOptionsFor` in `tools/recalibrate/_recalibrate-candidate.ts`). It does **not** set
+Family A's detection effect size. The compiler derives that itself, per signal, as
+`max(0.05·mean, 2·stddev)` (`tools/calibrators/family-a.ts` — `deltaMin`, feeding
+`τ² = δ_min²/4`), regardless of the profile's `δ_min` value.
+
+Decision (2026-09-27): the compiler keeps its own effect-size rule. Having the compiler honor a
+profile's `δ_min` for Family A detection was considered and not taken — it would change every
+compiled config's output (see `test/profile-streaming-byte-identity.test.ts`), and that shift needs
+its own registered validation study first. Taking the larger of the compiler's value and the
+profile's `δ_min` was also considered and not taken.
+
 ## Custom Family A signals and rollback authority
 
 `sli_list` may name any signal, and the engine (v0.12.1-pre on) runs Family A's two plug-ins, the mixture supermartingale and the betting e-process, on each one. Both are `validUnderEstimatedBaseline: false` (engine `detectors/validity-envelope.ts`): their false-rollback bound assumes a known baseline, and a compiled baseline is estimated. So a Family A fire rolls a deploy back only on an authorized signal:
