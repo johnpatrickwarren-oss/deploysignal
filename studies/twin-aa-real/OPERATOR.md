@@ -54,7 +54,9 @@ Outside the runner, and only for the operator's own role:
 
 Everything in PREREGISTRATION.md §8 "Before run 0", kept outside the repo if it holds account
 identifiers. Then fill one config per lane from `config.example.json` (region, `LoadBalancer` and
-`TargetGroup` dimension values, `tasks_per_arm`, gate URL), saved as
+`TargetGroup` dimension values, `tasks_per_arm`, the ALB idle timeout `alb_idle_timeout_s`
+from `idle_timeout.timeout_seconds` (Amendment 2 (a); record a load generator's client timeout
+too), gate URL), saved as
 `studies/twin-aa-real/lane<N>.json`; `.gitignore` keeps those files out of git.
 
 All lanes run from one host and one results directory: the run index is checked across lanes.
