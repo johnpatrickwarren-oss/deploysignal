@@ -145,3 +145,25 @@ missingness penalty, and any false-rollback rate below what R = 100 resolves.
   that. `check_report.mjs` imports it and does not write.
 - A second run is registered separately as a dated amendment (host held awake; a not-executable
   rule for host suspension; per-arm upstream errors recorded). This run's verdict stands as recorded.
+
+## Post-run note 2 (2026-09-27, investigation of the 49/4 split; no number or verdict changes)
+
+- **Correction to the post-hoc section.** It says "the 2000 ms router timeout could not fire while
+  the host was suspended". That holds during the sleep; at wake every overdue timeout fired in one
+  batch. In the AA-w0.1 error tick, 125 of 126 stalled requests became upstream errors.
+- **Most likely mechanism for the AB-rate-x2 split (run 20, tick 13), inferred, not reproduced.**
+  From latency_sum / 898.7 s, 65 canary and 63 control requests were in flight when the host slept
+  (128 = the harness concurrency; the split matches the traffic share). At wake a stalled request
+  survived only if its arm's response reached the router before the batch of overdue 2000 ms
+  timeouts ran (harness/router.mjs:85-88). 49 of 65 canary and 4 of 63 control died. The 53 errors
+  are one correlated wake outcome, so the z = 6.01 against the traffic share, which assumes 53
+  independent draws, does not apply. Why the control's responses arrived first was not determined.
+- **Ruled out:** more canary requests in flight (65/63; 503s and 200s share one code path,
+  harness/service.mjs:31-36); per-arm keep-alive pools (same Agent and keepAliveTimeout for both
+  arms); request ordering (no 53-request window holds more than 33 canary requests); the fault
+  flag counted as an upstream error (a 503 completes without upstreamError, harness/router.mjs:82).
+  A scratch SIGSTOP/SIGCONT re-run gave symmetric mass timeouts, not a one-sided split.
+- **Bearing on the premise.** A common-cause stall can put one correlated burst of errors on one arm,
+  which the rate statistic reads as many independent events. Run 2 (no stall; longest tick
+  277.9 ms) says nothing about this. The T3 registration's Amendment 2 records per-arm stall data and
+  a report-only stall-burst analysis.
