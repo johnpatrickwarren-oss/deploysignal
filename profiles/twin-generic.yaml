@@ -66,6 +66,8 @@ twin_arm:
   max_ticks: 120
   metrics:
     # rate: per tick, bad events over requests in each arm; tolerance is an excess odds ratio.
+    # tolerance is the smallest regression you would block: below it the proceed test usually wins
+    # (engine study 2026-09-twin-gate: ×1.2 under tolerance 0.5 proceeded in 72% of runs).
     - id: http_5xx
       kind: rate
       worse: higher
