@@ -92,9 +92,12 @@ POST /v1/sessions/{id}/ticks
    "observations":{"http_5xx":{"canary_events":12,"canary_total":1000,"control_events":9,"control_total":1000},
                    "p99_latency_ms":{"canary":212.0,"control":205.5}}}
   -> 200 {"verdict":"extend","engine_verdict":"extend","authority":"advisory","tick":1,"srm_e":…,
-          "metrics":[{"id","rollback_e","rollback_threshold","proceed_e","proceed_threshold",
+          "metrics":[{"id","detector_id","rollback_e","rollback_threshold","proceed_e","proceed_threshold",
                       "used","skipped","ties","missing"}],"ticks_to_detect":…}
 ```
+
+- `detector_id` is the engine registry id `twin_<kind>_<id>` (e.g. `twin_rate_http_5xx`); the
+  engine's `guaranteeFor(detector_id)` resolves it to that kind's guarantee row.
 
 - `verdict` maps the engine verdict: `rollback → rollback`, `proceed → proceed`,
   `extend → extend`, `inconclusive → hold`, `invalid_experiment → halt` (the sample-ratio guard:

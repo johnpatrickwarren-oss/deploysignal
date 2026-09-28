@@ -67,6 +67,8 @@ export type TwinGateVerdict = 'rollback' | 'proceed' | 'extend' | 'hold' | 'halt
 
 export interface TwinMetricEvidenceBody {
   id: string;
+  /** Engine registry id, `twin_<kind>_<id>` (additive, 2026-09-28). */
+  detector_id: string;
   rollback_e: number;
   rollback_threshold: number;
   proceed_e: number;
