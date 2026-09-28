@@ -300,7 +300,7 @@
 <main>
   <div class="preamble">
     <p><strong>How to use this.</strong> One card per family. Each visualization shows the <em>shape</em> of what that family catches — the pattern in the data where this family's detector crosses threshold. The intuition sentence is what you'd say if a skeptical engineer asks "what's Family X for?" without getting into the statistics.</p>
-    <p><strong>What unites the portfolio.</strong> Five families run in parallel every tick. Each applies a different mathematical approach to the metric stream. Any one firing triggers rollback. When multiple fire on the same event, you get multi-family corroboration — independent statistical tests agreeing.</p>
+    <p><strong>What unites the portfolio.</strong> Five families run in parallel every tick. Each applies a different mathematical approach to the metric stream. A fire from A, C or D triggers rollback; E is advisory, and B holds the canary (extends the bake) when a statistical family is compiled beside it. When multiple fire on the same event, you get multi-family corroboration — independent statistical tests agreeing.</p>
   </div>
 
   <!-- FAMILY A -->
@@ -456,7 +456,7 @@
         <h3>When it fires</h3>
         <p><span class="fire-bullet"></span>Specific architectural signatures: slowbleed (4+ of 9 metrics all drifting at same time), kv_saturation (specific kv_cache pressure + latency ramp pattern), refusal spikes, and others.</p>
         <h3>Why it exists</h3>
-        <p>The baseline knowledge that went into your legacy cascade engine before the project. Statistical families (A, C, D, E) add rigor on top; Family B is the expert-system layer that brought baseline coverage. <strong>Rule-based, no α-spent</strong> — Ville's budget doesn't apply because these are hand-tuned heuristics.</p>
+        <p>The baseline knowledge that went into your legacy cascade engine before the project. Statistical families (A, C, D, E) add rigor on top; Family B is the expert-system layer that brought baseline coverage. <strong>Rule-based, no α-spent</strong> — Ville's budget doesn't apply because these are hand-tuned heuristics. Because the rules carry no stated false-rollback rate, a Family B fire holds the canary and does not roll back when a statistical family is compiled beside it (<code>FAMILY_B_AUTHORITY</code>, 2026-09-28); with no statistical family compiled, it still rolls back.</p>
         <div class="demo-ref">Exercised in: <strong>Demo 3</strong> — slowbleed fires at tick 5 on the GitHub 2020 Redis cascade reconstruction. It's the first family to catch, anchoring the decision before A/C/E corroborate.</div>
       </div>
     </div>
