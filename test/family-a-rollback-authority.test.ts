@@ -41,6 +41,10 @@ import { loadProfile, resolveEffectiveConfig, validateAgainstSchema } from '../t
 import { profileSchema } from '../tools/_profile-loader-schema';
 import { effectiveOrDefaults } from '../tools/calibrators/effective-config';
 import { GateSessionRuntime } from '../service/gate-http/_gate-session-runtime';
+import { summarizeFamilies } from '../dist/engine/_orchestrator-lifecycle';
+import { FAMILY_A_PRIMARY_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/_page-cusum-core';
+import type { TestContext } from 'node:test';
+import * as yaml from 'js-yaml';
 import { SessionStore } from '../service/session/session-store';
 import { JsonlLifecycleEventEmitter } from '../service/session/jsonl-lifecycle-emitter';
 import { loadCfg, cellSeries, scenarioBaseline, FLAGS, POLICY_CTX } from './_c64-fixture';
@@ -331,7 +335,8 @@ test('(d) schema: family_a_rollback_signals is an optional array of unique non-e
   const p = loadProfile('generic-microservice@1.0.0');
   const ok = (v: unknown) => validateAgainstSchema({ ...p, family_a_rollback_signals: v }, profileSchema()).valid;
   assert.equal(ok(['p99_latency']), true);
-  assert.equal(ok([]), true);
+  assert.equal(f.minItems, 1);
+  assert.equal(ok([]), false, 'an empty list means nothing; omit the field');
   assert.equal(ok(['p99_latency', 'p99_latency']), false, 'duplicates');
   assert.equal(ok(['']), false, 'empty string');
   assert.equal(ok([3]), false, 'non-string');
@@ -367,7 +372,8 @@ test('(d) compile: effectiveOrDefaults passes family_a_rollback_signals through,
 
 test('(d) no shipped profile declares family_a_rollback_signals or monitors a signal outside the six', () => {
   const dir = path.resolve(__dirname, '..', 'profiles');
-  const six = new Set(['p99_latency', 'ttft', 'eval_score', 'tool_success_rate', 'downstream_err', 'cost_req']);
+  const six = new Set<string>(FAMILY_A_PRIMARY_SIGNALS);
+  assert.equal(six.size, 6);
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.yaml'))) {
     const id = f.replace(/\.yaml$/, '');
     const text = fs.readFileSync(path.join(dir, f), 'utf8');
@@ -392,4 +398,47 @@ test('dormancy: the DORMANCY.md entry is present, and while dormant the rule is 
   assert.match(body, /^-\s*activation_mechanism:\s*.*family_a_rollback_signals/m);
   assert.match(body, /^-\s*last_reviewed_ts:\s*2026-09-27/m);
   if (status === 'dormant') assert.equal(FAMILY_A_ROLLBACK_AUTHORITY, 'authorized_signals_only');
+});
+
+// ── fix round 1 ─────────────────────────────────────────────────────
+
+/** Serve a virtual base profile (generic-microservice plus `extra`) through a per-test fs mock, the
+ *  test/profile-sli-list-validation.test.ts pattern: nothing invalid is written to profiles/. */
+function serveVirtualProfile(t: TestContext, id: string, extra: Record<string, unknown>): void {
+  const base = yaml.load(fs.readFileSync(
+    path.resolve(__dirname, '..', 'profiles', 'generic-microservice.yaml'), 'utf8')) as Record<string, unknown>;
+  const text = yaml.dump({ ...base, id, ...extra });
+  const suffix = path.join('profiles', `${id}.yaml`);
+  const nodeFs = require('node:fs') as typeof fs;
+  const realExists = nodeFs.existsSync;
+  const realRead = nodeFs.readFileSync;
+  t.mock.method(nodeFs, 'existsSync', (p: fs.PathLike) => String(p).endsWith(suffix) || realExists(p));
+  t.mock.method(nodeFs, 'readFileSync', ((p: fs.PathOrFileDescriptor, o?: unknown) =>
+    String(p).endsWith(suffix) ? text : (realRead as (a: unknown, b?: unknown) => unknown)(p, o)) as typeof fs.readFileSync);
+}
+
+test('(d) loadProfile: a base profile listing a family_a_rollback_signals entry outside sli_list is rejected at load', (t) => {
+  serveVirtualProfile(t, 'virtual-rollback-outside', { family_a_rollback_signals: [CUSTOM] });
+  assert.throws(() => loadProfile('virtual-rollback-outside@1.0.0'),
+    /resolved profile "virtual-rollback-outside" family_a_rollback_signals names "http_5xx_rate", which sli_list does not/);
+});
+
+test('(d) loadProfile: the same virtual profile loads when sli_list carries the signal (the mock is not what rejects)', (t) => {
+  serveVirtualProfile(t, 'virtual-rollback-inside', { sli_list: [P99, H5XX], family_a_rollback_signals: [CUSTOM] });
+  assert.deepEqual(loadProfile('virtual-rollback-inside@1.0.0').family_a_rollback_signals, [CUSTOM]);
+});
+
+test('lifecycle: summarizeFamilies does not report Family A as fire on an advisory-only tick', () => {
+  const v = (signal: string, verdict: 'fire' | 'clean', reason_code: string, alpha_spent = 0) => ({
+    verdict, statistic: 1, threshold: 1, alpha_consumed: alpha_spent, alpha_spent, reason_code, family: 'A' as const, signal,
+  });
+  const hr = { ...emptyHealth(), family_A_shadow: [
+    v(CUSTOM, 'fire', FAMILY_A_UNAUTHORIZED_ADVISORY_REASON),
+    v('p99_latency', 'fire', FAMILY_A_PLUGIN_ADVISORY_REASON),
+    v('ttft', 'clean', 'accumulating'),
+  ] } as unknown as HealthResult;
+  assert.deepEqual(summarizeFamilies(hr).A, { verdict: 'clean', alpha_spent: 0 });
+  // An authorized fire still reports fire.
+  const withReal = { ...hr, family_A_shadow: [...hr.family_A_shadow!, v('ttft', 'fire', 'threshold_crossed', 1e-5)] } as HealthResult;
+  assert.equal(summarizeFamilies(withReal).A.verdict, 'fire');
 });

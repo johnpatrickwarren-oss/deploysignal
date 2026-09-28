@@ -142,9 +142,9 @@ One per family per tick. Families that weren't evaluated (pre-min-ticks, pre-cel
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `verdict` | `"fire" \| "indeterminate" \| "clean" \| "suppressed"` | Family-level verdict. |
+| `verdict` | `"fire" \| "indeterminate" \| "clean" \| "suppressed"` | Family-level verdict. For Family A, `"fire"` can be advisory-only: read `advisory_fires`, and treat the tick as a Family A rollback only if a fire is absent from it (the fused verdict's `firing_families` is authoritative). |
 | `detectors` | `array<DetectorTrip>` | Which specific detectors within this family produced verdicts (empty on `clean`, may contain multiple on `fire`). |
-| `alpha_spent` | `number` | 0 if family didn't fire; `α_family / N_detectors_bonferroni` if any detector in the family fired. Ville-inequality-consistent. |
+| `alpha_spent` | `number` | 0 if family didn't fire; `α_family / N_detectors_bonferroni` if any detector in the family fired. Ville-inequality-consistent. Advisory Family A fires (see `advisory_fires`) book 0, so a family whose only fires are advisory reports 0. |
 | `suppression_reason` | `string \| null` | If `verdict = "suppressed"`, one of `"bake_profile"`, `"cell_confidence_none"`, `"schema_continuity_breaking"`, `"observability_stack_deploy"`, `"structural_mismatch"`. Null otherwise. |
 | `advisory_fires` | `array<{signal, reason_code}>` (optional) | Family A only; present only when non-empty. The advisory Family A plug-in fires this tick and why each is advisory: `"advisory_valid_path_routed"` (C64 b) or `"advisory_signal_not_rollback_authorized"` (`FAMILY_A_ROLLBACK_AUTHORITY`, `engine/guarantees.ts`: a signal outside the six defaults, not routed to the valid path and not in the profile's `family_a_rollback_signals`). None reached `rollback[]` or spent α. A custom signal has no registry `detector_id`, so this is the only place its fire appears; `verdict` still reads `"fire"` for an advisory-only fire, as it did for C64 (b). |
 

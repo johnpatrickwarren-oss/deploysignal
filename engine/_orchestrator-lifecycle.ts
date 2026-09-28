@@ -7,9 +7,10 @@ import type {
   LifecycleEventEmitter, LifecycleDeployState,
 } from './o0/lifecycle-events';
 import type {
-  OrchestrateParams, VerdictResult, HealthResult, FamilyId,
+  OrchestrateParams, VerdictResult, HealthResult, FamilyId, DetectorVerdict,
   AuditRecord, AuditRecordV2,
 } from './types';
+import { isAdvisoryPluginFire } from './_verdict-advisory';
 
 // Emits the per-tick lifecycle sequence in the canonical order:
 //   started (tick 0 only) → tick → suppressed (on transitions) → finished (terminal).
@@ -167,15 +168,19 @@ export function isTerminal(result: VerdictResult, tick: number, total: number): 
   return tick >= total - 1;
 }
 
+/** Family A's summary entry. An advisory plug-in fire (C64 b, or FAMILY_A_ROLLBACK_AUTHORITY) is
+ *  not a Family A fire — the same exclusion as engine/verdict.ts anyFire. */
+function summarizeFamilyA(shadow: DetectorVerdict[]): { verdict: string; alpha_spent: number } {
+  const anyFire = shadow.some((v) => v.verdict === 'fire' && !isAdvisoryPluginFire(v));
+  const allSupp = shadow.every((v) => v.verdict === 'suppressed');
+  const alpha = shadow.reduce((s, v) => s + v.alpha_spent, 0);
+  return { verdict: anyFire ? 'fire' : allSupp ? 'suppressed' : 'clean', alpha_spent: alpha };
+}
+
 export function summarizeFamilies(hr: HealthResult | null): Record<string, { verdict: string; alpha_spent: number }> {
   const out: Record<string, { verdict: string; alpha_spent: number }> = {};
   if (!hr) return out;
-  if (hr.family_A_shadow && hr.family_A_shadow.length > 0) {
-    const anyFire = hr.family_A_shadow.some((v) => v.verdict === 'fire');
-    const allSupp = hr.family_A_shadow.every((v) => v.verdict === 'suppressed');
-    const alpha = hr.family_A_shadow.reduce((s, v) => s + v.alpha_spent, 0);
-    out.A = { verdict: anyFire ? 'fire' : allSupp ? 'suppressed' : 'clean', alpha_spent: alpha };
-  }
+  if (hr.family_A_shadow && hr.family_A_shadow.length > 0) out.A = summarizeFamilyA(hr.family_A_shadow);
   if (hr.family_C_verdict) {
     out.C = { verdict: hr.family_C_verdict.verdict, alpha_spent: hr.family_C_verdict.alpha_spent };
   }

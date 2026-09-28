@@ -137,8 +137,10 @@ export const FAMILY_A_PLUGIN_ADVISORY_REASON = 'advisory_valid_path_routed';
  *  `validUnderEstimatedBaseline: false` (engine detectors/validity-envelope.ts, the betting and
  *  mixture envelopes). While this is 'authorized_signals_only' a plug-in fire reaches rollback[]
  *  and firing_families only when `familyARollbackAuthorized` holds for its signal:
- *    (i)   one of the engine's six defaults (FAMILY_A_PRIMARY_SIGNALS) — the pre-v0.12.1 set, so
- *          shipped profiles (all six-signal subsets) are unchanged;
+ *    (i)   one of the engine's six defaults (FAMILY_A_PRIMARY_SIGNALS) — GRANDFATHERED, not valid:
+ *          they carry the same plug-in envelope (`validUnderEstimatedBaseline: false`) and keep
+ *          the authority they had before v0.12.1, so shipped profiles (all six-signal subsets)
+ *          are unchanged;
  *    (ii)  routed through the valid path (`OrchestrateParams.validPath` calibration) — there the
  *          plug-ins are already C64 (b) advisory and the terminal safe-t fire decides;
  *    (iii) listed in the profile's `family_a_rollback_signals` — an operator decision that accepts
@@ -146,6 +148,9 @@ export const FAMILY_A_PLUGIN_ADVISORY_REASON = 'advisory_valid_path_routed';
  *  Any other plug-in fire is ADVISORY: recorded (evidence_outlook, `families.A.advisory_fires` in
  *  the audit record) with reason_code FAMILY_A_UNAUTHORIZED_ADVISORY_REASON and `alpha_spent: 0`,
  *  never on rollback[] or firing_families, so it never fails a rollout or changes the verdict.
+ *  The advisory fire's α is dropped, not reallocated: the Bonferroni split (bonferroni_factor,
+ *  the sli_list length) still counts the unauthorized signal, so the authorized signals run at a
+ *  smaller per-signal α than they would without it. That is conservative.
  *  Reversal: an engine envelope that admits the plug-ins under an estimated baseline. */
 export const FAMILY_A_ROLLBACK_AUTHORITY: 'authorized_signals_only' | 'any_configured_signal' = 'authorized_signals_only';
 
