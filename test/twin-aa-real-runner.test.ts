@@ -17,6 +17,7 @@ const T0 = Date.UTC(2026, 9, 5, 12, 0, 0); // a minute boundary
 
 const CFG = {
   study_id: '2026-10-twin-aa-real',
+  alb_idle_timeout_s: 60,
   lane: 0,
   region: 'eu-west-1',
   load_balancer: 'app/t3-alb/50dc6c495c0c9188',
@@ -29,7 +30,7 @@ interface Tick { rc: [number, number]; e5: [number, number]; p99: [number[], num
 const DEFAULT_TICK: Tick = { rc: [1200, 1190], e5: [6, 5], p99: [[0.41], [0.40]] };
 
 /** A CloudWatchLike whose answer depends on the window; `fail(windowStartMs)` throws for that window. */
-function fakeCloudWatch(opts: { tick?: (ws: number) => Tick; fail?: (ws: number) => boolean; failName?: string; status?: (ws: number) => string | undefined; healthFail?: boolean } = {}) {
+function fakeCloudWatch(opts: { tick?: (ws: number) => Tick; fail?: (ws: number) => boolean; failName?: string; status?: (ws: number) => string | undefined; healthFail?: boolean; diag?: Record<string, number[]> } = {}) {
   const sent: any[] = [];
   const client = {
     async send(cmd: any): Promise<any> {
@@ -39,7 +40,13 @@ function fakeCloudWatch(opts: { tick?: (ws: number) => Tick; fail?: (ws: number)
       const ids: string[] = input.MetricDataQueries.map((q: any) => q.Id);
       if (ids.some((id) => id.startsWith('hh_'))) {
         if (opts.healthFail) throw new Error('health throttled');
-        return { $metadata: {}, MetricDataResults: ids.map((Id) => ({ Id, StatusCode: 'Complete', Values: [Id.startsWith('hh_') ? 4 : 0] })) };
+        const d: Record<string, number[]> = {
+          hh_canary: [4], hh_control: [4], uh_canary: [0], uh_control: [0],
+          mx_canary: [0.9], mx_control: [0.8], pq_canary: [0.41], pq_control: [0.40],
+          t5_canary: [6], t5_control: [5], ce_canary: [], ce_control: [1], elb5_lb: [2], elb504_lb: [],
+          ...(opts.diag ?? {}),
+        };
+        return { $metadata: {}, MetricDataResults: ids.map((Id) => ({ Id, StatusCode: 'Complete', Values: d[Id] ?? [] })) };
       }
       if (opts.fail?.(ws)) { const e = new Error(opts.failName ?? 'ThrottlingException: Rate exceeded'); e.name = opts.failName ?? 'ThrottlingException'; throw e; }
       const st = opts.status?.(ws);
@@ -133,6 +140,53 @@ test('validateConfig: the example config is refused on its placeholders; a fille
   assert.throws(() => validateConfig({ ...CFG, study_id: 'other' }), /study_id/);
 });
 
+test('validateConfig requires the ALB idle timeout (Amendment 2 (a)) and the run record carries it', async () => {
+  const { validateConfig } = await load();
+  const { alb_idle_timeout_s: _drop, ...noTimeout } = CFG;
+  assert.throws(() => validateConfig(noTimeout), /alb_idle_timeout_s/);
+  assert.throws(() => validateConfig({ ...CFG, alb_idle_timeout_s: 0 }), /alb_idle_timeout_s/);
+  assert.throws(() => validateConfig({ ...CFG, alb_idle_timeout_s: 4001 }), /alb_idle_timeout_s/);
+  assert.throws(() => validateConfig({ ...CFG, alb_idle_timeout_s: 1.5 }), /alb_idle_timeout_s/);
+  const { record } = await run();
+  assert.equal(record.alb_idle_timeout_s, 60);
+});
+
+test('stall-burst measurements (Amendment 2 (a)): per arm TargetResponseTime Maximum and p99, target 5xx and connection errors; per LB ELB 5xx and 504', async () => {
+  const { record, cw } = await run();
+  const dcmd = cw.sent.find((c: any) => c.input.MetricDataQueries.some((q: any) => q.Id === 'mx_canary'));
+  assert.ok(dcmd, 'one diagnostics call per window carries the latency statistics');
+  const q = Object.fromEntries(dcmd.input.MetricDataQueries.map((m: any) => [m.Id, m.MetricStat]));
+  const armDims = (arm: 'canary' | 'control') => [{ Name: 'TargetGroup', Value: CFG.target_groups[arm] }, { Name: 'LoadBalancer', Value: CFG.load_balancer }];
+  for (const arm of ['canary', 'control'] as const) {
+    assert.deepEqual([q[`mx_${arm}`].Metric.MetricName, q[`mx_${arm}`].Stat], ['TargetResponseTime', 'Maximum']);
+    assert.deepEqual([q[`pq_${arm}`].Metric.MetricName, q[`pq_${arm}`].Stat], ['TargetResponseTime', 'p99']);
+    assert.deepEqual([q[`t5_${arm}`].Metric.MetricName, q[`t5_${arm}`].Stat], ['HTTPCode_Target_5XX_Count', 'Sum']);
+    assert.deepEqual([q[`ce_${arm}`].Metric.MetricName, q[`ce_${arm}`].Stat], ['TargetConnectionErrorCount', 'Sum']);
+    for (const id of ['mx', 'pq', 't5', 'ce', 'hh', 'uh']) assert.deepEqual(q[`${id}_${arm}`].Metric.Dimensions, armDims(arm), `${id}_${arm}`);
+    assert.equal(q[`mx_${arm}`].Period, 60);
+  }
+  assert.deepEqual([q.elb5_lb.Metric.MetricName, q.elb5_lb.Stat], ['HTTPCode_ELB_5XX_Count', 'Sum']);
+  assert.deepEqual([q.elb504_lb.Metric.MetricName, q.elb504_lb.Stat], ['HTTPCode_ELB_504_Count', 'Sum']);
+  assert.deepEqual(q.elb5_lb.Metric.Dimensions, [{ Name: 'LoadBalancer', Value: CFG.load_balancer }]);
+  assert.deepEqual(record.windows[0].stall, {
+    max_latency_s: { canary: 0.9, control: 0.8 },
+    p99_latency_s: { canary: 0.41, control: 0.40 },
+    target_5xx: { canary: 6, control: 5 },
+    connection_errors: { canary: 0, control: 1 },
+    elb_5xx_lb: 2,
+    elb_504_lb: 0,
+  });
+  const raw = Object.fromEntries(record.windows[0].diagnostics_raw.MetricDataResults.map((r: any) => [r.Id, r.Values]));
+  assert.deepEqual(raw.ce_canary, [], 'the raw empty count series is kept beside the transformed 0');
+});
+
+test('an absent latency datapoint is null, not zero; absent counts are zero (Amendment 2 (a))', async () => {
+  const { record } = await run({}, fakeCloudWatch({ diag: { mx_canary: [], pq_control: [], t5_canary: [] } }));
+  assert.equal(record.windows[0].stall.max_latency_s.canary, null);
+  assert.equal(record.windows[0].stall.p99_latency_s.control, null);
+  assert.equal(record.windows[0].stall.target_5xx.canary, 0);
+});
+
 test('the example config holds placeholders only: no ARN, account id or real dimension value', async () => {
   const raw = fs.readFileSync(path.join(STUDY, 'config.example.json'), 'utf8');
   assert.doesNotMatch(raw, /arn:aws/);
@@ -202,6 +256,7 @@ test('health metrics are fetched per window (HealthyHostCount Minimum, UnHealthy
   const failing = await run({}, fakeCloudWatch({ healthFail: true }));
   assert.equal(failing.record.complete, true);
   assert.match(failing.record.windows[0].health.error, /health throttled/);
+  assert.match(failing.record.windows[0].stall.error, /health throttled/);
   const { voidReasons } = await load();
   assert.deepEqual(voidReasons(failing.record), []);
 });
