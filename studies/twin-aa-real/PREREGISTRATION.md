@@ -444,3 +444,62 @@ OPERATOR.md are changed after this commit, to match it.
   checkout as the runner, after the build, and the operator records its start time and the commit;
   the runner records the gate's `/healthz` body. The gate's commit is operator-attested, not
   verified.
+
+## Amendment 2 — 2026-09-27, before run 0 (stall bursts)
+
+Written after Amendment 1 and before any run, AWS resource or data. It adds measurements and a
+report-only analysis; it changes no bar, endpoint, void rule or prediction.
+
+**The finding.** In study `2026-09-twin-aa-local` run 1 (`results/run-20260927T050717Z/`, cell
+`AB-rate-x2`, run 20, tick 13), the host slept for about 899 s (the tick's p99 on both arms is
+898 676 ms and 898 676 ms). At wake the router's overdue timeouts fired as a batch, and a request
+survived only if its arm's response reached the router first. The tick's upstream errors split
+49 canary and 4 control, against 256 and 244 requests (`cell-AB-rate-x2.json`, fields `uc`, `uk`,
+`nc`, `nk`; the split's z is 6.01, Amendment 1 (d) of that study). The coordinator's review
+(item 4, 2026-09-27) puts the requests in flight at the stall at 65 canary and 63 control; the
+recorded data holds per-tick totals, not in-flight counts, so that figure is not checked here.
+The rate statistic read the burst as 53 independent events: that run's `http_5xx` rollback e-value
+went from 3.61 at tick 12 to 4.96 at tick 13 (the tick responses' `m` field).
+
+A pause in shared infrastructure (a load balancer or proxy node's GC pause, CPU throttling, a VM
+live migration) can do the same on a real service: one common cause, many correlated errors,
+split unevenly between the arms by timing. That is a premise boundary for the `rate` kind. ADR
+0036's rollback null treats bad events within an arm-tick as draws allocated between the arms at
+random given the totals; a correlated burst allocated by a timing race is outside it.
+
+- **(a) Per-tick measurements.** Each window's record gains, per arm (target group), from one
+  extra `GetMetricData` call on the same client:
+  - `TargetResponseTime` **Maximum** and **p99** (seconds);
+  - `HTTPCode_Target_5XX_Count` Sum (already in the tick body as the rate observation's events,
+    and recorded again here from the raw response);
+  - `TargetConnectionErrorCount` Sum: connections from the ALB to the arm's targets that failed.
+    It is the nearest per-target-group equivalent of T2's upstream errors.
+
+  Per load balancer only, since ALB does not publish them per target group:
+  `HTTPCode_ELB_5XX_Count` and `HTTPCode_ELB_504_Count` Sum. Requests the ALB times out or cannot
+  forward (ELB 502/504) cannot be assigned to an arm from CloudWatch; §0 (d)2 already names that
+  gap. The per-load-balancer counts include `prod-old`'s traffic.
+
+  An absent datapoint is recorded as `null`, not zero, except for the count metrics, which ALB does
+  not publish when zero; those are recorded as the raw empty series beside the transformed value.
+
+  The operator records the ALB's idle timeout (`idle_timeout.timeout_seconds`, default 60 s) and,
+  for a load generator, its client timeout, before run 0 (§8). The runner's config carries the
+  idle timeout so each run file holds it.
+- **(b) Report-only stall-burst analysis** (no bar, no verdict, no effect on any endpoint or void
+  rule). A **stall tick** is a scored or W0 tick in which either arm's `TargetResponseTime`
+  Maximum is at least half the recorded idle timeout, or the load balancer's
+  `HTTPCode_ELB_504_Count` is above 0. Half the timeout, not the full timeout, because a request
+  the ALB times out is answered with a 504 and may not reach `TargetResponseTime` at all. For each
+  stall tick the report lists: run, lane, tick; both arms' Maximum and p99; both arms' target 5xx
+  and connection-error counts; the ELB 5xx and 504 counts; the canary's share of the tick's target
+  5xx against its traffic share, with z = (canary 5xx − E·s) / √(E·s·(1 − s)) for E the tick's
+  target 5xx total and s the canary's request share (not defined for E = 0); and the tick's
+  contribution to the `http_5xx` rollback e-value, ln(rollback_e at the tick / rollback_e at the
+  previous tick) from the gate responses. For every AA run that rolled back (E2's count), the
+  report states whether its crossing tick, or the tick before it, was a stall tick.
+- **(c) Stall bursts count.** A false rollback driven by a stall burst **counts** under E1 and E2
+  like any other. A stall is not a void condition (V1–V7 are unchanged): a pause in shared
+  infrastructure is part of the real environment an authority ADR would face. The analysis in (b)
+  attributes a rollback to a stall; it never excuses one, never removes a run, and never changes a
+  verdict.
