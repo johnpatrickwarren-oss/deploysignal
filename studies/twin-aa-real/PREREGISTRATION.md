@@ -379,3 +379,68 @@ own A/A at that split); Prometheus sources; the Argo Rollouts experiment path; t
 `AfterAllowTraffic` hook; ELB-generated 5xx; services other than the one provided; bakes longer
 than 60 ticks; tick lengths other than 60 s; and any false-rollback rate at a resolution finer than
 §5 states.
+
+## Amendment 1 — 2026-09-27, before run 0
+
+Written after a review of PR #115 and before any run, any AWS resource, or any data. Nothing has
+been measured. Where this amendment and §§0–10 differ, this amendment governs. The runner and
+OPERATOR.md are changed after this commit, to match it.
+
+- **(a) E2 counts every rollback and every abort.** E2 replaces §5's wording: the count is the
+  rollbacks among executable AA runs, plus every void AA run in which **either** session (scored
+  or W0) reached `rollback` at any tick, whatever its timing relative to the void, plus every AA
+  run the operator aborted (§7 "Abort", OPERATOR.md), each counted as a rollback. Pass: at most 10.
+  A run is counted once however many of these apply.
+- **(b) Weights between runs; V7 covers only the run.** R6's "unchanged for the whole study"
+  is replaced: between runs the operator may set the `baseline-old` and `canary-new` weights to 0,
+  or register the new targets before deregistering the old ones, so that live traffic never
+  reaches an empty target group. During a run (arm-ready to the runner's exit) the weights are
+  equal and unchanged. Every weight change is recorded in the per-run record (§8) with its time
+  and the CloudTrail event id. V7 voids a change to the listener rule, the weights, stickiness or
+  target-group attributes only when it falls inside a run.
+- **(c) Routing rules and lanes.** R6's "no listener rule routes by header, path, source or cookie
+  to either arm" is replaced by "no listener rule routes to one arm and not the other". Lanes
+  (§4) stay allowed, with a disclosure: parallel lanes share time, the region, the service's
+  dependencies and possibly the load balancer, so runs in different lanes that overlap in time are
+  not independent, and a shared cause can produce rollbacks in several at once. Report-only
+  addition to §5: the rollbacks (E2's count) grouped by run start time, with the number of pairs
+  of rollback runs that overlap in time against the number expected if rollbacks fell on runs at
+  random (a permutation over the executed runs' start times, 10 000 draws, seed 20260926). All
+  lanes run from one host and write to one results directory; the run index is checked globally,
+  across lanes: a (cell, run index) already recorded in any lane is refused.
+- **(d) Replay wording.** §3.3's deployed-configuration replay reads: at each tick, in order, the
+  sample-ratio test (`srm_e ≥ 1000`, halt), then rollback (any metric's `rollback_e ≥
+  rollback_threshold`), then proceed (every metric's `proceed_e ≥ 20`); the first tick at which one
+  of these holds gives the verdict, and the order within a tick is that of the engine's `decide()`
+  (`per-shard/twin-gate.ts:159-167` at v0.12.1-pre).
+- **(e) V3 made exact.** V3 replaces §7's wording: a window is void (a) on its first
+  authorization failure, without retry (an SDK error named `AccessDeniedException`,
+  `AccessDenied`, `UnrecognizedClientException`, `InvalidClientTokenId`, `ExpiredTokenException`
+  or `ExpiredToken`, or a query result with status `Forbidden`); or (b) when three attempts, 20 s
+  apart, all fail with any other error (throttling, a timeout, a service 5xx, a query status
+  `InternalError`). A window that succeeds on a retry is kept, and its attempts are recorded.
+- **(f) Authority is a study-level flag.** A gate tick response with an authority other than
+  `"advisory"` stops the run, is recorded as a distinct `authority` flag (not a V5 runner error),
+  and makes the study NOT EXECUTABLE (§7), for every run from that one on.
+- **(g) Operator discretion bounded.**
+  1. The runner starts no later than 300 s after arm-ready. The operator passes arm-ready to the
+     runner, which refuses a value more than 300 s in the past or more than 60 s in the future and
+     records it. Window 0 is the first minute boundary after the runner starts.
+  2. AB-5xx: the flag's 503 fraction is fixed and recorded before the first AB-5xx run, from the
+     executable AA runs' pooled target 5xx rate (the fraction equals that rate, rounded to 4
+     decimal places). It does not change within the cell.
+  3. Each optional AB cell stops at 30 attempts (deploy failures included). Fewer than 20
+     executable runs at that point makes the cell NOT EXECUTABLE; it is reported and not scored.
+- **(h) Output is append-only.** §3.4 and §8 are made exact. Per run the runner creates, each with
+  exclusive create (no file is ever rewritten): `<cell>-l<lane>-r<run>-<UTC>.jsonl`, one header
+  line and then one line appended per window, holding the raw `GetMetricData` responses beside
+  the transformed tick body and both sessions' responses; and `<…>.summary.json`, written once at
+  exit or on SIGINT. During a run the runner prints progress (the window count) only; verdicts go
+  only to the files, so the operator's records under (b) and V7 are made without seeing them.
+- **(i) Code provenance.** The runner refuses to start if the git tree has a modified tracked file,
+  except `tools/calibrate/_calibrate-constants.js`, which the build regenerates from its `.ts`
+  source on every compile; its diff hash is recorded. The gate's build cannot be checked from the
+  runner: `/healthz` reports no commit. R8 therefore adds: the gate is started from the same
+  checkout as the runner, after the build, and the operator records its start time and the commit;
+  the runner records the gate's `/healthz` body. The gate's commit is operator-attested, not
+  verified.
