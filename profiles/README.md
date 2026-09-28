@@ -46,8 +46,8 @@ Family A's detection effect size. The compiler derives that itself, per signal, 
 Decision (2026-09-27): the compiler keeps its own effect-size rule. Having the compiler honor a
 profile's `δ_min` for Family A detection was considered and not taken — it would change every
 compiled config's output (see `test/profile-streaming-byte-identity.test.ts`), and that shift needs
-its own registered validation study first. A larger restructuring of the two effect-size paths was
-also considered and not taken.
+its own registered validation study first. Taking the larger of the compiler's value and the
+profile's `δ_min` was also considered and not taken.
 
 ## Custom Family A signals and rollback authority
 
