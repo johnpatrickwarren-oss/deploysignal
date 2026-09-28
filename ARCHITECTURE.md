@@ -117,6 +117,11 @@ A facade over two detection surfaces evaluated against the `PolicyContext`:
   `hbm_spill_roll`, `collective`, `capacity`, `gpu_eff`, plus the per-signal
   ratio checks and flag-based signals. These are the direct descendants of
   the heuristic-era detectors (see § Historical) and are non-α-consuming.
+  Authority (`FAMILY_B_AUTHORITY`, `engine/gates/_health-structural.ts`): beside a
+  compiled statistical family (A, C or D) a rule fire holds the canary (extend) and
+  never rolls back; `structural_detectors.enabled: false` runs no rule; the
+  no-config path and a B-only compiled config keep rollback. The flag-based
+  policy gates (`POLICY_GATE_IDS`) are not Family B and keep their effect.
 - **Families A/C/D/E — statistical dispatch**
   (`engine/gates/_health-detectors.ts` → `engine/detectors/`): per-signal
   mixture-supermartingale Page-CUSUM + betting e-process (A), Hotelling T² +

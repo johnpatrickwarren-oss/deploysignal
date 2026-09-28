@@ -547,18 +547,17 @@
   ],
   "expected_outcome": {
     "verdict": "rollback",
-    "portfolio_first_fire_tick": 5,
-    "portfolio_first_rollback_tick": 5,
+    "portfolio_first_fire_tick": 7,
+    "portfolio_first_rollback_tick": 7,
     "cascade_first_rollback_tick": 5,
-    "timing_delta_ticks": 0,
+    "timing_delta_ticks": 2,
     "first_families": [
-      "B",
       "A",
       "C",
       "E"
     ],
     "alpha_total_max": 0.001,
-    "divergence_from_spec": "Both engines fire at t=5 via Family B slowbleed (no timing delta). Portfolio multi-family catch (B+A+C+E) by t=8 still distinguishable. Provenance/α-budget pitch beats unaffected.",
+    "divergence_from_spec": "FAMILY_B_AUTHORITY (2026-09-27): Family B holds on a compiled profile and never rolls back. Cascade (no compiled config) still rolls back at t=5 via Family B slowbleed; portfolio (v4) rolls back at t=7 on Family A downstream_err, with C and E firing by t=8 — a 2-tick delay against cascade. Provenance/α-budget pitch beats unaffected.",
     "min_compiler_version": "0.3.0",
     "per_variant": {
       "spectral_bootstrap_null": {

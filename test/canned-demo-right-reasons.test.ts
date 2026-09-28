@@ -405,7 +405,7 @@ test('right-reasons §A2: demo-novelty portfolio fires at t=10 with first_famili
     `demo-novelty cascade: unexpected rollback at t=${casc.firstRollback}`);
 });
 
-test('right-reasons §A3: demo-github-2020 both modes roll back at t=5; portfolio first-fire family is B (slowbleed); first_families thru t=8 ⊇ {A,B,C,E}', () => {
+test('right-reasons §A3: demo-github-2020 cascade rolls back at t=5 (legacy Family B slowbleed), portfolio at t=7 with Family B holding only; first_families thru t=8 ⊇ {A,C,E}', () => {
   const d = CANNED['demo-github-2020'];
   const exp = d.expected_outcome;
   const cap = exp.alpha_total_max;
@@ -417,13 +417,10 @@ test('right-reasons §A3: demo-github-2020 both modes roll back at t=5; portfoli
   assert.equal(port.firstRollback, exp.portfolio_first_rollback_tick,
     `demo-github-2020 portfolio: first rollback t=${port.firstRollback}, expected t=${exp.portfolio_first_rollback_tick}`);
 
-  // Honest framing: Family B slowbleed is the first family to fire and
-  // also the rollback driver. The pitch lives or dies on this — if
-  // any other family beats B to t=5 the spec narrative breaks.
-  assert.equal(port.firstFireByFam.B, 5,
-    `demo-github-2020 portfolio: Family B should fire at t=5; got t=${port.firstFireByFam.B}`);
-  assert.ok(port.firstFireDetectorsByFam.B?.includes('slowbleed'),
-    `demo-github-2020 portfolio: expected Family B detector 'slowbleed' at t=5; got ${JSON.stringify(port.firstFireDetectorsByFam.B)}`);
+  // FAMILY_B_AUTHORITY (2026-09-27): on the compiled (portfolio) path Family B holds and never
+  // fires; the statistical families carry the rollback, 2 ticks after cascade's legacy slowbleed.
+  assert.equal(port.firstFireByFam.B, null,
+    `demo-github-2020 portfolio: Family B must not fire under a compiled profile; got t=${port.firstFireByFam.B}`);
 
   const firedByT8 = port.familiesFiredThru(8);
   for (const fam of (exp.first_families as FamilyId[])) {
@@ -694,12 +691,14 @@ test('right-reasons §C3: adv_slow_downstream portfolio fires via Family A mSPRT
 //      flip to `todo`-passing and the §C tests above can drop their todo.
 
 test('right-reasons §D: inline adversarials currently exhibit cell-baseline-mismatch artifact (regression lock)', () => {
-  // adv_slowbleed     — Family A fires before B (B is intended catcher)
+  // adv_slowbleed     — Family A fires (B was the intended catcher). Since FAMILY_B_AUTHORITY
+  // (2026-09-27) Family B holds on a compiled profile and never fires, so the lock keeps its
+  // Family A half: A (cell-mismatch CUSUM) still carries the rollback.
   const slow = INLINE_TRACES['adv_slowbleed'].portfolio;
-  assert.ok(slow.firstFireByFam.A !== null && slow.firstFireByFam.B !== null,
-    'adv_slowbleed portfolio: expected both A and B to fire');
-  assert.ok((slow.firstFireByFam.A as number) <= (slow.firstFireByFam.B as number),
-    `adv_slowbleed portfolio: artifact lock — Family A (cell-mismatch CUSUM) should fire at-or-before Family B (intended slowbleed). Today A=t${slow.firstFireByFam.A}, B=t${slow.firstFireByFam.B}. If this fails, architect's fix has landed → drop §C1 todo.`);
+  assert.ok(slow.firstFireByFam.A !== null,
+    `adv_slowbleed portfolio: artifact lock — expected Family A to fire. If this fails, architect's fix has landed → drop §C1 todo.`);
+  assert.equal(slow.firstFireByFam.B, null,
+    `adv_slowbleed portfolio: Family B must not fire under a compiled profile; got t${slow.firstFireByFam.B}`);
 
   // adv_mfu_drop_no_lat_corr — Family A artifact fires before Family C.
   // Q72 SLICE 2 Phase 3.B: artifact-signal re-baselined post-RFF

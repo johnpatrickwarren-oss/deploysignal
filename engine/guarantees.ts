@@ -187,6 +187,22 @@ export const CONTRAST_ARM_AUTHORITY = 'advisory' as const;
  *  the Argo template runs the metric in dryRun. Reversal: a separate authority ADR after a
  *  registered real-service A/A run (engine plan D; DORMANCY.md). test/twin-authority.test.ts. */
 export const TWIN_ARM_AUTHORITY = 'advisory' as const;
+/** 2026-09-27 — Family B (the hand-tuned rules in engine/gates/_health-defs.ts; guarantee row
+ *  `heuristic_structural`, alphaPolicy none) holds a canary and never rolls one back on a compiled
+ *  profile: a rollback-rule fire is routed to extend[] and `family_B_holds`
+ *  (engine/gates/_health-structural.ts). A profile with `structural_detectors.enabled: false`
+ *  compiles without `family_B` and runs none of the rules; before this change the flag dropped only
+ *  the cutoffs and every rule still ran with rollback authority. Hold-only applies when a
+ *  statistical family (A, C or D) is compiled beside `family_B`; the no-compiled-config path and a
+ *  B-only compiled config keep the rules' rollback effect, since nothing else there detects. On the
+ *  131-scenario corpus under the v4 config (A–E) TP is 131/131 before and after; B's 6 first fires
+ *  move to A (1), C (3), D (2) — test/w4-full-sweep.test.ts. Reversal: a registered
+ *  study giving a rule a false-rollback rate under a declared null. */
+export const FAMILY_B_AUTHORITY = 'hold_only' as const;
+/** Policy gates: deploy-time facts on `flags`, not detectors. They keep their rollback (security,
+ *  artifact, provenance, contract) or extend (toolchain) effect whatever FAMILY_B_AUTHORITY says,
+ *  and fusion never counts them as Family B. The twin path runs none of them (Plan B). */
+export const POLICY_GATE_IDS: ReadonlySet<string> = new Set(['security', 'artifact', 'provenance', 'contract', 'toolchain']);
 /** The ONE e-BH budget across pairs × signals (profile `control_arm.q` overrides). */
 export const CONTRAST_ARM_Q = 0.05;
 /** The fit-ratio floor (fit_ticks / total canary ticks) at which the gate asserts the engine's

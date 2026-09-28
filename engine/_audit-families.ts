@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { DETECTOR_REGISTRY } from './types';
 import { isAdvisoryPluginFire } from './_verdict-advisory';
+import { familyBHolds } from './gates/_health-structural';
 
 // ── v2 record construction helpers (W4 §4.1.h) ──────────────────────
 
@@ -229,9 +230,9 @@ function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerd
   if (advisory.length > 0) fa.advisory_fires = advisory;
 }
 
-// Family B — structural rule detectors from rollback[] (post-Family-A-promotion).
+// Family B — structural rule detectors from rollback[] (post-Family-A-promotion). A hold
+// (FAMILY_B_AUTHORITY: a compiled profile's rule fire, routed to extend[]) is `indeterminate`.
 function evalFamilyB(params: OrchestrateParams, hr: HealthResult, fb: FamilyVerdictV2): void {
-  if (hr.rollback.length === 0) return;
   for (const fired of hr.rollback) {
     const rid = resolveDetectorId(fired.id);
     if (!rid || rid.family_id !== 'B') continue;
@@ -239,6 +240,7 @@ function evalFamilyB(params: OrchestrateParams, hr: HealthResult, fb: FamilyVerd
     if (trip) fb.detectors.push(trip);
   }
   if (fb.detectors.length > 0) fb.verdict = 'fire';
+  else if (familyBHolds(hr).length > 0) fb.verdict = 'indeterminate';
 }
 
 // Addition #20 (REPLY-43b) — on safe-Hotelling fires, surface the

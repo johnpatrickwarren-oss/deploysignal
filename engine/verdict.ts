@@ -26,7 +26,8 @@ import type {
   FusedVerdict, HealthResult, DetectorVerdict, FiredSignal, EvidenceOutlookEntry,
   EvidenceSurface,
 } from './types';
-import { FAMILY_E_ADVISORY } from './guarantees';
+import { FAMILY_E_ADVISORY, POLICY_GATE_IDS } from './guarantees';
+import { familyBHolds } from './gates/_health-structural';
 import { eByEffectIntervals } from './_verdict-e-by';
 import { contrastArmReport } from './_verdict-contrast';
 import type { ApproximateEValueForm } from './guarantees';
@@ -50,12 +51,15 @@ function extractFamilyA(h: HealthResult): DetectorVerdict[] | null {
 }
 
 /** Partition rollback signals into Family A synthetic, Family C synthetic,
+ *  policy gates (POLICY_GATE_IDS — deploy-time facts, not a detector family),
  *  and pure Family B (rule-based structural rollbacks). Family A entries
  *  are identified by `id` prefix `family_A_`; Family C by exact id
  *  `family_C`. Everything else is Family B (rule detectors). */
-function partitionRollbacks(h: HealthResult): { familyB: FiredSignal[] } {
+function partitionRollbacks(h: HealthResult): { familyB: FiredSignal[]; policy: FiredSignal[] } {
   const familyB: FiredSignal[] = [];
+  const policy: FiredSignal[] = [];
   for (const s of h.rollback) {
+    if (POLICY_GATE_IDS.has(s.id)) { policy.push(s); continue; }
     if (s.id.startsWith('family_A_')) continue;
     if (s.id === 'family_C') continue;
     if (s.id === 'family_C_mmd') continue;   // Addition #18 second Family C detector
@@ -63,7 +67,7 @@ function partitionRollbacks(h: HealthResult): { familyB: FiredSignal[] } {
     if (s.id === 'family_E') continue;
     familyB.push(s);
   }
-  return { familyB };
+  return { familyB, policy };
 }
 
 /** Sum α_spent across a verdict collection. Undefined entries contribute 0. */
@@ -138,6 +142,7 @@ interface FamilyEvidenceRaw {
   approximate_e_value?: ApproximateEValueForm;
   /** C64 (b) — signals whose Family A plug-in fired advisory (routed to the valid path). */
   advisoryFiredSignals?: string[];
+  holdSignals?: string[];  // FAMILY_B_AUTHORITY — rules holding the canary (extend, never rollback)
   /** FAMILY_A_ROLLBACK_AUTHORITY — signals whose plug-in fired advisory (no rollback authority). */
   unauthorizedFiredSignals?: string[];
   firedSignals: string[];
@@ -439,14 +444,15 @@ function summarizeSignalFamily(id: FamilyLetter, vs: DetectorVerdict[]): FamilyE
  *  threshold, no suppression or indeterminate concept (see header
  *  comment: "Family B doesn't spend Ville budget"); binary
  *  fired-or-clean this tick. */
-function summarizeFamilyB(familyB: FiredSignal[]): FamilyEvidenceRaw {
+function summarizeFamilyB(familyB: FiredSignal[], holds: FiredSignal[]): FamilyEvidenceRaw {
   return {
     family_id: 'B',
-    state: familyB.length > 0 ? 'fired' : 'clean',
+    state: familyB.length > 0 ? 'fired' : holds.length > 0 ? 'accumulating' : 'clean',
     progress: null,
     progress_scale: null,
     firedSignals: familyB.map((s) => s.label),
     suppressionReason: null,
+    ...(familyB.length === 0 && holds.length > 0 ? { holdSignals: holds.map((s) => s.label) } : {}),
   };
 }
 
@@ -553,6 +559,7 @@ function renderNote(r: FamilyEvidenceRaw): string {
       ? `Family ${r.family_id} fired on ${r.firedSignals.join(', ')}`
       : `Family ${r.family_id} fired`) + advisoryPluginClause(r);
   }
+  if (r.holdSignals) return `Family B holding on ${r.holdSignals.join(', ')} (heuristic; extend, not a rollback trigger)`;
   if (r.state === 'accumulating') return renderAccumulatingNote(r) + advisoryPluginClause(r);
   if (r.state === 'suppressed') {
     return `${notePrefix(r)} suppressed (${r.suppressionReason ?? 'unknown'})`;
@@ -611,10 +618,11 @@ function advisoryClause(raw: FamilyEvidenceRaw[]): string {
 
 /** `rollback` rationale: which families fired, on which signals; a
  *  trailing clause names any concurrently-suppressed family. */
-function rationaleRollback(raw: FamilyEvidenceRaw[]): string {
+function rationaleRollback(raw: FamilyEvidenceRaw[], policyLabels: string[]): string {
   const fired = raw.filter((r) => r.state === 'fired' && !isAdvisoryFamily(r));
   const suppressed = raw.filter((r) => r.state === 'suppressed');
-  let s = `Rollback triggered: ${fired.map(renderNote).join('; ')}.`;
+  const gates = policyLabels.length > 0 ? [`policy gate(s): ${policyLabels.join(', ')}`] : [];
+  let s = `Rollback triggered: ${[...gates, ...fired.map(renderNote)].join('; ')}.`;
   if (suppressed.length > 0) s += ` ${suppressed.map(renderNote).join('; ')}.`;
   return s + advisoryClause(raw);
 }
@@ -659,8 +667,9 @@ function buildRationale(
   verdict: FusedVerdict['verdict'],
   raw: FamilyEvidenceRaw[],
   extendSignalLabels: string[],
+  policyLabels: string[],
 ): string {
-  if (verdict === 'rollback') return rationaleRollback(raw);
+  if (verdict === 'rollback') return rationaleRollback(raw, policyLabels);
   if (verdict === 'extend') return rationaleExtend(raw, extendSignalLabels);
   return rationaleSettled(verdict, raw);
 }
@@ -676,7 +685,8 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
     ? health.family_D_shadow : [];
   const famDInjected = opts.familyD ?? null;
   const famE = health.family_E_verdict ?? opts.familyE ?? null;
-  const { familyB } = partitionRollbacks(health);
+  const { familyB, policy } = partitionRollbacks(health);
+  const holds = familyBHolds(health);
 
   const firing: FusedVerdict['firing_families'] = [];
 
@@ -724,7 +734,7 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
     famE?.verdict === 'indeterminate';
 
   let verdict: FusedVerdict['verdict'];
-  if (firing.length > 0) {
+  if (firing.length > 0 || policy.length > 0) {
     verdict = 'rollback';
   } else if (isLastTick) {
     // Window closed without any family firing. Indeterminate collapses
@@ -754,13 +764,15 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
   const famDAll = famDInjected ? [...famDArr, famDInjected] : famDArr;
   const evidenceRaw: FamilyEvidenceRaw[] = [
     summarizeSignalFamily('A', famA ?? []),
-    summarizeFamilyB(familyB),
+    summarizeFamilyB(familyB, holds),
     ...summarizeFamilyC(famC, famCMmd),
     summarizeSignalFamily('D', famDAll),
     summarizeSignalFamily('E', famE ? [famE] : []),
   ];
   const evidence_outlook = toEvidenceOutlook(evidenceRaw);
-  const verdict_rationale = buildRationale(verdict, evidenceRaw, health.extend.map((s) => s.label));
+  const holdIds = new Set(holds.map((s) => s.id));
+  const verdict_rationale = buildRationale(verdict, evidenceRaw,
+    health.extend.filter((s) => !holdIds.has(s.id)).map((s) => s.label), policy.map((s) => s.label));
   const effect_intervals = eByEffectIntervals(famA ?? []);
   const contrast_arm = contrastArmReport(health);
 
