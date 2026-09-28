@@ -1,0 +1,15 @@
+{
+  "study_id": "2026-10-twin-aa-real",
+  "lane": 0,
+  "region": "REPLACE_ME_REGION",
+  "load_balancer": "app/REPLACE_ME_ALB_NAME/REPLACE_ME_ALB_ID",
+  "target_groups": {
+    "canary": "targetgroup/REPLACE_ME_CANARY_NEW_TG_NAME/REPLACE_ME_TG_ID",
+    "control": "targetgroup/REPLACE_ME_BASELINE_OLD_TG_NAME/REPLACE_ME_TG_ID"
+  },
+  "tasks_per_arm": 4,
+  "gate": {
+    "base_url": "http://127.0.0.1:8790",
+    "token_env": "DS_GATE_SHARED_SECRET"
+  }
+}
