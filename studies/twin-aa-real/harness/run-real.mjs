@@ -88,6 +88,8 @@ export function validateConfig(cfg) {
       `target_groups.${arm} must be the TargetGroup dimension value targetgroup/<name>/<id>`);
   }
   need(cfg.target_groups.canary !== cfg.target_groups.control, 'target_groups.canary and .control must differ');
+  need(Number.isInteger(cfg.alb_idle_timeout_s) && cfg.alb_idle_timeout_s >= 1 && cfg.alb_idle_timeout_s <= 4000,
+    'alb_idle_timeout_s must be the ALB idle timeout in whole seconds, 1..4000 (Amendment 2 (a))');
   need(Number.isInteger(cfg.tasks_per_arm) && cfg.tasks_per_arm >= 2, 'tasks_per_arm must be an integer >= 2 (R5)');
   need(typeof cfg.gate?.base_url === 'string' && /^https?:\/\//.test(cfg.gate.base_url), 'gate.base_url must be an http(s) URL');
   need(cfg.gate.token_env === undefined || cfg.gate.token_env === null || typeof cfg.gate.token_env === 'string',
@@ -158,39 +160,62 @@ function gateClient(baseUrl, fetchFn, token) {
   };
 }
 
-function healthQueries(cfg) {
+/** Per-window diagnostics: arm health (§3.1) and the stall-burst measurements of Amendment 2 (a). */
+function diagnosticsQueries(cfg) {
   const out = [];
+  const add = (id, name, stat, dims) => out.push({
+    Id: id, ReturnData: true,
+    MetricStat: { Metric: { Namespace: 'AWS/ApplicationELB', MetricName: name, Dimensions: dims }, Period: REGISTERED.tickMs / 1000, Stat: stat },
+  });
   for (const arm of ['canary', 'control']) {
-    for (const [id, name, stat] of [[`hh_${arm}`, 'HealthyHostCount', 'Minimum'], [`uh_${arm}`, 'UnHealthyHostCount', 'Maximum']]) {
-      out.push({
-        Id: id, ReturnData: true,
-        MetricStat: {
-          Metric: {
-            Namespace: 'AWS/ApplicationELB', MetricName: name,
-            Dimensions: [{ Name: 'TargetGroup', Value: cfg.target_groups[arm] }, { Name: 'LoadBalancer', Value: cfg.load_balancer }],
-          },
-          Period: REGISTERED.tickMs / 1000, Stat: stat,
-        },
-      });
-    }
+    const dims = [{ Name: 'TargetGroup', Value: cfg.target_groups[arm] }, { Name: 'LoadBalancer', Value: cfg.load_balancer }];
+    add(`hh_${arm}`, 'HealthyHostCount', 'Minimum', dims);
+    add(`uh_${arm}`, 'UnHealthyHostCount', 'Maximum', dims);
+    add(`mx_${arm}`, 'TargetResponseTime', 'Maximum', dims);
+    add(`pq_${arm}`, 'TargetResponseTime', 'p99', dims);
+    add(`t5_${arm}`, 'HTTPCode_Target_5XX_Count', 'Sum', dims);
+    add(`ce_${arm}`, 'TargetConnectionErrorCount', 'Sum', dims);
   }
+  // ALB publishes ELB-generated 5xx per load balancer only; these include prod-old's traffic.
+  const lb = [{ Name: 'LoadBalancer', Value: cfg.load_balancer }];
+  add('elb5_lb', 'HTTPCode_ELB_5XX_Count', 'Sum', lb);
+  add('elb504_lb', 'HTTPCode_ELB_504_Count', 'Sum', lb);
   return out;
 }
 
-/** Report-only arm health for one window (§3.1); an error is recorded, never fatal. */
-async function fetchHealth(cloudwatch, cfg, ws, we) {
+/**
+ * Report-only diagnostics for one window; an error is recorded, never fatal. Latency with no
+ * datapoint is null; a count with no datapoint is 0 (ALB publishes no zero counts), and the raw
+ * response is kept beside the transformed values.
+ */
+async function fetchDiagnostics(cloudwatch, cfg, ws, we) {
   try {
-    const out = await bounded('health GetMetricData', REGISTERED.callTimeoutMs, (signal) => cloudwatch.send(
-      new GetMetricDataCommand({ MetricDataQueries: healthQueries(cfg), StartTime: new Date(ws), EndTime: new Date(we) }),
+    const out = await bounded('diagnostics GetMetricData', REGISTERED.callTimeoutMs, (signal) => cloudwatch.send(
+      new GetMetricDataCommand({ MetricDataQueries: diagnosticsQueries(cfg), StartTime: new Date(ws), EndTime: new Date(we) }),
       { abortSignal: signal }));
-    const v = Object.fromEntries((out.MetricDataResults ?? []).map((r) => [r.Id, r.Values ?? []]));
+    const results = out.MetricDataResults ?? [];
+    const v = Object.fromEntries(results.map((r) => [r.Id, r.Values ?? []]));
     const pick = (id, f) => (v[id]?.length ? f(...v[id]) : null);
+    const sum = (id) => (v[id] ?? []).reduce((a, b) => a + b, 0);
+    const arms = (f) => ({ canary: f('canary'), control: f('control') });
     return {
-      healthy_min: { canary: pick('hh_canary', Math.min), control: pick('hh_control', Math.min) },
-      unhealthy_max: { canary: pick('uh_canary', Math.max), control: pick('uh_control', Math.max) },
+      health: {
+        healthy_min: arms((a) => pick(`hh_${a}`, Math.min)),
+        unhealthy_max: arms((a) => pick(`uh_${a}`, Math.max)),
+      },
+      stall: {
+        max_latency_s: arms((a) => pick(`mx_${a}`, Math.max)),
+        p99_latency_s: arms((a) => (v[`pq_${a}`]?.length === 1 ? v[`pq_${a}`][0] : null)),
+        target_5xx: arms((a) => sum(`t5_${a}`)),
+        connection_errors: arms((a) => sum(`ce_${a}`)),
+        elb_5xx_lb: sum('elb5_lb'),
+        elb_504_lb: sum('elb504_lb'),
+      },
+      raw: { MetricDataResults: results, NextToken: out.NextToken ?? null },
     };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    const error = e instanceof Error ? e.message : String(e);
+    return { health: { error }, stall: { error }, raw: null };
   }
 }
 
@@ -246,7 +271,7 @@ export async function runOne({
   const record = {
     study_id: REGISTERED.studyId, cell, lane: cfg.lane, run, deploy_ref: ref, registered: REGISTERED,
     twin_arm: { scored: twinArm(T), w0: twinArm(W + T) },
-    arm_ready_ms: armReadyMs, started_at_ms: t0, first_window_start_ms: null, gate_healthz: null, windows: [],
+    alb_idle_timeout_s: cfg.alb_idle_timeout_s, arm_ready_ms: armReadyMs, started_at_ms: t0, first_window_start_ms: null, gate_healthz: null, windows: [],
     scored: { session_id: null, verdict: null, ticks: 0, window: null },
     w0: { session_id: null, verdict: null, ticks: 0, window: null },
     complete: false, authority: { violation: false, stated: null, window: null },
@@ -281,7 +306,10 @@ export async function runOne({
       entry.lag_ms = now() - due;
       if (body === null) { entry.fetch_failed = true; failed = true; flush(entry); break; }
       entry.body = body;
-      entry.health = await fetchHealth(cloudwatch, cfg, ws, we);
+      const diag = await fetchDiagnostics(cloudwatch, cfg, ws, we);
+      entry.health = diag.health;
+      entry.stall = diag.stall;
+      entry.diagnostics_raw = diag.raw;
       assertTwinTickBody(body);
       const tickBody = { ...body, emitted_at_ts: we / 1000 };
       if (w0Live) w0Live = await feed('w0', entry, tickBody);
@@ -445,7 +473,8 @@ export async function main(argv) {
   const paths = claimOutputPaths(arg(argv, '--out') ?? path.join(STUDY, 'results', 'runs'), cell, cfg.lane, run, stamp);
   const manifest = { command: ['node', ...argv].join(' '), ...provenance(cfgRaw) };
   const writer = appendOnlyWriter(paths);
-  writer.line({ type: 'run', study_id: REGISTERED.studyId, cell, lane: cfg.lane, run, arm_ready_ms: armReadyMs, manifest });
+  writer.line({ type: 'run', study_id: REGISTERED.studyId, cell, lane: cfg.lane, run, arm_ready_ms: armReadyMs,
+    alb_idle_timeout_s: cfg.alb_idle_timeout_s, manifest });
   let current = null;
   const onSigint = () => {
     if (current) writer.summary(summaryOf({ ...current, operator_abort: true, ended_at_ms: Date.now() }, manifest));
