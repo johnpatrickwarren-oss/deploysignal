@@ -223,11 +223,11 @@ function buildDemo3() {
     ticks: ticks,
     expected_outcome: {
       verdict: 'rollback',
-      portfolio_first_fire_tick: 5,
-      portfolio_first_rollback_tick: 5,
+      portfolio_first_fire_tick: 7,
+      portfolio_first_rollback_tick: 7,
       cascade_first_rollback_tick: 5,
-      timing_delta_ticks: 0,
-      first_families: ['B', 'A', 'C', 'E'],
+      timing_delta_ticks: 2,
+      first_families: ['A', 'C', 'E'],
       alpha_total_max: 1e-3,
       // Spec §6.3 predicted Family B kv_saturation @t=7 → A @t=8 → C @t=9
       // multi-family rollback @t=9 with cascade @t=11 (2-tick delta).
@@ -237,7 +237,7 @@ function buildDemo3() {
       // demonstrates 4-family multi-detection by t=8 (B, A, C, E all firing
       // simultaneously) which IS a defensible pitch beat — provenance shows
       // independent confirmation across statistical paradigms.
-      divergence_from_spec: 'Both engines fire at t=5 via Family B slowbleed (no timing delta). Portfolio multi-family catch (B+A+C+E) by t=8 still distinguishable. Provenance/α-budget pitch beats unaffected.',
+      divergence_from_spec: 'FAMILY_B_AUTHORITY (2026-09-27): Family B holds on a compiled profile and never rolls back. Cascade (no compiled config) still rolls back at t=5 via Family B slowbleed; portfolio (v4) rolls back at t=7 on Family A downstream_err, with C and E firing by t=8 — a 2-tick delay against cascade. Provenance/α-budget pitch beats unaffected.',
       // D-54-5 (ARCHITECT-REPLY-54): per-variant fire-tick pinning.
       // Records empirical Family D spectral fire ticks per variant
       // (NS-ARCH Addition #21). Not asserted at runtime today —

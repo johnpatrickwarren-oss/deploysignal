@@ -187,12 +187,16 @@ for (const r of v2Records) {
 // adv_w4_oscillation_kv_cache (Family A fires tick 18; Family D
 // long-view fills tick 19 — pre-Q73 short-circuit at tick 18 elided
 // Family D evaluation).
+//
+// FAMILY_B_AUTHORITY (2026-09-27): under the v4 config Family B holds and never fires, so it is
+// exercised when a record carries a hold (`families.B.verdict === 'indeterminate'`).
 const familiesWithFires = { A: 0, B: 0, C: 0, D: 0, E: 0 };
 for (const r of v2Records) {
   if (!r.families) continue;
   for (const fam of ['A', 'B', 'C', 'D', 'E']) {
     if (r.families[fam] && r.families[fam].detectors.length > 0) familiesWithFires[fam]++;
   }
+  if (r.families.B && r.families.B.verdict === 'indeterminate') familiesWithFires.B++;
 }
 for (const fam of ['A', 'B', 'C', 'D', 'E']) {
   if (familiesWithFires[fam] === 0) {

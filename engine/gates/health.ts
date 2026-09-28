@@ -27,9 +27,8 @@ import type {
   FiredSignal, HealthResult, TrendBufferI,
 } from '../types';
 import { ROLLBACK_DEFS, EXTEND_DEFS } from './_health-defs';
-import {
-  HealthOpts, FAMILY_A_RETIRED_RATIO_IDS,
-} from './_health-types';
+import type { HealthOpts } from './_health-types';
+import { evaluateRules, structuralMode, type StructuralHealth, type RuleInputs } from './_health-structural';
 import { runFamilyA, runFamilyC, runFamilyD, runFamilyE } from './_health-detectors';
 import { runFamilyAValidPath } from './_health-valid-path';
 import { runContrastArm } from './_health-contrast';
@@ -87,48 +86,34 @@ export function evaluateHealth(
 ): HealthResult {
   const warmup = policyCtx.warmup || { active: false, suppressedIds: [], grace: false, pct: 100 };
   // Plan B — a compiled config that declares `twin_arm` runs ONLY the twin path (engine ADR 0036,
-  // ADVISORY): no structural rules, no Family A/C/D/E, nothing on rollback[] or extend[].
+  // ADVISORY): no rule table (policy gates included), no Family A/C/D/E, nothing on rollback[] or
+  // extend[].
   if (opts?.compiledConfig?.twin_arm) return evaluateTwinOnly(opts.compiledConfig, tb, opts.twinArm, warmup);
   const sup = warmup.suppressedIds || [];
-  const bypass = computeBypass(liveMetrics, baseline, policyCtx);
+  const inp: RuleInputs = {
+    live: liveMetrics, baseline, flags, pol: policyCtx, tb, sup, bypass: computeBypass(liveMetrics, baseline, policyCtx),
+  };
 
-  const rollbackFired: FiredSignal[] = [];
-  const extendFired: FiredSignal[] = [];
-  const legacyShadow: FiredSignal[] = [];
   // Post-2.1.g swap: when Family A is compiled (W3: under the unified
   // `baseline_cells` schema with a family_A block populated for at least
   // one cell), ratio fires for Family A's 6 primary SLIs redirect to
   // `family_A_legacy_shadow`. Page-CUSUM fires become the primary source
   // of truth for those signals. Other ratio detectors (structural
-  // signatures, compound, tokens, etc.) stay on the primary path.
+  // signatures, compound, tokens, etc.) stay on the rule path.
   const familyAPromoted = !!opts?.compiledConfig?.baseline_cells?.cells.some((c) => c.family_A);
+  // Family B authority (FAMILY_B_AUTHORITY): hold-only on a compiled profile, off when the profile
+  // disables it; policy gates always run (engine/gates/_health-structural.ts).
+  const fires = evaluateRules(inp, structuralMode(opts?.compiledConfig), familyAPromoted);
+  const rollbackFired = fires.rollback;
+  const legacyShadow = fires.legacyShadow;
 
-  // Evaluate rollback signals
-  ROLLBACK_DEFS.forEach(function (d) {
-    if (sup.indexOf(d.id) >= 0 && !bypass[d.id]) return;  // suppressed during warmup
-    if (d.check(liveMetrics, baseline, flags, policyCtx, tb)) {
-      if (familyAPromoted && FAMILY_A_RETIRED_RATIO_IDS.has(d.id)) {
-        legacyShadow.push({ id: d.id, label: d.label });
-      } else {
-        rollbackFired.push({ id: d.id, label: d.label });
-      }
-    }
-  });
-
-  // Evaluate extend signals
-  EXTEND_DEFS.forEach(function (d) {
-    if (sup.indexOf(d.id) >= 0) return;
-    if (d.check(liveMetrics, baseline, flags, policyCtx, tb)) {
-      extendFired.push({ id: d.id, label: d.label });
-    }
-  });
-
-  const result: HealthResult = {
+  const result: StructuralHealth = {
     rollback:   rollbackFired,
-    extend:     extendFired,
+    extend:     fires.extend,
     warmup,
     suppressed: sup,
   };
+  if (fires.holds.length > 0) result.family_B_holds = fires.holds;
 
   // Family A Page-CUSUM (per ARCHITECT-REPLY-05.md). Primary detector for
   // the 6 primary SLIs when `compiledConfig.baseline_cells.*.family_A` is
