@@ -25,6 +25,7 @@ import {
 } from '@johnpatrickwarren-oss/deploysignal-engine/per-shard/twin-gate';
 import type { TwinObservation, TwinMetricSpec } from '@johnpatrickwarren-oss/deploysignal-engine/detectors/twin-contrast';
 import { ticksToDetect } from '@johnpatrickwarren-oss/deploysignal-engine/per-shard/twin-planning';
+import { detectorRegistryFor } from '@johnpatrickwarren-oss/deploysignal-engine/types/audit';
 import type { HealthResult, TrendBufferI, CompiledConfig } from '../types';
 import type { TwinArmProfile, TwinArmMetricProfile } from '../types/_config-profiles';
 import { TWIN_ARM_AUTHORITY } from '../guarantees';
@@ -47,6 +48,9 @@ export const TWIN_VERDICT_MAP: Readonly<Record<TwinVerdict, TwinGateVerdict>> = 
 /** One metric's evidence, snake_case (the HTTP contract's `metrics[]`). */
 export interface TwinMetricReportSnake {
   id: string;
+  /** The engine registry id, `twin_<kind>_<id>` (engine v0.12.2-pre `DETECTOR_KINDS.twin`);
+   *  `guaranteeFor(detector_id)` resolves it to the twin guarantee row. */
+  detector_id: string;
   rollback_e: number;
   rollback_threshold: number;
   proceed_e: number;
@@ -77,6 +81,12 @@ export interface TwinPlanningAccumulator { badEvents: number; ticks: number }
 export interface TwinArmRun {
   state: TwinGateState;
   planning: Record<string, TwinPlanningAccumulator>;
+}
+
+/** Metric id → engine registry id, in the profile's metric order. */
+function twinDetectorIds(p: TwinArmProfile): Map<string, string> {
+  const ids = detectorRegistryFor({ signals: [], twinMetrics: p.metrics.map((m) => ({ id: m.id, kind: m.kind })) }).twin;
+  return new Map(p.metrics.map((m, i) => [m.id, ids[i]]));
 }
 
 function metricSpec(m: TwinArmMetricProfile): TwinMetricSpec {
@@ -163,6 +173,7 @@ export function stepTwinArm(p: TwinArmProfile, run: TwinArmRun, input: TwinTickI
   const { state, decision } = stepTwinGate(twinGateConfig(p), run.state, input);
   const next: TwinArmRun = { state, planning: advancePlanning(p, run, input) };
   const ttd = ticksToDetectFor(p, next);
+  const detectorIds = twinDetectorIds(p);
   const report: TwinArmReport = {
     verdict: TWIN_VERDICT_MAP[decision.verdict],
     engine_verdict: decision.verdict,
@@ -171,7 +182,7 @@ export function stepTwinArm(p: TwinArmProfile, run: TwinArmRun, input: TwinTickI
     srm_e: decision.srmE,
     srm_threshold: decision.srmThreshold,
     metrics: decision.metrics.map((m) => ({
-      id: m.id, rollback_e: m.rollbackE, rollback_threshold: m.rollbackThreshold,
+      id: m.id, detector_id: detectorIds.get(m.id)!, rollback_e: m.rollbackE, rollback_threshold: m.rollbackThreshold,
       proceed_e: m.proceedE, proceed_threshold: m.proceedThreshold,
       used: m.used, skipped: m.skipped, ties: m.ties, missing: m.missing,
     })),

@@ -27,6 +27,7 @@ import { loadProfile } from '../tools/profile-loader';
 import { ticksToDetect } from '@johnpatrickwarren-oss/deploysignal-engine/per-shard/twin-planning';
 import { loadCfg, scenarioFor, FLAGS, POLICY_CTX } from './_c64-fixture';
 import { TWIN_PROFILE, twinTicks } from './_twin-fixture';
+import { guaranteeFor } from '@johnpatrickwarren-oss/deploysignal-engine/guarantees';
 
 const engine = require('../shared');
 const { TrendBuffer } = engine;
@@ -82,7 +83,9 @@ test('Plan B: a regressed canary (5xx odds ×3, latency +2σ) reaches engine rol
   assert.equal(hit!.verdict, 'rollback');
   assert.equal(hit!.authority, 'advisory');
   assert.deepEqual(Object.keys(hit!.metrics[0]).sort(),
-    ['id', 'missing', 'proceed_e', 'proceed_threshold', 'rollback_e', 'rollback_threshold', 'skipped', 'ties', 'used'].sort());
+    ['detector_id', 'id', 'missing', 'proceed_e', 'proceed_threshold', 'rollback_e', 'rollback_threshold', 'skipped', 'ties', 'used'].sort());
+  assert.equal(hit!.metrics[0].detector_id, `twin_${TWIN_PROFILE.metrics[0].kind}_${TWIN_PROFILE.metrics[0].id}`);
+  assert.deepEqual(guaranteeFor(hit!.metrics[0].detector_id)!.idPrefixes, [`twin_${TWIN_PROFILE.metrics[0].kind}_`]);
   assert.equal(hit!.metrics[0].rollback_threshold, 3 / 0.05);
   // Terminal verdicts are sticky: the tick after returns the same verdict.
   const after = reports[reports.indexOf(hit!) + 1];

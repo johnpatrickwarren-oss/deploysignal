@@ -17,7 +17,7 @@ import { TWIN_PROFILE, twinTicks, toSnake } from './_twin-fixture';
 import { gateConfig, start, stop, req, twinBody, type Started } from './_twin-http-harness';
 
 const TICK_KEYS = ['authority', 'engine_verdict', 'metrics', 'srm_e', 'tick', 'verdict'];
-const METRIC_KEYS = ['id', 'missing', 'proceed_e', 'proceed_threshold', 'rollback_e', 'rollback_threshold', 'skipped', 'ties', 'used'];
+const METRIC_KEYS = ['detector_id', 'id', 'missing', 'proceed_e', 'proceed_threshold', 'rollback_e', 'rollback_threshold', 'skipped', 'ties', 'used'];
 
 async function begin(s: Started, body: Record<string, unknown> = twinBody()): Promise<string> {
   const r = await req(s.baseUrl, 'POST', '/v1/sessions', body);
