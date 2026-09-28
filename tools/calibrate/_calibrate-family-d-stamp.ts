@@ -242,7 +242,7 @@ function stampBettingSlidingBufferAll(
   const alphaA_betting = (effective
     ? effective.alpha_allocation.per_family.A
     : alphaTotal * FAMILY_A_ALPHA_FRACTION);
-  const bonferroni = familyASignalsLength;
+  const bonferroni = Math.max(1, familyASignalsLength);  // the engine's familyABonferroni floor
   const alphaBettingPerSignalLocal = (alphaA_betting / bonferroni) * 0.5;
   const cache = new Map<string, BootstrapResult>();
   const round = (v: number): string => Number.isFinite(v) ? v.toExponential(12) : String(v);

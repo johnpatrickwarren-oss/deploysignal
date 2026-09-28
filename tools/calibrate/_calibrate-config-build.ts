@@ -261,7 +261,10 @@ export interface FamilyAEmitArgs {
 export function emitFamilyABlock(a: FamilyAEmitArgs): void {
   const { config, baselineCells, compileDefaults, effective, tenantTierMap, tenantTierConfig, alphaA } = a;
   config.baseline_cells = baselineCells;
-  config.bonferroni_factor = compileDefaults.family_a_signals.length;
+  // Floored at 1, as engine v0.12.1-pre familyABonferroni: a twin profile has no Family A signal,
+  // and a factor of 0 divided every α split below (and validPathAlpha) by zero.
+  const bonf = Math.max(1, compileDefaults.family_a_signals.length);
+  config.bonferroni_factor = bonf;
   const baseBake = buildBakeProfiles();
   if (effective) {
     for (const entry of effective.bake_profiles) {
@@ -280,7 +283,7 @@ export function emitFamilyABlock(a: FamilyAEmitArgs): void {
   }
 
   // Addition #17 — per-signal betting-e-process α = (α_A / bonf) · 0.5.
-  const alphaBettingPerSignal = (alphaA / compileDefaults.family_a_signals.length) * 0.5;
+  const alphaBettingPerSignal = (alphaA / bonf) * 0.5;
   const stampBettingAlpha = (perSignal: Record<string, FamilyAPerSignalParams> | undefined): void => {
     if (!perSignal) return;
     for (const sig of Object.keys(perSignal)) {

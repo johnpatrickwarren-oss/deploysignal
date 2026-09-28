@@ -233,7 +233,10 @@ function allocateAlpha(args, effective, emitFamilyA, emitFamilyC, emitFamilyD, e
 function emitFamilyABlock(a) {
     const { config, baselineCells, compileDefaults, effective, tenantTierMap, tenantTierConfig, alphaA } = a;
     config.baseline_cells = baselineCells;
-    config.bonferroni_factor = compileDefaults.family_a_signals.length;
+    // Floored at 1, as engine v0.12.1-pre familyABonferroni: a twin profile has no Family A signal,
+    // and a factor of 0 divided every α split below (and validPathAlpha) by zero.
+    const bonf = Math.max(1, compileDefaults.family_a_signals.length);
+    config.bonferroni_factor = bonf;
     const baseBake = (0, bake_profiles_js_1.buildBakeProfiles)();
     if (effective) {
         for (const entry of effective.bake_profiles) {
@@ -251,7 +254,7 @@ function emitFamilyABlock(a) {
         config.tenant_tier_config = tenantTierConfig;
     }
     // Addition #17 — per-signal betting-e-process α = (α_A / bonf) · 0.5.
-    const alphaBettingPerSignal = (alphaA / compileDefaults.family_a_signals.length) * 0.5;
+    const alphaBettingPerSignal = (alphaA / bonf) * 0.5;
     const stampBettingAlpha = (perSignal) => {
         if (!perSignal)
             return;

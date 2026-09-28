@@ -122,8 +122,28 @@ export function loadProfile(profile_ref: string): WorkloadProfile {
       `resolved profile "${id}" alpha_allocation.total must be > 0 (only a profile declaring twin_arm may allocate 0)`,
     );
   }
+  checkSliList(`resolved profile "${id}"`, finalProfile);
   if (finalProfile.twin_arm) checkTwinArm(id, finalProfile.twin_arm);
   return finalProfile;
+}
+
+/** Engine v0.12.1-pre evaluates Family A over `family_a_signals` (this sli_list), deduplicated, with
+ *  the Bonferroni factor its length. The schema's `uniqueItems` refuses identical entries; this refuses
+ *  the same signal named twice with different fields (which the engine would evaluate once, under
+ *  one of two δ_min), and an empty list — except beside twin_arm, which runs only the twin path
+ *  (the exemption the zero detector budget above has). */
+export function checkSliList(label: string, profile: Pick<WorkloadProfile, 'sli_list' | 'twin_arm'>): void {
+  const first = new Map<string, number>();
+  profile.sli_list.forEach((e, i) => {
+    const j = first.get(e.signal);
+    if (j !== undefined) {
+      throw new Error(`${label} sli_list names signal "${e.signal}" more than once ([${j}] and [${i}])`);
+    }
+    first.set(e.signal, i);
+  });
+  if (profile.sli_list.length === 0 && !profile.twin_arm) {
+    throw new Error(`${label} sli_list is empty; only a profile declaring twin_arm may monitor no Family A signal`);
+  }
 }
 
 /** Plan B: the schema checks the twin block's shape; the engine's checkTwinGateConfig checks what
@@ -208,6 +228,7 @@ export function resolveEffectiveConfig(
       + postResult.errors.join('\n  '),
     );
   }
+  checkSliList(`effective_config (${profile.id} + ${override.customer_id})`, merged);
   return {
     ...merged,
     profile_ref,

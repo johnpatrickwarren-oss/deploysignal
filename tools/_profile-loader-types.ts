@@ -37,6 +37,7 @@ export interface SchemaNode {
   maximum?: number;
   exclusiveMaximum?: number;
   minItems?: number;
+  uniqueItems?: boolean;
 }
 
 export type CompileFamilyLetter = 'A' | 'B' | 'C' | 'D' | 'E';
