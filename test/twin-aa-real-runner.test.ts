@@ -29,7 +29,7 @@ interface Tick { rc: [number, number]; e5: [number, number]; p99: [number[], num
 const DEFAULT_TICK: Tick = { rc: [1200, 1190], e5: [6, 5], p99: [[0.41], [0.40]] };
 
 /** A CloudWatchLike whose answer depends on the window; `fail(windowStartMs)` throws for that window. */
-function fakeCloudWatch(opts: { tick?: (ws: number) => Tick; fail?: (ws: number) => boolean; healthFail?: boolean } = {}) {
+function fakeCloudWatch(opts: { tick?: (ws: number) => Tick; fail?: (ws: number) => boolean; failName?: string; status?: (ws: number) => string | undefined; healthFail?: boolean } = {}) {
   const sent: any[] = [];
   const client = {
     async send(cmd: any): Promise<any> {
@@ -41,7 +41,9 @@ function fakeCloudWatch(opts: { tick?: (ws: number) => Tick; fail?: (ws: number)
         if (opts.healthFail) throw new Error('health throttled');
         return { $metadata: {}, MetricDataResults: ids.map((Id) => ({ Id, StatusCode: 'Complete', Values: [Id.startsWith('hh_') ? 4 : 0] })) };
       }
-      if (opts.fail?.(ws)) throw new Error('ThrottlingException');
+      if (opts.fail?.(ws)) { const e = new Error(opts.failName ?? 'ThrottlingException: Rate exceeded'); e.name = opts.failName ?? 'ThrottlingException'; throw e; }
+      const st = opts.status?.(ws);
+      if (st) return { $metadata: {}, MetricDataResults: ids.map((Id) => ({ Id, StatusCode: st, Values: [] })) };
       const t = (opts.tick ?? (() => DEFAULT_TICK))(ws);
       const v: Record<string, number[]> = {
         rc_canary: [t.rc[0]], rc_control: [t.rc[1]], e5_canary: [t.e5[0]], e5_control: [t.e5[1]],
@@ -64,9 +66,10 @@ function fakeGate(opts: {
   const ticks = new Map<string, number>();
   const maxTicks = new Map<string, number>();
   const fetch = async (url: string, init: any): Promise<any> => {
+    const json = (status: number, j: unknown) => ({ ok: status < 300, status, json: async () => j });
+    if (url.endsWith('/healthz')) { calls.push({ url, body: null, headers: init?.headers ?? {} }); return json(200, { ok: true, service_id: 'svc', mode: 'enforce' }); }
     const body = JSON.parse(init.body);
     calls.push({ url, body, headers: init.headers });
-    const json = (status: number, j: unknown) => ({ ok: status < 300, status, json: async () => j });
     if (url.endsWith('/v1/sessions')) {
       maxTicks.set(body.deploy_ref, body.twin_arm.max_ticks);
       return json(opts.createStatus ?? 201, { session_id: `sid-${body.deploy_ref}`, mode: 'twin' });
@@ -94,7 +97,7 @@ function fakeClock(start: number) {
 
 async function run(extra: Record<string, unknown> = {}, cw = fakeCloudWatch(), gate = fakeGate(), clock = fakeClock(T0 + 12_345)) {
   const { runOne } = await load();
-  const record = await runOne({ cfg: CFG, cell: 'AA', run: 7, cloudwatch: cw.client, fetch: gate.fetch, now: clock.now, sleep: clock.sleep, log: () => {}, env: { DS_GATE_SHARED_SECRET: 's3cret' }, ...extra });
+  const record = await runOne({ cfg: CFG, cell: 'AA', run: 7, armReadyMs: T0, cloudwatch: cw.client, fetch: gate.fetch, now: clock.now, sleep: clock.sleep, log: () => {}, env: { DS_GATE_SHARED_SECRET: 's3cret' }, ...extra });
   return { record, cw, gate, clock };
 }
 
@@ -147,11 +150,14 @@ test('firstWindowStart rounds up to the next UTC minute and keeps an exact bound
 
 test('an A/A run: two sessions, W0 fed 75 windows, scored fed windows 15..74, each fetched 180 s after it closes', async () => {
   const { record, cw, gate, clock } = await run();
+  assert.deepEqual(record.gate_healthz, { ok: true, service_id: 'svc', mode: 'enforce' });
+  assert.equal(record.arm_ready_ms, T0);
   const creates = gate.calls.filter((c) => c.url.endsWith('/v1/sessions'));
   assert.deepEqual(creates.map((c) => c.body.deploy_ref), ['t3-AA-l0-r7', 't3-AA-l0-r7-w0']);
   assert.deepEqual(creates.map((c) => c.body.twin_arm.max_ticks), [60, 75]);
   assert.ok(creates.every((c) => c.body.mode === 'twin'));
-  assert.equal(gate.calls[0].headers['x-ds-gate-token'], 's3cret');
+  assert.equal(creates[0].headers['x-ds-gate-token'], 's3cret');
+  assert.ok(gate.calls[0].url.endsWith('/healthz'), 'the gate /healthz body is read first (Amendment 1 (i))');
   assert.equal(gate.ticks.get('t3-AA-l0-r7-w0'), 75);
   assert.equal(gate.ticks.get('t3-AA-l0-r7'), 60);
 
@@ -211,14 +217,17 @@ test('after a scored rollback the scored session gets no more ticks, the W0 sess
   assert.deepEqual(voidReasons(record), []);
 });
 
-test('a gate response with an authority other than advisory aborts the run (observe-only)', async () => {
+test('a gate response with an authority other than advisory stops the run under a distinct authority flag (Amendment 1 (f))', async () => {
   const gate = fakeGate({ authority: 'enforce' });
   const { record } = await run({}, fakeCloudWatch(), gate);
-  assert.match(record.runner_error, /authority/);
+  assert.deepEqual(record.authority, { violation: true, stated: 'enforce', window: 0 });
+  assert.equal(record.runner_error, undefined);
   assert.equal(record.complete, false);
   assert.equal(gate.ticks.get('t3-AA-l0-r7-w0'), 1, 'stops at the first such response');
   const { voidReasons } = await load();
-  assert.ok(voidReasons(record).some((r: string) => /^V5/.test(r)));
+  const reasons = voidReasons(record);
+  assert.match(reasons[0], /^AUTHORITY .*enforce.*NOT EXECUTABLE/);
+  assert.ok(!reasons.some((r: string) => /^V5/.test(r)));
 });
 
 test('a window whose fetch fails 3 times, 20 s apart, ends the run void under V3', async () => {
@@ -254,6 +263,13 @@ test('a non-2xx gate tick response ends the run void under V5', async () => {
   assert.equal(record.complete, false);
   const { voidReasons } = await load();
   assert.ok(voidReasons(record).some((r: string) => /^V5 .*HTTP 500/.test(r)));
+});
+
+test('the window in flight when a gate error stops the run is still handed to onWindow', async () => {
+  const seen: number[] = [];
+  const gate = fakeGate({ tickStatus: (ref, n) => (ref === 't3-AA-l0-r7-w0' && n === 5 ? 500 : 200) });
+  await run({ onWindow: (w: any) => seen.push(w.k) }, fakeCloudWatch(), gate);
+  assert.deepEqual(seen, [0, 1, 2, 3, 4]);
 });
 
 test('a session create that is not 201 (e.g. an active session with the same deploy_ref) is a gate error', async () => {
@@ -310,24 +326,126 @@ test('V5 stall: a window fetched more than 300 s after window end + settle voids
   assert.ok(voidReasons(record).some((r: string) => /^V5 .*stall/.test(r)));
 });
 
-test('onProgress receives the record after each window, so an interrupted run leaves its ticks on disk', async () => {
-  const seen: number[] = [];
-  const { record } = await run({ onProgress: (r: any) => seen.push(r.windows.length) });
-  assert.equal(seen.length, 76, 'once after the sessions open, then once per window');
-  assert.equal(seen[0], 0);
-  assert.equal(seen[75], 75);
+test('onWindow receives each window once, with the raw GetMetricData response beside the transformed body (Amendment 1 (h))', async () => {
+  const seen: any[] = [];
+  const { record } = await run({ onWindow: (w: any) => seen.push(w) });
+  assert.equal(seen.length, 75);
+  assert.deepEqual(seen.map((w) => w.k), Array.from({ length: 75 }, (_, i) => i));
+  const raw = seen[0].raw;
+  assert.equal(raw.length, 1);
+  const byId = Object.fromEntries(raw[0].MetricDataResults.map((r: any) => [r.Id, r.Values]));
+  assert.deepEqual(byId.rc_canary, [1200]);
+  assert.deepEqual(byId.p99_control, [0.40]);
+  assert.equal(seen[0].body.canary_requests, 1200);
   assert.equal(record.windows.length, 75);
 });
 
-test('outputPath refuses to overwrite a run already recorded for the same cell, lane and run index', async () => {
-  const { claimOutputPath } = await load();
+test('the run log carries progress only: no verdict, e-value or session response reaches stdout (Amendment 1 (h))', async () => {
+  const logs: any[] = [];
+  const gate = fakeGate({ verdict: (ref, n) => (ref === 't3-AA-l0-r7' && n === 20 ? 'rollback' : 'extend') });
+  await run({ log: (e: any) => logs.push(e) }, fakeCloudWatch(), gate);
+  assert.ok(logs.length >= 75);
+  const text = JSON.stringify(logs);
+  assert.doesNotMatch(text, /rollback|extend|hold|halt|proceed|verdict|_e"/);
+  assert.deepEqual(Object.keys(logs[logs.length - 1]).sort(), ['event', 'of', 'ref', 'window']);
+});
+
+test('arm-ready is bounded: more than 300 s before the runner starts, or more than 60 s after, is refused (Amendment 1 (g)1)', async () => {
+  const { runOne } = await load();
+  const clock = fakeClock(T0 + 1_000_000);
+  const base = { cfg: CFG, cell: 'AA', run: 1, cloudwatch: fakeCloudWatch().client, fetch: fakeGate().fetch, now: clock.now, sleep: clock.sleep };
+  await assert.rejects(runOne({ ...base, armReadyMs: T0 + 1_000_000 - 300_001 }), /arm-ready/);
+  await assert.rejects(runOne({ ...base, armReadyMs: T0 + 1_000_000 + 60_001 }), /arm-ready/);
+  await assert.rejects(runOne({ ...base, armReadyMs: undefined }), /arm-ready/);
+  const ok = await runOne({ ...base, armReadyMs: T0 + 1_000_000 - 300_000 });
+  assert.equal(ok.complete, true);
+});
+
+test('V3 (Amendment 1 (e)): an authorization error voids the window at once, without retry', async () => {
+  const { voidReasons } = await load();
+  const bad = T0 + 60_000 + 5 * 60_000;
+  for (const failName of ['AccessDeniedException', 'ExpiredTokenException', 'UnrecognizedClientException']) {
+    const cw = fakeCloudWatch({ fail: (ws) => ws === bad, failName });
+    const { record } = await run({}, cw);
+    assert.equal(record.windows[5].attempts.length, 1, failName);
+    assert.equal(record.windows[5].fetch_failed, true);
+    assert.ok(voidReasons(record).some((r: string) => /^V3 .*authorization/.test(r)), failName);
+  }
+  const forbidden = await run({}, fakeCloudWatch({ status: (ws) => (ws === bad ? 'Forbidden' : undefined) }));
+  assert.equal(forbidden.record.windows[5].attempts.length, 1);
+  assert.ok(voidReasons(forbidden.record).some((r: string) => /^V3 .*authorization/.test(r)));
+});
+
+test('V3 (Amendment 1 (e)): a query status InternalError is transient and retried; success on a retry is kept', async () => {
+  const bad = T0 + 60_000 + 5 * 60_000;
+  let n = 0;
+  const { record } = await run({}, fakeCloudWatch({ status: (ws) => (ws === bad && n++ < 2 ? 'InternalError' : undefined) }));
+  assert.equal(record.windows[5].attempts.length, 3);
+  assert.equal(record.complete, true);
+  const { voidReasons } = await load();
+  assert.deepEqual(voidReasons(record), []);
+});
+
+test('countsForE2 (Amendment 1 (a)): executable rollbacks, void runs where either session rolled back, and every abort', async () => {
+  const { countsForE2 } = await load();
+  const s = (o: any) => ({ scored: { verdict: 'hold' }, w0: { verdict: 'hold' }, void_reasons: [], operator_abort: false, ...o });
+  assert.equal(countsForE2(s({})), false);
+  assert.equal(countsForE2(s({ scored: { verdict: 'rollback' } })), true);
+  assert.equal(countsForE2(s({ w0: { verdict: 'rollback' } })), false, 'W0 alone counts only in a void run');
+  assert.equal(countsForE2(s({ w0: { verdict: 'rollback' }, void_reasons: ['V1 x'] })), true);
+  assert.equal(countsForE2(s({ scored: { verdict: 'rollback' }, void_reasons: ['V4 x'] })), true);
+  assert.equal(countsForE2(s({ operator_abort: true, void_reasons: ['V5 aborted by operator'] })), true);
+});
+
+test('summaryOf keeps the run-level fields and void reasons and drops the per-window lines', async () => {
+  const { summaryOf } = await load();
+  const { record } = await run();
+  const sum = summaryOf(record, { repo_sha: 'abc' });
+  assert.equal(sum.windows, undefined);
+  assert.equal(sum.window_count, 75);
+  assert.deepEqual(sum.void_reasons, []);
+  assert.equal(sum.counts_for_e2, false);
+  assert.deepEqual(sum.manifest, { repo_sha: 'abc' });
+  assert.equal(sum.scored.verdict, 'hold');
+});
+
+test('disallowedDirt (Amendment 1 (i)): any modified tracked file blocks a run except the regenerated calibrate constants', async () => {
+  const { disallowedDirt } = await load();
+  assert.deepEqual(disallowedDirt(''), []);
+  assert.deepEqual(disallowedDirt(' M tools/calibrate/_calibrate-constants.js\n'), []);
+  assert.deepEqual(disallowedDirt(' M tools/calibrate/_calibrate-constants.js\n M studies/twin-aa-real/harness/run-real.mjs\n'),
+    ['studies/twin-aa-real/harness/run-real.mjs']);
+  assert.deepEqual(disallowedDirt('A  service/x.ts\n'), ['service/x.ts']);
+});
+
+test('claimOutputPaths: a .jsonl and a .summary.json per run, and a run index already recorded in ANY lane is refused', async () => {
+  const { claimOutputPaths } = await load();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-t3-out-'));
-  const p = claimOutputPath(dir, 'AA', 0, 7, '20261005T120000Z');
-  assert.equal(path.basename(p), 'AA-l0-r7-20261005T120000Z.json');
-  fs.writeFileSync(p, '{}');
-  assert.throws(() => claimOutputPath(dir, 'AA', 0, 7, '20261005T130000Z'), /already recorded/);
-  assert.doesNotThrow(() => claimOutputPath(dir, 'AA', 1, 7, '20261005T130000Z'));
-  assert.throws(() => claimOutputPath(dir, 'AB-x', 0, 1, 'z'), /cell/);
+  const p = claimOutputPaths(dir, 'AA', 0, 7, '20261005T120000Z');
+  assert.equal(path.basename(p.jsonl), 'AA-l0-r7-20261005T120000Z.jsonl');
+  assert.equal(path.basename(p.summary), 'AA-l0-r7-20261005T120000Z.summary.json');
+  fs.writeFileSync(p.jsonl, '');
+  assert.throws(() => claimOutputPaths(dir, 'AA', 0, 7, '20261005T130000Z'), /already recorded/);
+  assert.throws(() => claimOutputPaths(dir, 'AA', 2, 7, '20261005T130000Z'), /already recorded/, 'global across lanes');
+  assert.doesNotThrow(() => claimOutputPaths(dir, 'AA', 1, 17, '20261005T130000Z'));
+  assert.doesNotThrow(() => claimOutputPaths(dir, 'AB-5xx', 0, 7, '20261005T130000Z'));
+  assert.throws(() => claimOutputPaths(dir, 'AB-x', 0, 1, 'z'), /cell/);
+});
+
+test('appendOnlyWriter: files are created exclusively, the jsonl only grows, the summary is written once', async () => {
+  const { claimOutputPaths, appendOnlyWriter } = await load();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-t3-out-'));
+  const p = claimOutputPaths(dir, 'AA', 0, 3, 'Z');
+  const w = appendOnlyWriter(p);
+  w.line({ type: 'run', run: 3 });
+  w.line({ type: 'window', k: 0 });
+  const lines = fs.readFileSync(p.jsonl, 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  assert.deepEqual(lines, [{ type: 'run', run: 3 }, { type: 'window', k: 0 }]);
+  w.summary({ ok: 1 });
+  assert.throws(() => w.summary({ ok: 2 }), /once/);
+  assert.deepEqual(JSON.parse(fs.readFileSync(p.summary, 'utf8')), { ok: 1 });
+  fs.writeFileSync(path.join(dir, 'AA-l0-r4-Z.jsonl'), 'x');
+  assert.throws(() => appendOnlyWriter({ jsonl: path.join(dir, 'AA-l0-r4-Z.jsonl'), summary: path.join(dir, 'y.json') }), /EEXIST/);
 });
 
 test('the runner imports no AWS client other than CloudWatch (observe-only)', () => {
