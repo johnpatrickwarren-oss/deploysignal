@@ -58,6 +58,9 @@ tools/*.js
 # api.anthropic.com without exposing the key to the browser. No .ts
 # counterpart — this is a source file, not a build artifact.
 !tools/claude-proxy.js
+# W5 §T1 fixture regenerator: pure JS, no .ts counterpart; test/replay-regression-v2.test.js requires
+# it to self-heal a missing fixture.
+!tools/regenerate-v2-fixture.js
 # Anvil (Addition #29 / Q29 SLICE 2) chaos-verdict walkthrough CLI.
 # Pure-JS source (no .ts counterpart); composes the engine + audit
 # writer to produce demos/anvil-chaos-walkthrough.json.
