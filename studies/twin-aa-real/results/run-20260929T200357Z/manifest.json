@@ -1,0 +1,27 @@
+{
+ "study_id": "2026-10-twin-aa-real",
+ "cell": "AA",
+ "generated_at": "2026-09-29T20:03:57.271Z",
+ "analysis_repo_head": "e3b62b1801571b7a515925f913ada53470c9114e",
+ "analysis_tracked_changes": [],
+ "inputs": {
+  "summaries": 44,
+  "driver_logs": 63,
+  "evidence": {
+   "count": 757,
+   "start": "2026-09-29T05:40:00Z",
+   "end": "2026-09-29T20:10:00Z",
+   "generated_at": "2026-09-29T20:01:31.165Z"
+  }
+ },
+ "runner_repo_shas": [
+  "61794dccf4acec34699dedbe9223f2d787cb8779"
+ ],
+ "engines": [
+  {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  }
+ ],
+ "deviation": "analysis script written after the runs (PREREGISTRATION.md §8 asks for it before the first run it summarizes)"
+}
