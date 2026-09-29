@@ -1,0 +1,33 @@
+{
+  "E1": {
+    "windows": 87,
+    "rollbacks": 13,
+    "rate": 0.14942528735632185,
+    "cp_upper95": 0.22703519773176833,
+    "per_1000_present_ticks": 2.48565965583174,
+    "present_ticks": 5230,
+    "pass": false,
+    "median_fire_tick": 33,
+    "days_4_to_8": {
+      "windows": 58,
+      "rollbacks": 5,
+      "rate": 0.08620689655172414
+    },
+    "days_9_to_10": {
+      "windows": 29,
+      "rollbacks": 8,
+      "rate": 0.27586206896551724
+    },
+    "missing_share_fired": 0.06076923076923077,
+    "missing_share_unfired": 0.3408108108108108,
+    "shadow_empty_present_total": 0
+  },
+  "E2": {
+    "hash_ok": true,
+    "compile_ok": true,
+    "exceptions": 0,
+    "pass": true
+  },
+  "not_executable": [],
+  "executable": true
+}

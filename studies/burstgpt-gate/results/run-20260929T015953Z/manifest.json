@@ -1,0 +1,74 @@
+{
+  "study": "2026-09-burstgpt-gate",
+  "mode": "full",
+  "run_id": "run-20260929T015953Z",
+  "repo_head": "f5216983332062d2444f82cd65bca034bf689fe1",
+  "branch": "wt/burstgpt-gate",
+  "tracked_changes": [],
+  "engine_installed": "0.12.2-pre",
+  "engine_resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019",
+  "node": "v25.9.0",
+  "platform": "darwin 25.6.0",
+  "cpus": 10,
+  "substrate": {
+    "bundle": "runs/baselines/real-burstgpt-v2/bundle.jsonl",
+    "bundle_sha256": "1b7b8ec46bbdac4edf4590c885950801d6236826f6ead406c59d3bc8b2241d90",
+    "bundle_sha256_registered": "1b7b8ec46bbdac4edf4590c885950801d6236826f6ead406c59d3bc8b2241d90",
+    "sub_ticks": 12,
+    "study_ticks": 14519,
+    "missing_ticks": 4970,
+    "missing_share": 0.34231007645154626
+  },
+  "calibration": {
+    "ticks": 5760,
+    "present": 3522,
+    "runs": 561,
+    "profile": "generic-microservice@1.0.0",
+    "families": "A",
+    "alpha": "1e-3",
+    "compile_args": [
+      "tools/calibrate.js",
+      "--baseline",
+      "/Users/johnwarren/.sdd-worktrees/ds-burstgpt-gate/studies/burstgpt-gate/results/run-20260929T015953Z/bundle",
+      "--alpha",
+      "1e-3",
+      "--families",
+      "A",
+      "--profile_ref",
+      "generic-microservice@1.0.0",
+      "--out",
+      "/Users/johnwarren/.sdd-worktrees/ds-burstgpt-gate/studies/burstgpt-gate/results/run-20260929T015953Z/configs/generic-microservice.A.json",
+      "--disable_worker_pool",
+      "true"
+    ],
+    "compile_ok": true,
+    "family_a_signals": [
+      "p99_latency",
+      "downstream_err",
+      "cost_req"
+    ],
+    "bonferroni_factor": 3,
+    "cells": 120,
+    "cells_with_family_A": 42,
+    "per_signal": {
+      "cost_req": {
+        "mean_raw": 0.03390898593216601,
+        "sigma2_raw": 0.0003983258902588948,
+        "phi": 0.0979175063479503,
+        "signal_class": "heavy_tail",
+        "sigma_floor_applied": false,
+        "threshold_kind": "ville"
+      }
+    },
+    "config_sha256": "e713ed18357dd8768d6193d03436306880f305a8ef4ffb570375d75825b5e948"
+  },
+  "window": 100,
+  "command": "node studies/burstgpt-gate/harness/run.mjs --mode full",
+  "counters": {
+    "exceptions": 0,
+    "compile_failures": 0,
+    "hash_mismatches": 0
+  },
+  "exceptions": [],
+  "wall_seconds": 0
+}

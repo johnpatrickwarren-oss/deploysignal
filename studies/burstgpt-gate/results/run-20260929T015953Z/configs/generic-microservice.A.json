@@ -1,0 +1,2293 @@
+{
+  "version": "v2-with-family-a",
+  "compiler_version": "0.3.0",
+  "compiled_at": "1970-01-01T00:00:00.000Z",
+  "baseline_ref": "real_burstgpt-v2-60s-cal4d@seed=0",
+  "alpha_budget": {
+    "total": 0.001,
+    "per_family": {
+      "A": 0.001,
+      "B": 0,
+      "C": 0,
+      "D": 0,
+      "E": 0
+    }
+  },
+  "baseline_cells": {
+    "dimensions": [
+      "hour_of_day",
+      "tenant_tier"
+    ],
+    "cells": [
+      {
+        "key": {
+          "hour_of_day": 0,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 116,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.381668124732993,
+              "baseline_mean_raw": 0.03550381465517242,
+              "baseline_sigma_squared": 15.093701682038976,
+              "baseline_sigma_squared_raw": 0.00046936145770056127,
+              "tau_squared": 15.093701682038976,
+              "delta_min": 7.770122697110767,
+              "ar1_phi": 0.3003715818484862,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00046936145770056127
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 1,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 73,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.375577155236555,
+              "baseline_mean_raw": 0.03856188356164384,
+              "baseline_sigma_squared": 16.067146664331545,
+              "baseline_sigma_squared_raw": 0.000661581322907675,
+              "tau_squared": 16.067146664331545,
+              "delta_min": 8.016769090932218,
+              "ar1_phi": -0.030677539710132803,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.000661581322907675
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 2,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 0,
+        "confidence": "pooled",
+        "pooled_from": [
+          {
+            "hour_of_day": 0,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 1,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 2,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 3,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 4,
+            "tenant_tier": "dominant"
+          }
+        ],
+        "variance_inflated": true,
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.31723542035834,
+              "baseline_mean_raw": 0.03653987676056339,
+              "baseline_sigma_squared": 14.486055727759165,
+              "baseline_sigma_squared_raw": 0.0005069058464196718,
+              "tau_squared": 14.486055727759165,
+              "delta_min": 7.612110279747441,
+              "ar1_phi": 0.09960728873861924,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005069058464196718
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 3,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 0,
+        "confidence": "pooled",
+        "pooled_from": [
+          {
+            "hour_of_day": 1,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 2,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 3,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 4,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 5,
+            "tenant_tier": "dominant"
+          }
+        ],
+        "variance_inflated": true,
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.262437304566213,
+              "baseline_mean_raw": 0.036170652777777784,
+              "baseline_sigma_squared": 13.16889983645677,
+              "baseline_sigma_squared_raw": 0.0005243569378030481,
+              "tau_squared": 13.16889983645677,
+              "delta_min": 7.257795763579124,
+              "ar1_phi": -0.028126806173983238,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005243569378030481
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 4,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 12,
+        "confidence": "aggregate"
+      },
+      {
+        "key": {
+          "hour_of_day": 5,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 12,
+        "confidence": "aggregate"
+      },
+      {
+        "key": {
+          "hour_of_day": 6,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 7,
+        "confidence": "aggregate"
+      },
+      {
+        "key": {
+          "hour_of_day": 7,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 0,
+        "confidence": "pooled",
+        "pooled_from": [
+          {
+            "hour_of_day": 5,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 6,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 7,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 8,
+            "tenant_tier": "dominant"
+          },
+          {
+            "hour_of_day": 9,
+            "tenant_tier": "dominant"
+          }
+        ],
+        "variance_inflated": true,
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.8965486015144584,
+              "baseline_mean_raw": 0.031664716591741575,
+              "baseline_sigma_squared": 4.096736500844517,
+              "baseline_sigma_squared_raw": 0.00043078798854176913,
+              "tau_squared": 4.096736500844517,
+              "delta_min": 4.0480792980595215,
+              "ar1_phi": 0.014662395868515761,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00043078798854176913
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 8,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 104,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.015367488359919,
+              "baseline_mean_raw": 0.033327908653846154,
+              "baseline_sigma_squared": 6.198484138588264,
+              "baseline_sigma_squared_raw": 0.0005999158019363673,
+              "tau_squared": 6.198484138588264,
+              "delta_min": 4.97935101738701,
+              "ar1_phi": 0.01637554544994802,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005999158019363673
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 9,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 179,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.8619663700882194,
+              "baseline_mean_raw": 0.03093505014119959,
+              "baseline_sigma_squared": 3.747538300651677,
+              "baseline_sigma_squared_raw": 0.00033071474520944436,
+              "tau_squared": 3.747538300651677,
+              "delta_min": 3.871711921438204,
+              "ar1_phi": 0.0067207940148008415,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00033071474520944436
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 10,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 215,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.860742590436005,
+              "baseline_mean_raw": 0.035364361683277966,
+              "baseline_sigma_squared": 7.1227734281969886,
+              "baseline_sigma_squared_raw": 0.0002931159718774024,
+              "tau_squared": 7.1227734281969886,
+              "delta_min": 5.337704910613545,
+              "ar1_phi": -0.04207696456630748,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0002931159718774024
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 11,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 228,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.601597689834957,
+              "baseline_mean_raw": 0.03619119983872123,
+              "baseline_sigma_squared": 2.8802702341022273,
+              "baseline_sigma_squared_raw": 0.00044513993432702357,
+              "tau_squared": 2.8802702341022273,
+              "delta_min": 3.394271782932078,
+              "ar1_phi": 0.09640412438522383,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00044513993432702357
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 12,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 168,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.00458349123764,
+              "baseline_mean_raw": 0.035498925595238116,
+              "baseline_sigma_squared": 7.535800986728633,
+              "baseline_sigma_squared_raw": 0.000601667223257857,
+              "tau_squared": 7.535800986728633,
+              "delta_min": 5.490282683698038,
+              "ar1_phi": 0.016200325440704003,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.000601667223257857
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 13,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 184,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.511224005246232,
+              "baseline_mean_raw": 0.031184611607142868,
+              "baseline_sigma_squared": 15.483866582460076,
+              "baseline_sigma_squared_raw": 0.00037345620096680953,
+              "tau_squared": 15.483866582460076,
+              "delta_min": 7.869908914964665,
+              "ar1_phi": 0.26734051903689043,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00037345620096680953
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 14,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 221,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.5942761383198487,
+              "baseline_mean_raw": 0.03523498491704373,
+              "baseline_sigma_squared": 1.8320659823934475,
+              "baseline_sigma_squared_raw": 0.00031037171365059976,
+              "tau_squared": 1.8320659823934475,
+              "delta_min": 2.707076639028491,
+              "ar1_phi": 0.06861631666736284,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00031037171365059976
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 15,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 233,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.529572200866965,
+              "baseline_mean_raw": 0.03329969041151982,
+              "baseline_sigma_squared": 0.33347700714205497,
+              "baseline_sigma_squared_raw": 0.00022107475081592154,
+              "tau_squared": 0.33347700714205497,
+              "delta_min": 1.154949361906495,
+              "ar1_phi": 0.013185230240182744,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00022107475081592154
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 16,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 234,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.173051174776501,
+              "baseline_mean_raw": 0.028607410839160838,
+              "baseline_sigma_squared": 8.796121741514405,
+              "baseline_sigma_squared_raw": 0.00020808193940092485,
+              "tau_squared": 8.796121741514405,
+              "delta_min": 5.931651284933869,
+              "ar1_phi": 0.024763025795104695,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00020808193940092485
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 17,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 232,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.8619966748262944,
+              "baseline_mean_raw": 0.0325666836001642,
+              "baseline_sigma_squared": 5.365085198791591,
+              "baseline_sigma_squared_raw": 0.0003026785500918065,
+              "tau_squared": 5.365085198791591,
+              "delta_min": 4.632530711734825,
+              "ar1_phi": 0.26820532117992096,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003026785500918065
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 18,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 202,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.342987995812247,
+              "baseline_mean_raw": 0.02976905109618106,
+              "baseline_sigma_squared": 11.538055726028496,
+              "baseline_sigma_squared_raw": 0.0003278659976617719,
+              "tau_squared": 11.538055726028496,
+              "delta_min": 6.793542735871615,
+              "ar1_phi": -0.032302783033310634,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003278659976617719
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 19,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 203,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.424126197987466,
+              "baseline_mean_raw": 0.03488339770328193,
+              "baseline_sigma_squared": 15.6797393265708,
+              "baseline_sigma_squared_raw": 0.0005025350634606867,
+              "tau_squared": 15.6797393265708,
+              "delta_min": 7.91953011903378,
+              "ar1_phi": 0.07371854941253173,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005025350634606867
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 20,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 205,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.866002248046801,
+              "baseline_mean_raw": 0.036571148606271774,
+              "baseline_sigma_squared": 7.526417393827035,
+              "baseline_sigma_squared_raw": 0.0003979262727601579,
+              "tau_squared": 7.526417393827035,
+              "delta_min": 5.486863364009363,
+              "ar1_phi": 0.2332364200013956,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003979262727601579
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 21,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 206,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.899388259014936,
+              "baseline_mean_raw": 0.035154440591770704,
+              "baseline_sigma_squared": 7.404487142465558,
+              "baseline_sigma_squared_raw": 0.0003827758837091039,
+              "tau_squared": 7.404487142465558,
+              "delta_min": 5.442237459892965,
+              "ar1_phi": 0.026514115501581725,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003827758837091039
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 22,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 213,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.9840337043380005,
+              "baseline_mean_raw": 0.03499799329309188,
+              "baseline_sigma_squared": 24.674779907207377,
+              "baseline_sigma_squared_raw": 0.0005282567602554285,
+              "tau_squared": 24.674779907207377,
+              "delta_min": 9.93474305801763,
+              "ar1_phi": 0.12015878384655014,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005282567602554285
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 23,
+          "tenant_tier": "dominant"
+        },
+        "n_samples": 164,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.203552462367174,
+              "baseline_mean_raw": 0.03634471036585367,
+              "baseline_sigma_squared": 12.640302644537991,
+              "baseline_sigma_squared_raw": 0.0004944296675578806,
+              "tau_squared": 12.640302644537991,
+              "delta_min": 7.110640658769923,
+              "ar1_phi": 0.0001981265961265334,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0004944296675578806
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 0,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 1,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 2,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 3,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 4,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 5,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 6,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 7,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 8,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 9,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 10,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 11,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 12,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 13,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 14,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 15,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 16,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 17,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 18,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 19,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 20,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 21,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 22,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 23,
+          "tenant_tier": "large"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 0,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 1,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 2,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 3,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 4,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 5,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 6,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 7,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 8,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 9,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 10,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 11,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 12,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 13,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 14,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 15,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 16,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 17,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 18,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 19,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 20,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 21,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 22,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 23,
+          "tenant_tier": "medium"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 0,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 1,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 2,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 3,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 4,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 5,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 6,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 7,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 8,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 9,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 10,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 11,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 12,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 13,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 14,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 15,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 16,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 17,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 18,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 19,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 20,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 21,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 22,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 23,
+          "tenant_tier": "small"
+        },
+        "n_samples": 0,
+        "confidence": "none"
+      },
+      {
+        "key": {
+          "hour_of_day": 0,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 116,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.381668124732993,
+              "baseline_mean_raw": 0.03550381465517242,
+              "baseline_sigma_squared": 15.093701682038976,
+              "baseline_sigma_squared_raw": 0.00046936145770056127,
+              "tau_squared": 15.093701682038976,
+              "delta_min": 7.770122697110767,
+              "ar1_phi": 0.3003715818484862,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00046936145770056127
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 1,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 73,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.375577155236555,
+              "baseline_mean_raw": 0.03856188356164384,
+              "baseline_sigma_squared": 16.067146664331545,
+              "baseline_sigma_squared_raw": 0.000661581322907675,
+              "tau_squared": 16.067146664331545,
+              "delta_min": 8.016769090932218,
+              "ar1_phi": -0.030677539710132803,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.000661581322907675
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 2,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 0,
+        "confidence": "pooled",
+        "pooled_from": [
+          {
+            "hour_of_day": 0,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 1,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 2,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 3,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 4,
+            "tenant_tier": "aggregate"
+          }
+        ],
+        "variance_inflated": true,
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.31723542035834,
+              "baseline_mean_raw": 0.03653987676056339,
+              "baseline_sigma_squared": 14.486055727759165,
+              "baseline_sigma_squared_raw": 0.0005069058464196718,
+              "tau_squared": 14.486055727759165,
+              "delta_min": 7.612110279747441,
+              "ar1_phi": 0.09960728873861924,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005069058464196718
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 3,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 0,
+        "confidence": "pooled",
+        "pooled_from": [
+          {
+            "hour_of_day": 1,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 2,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 3,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 4,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 5,
+            "tenant_tier": "aggregate"
+          }
+        ],
+        "variance_inflated": true,
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.262437304566213,
+              "baseline_mean_raw": 0.036170652777777784,
+              "baseline_sigma_squared": 13.16889983645677,
+              "baseline_sigma_squared_raw": 0.0005243569378030481,
+              "tau_squared": 13.16889983645677,
+              "delta_min": 7.257795763579124,
+              "ar1_phi": -0.028126806173983238,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005243569378030481
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 4,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 12,
+        "confidence": "aggregate"
+      },
+      {
+        "key": {
+          "hour_of_day": 5,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 12,
+        "confidence": "aggregate"
+      },
+      {
+        "key": {
+          "hour_of_day": 6,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 7,
+        "confidence": "aggregate"
+      },
+      {
+        "key": {
+          "hour_of_day": 7,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 0,
+        "confidence": "pooled",
+        "pooled_from": [
+          {
+            "hour_of_day": 5,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 6,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 7,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 8,
+            "tenant_tier": "aggregate"
+          },
+          {
+            "hour_of_day": 9,
+            "tenant_tier": "aggregate"
+          }
+        ],
+        "variance_inflated": true,
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.8965486015144584,
+              "baseline_mean_raw": 0.031664716591741575,
+              "baseline_sigma_squared": 4.096736500844517,
+              "baseline_sigma_squared_raw": 0.00043078798854176913,
+              "tau_squared": 4.096736500844517,
+              "delta_min": 4.0480792980595215,
+              "ar1_phi": 0.014662395868515761,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00043078798854176913
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 8,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 104,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.015367488359919,
+              "baseline_mean_raw": 0.033327908653846154,
+              "baseline_sigma_squared": 6.198484138588264,
+              "baseline_sigma_squared_raw": 0.0005999158019363673,
+              "tau_squared": 6.198484138588264,
+              "delta_min": 4.97935101738701,
+              "ar1_phi": 0.01637554544994802,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005999158019363673
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 9,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 179,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.8619663700882194,
+              "baseline_mean_raw": 0.03093505014119959,
+              "baseline_sigma_squared": 3.747538300651677,
+              "baseline_sigma_squared_raw": 0.00033071474520944436,
+              "tau_squared": 3.747538300651677,
+              "delta_min": 3.871711921438204,
+              "ar1_phi": 0.0067207940148008415,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00033071474520944436
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 10,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 215,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.860742590436005,
+              "baseline_mean_raw": 0.035364361683277966,
+              "baseline_sigma_squared": 7.1227734281969886,
+              "baseline_sigma_squared_raw": 0.0002931159718774024,
+              "tau_squared": 7.1227734281969886,
+              "delta_min": 5.337704910613545,
+              "ar1_phi": -0.04207696456630748,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0002931159718774024
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 11,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 228,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.601597689834957,
+              "baseline_mean_raw": 0.03619119983872123,
+              "baseline_sigma_squared": 2.8802702341022273,
+              "baseline_sigma_squared_raw": 0.00044513993432702357,
+              "tau_squared": 2.8802702341022273,
+              "delta_min": 3.394271782932078,
+              "ar1_phi": 0.09640412438522383,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00044513993432702357
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 12,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 168,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.00458349123764,
+              "baseline_mean_raw": 0.035498925595238116,
+              "baseline_sigma_squared": 7.535800986728633,
+              "baseline_sigma_squared_raw": 0.000601667223257857,
+              "tau_squared": 7.535800986728633,
+              "delta_min": 5.490282683698038,
+              "ar1_phi": 0.016200325440704003,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.000601667223257857
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 13,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 184,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.511224005246232,
+              "baseline_mean_raw": 0.031184611607142868,
+              "baseline_sigma_squared": 15.483866582460076,
+              "baseline_sigma_squared_raw": 0.00037345620096680953,
+              "tau_squared": 15.483866582460076,
+              "delta_min": 7.869908914964665,
+              "ar1_phi": 0.26734051903689043,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00037345620096680953
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 14,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 221,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.5942761383198487,
+              "baseline_mean_raw": 0.03523498491704373,
+              "baseline_sigma_squared": 1.8320659823934475,
+              "baseline_sigma_squared_raw": 0.00031037171365059976,
+              "tau_squared": 1.8320659823934475,
+              "delta_min": 2.707076639028491,
+              "ar1_phi": 0.06861631666736284,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00031037171365059976
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 15,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 233,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.529572200866965,
+              "baseline_mean_raw": 0.03329969041151982,
+              "baseline_sigma_squared": 0.33347700714205497,
+              "baseline_sigma_squared_raw": 0.00022107475081592154,
+              "tau_squared": 0.33347700714205497,
+              "delta_min": 1.154949361906495,
+              "ar1_phi": 0.013185230240182744,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00022107475081592154
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 16,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 234,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.173051174776501,
+              "baseline_mean_raw": 0.028607410839160838,
+              "baseline_sigma_squared": 8.796121741514405,
+              "baseline_sigma_squared_raw": 0.00020808193940092485,
+              "tau_squared": 8.796121741514405,
+              "delta_min": 5.931651284933869,
+              "ar1_phi": 0.024763025795104695,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.00020808193940092485
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 17,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 232,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.8619966748262944,
+              "baseline_mean_raw": 0.0325666836001642,
+              "baseline_sigma_squared": 5.365085198791591,
+              "baseline_sigma_squared_raw": 0.0003026785500918065,
+              "tau_squared": 5.365085198791591,
+              "delta_min": 4.632530711734825,
+              "ar1_phi": 0.26820532117992096,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003026785500918065
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 18,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 202,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.342987995812247,
+              "baseline_mean_raw": 0.02976905109618106,
+              "baseline_sigma_squared": 11.538055726028496,
+              "baseline_sigma_squared_raw": 0.0003278659976617719,
+              "tau_squared": 11.538055726028496,
+              "delta_min": 6.793542735871615,
+              "ar1_phi": -0.032302783033310634,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003278659976617719
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 19,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 203,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.424126197987466,
+              "baseline_mean_raw": 0.03488339770328193,
+              "baseline_sigma_squared": 15.6797393265708,
+              "baseline_sigma_squared_raw": 0.0005025350634606867,
+              "tau_squared": 15.6797393265708,
+              "delta_min": 7.91953011903378,
+              "ar1_phi": 0.07371854941253173,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005025350634606867
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 20,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 205,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.866002248046801,
+              "baseline_mean_raw": 0.036571148606271774,
+              "baseline_sigma_squared": 7.526417393827035,
+              "baseline_sigma_squared_raw": 0.0003979262727601579,
+              "tau_squared": 7.526417393827035,
+              "delta_min": 5.486863364009363,
+              "ar1_phi": 0.2332364200013956,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003979262727601579
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 21,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 206,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -3.899388259014936,
+              "baseline_mean_raw": 0.035154440591770704,
+              "baseline_sigma_squared": 7.404487142465558,
+              "baseline_sigma_squared_raw": 0.0003827758837091039,
+              "tau_squared": 7.404487142465558,
+              "delta_min": 5.442237459892965,
+              "ar1_phi": 0.026514115501581725,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0003827758837091039
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 22,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 213,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.9840337043380005,
+              "baseline_mean_raw": 0.03499799329309188,
+              "baseline_sigma_squared": 24.674779907207377,
+              "baseline_sigma_squared_raw": 0.0005282567602554285,
+              "tau_squared": 24.674779907207377,
+              "delta_min": 9.93474305801763,
+              "ar1_phi": 0.12015878384655014,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0005282567602554285
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      },
+      {
+        "key": {
+          "hour_of_day": 23,
+          "tenant_tier": "aggregate"
+        },
+        "n_samples": 164,
+        "confidence": "strict",
+        "family_A": {
+          "per_signal": {
+            "cost_req": {
+              "baseline_mean": -4.203552462367174,
+              "baseline_mean_raw": 0.03634471036585367,
+              "baseline_sigma_squared": 12.640302644537991,
+              "baseline_sigma_squared_raw": 0.0004944296675578806,
+              "tau_squared": 12.640302644537991,
+              "delta_min": 7.110640658769923,
+              "ar1_phi": 0.0001981265961265334,
+              "signal_class": "heavy_tail",
+              "mixture_supermartingale_params": {
+                "mixture_distribution": "gaussian",
+                "gaussian_sigma_squared_prior": 0.0004944296675578806
+              },
+              "betting_e_process_alpha": 0.00016666666666666666
+            }
+          }
+        }
+      }
+    ],
+    "aggregate_fallback": {
+      "family_A": {
+        "per_signal": {
+          "cost_req": {
+            "baseline_mean": -4.053772016704551,
+            "baseline_mean_raw": 0.03390898593216601,
+            "baseline_sigma_squared": 9.072737045929092,
+            "baseline_sigma_squared_raw": 0.0003983258902588948,
+            "tau_squared": 9.072737045929092,
+            "delta_min": 6.024196891181128,
+            "ar1_phi": 0.0979175063479503,
+            "signal_class": "heavy_tail",
+            "mixture_supermartingale_params": {
+              "mixture_distribution": "gaussian",
+              "gaussian_sigma_squared_prior": 0.0003983258902588948
+            },
+            "betting_e_process_alpha": 0.00016666666666666666
+          }
+        }
+      }
+    }
+  },
+  "bonferroni_factor": 3,
+  "bake_profiles": {
+    "p99_latency": {
+      "min_ticks_before_eligible": 3,
+      "min_observation_window": 3,
+      "max_deploy_window_days": 1
+    },
+    "ttft": {
+      "min_ticks_before_eligible": 3,
+      "min_observation_window": 3,
+      "max_deploy_window_days": 1
+    },
+    "downstream_err": {
+      "min_ticks_before_eligible": 4,
+      "min_observation_window": 4,
+      "max_deploy_window_days": 1
+    },
+    "tool_success_rate": {
+      "min_ticks_before_eligible": 6,
+      "min_observation_window": 6,
+      "max_deploy_window_days": 2
+    },
+    "eval_score": {
+      "min_ticks_before_eligible": 6,
+      "min_observation_window": 6,
+      "max_deploy_window_days": 3
+    },
+    "refusal_rate": {
+      "min_ticks_before_eligible": 6,
+      "min_observation_window": 6,
+      "max_deploy_window_days": 3
+    },
+    "cost_req": {
+      "min_ticks_before_eligible": 8,
+      "min_observation_window": 8,
+      "max_deploy_window_days": 7
+    },
+    "tokens_turn": {
+      "min_ticks_before_eligible": 8,
+      "min_observation_window": 8,
+      "max_deploy_window_days": 3
+    },
+    "mfu": {
+      "min_ticks_before_eligible": 4,
+      "min_observation_window": 4,
+      "max_deploy_window_days": 1
+    },
+    "hbm_spill": {
+      "min_ticks_before_eligible": 4,
+      "min_observation_window": 4,
+      "max_deploy_window_days": 1
+    },
+    "kv_cache": {
+      "min_ticks_before_eligible": 4,
+      "min_observation_window": 4,
+      "max_deploy_window_days": 1
+    },
+    "collective_ops": {
+      "min_ticks_before_eligible": 4,
+      "min_observation_window": 4,
+      "max_deploy_window_days": 1
+    },
+    "corpus_delta": {
+      "min_ticks_before_eligible": 4,
+      "min_observation_window": 4,
+      "max_deploy_window_days": 1
+    },
+    "_default": {
+      "min_ticks_before_eligible": 3,
+      "min_observation_window": 3,
+      "max_deploy_window_days": 1
+    }
+  },
+  "traffic_pct_gate": {
+    "min_traffic_pct_for_fire": 0.1
+  },
+  "tenant_tier_map": {
+    "burstgpt-aggregate": "dominant"
+  },
+  "tenant_tier_config": {
+    "boundaries": {
+      "dominant": 0.5,
+      "large": 0.1,
+      "medium": 0.01
+    }
+  },
+  "profile_ref": "generic-microservice@1.0.0",
+  "policy_defaults": {
+    "reversibility_threshold_minutes": 30,
+    "auto_rollback_enabled": true,
+    "default_risk_tier": "medium"
+  },
+  "family_a_signals": [
+    "p99_latency",
+    "downstream_err",
+    "cost_req"
+  ],
+  "family_c_signals": [],
+  "sli_meta": {
+    "p99_latency": {
+      "direction_of_better": "lower",
+      "delta_min": 0.01
+    },
+    "downstream_err": {
+      "direction_of_better": "lower",
+      "delta_min": 0.05
+    },
+    "cost_req": {
+      "direction_of_better": "lower",
+      "delta_min": 0.01
+    }
+  },
+  "compile_warnings": [
+    {
+      "code": "CELL_DIM_BASELINE_DEFICIENCY",
+      "message": "Profile requires cell_dimensions.day_of_week but the baseline bundle lacks metadata for it. Dimension disabled for this compile; realign the profile or recompile against a baseline that carries day_of_week data.",
+      "context": {
+        "dimension": "day_of_week",
+        "profile_requested": true,
+        "baseline_supports": false,
+        "mode": "warn"
+      }
+    }
+  ],
+  "signal_classes": {
+    "p99_latency": "gaussian_like",
+    "downstream_err": "bounded_probability",
+    "cost_req": "heavy_tail"
+  },
+  "compile_phases": {
+    "l0_prep_ms": 14,
+    "cov_estimation_ms": 0,
+    "mmd_bootstrap_ms": 0,
+    "conformal_calibration_ms": 0,
+    "tau2_fit_ms": 2,
+    "worker_pool_overhead_ms": 0,
+    "total_ms": 20,
+    "mcd_skipped_low_variance_cells": 0,
+    "mmd_bootstrap_skipped_cells": 0
+  },
+  "baseline_provenance": "real_burstgpt",
+  "baseline_curation_pipeline_diagnostics": {
+    "D1": {
+      "decision_id": "D1",
+      "decision_name": "Per-cell μ aggregation",
+      "inputs": {
+        "compile_state_ref": "baseline_cells.cells[].family_A.per_signal[].baseline_mean"
+      },
+      "output_summary": {
+        "n_cells_total": 120,
+        "n_cells_populated": 42,
+        "n_per_signal_entries": 1,
+        "cell_dim": "hour_of_day"
+      },
+      "decision_rule": "Q2.B.4 single-source per-cell μ disposition: each cell aggregates μ from its own constituent runs; no cross-cell μ leakage. Per-signal entries omitted for sparse-substrate signals per Q60 Phase-3.d.1 (A) sparse-skip emission.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D1"
+      },
+      "source_memorialization": "ARCHITECT-REPLY-Q2-B-4-COMPILE-PIPELINE-FIX-DISPOSITION (amended by ARCHITECT-REPLY-Q60-SLICE-1-PHASE-3-LS2-SPARSE-SIGNAL-DISPOSITION (A) sparse-skip)."
+    },
+    "D2": {
+      "decision_id": "D2",
+      "decision_name": "Per-cell Σ shrinkage",
+      "inputs": {
+        "upstream_decisions": [
+          "D1"
+        ],
+        "compile_state_ref": "baseline_cells.cells[].family_C.{covariance, ledoit_wolf_lambda, cholesky_L, cholesky_L_eps}"
+      },
+      "output_summary": {
+        "n_cells_with_family_C": 0,
+        "ledoit_wolf_lambda_avg": 0,
+        "ledoit_wolf_lambda_max": 0
+      },
+      "decision_rule": "Q2.B.5 σ²_A_raw coherence + Ledoit-Wolf shrinkage at Q2.B.4 single-source disposition: per-cell Σ shrinks toward diagonal target with optimal λ; preserves Cholesky decomposition for parametric_ar1 resampler dispatch.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D2"
+      },
+      "source_memorialization": "ARCHITECT-REPLY-Q2-B-5-COMPILE-PIPELINE-FIX-DISPOSITION + Q2.B.4 single-source per-cell μ."
+    },
+    "D3": {
+      "decision_id": "D3",
+      "decision_name": "Signal_class transform",
+      "inputs": {
+        "compile_state_ref": "CompiledConfig.signal_classes"
+      },
+      "output_summary": {
+        "n_signals_classified": 3,
+        "classes_summary": "{\"gaussian_like\":1,\"bounded_probability\":1,\"heavy_tail\":1}"
+      },
+      "decision_rule": "Q2.A signal-class registry: logit (bounded [0,1] signals), log (heavy-tail), Anscombe (non-negative count signals). Operators override defaults via CompilerOptions.signal_classes; absence falls back to DEFAULT_SIGNAL_CLASSES → gaussian_like.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D3"
+      },
+      "source_memorialization": "Q2.A signal-class registry spec."
+    },
+    "D4": {
+      "decision_id": "D4",
+      "decision_name": "Sliding-buffer threshold",
+      "inputs": {
+        "upstream_decisions": [
+          "D1",
+          "D2",
+          "D3"
+        ],
+        "compile_state_ref": "baseline_cells.cells[].family_A.per_signal[].betting_sliding_buffer_threshold + aggregate_fallback.family_A.per_signal[].betting_sliding_buffer_threshold"
+      },
+      "output_summary": {
+        "n_per_cell_thresholds_stamped": 0,
+        "n_aggregate_fallback_thresholds_stamped": 0,
+        "n_aggregate_fallback_signals": 1
+      },
+      "decision_rule": "Q2.B.6.1 + Q2.B.6.2 + Q2.B.6.3 sliding-buffer recalibration: per-detector thresholds derived from compile-time aggregation of (per-cell μ + Σ + signal_class transform) over evaluation window; bootstrap-derived with AR(1)-aware variance inflation post-Q2.B.7 cholesky_L_eps stamping.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D4"
+      },
+      "source_memorialization": "ARCHITECT-REPLY-Q2-B-6-1 + Q2.B.6.2 + Q2.B.6.3 sliding-buffer recalibration disposition cycle (audit hardened at Q2.B.6.3 betting threshold consistency check)."
+    },
+    "D5": {
+      "decision_id": "D5",
+      "decision_name": "Sparse-cell fallback",
+      "inputs": {
+        "upstream_decisions": [
+          "D1",
+          "D2"
+        ],
+        "compile_state_ref": "baseline_cells.cells[].{confidence,pooled_from,variance_inflated} + aggregate_fallback"
+      },
+      "output_summary": {
+        "n_cells_strict": 36,
+        "n_cells_pooled": 6,
+        "n_cells_aggregate": 6,
+        "n_cells_none": 72,
+        "n_cells_variance_inflated": 6,
+        "aggregate_fallback_present": true
+      },
+      "decision_rule": "Q2.B.4 sparse-cell confidence disposition: cells below min_samples_pooled pool from adjacent hours (confidence=pooled) or fall through to the cross-cell aggregate_fallback (confidence=aggregate/none); pooling flags variance_inflated for L3 fusion threshold widening.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D5"
+      },
+      "source_memorialization": "ARCHITECT-REPLY-Q2-B-4-COMPILE-PIPELINE-FIX-DISPOSITION (sparse-cell pooling/fallback disposition) + Reviewer X4 variance_inflated signaling."
+    },
+    "D6": {
+      "decision_id": "D6",
+      "decision_name": "Multi-tenant tier aggregation",
+      "inputs": {
+        "compile_state_ref": "CompiledConfig.{tenant_tier_map,tenant_tier_config} + baseline_cells.cells[].key.tenant_tier"
+      },
+      "output_summary": {
+        "multi_tenant": true,
+        "n_tenants_mapped": 1,
+        "n_tiers_in_cells": 5,
+        "tenant_tier_config_hash": "17cf3e2d"
+      },
+      "decision_rule": "Addition #23 tenant-tier bucketing: runs carrying tenant_id are bucketed into tiers by traffic fraction (tenant_tier_config.boundaries); cells gain a per-tier key.tenant_tier dimension alongside the always-present cross-tenant 'aggregate' tier. No-tenant bundles leave tenant_tier_map unset.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D6"
+      },
+      "source_memorialization": "ARCHITECT-REPLY-39 D1+D2 tenant-tier bucketing disposition."
+    },
+    "D7": {
+      "decision_id": "D7",
+      "decision_name": "AR(1) phi calibration",
+      "inputs": {
+        "upstream_decisions": [
+          "D1",
+          "D2"
+        ],
+        "compile_state_ref": "baseline_cells.*.family_A.per_signal[].{ar1_phi,betting_calibration_scope} + family_D[].ar1_phi"
+      },
+      "output_summary": {
+        "n_signal_entries_with_phi": 43,
+        "phi_abs_max": 0.3003715818484862,
+        "phi_mean": 0.07265363366112497,
+        "n_phi_at_clip_bound": 0,
+        "n_sliding_buffer_ar1_scope": 0
+      },
+      "decision_rule": "Q66 Phase-3.d.A.b + Q2.B.7: per-signal AR(1) lag-1 autocorrelation phi fitted at compile time via Yule-Walker on baseline-mean-centered per-cell residuals, clipped to [-0.95, +0.95] for stationarity; drives family_A pre-whitening and family_D bootstrap threshold recalibration under AR(1) H0. betting_calibration_scope=sliding_buffer_ar1 marks signals whose betting wealth threshold uses the post-Q2.B.6.3 per-trajectory MAX-wealth quantile instead of the analytical 1/alpha.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D7"
+      },
+      "source_memorialization": "Q66 Phase-3.d.A.b ar1_phi extension (retires Q59 H4 PERMANENT clause 1) + Q2.B.7 ACF-aware parametric AR(1) spec + Q2.B.6.3 sliding-buffer betting disposition."
+    },
+    "D8": {
+      "decision_id": "D8",
+      "decision_name": "Substrate-specific adjustment",
+      "inputs": {
+        "compile_state_ref": "CompiledConfig.{profile_ref,customer_override_ref,policy_defaults,alpha_budget.per_family,family_a_signals,family_c_signals}"
+      },
+      "output_summary": {
+        "profile_ref": "generic-microservice@1.0.0",
+        "customer_override_ref": "none",
+        "families_emitted": "A",
+        "n_family_a_signals": 3,
+        "n_family_c_signals": 0
+      },
+      "decision_rule": "Addition #28 (REPLY-51 D6/D8) substrate-specific adjustment: a reference workload profile (profile_ref) parameterizes alpha allocation + bake defaults + signal inventory; an optional customer_override_ref layers operator overrides on top. Legacy (no profile) compiles emit profile_ref='none' and derive alpha/signals from hardcoded defaults.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D8"
+      },
+      "source_memorialization": "ARCHITECT-REPLY-51 D6 (profile_ref) + D8 (customer_override_ref) substrate-parameterization disposition."
+    },
+    "D9": {
+      "decision_id": "D9",
+      "decision_name": "Cross-substrate consistency",
+      "inputs": {
+        "upstream_decisions": [
+          "D5",
+          "D6",
+          "D7",
+          "D8"
+        ],
+        "compile_state_ref": "CompiledConfig.compile_warnings (residue of _calibrate-audits.ts Q2.B.6.3 consistency audits) + family_D presence"
+      },
+      "output_summary": {
+        "n_compile_warnings": 1,
+        "warnings_summary": "{\"CELL_DIM_BASELINE_DEFICIENCY\":1}",
+        "family_d_audits_ran": false
+      },
+      "decision_rule": "Q2.B.6.3 cross-substrate consistency audits (auditAR1FactorizationConsistency, auditSlidingBufferHotellingConsistency, auditBettingSlidingBufferConsistency) run during compile against each cell's family_A/family_C/family_D calibration; any residue surfaces on CompiledConfig.compile_warnings. This decision is an audit-emission-only summary over that residue -- it does not re-run the audits.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D9"
+      },
+      "source_memorialization": "Q2.B.6.3 betting/Hotelling/AR(1)-factorization consistency audit disposition cycle."
+    },
+    "D10": {
+      "decision_id": "D10",
+      "decision_name": "Baseline provenance honest stamping",
+      "inputs": {
+        "compile_state_ref": "CompiledConfig.baseline_provenance + BaselineBundle.{baseline_provenance,version}"
+      },
+      "output_summary": {
+        "provenance_stamped": "real_burstgpt",
+        "provenance_source": "manifest"
+      },
+      "decision_rule": "R2 plan §C OQ5 honest-provenance-stamping contract: baseline_provenance is stamped from the source bundle manifest when present, inferred as 'synthetic' only from an unambiguous synthetic-* bundle version, and left unstamped (never guessed as real_*) otherwise. A config whose pre-stamped provenance contradicts its bundle's manifest throws rather than compiling a self-contradictory artifact.",
+      "verification": {
+        "audit_emitted": true,
+        "diagnostic_path": "CompiledConfig.baseline_curation_pipeline_diagnostics.D10"
+      },
+      "source_memorialization": "R2 refresh-controller implementation plan §C OQ5 (2026-07-17)."
+    }
+  }
+}

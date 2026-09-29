@@ -1,0 +1,18 @@
+{
+  "version": "real_burstgpt-v2-60s-cal4d",
+  "generated_at": "real-burstgpt-v2",
+  "seed": 0,
+  "cell_dim": "hour_of_day",
+  "n_runs": 561,
+  "ticks_per_run": 199,
+  "tenants": 1,
+  "signals": [
+    "cost_req"
+  ],
+  "baseline_provenance": "real_burstgpt",
+  "caveat_filters_applied": [
+    "burstgpt_gate:60s_request_weighted_cost_per_request",
+    "burstgpt_gate:empty_ticks_missing_not_zero",
+    "burstgpt_gate:calibration_first_5760_ticks"
+  ]
+}
