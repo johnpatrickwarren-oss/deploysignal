@@ -15,7 +15,7 @@ id: gwdg-gpu-node-a
 version: "1.0.0"
 extends: null
 description: >
-  Study 2026-09-gwdg-gate arm A: Family A only, eight DCGM per-GPU signals, α_total 1e-3
+  Study 2026-09-gwdg-gate arm A: Family A only, seven DCGM per-GPU signals, α_total 1e-3
   (the generic-microservice allocation). Structural rules, Families C, D and E off.
 
 sli_list:
@@ -40,9 +40,6 @@ sli_list:
   - signal: DCGM_FI_DEV_MEM_CLOCK
     direction_of_better: higher
     δ_min: 0.05
-  - signal: DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
-    direction_of_better: higher
-    δ_min: 0.05
 
 family_a_rollback_signals:
   - DCGM_FI_DEV_GPU_TEMP
@@ -52,7 +49,6 @@ family_a_rollback_signals:
   - DCGM_FI_DEV_MEM_COPY_UTIL
   - DCGM_FI_DEV_SM_CLOCK
   - DCGM_FI_DEV_MEM_CLOCK
-  - DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
 
 structural_detectors:
   enabled: false

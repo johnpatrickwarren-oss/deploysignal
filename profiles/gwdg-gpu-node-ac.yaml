@@ -1,7 +1,7 @@
 # profiles/gwdg-gpu-node-ac.yaml
 #
 # Study 2026-09-gwdg-gate (studies/gwdg-gate/PREREGISTRATION.md), arm `AC`: Family A and Family C
-# (the eight-signal joint vector) on the GWDG GPU node telemetry dataset. See gwdg-gpu-node-a.yaml
+# (the seven-signal joint vector) on the GWDG GPU node telemetry dataset. See gwdg-gpu-node-a.yaml
 # for what the profile is and is not. The A:C split is the llm-inference-streaming ratio, 2:1.
 #
 # Root profile (no `extends:`).
@@ -10,7 +10,7 @@ id: gwdg-gpu-node-ac
 version: "1.0.0"
 extends: null
 description: >
-  Study 2026-09-gwdg-gate arm AC: Family A (6e-4) and Family C (4e-4) on eight DCGM per-GPU
+  Study 2026-09-gwdg-gate arm AC: Family A (6e-4) and Family C (4e-4) on seven DCGM per-GPU
   signals, α_total 1e-3. Structural rules, Families D and E off.
 
 sli_list:
@@ -35,9 +35,6 @@ sli_list:
   - signal: DCGM_FI_DEV_MEM_CLOCK
     direction_of_better: higher
     δ_min: 0.05
-  - signal: DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
-    direction_of_better: higher
-    δ_min: 0.05
 
 family_a_rollback_signals:
   - DCGM_FI_DEV_GPU_TEMP
@@ -47,7 +44,6 @@ family_a_rollback_signals:
   - DCGM_FI_DEV_MEM_COPY_UTIL
   - DCGM_FI_DEV_SM_CLOCK
   - DCGM_FI_DEV_MEM_CLOCK
-  - DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
 
 structural_detectors:
   enabled: false
@@ -62,7 +58,6 @@ joint_vector:
     - DCGM_FI_DEV_MEM_COPY_UTIL
     - DCGM_FI_DEV_SM_CLOCK
     - DCGM_FI_DEV_MEM_CLOCK
-    - DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
   include_in_family_c: true
   include_in_family_e: false
 
