@@ -94,3 +94,24 @@ test('Plan B: alpha_allocation.total 0 is refused without a twin_arm', () => {
     fs.unlinkSync(tmp);
   }
 });
+
+test('Plan B / engine ADR 0037: the schema passes a sign metric margin through and rejects a malformed one', () => {
+  const raw = rawTwin();
+  const arm = raw.twin_arm as Record<string, unknown>;
+  const sign = { id: 'p99_latency', kind: 'sign', worse: 'higher', tolerance: 0.15 };
+  for (const margin of [{ relative: 0.1 }, { absolute: 0.005 }, { relative: 0.1, absolute: 0.001 }]) {
+    const r = validateAgainstSchema({ ...raw, twin_arm: { ...arm, metrics: [{ ...sign, margin }] } }, profileSchema());
+    assert.equal(r.valid, true, r.errors.join('; '));
+  }
+  const bad: Array<[unknown, string]> = [
+    [{ relative: 0.1, extra: 1 }, 'extra'],
+    [{ relative: -0.1 }, 'minimum'],
+    [{ absolute: 'x' }, 'absolute'],
+    ['0.1', 'margin'],
+  ];
+  for (const [margin, needle] of bad) {
+    const r = validateAgainstSchema({ ...raw, twin_arm: { ...arm, metrics: [{ ...sign, margin }] } }, profileSchema());
+    assert.equal(r.valid, false, `expected rejection for ${needle}`);
+    assert.ok(r.errors.some((e) => e.includes(needle)), `${needle}: ${r.errors.join('; ')}`);
+  }
+});

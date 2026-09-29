@@ -90,7 +90,8 @@ function twinDetectorIds(p: TwinArmProfile): Map<string, string> {
 }
 
 function metricSpec(m: TwinArmMetricProfile): TwinMetricSpec {
-  return { id: m.id, kind: m.kind, worse: m.worse, tolerance: m.tolerance };
+  // engine ADR 0037: `margin` (sign only) passes through as declared; the engine validates it
+  return { id: m.id, kind: m.kind, worse: m.worse, tolerance: m.tolerance, ...(m.margin !== undefined ? { margin: m.margin } : {}) };
 }
 
 /** The profile / HTTP block as the engine's TwinGateConfig. */
