@@ -134,3 +134,22 @@ constants here), any tolerance but 0.15, any tick but 10 s, any window but 1 h, 
 on the mini, the Phase 2 interventions, `core_mhz` or any metric but residency, cross-cluster
 pairs other than (`c0`,`c9`), and the missingness penalty (missing ticks are skipped, not
 penalised).
+
+## Amendment 1 — 2026-09-29, before any run (from the §6 smoke, not from a result)
+
+The §6 smoke on window 0 of (`c0`,`c1`) found two defects in the instrument checks as written.
+Neither touches the pairs, windows, gate settings, endpoints, bars or predictions.
+
+1. **The §0(c) layout check was mis-specified.** It correlated each core's `mhz` with the three
+   cluster `mhz` series over the first ten minutes; cluster clocks co-move under DVFS, so every
+   core correlated best with P0 (r 0.76–0.94) and the check would have voided the run for the
+   wrong reason. **Change:** the check now correlates each core's `res` with `e_res`, `p0_res`,
+   `p1_res` over the **whole** substrate; the declared cluster must be the best of the three.
+   NOT EXECUTABLE on a contradiction, as before.
+2. **Check (ii) expected the wrong mirror.** The twin's two tests are one-sided: a canary worse by
+   the tolerance ends `rollback`, a canary no worse ends `proceed`. Swapping the arms of a window
+   that ended `rollback` should therefore end `proceed`, not `rollback`. **Change:** (ii) reads
+   "a window that ends `rollback` unmodified ends `proceed` with the arms swapped".
+3. **Seen in the smoke and disclosed:** window 0 of (`c0`,`c1`) ended `rollback` at tick 37 with
+   12 used and 26 tied ticks (rollback wealth 28.8 against 20); with the arms swapped it ended
+   `proceed` at tick 31; with +20 on the canary it ended `rollback` at tick 8. Not scored.
