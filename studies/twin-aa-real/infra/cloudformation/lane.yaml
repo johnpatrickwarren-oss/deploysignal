@@ -153,6 +153,7 @@ Resources:
       Cpu: !Ref TaskCpu
       Memory: !Ref TaskMemory
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      RuntimePlatform: { CpuArchitecture: ARM64, OperatingSystemFamily: LINUX }
       EnableFaultInjection: !If [FaultInjection, true, false]
       ContainerDefinitions:
         - Name: service
@@ -178,6 +179,7 @@ Resources:
       Cpu: !Ref TaskCpu
       Memory: !Ref TaskMemory
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      RuntimePlatform: { CpuArchitecture: ARM64, OperatingSystemFamily: LINUX }
       EnableFaultInjection: !If [FaultInjection, true, false]
       ContainerDefinitions:
         - Name: service

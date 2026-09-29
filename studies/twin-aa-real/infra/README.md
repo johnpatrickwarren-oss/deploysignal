@@ -43,7 +43,8 @@ Requirement mapping:
    AB cells run.
 1. `aws cloudformation deploy --stack-name twin-aa-network --template-file cloudformation/network.yaml`
 2. `aws cloudformation deploy --stack-name twin-aa-ecr --template-file cloudformation/ecr.yaml`
-3. Build and push the service image once (`service/`), record the digest:
+3. Build and push the service image once (`service/`; the task definition runs ARM64 on Fargate, so
+   build for `linux/arm64`), record the digest:
    `docker build -t <repo>:old service && docker push …` → `aws ecr describe-images` for the digest.
 4. Per lane N: `aws cloudformation deploy --stack-name twin-aa-lane<N> --template-file cloudformation/lane.yaml --parameter-overrides NetworkStack=twin-aa-network LaneId=<N> ImageUri=<repo>@<digest> WeightPercent=25 Fault503Fraction=0.005 ProdTasks=2 --capabilities CAPABILITY_NAMED_IAM`
 5. `aws cloudformation deploy --stack-name twin-aa-host --template-file cloudformation/host.yaml --parameter-overrides NetworkStack=twin-aa-network KeyName=<key> OperatorCidr=<ip>/32 --capabilities CAPABILITY_NAMED_IAM`
@@ -52,7 +53,8 @@ Requirement mapping:
    start the gate, `run-real.mjs --check-config`.
 7. Start the load generator on the host against each lane's ALB DNS name (from the stack outputs),
    seed and rate recorded.
-8. Register the dated amendment naming the CloudWatch queries (§3.1 requires it before run 0).
+8. No amendment is needed for the registered CloudWatch source (§3.1 requires one only if Prometheus
+   replaces it). Write the §8 "before run 0" record.
 9. Per run: `scripts/rotate-arms.sh start …` → arm-ready → runner within 300 s → 78 min hands
    off → `scripts/rotate-arms.sh stop …`. The script prints one JSON line per weight change for the
    run record.
