@@ -1,0 +1,87 @@
+# profiles/gwdg-gpu-node-a.yaml
+#
+# Study 2026-09-gwdg-gate (studies/gwdg-gate/PREREGISTRATION.md), arm `A`: Family A only on eight
+# per-GPU DCGM signals from the GWDG GPU node telemetry dataset (Zenodo 10.5281/zenodo.19052367).
+# Not a shipped workload profile: it exists so the study runs the shipped compiler and gate with no
+# override. The eight signals hold rollback authority by `family_a_rollback_signals` (the operator
+# decision profiles/README.md describes); the plug-in envelope is validUnderEstimatedBaseline: false.
+#
+# direction_of_better sets only the recalibration classifier's reading; the detectors are two-sided.
+# δ_min sets only that classifier's dead-band (profiles/README.md "What δ_min sets").
+#
+# Root profile (no `extends:`).
+
+id: gwdg-gpu-node-a
+version: "1.0.0"
+extends: null
+description: >
+  Study 2026-09-gwdg-gate arm A: Family A only, eight DCGM per-GPU signals, α_total 1e-3
+  (the generic-microservice allocation). Structural rules, Families C, D and E off.
+
+sli_list:
+  - signal: DCGM_FI_DEV_GPU_TEMP
+    direction_of_better: lower
+    δ_min: 0.05
+  - signal: DCGM_FI_DEV_MEMORY_TEMP
+    direction_of_better: lower
+    δ_min: 0.05
+  - signal: DCGM_FI_DEV_POWER_USAGE
+    direction_of_better: lower
+    δ_min: 0.05
+  - signal: DCGM_FI_DEV_GPU_UTIL
+    direction_of_better: higher
+    δ_min: 0.05
+  - signal: DCGM_FI_DEV_MEM_COPY_UTIL
+    direction_of_better: higher
+    δ_min: 0.05
+  - signal: DCGM_FI_DEV_SM_CLOCK
+    direction_of_better: higher
+    δ_min: 0.05
+  - signal: DCGM_FI_DEV_MEM_CLOCK
+    direction_of_better: higher
+    δ_min: 0.05
+  - signal: DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
+    direction_of_better: higher
+    δ_min: 0.05
+
+family_a_rollback_signals:
+  - DCGM_FI_DEV_GPU_TEMP
+  - DCGM_FI_DEV_MEMORY_TEMP
+  - DCGM_FI_DEV_POWER_USAGE
+  - DCGM_FI_DEV_GPU_UTIL
+  - DCGM_FI_DEV_MEM_COPY_UTIL
+  - DCGM_FI_DEV_SM_CLOCK
+  - DCGM_FI_DEV_MEM_CLOCK
+  - DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
+
+structural_detectors:
+  enabled: false
+  dependencies: []
+
+joint_vector:
+  signals: []
+  include_in_family_c: false
+  include_in_family_e: false
+
+alpha_allocation:
+  per_family:
+    A: 1.0e-3
+    B: 0.0
+    C: 0.0
+    D: 0.0
+    E: 0.0
+  total: 1.0e-3
+
+cell_dimensions:
+  hour_of_day: true
+  day_of_week: false
+  workload_class: false
+  tenant_tier: false
+  region: false
+
+bake_profiles: []
+
+policy_defaults:
+  reversibility_threshold_minutes: 30
+  auto_rollback_enabled: true
+  default_risk_tier: medium
