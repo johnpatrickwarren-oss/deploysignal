@@ -370,12 +370,19 @@ test('(d) compile: effectiveOrDefaults passes family_a_rollback_signals through,
   assert.deepEqual(effectiveOrDefaults(eff, legacy).family_a_rollback_signals, [CUSTOM]);
 });
 
+/** Study-only profiles (studies/<id>/PREREGISTRATION.md names each): they exist so a registered study
+ *  runs the shipped compiler and gate with no override, and they are not shipped workload profiles.
+ *  Each declares `family_a_rollback_signals` for its study signals on purpose (the operator decision
+ *  profiles/README.md describes), so (d) skips them; the shipped inventory stays under the rule. */
+const STUDY_ONLY_PROFILES = new Set(['gwdg-gpu-node-a', 'gwdg-gpu-node-ac']);
+
 test('(d) no shipped profile declares family_a_rollback_signals or monitors a signal outside the six', () => {
   const dir = path.resolve(__dirname, '..', 'profiles');
   const six = new Set<string>(FAMILY_A_PRIMARY_SIGNALS);
   assert.equal(six.size, 6);
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.yaml'))) {
     const id = f.replace(/\.yaml$/, '');
+    if (STUDY_ONLY_PROFILES.has(id)) continue;
     const text = fs.readFileSync(path.join(dir, f), 'utf8');
     const version = /^version:\s*"?([0-9.]+)"?/m.exec(text)![1];
     const prof = loadProfile(`${id}@${version}`);
