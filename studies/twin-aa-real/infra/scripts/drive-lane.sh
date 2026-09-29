@@ -27,6 +27,9 @@ for v in LANE STACK HOST KEY RECORD RUNS; do [ -n "${!v}" ] || { echo "--$(echo 
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROT=("$HERE/rotate-arms.sh"); [ -n "$PROFILE" ] && PROF=(--profile "$PROFILE") || PROF=(); [ -n "$REGION" ] && REG=(--region "$REGION") || REG=()
 SSH=(ssh -i "$KEY" -o BatchMode=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=10 "$HOST")
+# the runner the host executes, relative to ~/deploysignal; the second registration (studies/twin-aa-real-2,
+# Amendment 1) sets RUNNER=studies/twin-aa-real-2/harness/run-real.mjs and its lane configs live beside it
+RUNNER="${RUNNER:-studies/twin-aa-real/harness/run-real.mjs}"; CFG_DIR="$(dirname "$(dirname "$RUNNER")")"
 mkdir -p "$RECORD/runs"
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 next_index() {
@@ -45,7 +48,7 @@ while [ "$done_runs" -lt "$RUNS" ]; do
   # the runner, within 300 s of arm-ready, detached on the host (nohup + setsid) so a dropped ssh session
   # cannot kill it; this side polls a done marker every 60 s. Its own files hold the verdicts.
   echo "{\"t\":\"$(now)\",\"event\":\"runner_start\",\"run\":$k,\"arm_ready\":\"$ARM_READY\"}" | tee -a "$LOG"
-  "${SSH[@]}" "cd ~/deploysignal && rm -f ~/runner-$CELL-l$LANE-r$k.done && (DS_GATE_SHARED_SECRET=\$(cat ~/.gate-secret) setsid nohup sh -c 'node studies/twin-aa-real/harness/run-real.mjs --config studies/twin-aa-real/lane$LANE.json --cell $CELL --run $k --arm-ready $ARM_READY > ~/runner-$CELL-l$LANE-r$k.out 2>&1; echo \$? > ~/runner-$CELL-l$LANE-r$k.done' > /dev/null 2>&1 &) ; sleep 2; pgrep -f 'run-real.mjs.*--run $k ' > /dev/null && echo RUNNER_PID_OK || echo RUNNER_NOT_RUNNING" > "$RECORD/runs/$CELL-l$LANE-r$k.runner.out" 2>&1
+  "${SSH[@]}" "cd ~/deploysignal && rm -f ~/runner-$CELL-l$LANE-r$k.done && (DS_GATE_SHARED_SECRET=\$(cat ~/.gate-secret) setsid nohup sh -c 'node $RUNNER --config $CFG_DIR/lane$LANE.json --cell $CELL --run $k --arm-ready $ARM_READY > ~/runner-$CELL-l$LANE-r$k.out 2>&1; echo \$? > ~/runner-$CELL-l$LANE-r$k.done' > /dev/null 2>&1 &) ; sleep 2; pgrep -f 'run-real.mjs.*--run $k ' > /dev/null && echo RUNNER_PID_OK || echo RUNNER_NOT_RUNNING" > "$RECORD/runs/$CELL-l$LANE-r$k.runner.out" 2>&1
   grep -q RUNNER_PID_OK "$RECORD/runs/$CELL-l$LANE-r$k.runner.out" || echo "{\"t\":\"$(now)\",\"event\":\"runner_not_started\",\"run\":$k}" | tee -a "$LOG"
   RUNNER_EXIT=""; waited=0
   while [ -z "$RUNNER_EXIT" ] && [ $waited -lt 6600 ]; do
