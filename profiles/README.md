@@ -12,6 +12,11 @@ Per ARCHITECT-REPLY-51 Addition #28. YAML-based templates that parameterize `Com
 
 v2 profiles (out of scope for Addition #28; noted for follow-on sequencing): `rag-pipeline`, `training-to-serving-handoff`, `data-plane`.
 
+**Study-only profiles** (not shipped; each is named by its study's `PREREGISTRATION.md` and skipped by
+`test/family-a-rollback-authority.test.ts` (d)): `gwdg-gpu-node-a`, `gwdg-gpu-node-ac`
+(`studies/gwdg-gate/`, 2026-09-29). They exist so a registered study runs the shipped compiler and
+gate with no override, and they declare `family_a_rollback_signals` for their study signals on purpose.
+
 ## Schema
 
 - [`schema/profile.schema.json`](./schema/profile.schema.json) — validates every profile YAML against the D3 field contract.
