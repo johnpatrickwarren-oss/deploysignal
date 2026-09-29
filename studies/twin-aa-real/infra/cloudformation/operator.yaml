@@ -31,9 +31,14 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: ["elasticloadbalancing:ModifyListener", "ecs:UpdateService"]
+                Action: ["elasticloadbalancing:ModifyListener"]
                 Resource: "*"
                 Condition: { StringLike: { "aws:ResourceTag/aws:cloudformation:stack-name": "twin-aa-lane*" } }
+              # CloudFormation tags listeners but not ECS services, so the service allow is scoped by ARN
+              # (cluster twin-aa-l<N> per lane.yaml), not by the stack-name tag.
+              - Effect: Allow
+                Action: ["ecs:UpdateService"]
+                Resource: !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:service/twin-aa-l*/*"
               - Effect: Allow
                 Action: ["cloudformation:DescribeStacks", "cloudtrail:LookupEvents",
                          "ecs:DescribeServices", "ecs:ListTasks", "ecs:DescribeTasks",
