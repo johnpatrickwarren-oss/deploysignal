@@ -1,0 +1,4507 @@
+[
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu0",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 92,
+  "fire_at": "2026-01-06 15:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 93,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu0",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 88,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu0",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 99,
+  "fire_at": "2026-01-06 16:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 100,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu0",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 88,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu1",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 85,
+  "fire_at": "2026-01-06 14:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 86,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu1",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 88,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu1",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 78,
+  "fire_at": "2026-01-06 13:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 79,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu1",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 88,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu2",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 73,
+  "fire_at": "2026-01-06 12:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 74,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu2",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 88,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu2",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 34,
+  "fire_at": "2026-01-06 05:40:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 35,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu2",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 88,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu3",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 81,
+  "fire_at": "2026-01-06 13:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 82,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu3",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 58,
+  "fire_at": "2026-01-08 09:40:00",
+  "lead_hours_vs_I": -14.333333333333334,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 58,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 59,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu3",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-06 00:00:00",
+  "end": "2026-01-08 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 26,
+  "fire_at": "2026-01-06 04:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 27,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu129_2026-01-09_gpu-lost__gpu3",
+  "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-08 00:00:00",
+  "end": "2026-01-10 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 3,
+  "fire_at": "2026-01-08 00:30:00",
+  "lead_hours_vs_I": -23.5,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 3,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 4,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu0",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 199,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu0",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 23,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu0",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 14,
+  "fire_at": "2025-03-18 02:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 15,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu0",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 13,
+  "fire_at": "2025-03-20 02:10:00",
+  "lead_hours_vs_I": -21.833333333333332,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 14,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu1",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 8,
+  "fire_at": "2025-03-18 01:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 9,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu1",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2025-03-20 01:00:00",
+  "lead_hours_vs_I": -23,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_GPU_UTIL",
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu1",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 7,
+  "fire_at": "2025-03-18 01:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL",
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 8,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu1",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 3,
+  "fire_at": "2025-03-20 00:30:00",
+  "lead_hours_vs_I": -23.5,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 4,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu2",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 48,
+  "fire_at": "2025-03-18 08:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 49,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu2",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 42,
+  "fire_at": "2025-03-20 07:00:00",
+  "lead_hours_vs_I": -17,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 43,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu2",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 62,
+  "fire_at": "2025-03-18 10:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 63,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu2",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 42,
+  "fire_at": "2025-03-20 07:00:00",
+  "lead_hours_vs_I": -17,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 43,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu3",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 4,
+  "fire_at": "2025-03-18 00:40:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 5,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu3",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 11,
+  "fire_at": "2025-03-20 01:50:00",
+  "lead_hours_vs_I": -22.166666666666668,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 12,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu3",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2025-03-18 01:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL",
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu3",
+  "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 11,
+  "fire_at": "2025-03-20 01:50:00",
+  "lead_hours_vs_I": -22.166666666666668,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 12,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu0",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 55,
+  "fire_at": "2025-02-14 09:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 55,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 56,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu0",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 55,
+  "fire_at": "2025-02-16 09:10:00",
+  "lead_hours_vs_I": -14.833333333333334,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 55,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 56,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu0",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 58,
+  "fire_at": "2025-02-14 09:40:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 58,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 59,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu0",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 58,
+  "fire_at": "2025-02-16 09:40:00",
+  "lead_hours_vs_I": -14.333333333333334,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 58,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 59,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu1",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 96,
+  "fire_at": "2025-02-14 16:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 96,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 97,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu1",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 96,
+  "fire_at": "2025-02-16 16:00:00",
+  "lead_hours_vs_I": -8,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 96,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 97,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu1",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 96,
+  "fire_at": "2025-02-14 16:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 96,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 97,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu1",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 96,
+  "fire_at": "2025-02-16 16:00:00",
+  "lead_hours_vs_I": -8,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 96,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 97,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu2",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu2",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu2",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu2",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu3",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu3",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu3",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-02-14 00:00:00",
+  "end": "2025-02-16 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-02-17_gpus-fallen-off-bus__gpu3",
+  "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-02-16 00:00:00",
+  "end": "2025-02-18 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu0",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 66,
+  "fire_at": "2025-03-12 11:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 67,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu0",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 60,
+  "fire_at": "2025-03-12 10:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 61,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu1",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 19,
+  "fire_at": "2025-03-12 03:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 20,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu1",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 28,
+  "fire_at": "2025-03-12 04:40:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 29,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu2",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 34,
+  "fire_at": "2025-03-12 05:40:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 35,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu2",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 23,
+  "fire_at": "2025-03-12 03:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 24,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu3",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 120,
+  "fire_at": "2025-03-12 20:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 121,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-03-15_unknown-error-possibly-nongpu__gpu3",
+  "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-12 00:00:00",
+  "end": "2025-03-14 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 120,
+  "fire_at": "2025-03-12 20:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 121,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu0",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 18,
+  "fire_at": "2025-06-30 03:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 19,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu0",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2025-07-02 01:00:00",
+  "lead_hours_vs_I": -23,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 6,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu0",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 21,
+  "fire_at": "2025-06-30 03:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL",
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 22,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu0",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 20,
+  "fire_at": "2025-07-02 03:20:00",
+  "lead_hours_vs_I": -20.666666666666668,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 20,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 21,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu1",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-06-30 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu1",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-07-02 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu1",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-06-30 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu1",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-07-02 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu2",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 30,
+  "fire_at": "2025-06-30 05:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 31,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu2",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 4,
+  "fire_at": "2025-07-02 00:40:00",
+  "lead_hours_vs_I": -23.333333333333332,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 4,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 5,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu2",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 24,
+  "fire_at": "2025-06-30 04:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 25,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu2",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 17,
+  "fire_at": "2025-07-02 02:50:00",
+  "lead_hours_vs_I": -21.166666666666668,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 17,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 18,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu3",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 60,
+  "fire_at": "2025-06-30 10:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 61,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu3",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-07-02 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu3",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-30 00:00:00",
+  "end": "2025-07-02 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 60,
+  "fire_at": "2025-06-30 10:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 61,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-07-03_gpu-problem__gpu3",
+  "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-07-02 00:00:00",
+  "end": "2025-07-04 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-07-02 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 47,
+  "fire_at": "2025-09-09 07:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 47,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 48,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 47,
+  "fire_at": "2025-09-11 07:50:00",
+  "lead_hours_vs_I": -16.166666666666668,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 47,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 48,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 50,
+  "fire_at": "2025-09-09 08:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 50,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 51,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 50,
+  "fire_at": "2025-09-11 08:20:00",
+  "lead_hours_vs_I": -15.666666666666666,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 50,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 51,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 11,
+  "fire_at": "2025-09-09 01:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 11,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 12,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 11,
+  "fire_at": "2025-09-11 01:50:00",
+  "lead_hours_vs_I": -22.166666666666668,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 11,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 12,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-09-09 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 12,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-09-11 02:00:00",
+  "lead_hours_vs_I": -22,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 12,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 51,
+  "fire_at": "2025-09-09 08:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 51,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 52,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 51,
+  "fire_at": "2025-09-11 08:30:00",
+  "lead_hours_vs_I": -15.5,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 51,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 52,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 54,
+  "fire_at": "2025-09-09 09:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 54,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 55,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 54,
+  "fire_at": "2025-09-11 09:00:00",
+  "lead_hours_vs_I": -15,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 54,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 55,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 58,
+  "fire_at": "2025-09-09 09:40:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 58,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 59,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 58,
+  "fire_at": "2025-09-11 09:40:00",
+  "lead_hours_vs_I": -14.333333333333334,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 58,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 59,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-09-09 00:00:00",
+  "end": "2025-09-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 62,
+  "fire_at": "2025-09-09 10:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 62,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 63,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu142_2025-09-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-09-11 00:00:00",
+  "end": "2025-09-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 62,
+  "fire_at": "2025-09-11 10:20:00",
+  "lead_hours_vs_I": -13.666666666666666,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 62,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 63,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-03-18 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_MEMORY_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_GPU_UTIL",
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_MEMORY_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-03-18 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A",
+   "C"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL",
+   "family_C"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 1,
+  "fire_at": "2025-03-18 00:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 2,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_MEMORY_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 5,
+  "fire_at": "2025-03-18 00:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 6,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 7,
+  "fire_at": "2025-03-18 01:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 8,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_MEMORY_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2025-03-18 01:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2025-03-18 01:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_MEMORY_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2025-03-18 01:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu143_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2025-03-20 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 21,
+  "fire_at": "2025-03-18 03:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 22,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 168,
+  "fire_at": "2025-03-21 04:00:00",
+  "lead_hours_vs_I": 4,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 169,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 21,
+  "fire_at": "2025-03-18 03:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 22,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu0",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 168,
+  "fire_at": "2025-03-21 04:00:00",
+  "lead_hours_vs_I": 4,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 169,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-03-18 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 42,
+  "fire_at": "2025-03-20 07:00:00",
+  "lead_hours_vs_I": -17,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 43,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2025-03-18 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu1",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 42,
+  "fire_at": "2025-03-20 07:00:00",
+  "lead_hours_vs_I": -17,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 43,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 47,
+  "fire_at": "2025-03-18 07:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 48,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 90,
+  "fire_at": "2025-03-20 15:00:00",
+  "lead_hours_vs_I": -9,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 91,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 48,
+  "fire_at": "2025-03-18 08:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 49,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu2",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 90,
+  "fire_at": "2025-03-20 15:00:00",
+  "lead_hours_vs_I": -9,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 91,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 17,
+  "fire_at": "2025-03-18 02:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 18,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 72,
+  "fire_at": "2025-03-20 12:00:00",
+  "lead_hours_vs_I": -12,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 73,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 17,
+  "fire_at": "2025-03-18 02:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 18,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu144_2025-03-21_gpu-problem__gpu3",
+  "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 72,
+  "fire_at": "2025-03-20 12:00:00",
+  "lead_hours_vs_I": -12,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 73,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 87,
+  "fire_at": "2025-03-18 14:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 88,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 9,
+  "fire_at": "2025-03-20 01:30:00",
+  "lead_hours_vs_I": -22.5,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 10,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 97,
+  "fire_at": "2025-03-18 16:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 98,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 11,
+  "fire_at": "2025-03-20 01:50:00",
+  "lead_hours_vs_I": -22.166666666666668,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 12,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 66,
+  "fire_at": "2025-03-18 11:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 67,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 2,
+  "fire_at": "2025-03-20 00:20:00",
+  "lead_hours_vs_I": -23.666666666666668,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 3,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 66,
+  "fire_at": "2025-03-18 11:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 67,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 2,
+  "fire_at": "2025-03-20 00:20:00",
+  "lead_hours_vs_I": -23.666666666666668,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 3,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 71,
+  "fire_at": "2025-03-18 11:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 72,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 119,
+  "fire_at": "2025-03-20 19:50:00",
+  "lead_hours_vs_I": -4.166666666666667,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 120,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 79,
+  "fire_at": "2025-03-18 13:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 80,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 119,
+  "fire_at": "2025-03-20 19:50:00",
+  "lead_hours_vs_I": -4.166666666666667,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 120,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 66,
+  "fire_at": "2025-03-18 11:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 67,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 4,
+  "fire_at": "2025-03-20 00:40:00",
+  "lead_hours_vs_I": -23.333333333333332,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 5,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-03-18 00:00:00",
+  "end": "2025-03-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 72,
+  "fire_at": "2025-03-18 12:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 73,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-03-21_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-03-20 00:00:00",
+  "end": "2025-03-22 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 4,
+  "fire_at": "2025-03-20 00:40:00",
+  "lead_hours_vs_I": -23.333333333333332,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 5,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "proceed",
+  "fire_tick": null,
+  "fire_at": null,
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [],
+  "rollback_ids": [],
+  "first_signal": null,
+  "missing_ticks": 0,
+  "evaluated": 288,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 66,
+  "fire_at": "2025-06-11 11:00:00",
+  "lead_hours_vs_I": -13,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 67,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 25,
+  "fire_at": "2025-06-09 04:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 26,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 4,
+  "fire_at": "2025-06-11 00:40:00",
+  "lead_hours_vs_I": -23.333333333333332,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 5,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 119,
+  "fire_at": "2025-06-09 19:50:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 120,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 121,
+  "fire_at": "2025-06-11 20:10:00",
+  "lead_hours_vs_I": -3.8333333333333335,
+  "xid_first_tick": 97,
+  "fire_minus_xid_ticks": 24,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_SM_CLOCK"
+  ],
+  "first_signal": "DCGM_FI_DEV_SM_CLOCK",
+  "missing_ticks": 0,
+  "evaluated": 122,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 3,
+  "fire_at": "2025-06-09 00:30:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 4,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 4,
+  "fire_at": "2025-06-11 00:40:00",
+  "lead_hours_vs_I": -23.333333333333332,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 5,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 133,
+  "fire_at": "2025-06-09 22:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_MEMORY_TEMP"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEMORY_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 134,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 168,
+  "fire_at": "2025-06-12 04:00:00",
+  "lead_hours_vs_I": 4,
+  "xid_first_tick": 97,
+  "fire_minus_xid_ticks": 71,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 169,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 86,
+  "fire_at": "2025-06-09 14:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 87,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 3,
+  "fire_at": "2025-06-11 00:30:00",
+  "lead_hours_vs_I": -23.5,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 4,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 103,
+  "fire_at": "2025-06-09 17:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_betting_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 104,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 192,
+  "fire_at": "2025-06-12 08:00:00",
+  "lead_hours_vs_I": 8,
+  "xid_first_tick": 97,
+  "fire_minus_xid_ticks": 95,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 193,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2025-06-09 00:00:00",
+  "end": "2025-06-11 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 16,
+  "fire_at": "2025-06-09 02:40:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 17,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2025-06-11 00:00:00",
+  "end": "2025-06-13 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 46,
+  "fire_at": "2025-06-11 07:40:00",
+  "lead_hours_vs_I": -16.333333333333332,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 47,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 44,
+  "fire_at": "2026-01-16 07:20:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 45,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2026-01-18 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 36,
+  "fire_at": "2026-01-16 06:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "C"
+  ],
+  "rollback_ids": [
+   "family_C"
+  ],
+  "first_signal": "family_C",
+  "missing_ticks": 0,
+  "evaluated": 37,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu0",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "0",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2026-01-18 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2026-01-16 01:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 6,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2026-01-18 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 7,
+  "fire_at": "2026-01-16 01:10:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 7,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 8,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu1",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "1",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 1,
+  "fire_at": "2026-01-18 00:10:00",
+  "lead_hours_vs_I": -23.833333333333332,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 1,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 2,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2026-01-16 01:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2026-01-18 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE",
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 6,
+  "fire_at": "2026-01-16 01:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 7,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu2",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "2",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 0,
+  "fire_at": "2026-01-18 00:00:00",
+  "lead_hours_vs_I": -24,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 0,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_MEM_COPY_UTIL"
+  ],
+  "first_signal": "DCGM_FI_DEV_MEM_COPY_UTIL",
+  "missing_ticks": 0,
+  "evaluated": 1,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2026-01-16 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_GPU_TEMP",
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_GPU_TEMP",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "A",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 1,
+  "fire_at": "2026-01-18 00:10:00",
+  "lead_hours_vs_I": -23.833333333333332,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 1,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 2,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "null",
+  "ticks": 288,
+  "start": "2026-01-16 00:00:00",
+  "end": "2026-01-18 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 12,
+  "fire_at": "2026-01-16 02:00:00",
+  "lead_hours_vs_I": null,
+  "xid_first_tick": null,
+  "fire_minus_xid_ticks": null,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 13,
+  "outlook_empty": 0
+ },
+ {
+  "unit": "ggpu149_2026-01-19_gpus-dropped-off-bus__gpu3",
+  "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+  "gpu": "3",
+  "arm": "AC",
+  "kind": "detection",
+  "ticks": 288,
+  "start": "2026-01-18 00:00:00",
+  "end": "2026-01-20 00:00:00",
+  "voided": false,
+  "outcome": "rollback",
+  "fire_tick": 1,
+  "fire_at": "2026-01-18 00:10:00",
+  "lead_hours_vs_I": -23.833333333333332,
+  "xid_first_tick": 0,
+  "fire_minus_xid_ticks": 1,
+  "firing_families": [
+   "A"
+  ],
+  "rollback_ids": [
+   "family_A_DCGM_FI_DEV_POWER_USAGE"
+  ],
+  "first_signal": "DCGM_FI_DEV_POWER_USAGE",
+  "missing_ticks": 0,
+  "evaluated": 2,
+  "outlook_empty": 0
+ }
+]

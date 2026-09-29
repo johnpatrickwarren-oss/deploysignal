@@ -109,3 +109,7 @@ runs/compiled-configs/*-parity-run*.json
 # studies/twin-aa-real: filled per-lane configs hold account-specific identifiers; only
 # config.example.json (placeholders) is tracked.
 studies/twin-aa-real/lane*.json
+
+# studies/gwdg-gate: compiled configs are 60 MB per run and deterministic from bundles/ + the
+# pinned compiler; each run keeps configs.SHA256SUMS instead of the files.
+studies/gwdg-gate/results/*/configs/

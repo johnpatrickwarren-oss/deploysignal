@@ -1,0 +1,141 @@
+{
+  "arms": {
+    "A": {
+      "E1": {
+        "null_units": 44,
+        "rollbacks": 40,
+        "rate": 0.9090909090909091,
+        "cp_upper95": 0.9683488793892845,
+        "per_1000_ticks": 12.919896640826872,
+        "null_ticks": 3096,
+        "pass": false,
+        "first_signals": {
+          "DCGM_FI_DEV_SM_CLOCK": 7,
+          "DCGM_FI_DEV_GPU_TEMP": 6,
+          "DCGM_FI_DEV_MEM_COPY_UTIL": 5,
+          "DCGM_FI_DEV_POWER_USAGE": 11,
+          "DCGM_FI_DEV_GPU_UTIL": 7,
+          "DCGM_FI_DEV_MEMORY_TEMP": 4
+        },
+        "families": {
+          "A": 40
+        },
+        "median_fire_tick": 47
+      },
+      "E2": {
+        "detection_units": 40,
+        "rollbacks": 34,
+        "rate": 0.85,
+        "pass": true,
+        "first_signals": {
+          "DCGM_FI_DEV_GPU_TEMP": 9,
+          "DCGM_FI_DEV_POWER_USAGE": 10,
+          "DCGM_FI_DEV_MEM_COPY_UTIL": 6,
+          "DCGM_FI_DEV_GPU_UTIL": 4,
+          "DCGM_FI_DEV_SM_CLOCK": 3,
+          "DCGM_FI_DEV_MEMORY_TEMP": 2
+        },
+        "families": {
+          "A": 34
+        }
+      },
+      "E3": {
+        "detected": 34,
+        "median_lead_hours_vs_I": -22.166666666666668,
+        "early_fraction": 0.9117647058823529,
+        "early": 31,
+        "in_day": 3,
+        "with_xid": 18,
+        "median_fire_minus_xid_ticks": 17.5,
+        "before_xid": 0,
+        "units_with_xid_in_window": 20,
+        "units_with_missing_in_window": 4
+      }
+    },
+    "AC": {
+      "E1": {
+        "null_units": 44,
+        "rollbacks": 42,
+        "rate": 0.9545454545454546,
+        "cp_upper95": 0.9918634486232907,
+        "per_1000_ticks": 18.617021276595743,
+        "null_ticks": 2256,
+        "pass": false,
+        "first_signals": {
+          "DCGM_FI_DEV_SM_CLOCK": 5,
+          "family_C": 9,
+          "DCGM_FI_DEV_GPU_UTIL": 13,
+          "DCGM_FI_DEV_GPU_TEMP": 2,
+          "DCGM_FI_DEV_MEM_COPY_UTIL": 6,
+          "DCGM_FI_DEV_MEMORY_TEMP": 2,
+          "DCGM_FI_DEV_POWER_USAGE": 5
+        },
+        "families": {
+          "A": 33,
+          "C": 10
+        },
+        "median_fire_tick": 25.5
+      },
+      "E2": {
+        "detection_units": 40,
+        "rollbacks": 35,
+        "rate": 0.875,
+        "pass": true,
+        "first_signals": {
+          "family_C": 7,
+          "DCGM_FI_DEV_GPU_UTIL": 5,
+          "DCGM_FI_DEV_MEM_COPY_UTIL": 7,
+          "DCGM_FI_DEV_SM_CLOCK": 2,
+          "DCGM_FI_DEV_GPU_TEMP": 4,
+          "DCGM_FI_DEV_MEMORY_TEMP": 1,
+          "DCGM_FI_DEV_POWER_USAGE": 9
+        },
+        "families": {
+          "C": 7,
+          "A": 28
+        }
+      },
+      "E3": {
+        "detected": 35,
+        "median_lead_hours_vs_I": -22.166666666666668,
+        "early_fraction": 0.9714285714285714,
+        "early": 34,
+        "in_day": 1,
+        "with_xid": 15,
+        "median_fire_minus_xid_ticks": 12,
+        "before_xid": 0,
+        "units_with_xid_in_window": 17,
+        "units_with_missing_in_window": 3
+      }
+    }
+  },
+  "E5": {
+    "exceptions": 0,
+    "compile_failures": 0,
+    "candidate_units": 44,
+    "compile_failure_share": 0,
+    "voided_units": 0,
+    "pass": true
+  },
+  "not_executable": [],
+  "E4": {
+    "detections_AC_not_A": [
+      "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu0"
+    ],
+    "detections_A_not_AC": [],
+    "false_rollbacks_AC_not_A": [
+      "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe__gpu0",
+      "ggpu149_2025-06-12_gpus-dropped-off-bus__gpu0"
+    ],
+    "false_rollbacks_A_not_AC": []
+  },
+  "executable": true,
+  "unit_counts": {
+    "files": 16,
+    "units_total": 64,
+    "candidates": 44,
+    "null_units": 44,
+    "detection_units": 40,
+    "excluded": 20
+  }
+}
