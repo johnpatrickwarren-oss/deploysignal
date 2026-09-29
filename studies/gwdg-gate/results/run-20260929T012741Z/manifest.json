@@ -1,0 +1,146 @@
+{
+  "study": "2026-09-gwdg-gate",
+  "mode": "full",
+  "run_id": "run-20260929T012741Z",
+  "repo_head": "af90e86f1ea39e0fd1a4e6c11114c1105a0772ef",
+  "branch": "wt/gwdg-gate",
+  "tracked_changes": [],
+  "engine_installed": "0.12.2-pre",
+  "engine_resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019",
+  "node": "v25.9.0",
+  "platform": "darwin 25.6.0",
+  "cpus": 10,
+  "dataset": {
+    "doi": "10.5281/zenodo.19052367",
+    "version": "v1.0.0",
+    "dir": "/Users/johnwarren/concord/tessera/runs/gwdg-data/gwdg-gpu-node-telemetry-gpu-detachment-failures-2025-2026-v1.0.0",
+    "hash_checks": [
+      {
+        "file": "incident_events.csv",
+        "ok": true,
+        "expected": "c74236e95c835e6daaa3301265a956cf22bd1652cca8da206f456122feffa1c0"
+      },
+      {
+        "file": "manifest.csv",
+        "ok": true,
+        "expected": "d64a1cc0ffb49916f3d58045758f40c97aa49cb84ab5f476b188a11cc1634079"
+      },
+      {
+        "file": "ggpu121_2025-02-10_gpu-error_tidy.csv",
+        "ok": true,
+        "expected": "f4ff0383038d9262a040d5e82bff7b2f619894d39df1f1fa5486bb89134c4422"
+      },
+      {
+        "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+        "ok": true,
+        "expected": "5e80fd3616d44b801107b745b4afd56c45e597cee6ba8e949577054efc892331"
+      },
+      {
+        "file": "ggpu129_2026-01-13_gpu-lost_tidy.csv",
+        "ok": true,
+        "expected": "cb8c9fae8ac7bc85a12a54735539521f184eeda9e09102751d650e7d0e9eb7fc"
+      },
+      {
+        "file": "ggpu129_2026-01-19_gpu-lost_tidy.csv",
+        "ok": true,
+        "expected": "351a306caf2a11b084ba649bf78c5826cbc351b878d5c0f7fc7aba8b78d57297"
+      },
+      {
+        "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+        "ok": true,
+        "expected": "d31231151064c051e57fae68feff7f5f1f44b47566506d2c1371f0b467275156"
+      },
+      {
+        "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+        "ok": true,
+        "expected": "78fafb22ff92a13410d23a5878e70c20248876aeee70a60849d148c4127f70e0"
+      },
+      {
+        "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+        "ok": true,
+        "expected": "df58e633a61d3556e12712a22a491c28d87e1f72b54ab3d8d2438fc5a74d00be"
+      },
+      {
+        "file": "ggpu142_2025-03-19_gpu-problem_tidy.csv",
+        "ok": true,
+        "expected": "934237db1e66d26aac5539008ef0135cc5069445bbb22c8fc544eaab1771c70c"
+      },
+      {
+        "file": "ggpu142_2025-03-21_gpus-fell-off-bus_tidy.csv",
+        "ok": true,
+        "expected": "5941225487931fbd9f211ef6c090b484f367cb8561aded6e17e235505174dddc"
+      },
+      {
+        "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+        "ok": true,
+        "expected": "272923f74533ab0ec31e54507b0bf8e72787dea28abb95f78120680c18428054"
+      },
+      {
+        "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+        "ok": true,
+        "expected": "0b7cf57f9649e6b2c71ed2d33ad155173622e595d47286eedb540cc3d04f03bf"
+      },
+      {
+        "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+        "ok": true,
+        "expected": "fd37bb2eb77eac1b31c61271b85db7b0cb8545ebe793b176f9528a3230f17931"
+      },
+      {
+        "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+        "ok": true,
+        "expected": "099ff56ab6827a990c4968b371988fed3ed88b1adefc3d73f0c8214ecb6563ff"
+      },
+      {
+        "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+        "ok": true,
+        "expected": "337398249141baa9ff17122e81d980dba60d3ca2b06d5c48f10bdc366b05c8fb"
+      },
+      {
+        "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+        "ok": true,
+        "expected": "24c16792d752430b8bd2cf3cd76942d2ae92ef020b2dcccf9c5ce509cdbbbb3c"
+      },
+      {
+        "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+        "ok": true,
+        "expected": "bd2b3c94d26b1ae48a8f99efedb68b2014a1cb6e991a4c3335a2b7fcb471379d"
+      }
+    ]
+  },
+  "rules": {
+    "calibration_ticks": 576,
+    "presence_floor": 530,
+    "null_min_ticks": 144,
+    "detection_half_ticks": 144,
+    "tick_minutes": 10,
+    "signals": [
+      "DCGM_FI_DEV_GPU_TEMP",
+      "DCGM_FI_DEV_MEMORY_TEMP",
+      "DCGM_FI_DEV_POWER_USAGE",
+      "DCGM_FI_DEV_GPU_UTIL",
+      "DCGM_FI_DEV_MEM_COPY_UTIL",
+      "DCGM_FI_DEV_SM_CLOCK",
+      "DCGM_FI_DEV_MEM_CLOCK"
+    ],
+    "xid": "DCGM_FI_DEV_XID_ERRORS",
+    "amendment": 1
+  },
+  "arms": {
+    "A": {
+      "profile": "gwdg-gpu-node-a@1.0.0",
+      "families": "A"
+    },
+    "AC": {
+      "profile": "gwdg-gpu-node-ac@1.0.0",
+      "families": "A,C"
+    }
+  },
+  "command": "node studies/gwdg-gate/harness/run.mjs --mode full",
+  "counters": {
+    "exceptions": 0,
+    "compile_failures": 0,
+    "hash_mismatches": 0
+  },
+  "exceptions": [],
+  "wall_seconds": 289
+}

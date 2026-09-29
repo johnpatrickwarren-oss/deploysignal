@@ -1,0 +1,23 @@
+{
+  "version": "real_gwdg-ggpu149_2025-06-12_gpus-dropped-off-bus__gpu0",
+  "generated_at": "gwdg-gpu-node-telemetry-v1.0.0",
+  "seed": 0,
+  "cell_dim": "hour_of_day",
+  "n_runs": 1,
+  "ticks_per_run": 576,
+  "tenants": 1,
+  "signals": [
+    "DCGM_FI_DEV_GPU_TEMP",
+    "DCGM_FI_DEV_MEMORY_TEMP",
+    "DCGM_FI_DEV_POWER_USAGE",
+    "DCGM_FI_DEV_GPU_UTIL",
+    "DCGM_FI_DEV_MEM_COPY_UTIL",
+    "DCGM_FI_DEV_SM_CLOCK",
+    "DCGM_FI_DEV_MEM_CLOCK"
+  ],
+  "baseline_provenance": "real_gwdg",
+  "caveat_filters_applied": [
+    "gwdg:per_gpu_calibration_window_576_ticks",
+    "gwdg:runs_are_contiguous_all_signals_present_stretches"
+  ]
+}
