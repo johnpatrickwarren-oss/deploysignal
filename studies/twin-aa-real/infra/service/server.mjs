@@ -12,20 +12,34 @@ const FRACTION = Number(process.env.FAULT_503_FRACTION ?? 0);
 const ARM = process.env.ARM ?? 'unlabelled';
 if (!(FRACTION >= 0 && FRACTION < 1)) { console.error(`FAULT_503_FRACTION must be in [0, 1), got ${process.env.FAULT_503_FRACTION}`); process.exit(2); }
 
+// 2026-10-twin-aa-real-2 §1.1: an optional seeded lognormal delay per non-health request so the
+// service's p99 sits well above task-placement noise. LATENCY_MEDIAN_MS (default 0 = no delay, the
+// first study's behaviour) and LATENCY_SIGMA (default 0.4). The generator is mulberry32 seeded from
+// ARM and the process start time; the seed is reported on /healthz. Same image in every arm.
+const LATENCY_MEDIAN_MS = Number(process.env.LATENCY_MEDIAN_MS ?? 0);
+const LATENCY_SIGMA = Number(process.env.LATENCY_SIGMA ?? 0.4);
+if (!(LATENCY_MEDIAN_MS >= 0 && LATENCY_MEDIAN_MS < 10_000)) { console.error(`LATENCY_MEDIAN_MS must be in [0, 10000), got ${process.env.LATENCY_MEDIAN_MS}`); process.exit(2); }
+if (!(LATENCY_SIGMA >= 0 && LATENCY_SIGMA < 3)) { console.error(`LATENCY_SIGMA must be in [0, 3), got ${process.env.LATENCY_SIGMA}`); process.exit(2); }
+
 let n = 0;
 const startedAt = new Date().toISOString();
+const seed = (() => { let h = 2166136261 >>> 0; for (const c of `${ARM}|${startedAt}`) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; })();
+const rng = (() => { let a = seed; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();
+const gaussian = () => Math.sqrt(-2 * Math.log(1 - rng())) * Math.cos(2 * Math.PI * rng());
+const delayMs = () => (LATENCY_MEDIAN_MS > 0 ? LATENCY_MEDIAN_MS * Math.exp(LATENCY_SIGMA * gaussian()) : 0);
 
 /** A little CPU per request so latency is a real quantity, deterministic in the request counter. */
 function work(k) { let x = 0; for (let i = 0; i < 2000 + (k % 500); i++) x += Math.sqrt(i); return x; }
 
 const server = createServer((req, res) => {
-  if (req.url === '/healthz') { res.writeHead(200, { 'content-type': 'text/plain' }); res.end('ok\n'); return; }
+  if (req.url === '/healthz') { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ ok: true, arm: ARM, latency_median_ms: LATENCY_MEDIAN_MS, latency_sigma: LATENCY_SIGMA, seed, started_at: startedAt }) + '\n'); return; }
   n++;
   const fault = Math.floor(n * FRACTION) > Math.floor((n - 1) * FRACTION);
   const x = work(n);
   const body = JSON.stringify({ arm: ARM, n, x: Math.round(x), fault, started_at: startedAt });
-  res.writeHead(fault ? 503 : 200, { 'content-type': 'application/json', 'x-arm': ARM });
-  res.end(body);
+  const reply = () => { res.writeHead(fault ? 503 : 200, { 'content-type': 'application/json', 'x-arm': ARM }); res.end(body); };
+  const d = delayMs();
+  if (d > 0) setTimeout(reply, d); else reply();
 });
 server.keepAliveTimeout = 65000;   // above the ALB's 60 s idle timeout, so the ALB closes first
-server.listen(PORT, () => console.log(`twin-aa service arm=${ARM} port=${PORT} fault_503_fraction=${FRACTION}`));
+server.listen(PORT, () => console.log(`twin-aa service arm=${ARM} port=${PORT} fault_503_fraction=${FRACTION} latency_median_ms=${LATENCY_MEDIAN_MS} latency_sigma=${LATENCY_SIGMA} seed=${seed}`));
