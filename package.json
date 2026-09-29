@@ -33,6 +33,6 @@
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.1141.0",
     "@aws-sdk/client-codedeploy": "^3.1141.0",
-    "@johnpatrickwarren-oss/deploysignal-engine": "git+https://github.com/johnpatrickwarren-oss/deploysignal-engine.git#v0.12.2-pre"
+    "@johnpatrickwarren-oss/deploysignal-engine": "git+https://github.com/johnpatrickwarren-oss/deploysignal-engine.git#v0.13.0-pre"
   }
 }

@@ -176,3 +176,30 @@ test('Plan B: twin_arm on the config without a tick input reports nothing and fi
   assert.deepEqual(hr.rollback, []);
   assert.equal((hr as HealthResult & { twin_arm?: unknown }).twin_arm, undefined);
 });
+
+// Engine ADR 0037 through the wrapper: the margin reaches the engine's scoring.
+function driveWith(profile: typeof TWIN_PROFILE, seed: number, spec: Parameters<typeof twinTicks>[1], ticks: number): TwinArmReport[] {
+  const next = twinTicks(seed, spec);
+  let run = freshTwinArm(profile);
+  const out: TwinArmReport[] = [];
+  for (let t = 0; t < ticks; t++) { const step = stepTwinArm(profile, run, next()); run = step.run; out.push(step.report); }
+  return out;
+}
+const WITH_MARGIN = { ...TWIN_PROFILE, metrics: TWIN_PROFILE.metrics.map((m) => (m.kind === 'sign' ? { ...m, margin: { relative: 0.10 } } : m)) };
+
+test('ADR 0037: a persistent +5% latency offset rolls back without a margin and holds with a 10% one; +30% still rolls back', () => {
+  // fixture p99: control 200 + 10σ noise; canary adds 10·latencyShift ms persistently (shift 1 = +5%, shift 6 = +30%)
+  for (const seed of [21, 22, 23]) {
+    const without = drive(seed, { latencyShift: 1 }, TWIN_PROFILE.max_ticks);
+    assert.ok(without.some((r) => r.engine_verdict === 'rollback'), `seed ${seed}: the unmargined sign kind should roll back on a persistent +5% offset`);
+    const withMargin = driveWith(WITH_MARGIN, seed, { latencyShift: 1 }, TWIN_PROFILE.max_ticks);
+    assert.ok(withMargin.every((r) => r.engine_verdict !== 'rollback'), `seed ${seed}: a 10% margin should absorb a persistent +5% offset`);
+    const regressed = driveWith(WITH_MARGIN, seed, { latencyShift: 6 }, TWIN_PROFILE.max_ticks);
+    assert.ok(regressed.some((r) => r.engine_verdict === 'rollback'), `seed ${seed}: +30% past a 10% margin should still roll back`);
+  }
+});
+
+test('ADR 0037: the loader refuses a margin on a rate metric (the engine checks it)', () => {
+  const bad = { ...TWIN_PROFILE, metrics: TWIN_PROFILE.metrics.map((m) => (m.kind === 'rate' ? { ...m, margin: { relative: 0.1 } } : m)) };
+  assert.throws(() => freshTwinArm(bad as typeof TWIN_PROFILE), /sign kind only/);
+});
