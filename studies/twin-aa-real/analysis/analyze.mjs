@@ -160,10 +160,24 @@ const E = {
   v67: { evaluated_runs: runs.filter((r) => r.v67.evaluated).length, flagged_runs: runs.filter((r) => r.v67.events_inside.length).map((r) => r.run), unassigned_inside_runs: runs.filter((r) => r.v67.unassigned_inside.length).map((r) => ({ run: r.run, events: r.v67.unassigned_inside })) },
   repo_shas: [...new Set(runs.map((r) => r.repo_sha))], engines: [...new Set(runs.map((r) => JSON.stringify(r.engine)))].map((s) => JSON.parse(s)), config_sha256_by_lane: Object.fromEntries([0, 1, 2, 3].map((l) => [l, [...new Set(runs.filter((r) => r.lane === l).map((r) => r.config_sha256))]])),
 };
+// §5 E4 (optional AB-5xx cell, R = 20 executable, cell stops at 30 attempts): power ≥ 0.8 = at least 16 of 20
+// roll back; P6: power ≥ 0.9 and median rollback tick in [15, 45]. E1/E2 do not apply to an AB cell (the
+// arms differ by design); E3 (sample-ratio halts) still does. Written 2026-09-29 23:30Z, after the cell's
+// first four runs started and before any of them closed; it reads the same fields as the AA readout.
+if (CELL === 'AB-5xx') {
+  const ticks = rb.map((r) => r.scored.ticks).sort((a, b) => a - b);
+  const med = ticks.length ? ticks[Math.floor(ticks.length / 2)] : null;
+  E.E4 = { registered: 'at least 16 of 20 executable AB-5xx runs roll back (power ≥ 0.8)', rollbacks: rb.length, executable: exec.length, power: exec.length ? rb.length / exec.length : null,
+    verdict: exec.length >= 20 ? (rb.length >= 16 ? 'PASS' : 'FAIL') : attempts.length >= 30 ? 'NOT EXECUTABLE (30 attempts without 20 executable)' : 'NOT SCORED (cell incomplete)',
+    median_rollback_tick: med, rollback_ticks: ticks, non_rollback_verdicts: exec.filter((r) => r.scored.verdict !== 'rollback').map((r) => ({ run: r.run, verdict: r.scored.verdict, ticks: r.scored.ticks })) };
+  E.P6 = { registered: 'AB-5xx power ≥ 0.9, median rollback tick between 15 and 45', held: exec.length >= 20 && rb.length / exec.length >= 0.9 && med !== null && med >= 15 && med <= 45 };
+  E.E1.verdict = 'not applicable (AB cell)'; E.E2.verdict = 'not applicable (AB cell)'; E.P1.held = null; E.P2.held = null; E.P4.held = null;
+  E.mean_5xx_per_tick = { canary: +(exec.reduce((a, r) => a + r.mean_5xx.canary, 0) / Math.max(exec.length, 1)).toFixed(2), control: +(exec.reduce((a, r) => a + r.mean_5xx.control, 0) / Math.max(exec.length, 1)).toFixed(2) };
+}
 
 // ---------- write ----------
 const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
-const OUT = join(RES, `run-${stamp}`);
+const OUT = join(RES, `${CELL === 'AA' ? 'run' : CELL.toLowerCase().replace(/[^a-z0-9]/g, '')}-${stamp}`); // AA: run-<UTC>; AB-5xx: ab5xx-<UTC>
 if (existsSync(OUT)) throw new Error(`${OUT} exists`);
 mkdirSync(OUT);
 const git = (c) => execSync(c, { cwd: STUDY, encoding: 'utf8' }).trim();
@@ -179,7 +193,8 @@ const table = [
   '| Endpoint | Registered | Observed | Verdict |', '|---|---|---|---|',
   `| E1 false rollback | ≤ ${REG.e1_max_rollbacks} of ${REG.R} executable (B ${REG.B}); stop at ${REG.stop_after_rollbacks} | ${E.E1.rollbacks}/${E.E1.executable} = ${f3(E.E1.rate)} (95% one-sided bounds ${f3(E.E1.cp_lower95)}–${f3(E.E1.cp_upper95)}) | ${E.E1.verdict} |`,
   `| E2 sensitivity count | ≤ ${REG.e2_max} | ${E.E2.count} | ${E.E2.verdict} |`,
-  `| E3 sample-ratio halts | ≤ ${REG.e3_max_halts} of attempted | ${E.E3.halts} of ${E.E3.attempted} | ${E.E3.verdict} |`, '',
+  `| E3 sample-ratio halts | ≤ ${REG.e3_max_halts} of attempted | ${E.E3.halts} of ${E.E3.attempted} | ${E.E3.verdict} |`,
+  ...(E.E4 ? [`| E4 AB-5xx power | ≥ 16 of 20 executable roll back | ${E.E4.rollbacks}/${E.E4.executable} = ${f3(E.E4.power)}, median rollback tick ${E.E4.median_rollback_tick ?? '—'} (ticks ${E.E4.rollback_ticks.join(', ') || 'none'}) | ${E.E4.verdict} |`, `P6 (power ≥ 0.9, median tick 15–45): ${E.P6.held ? 'held' : 'NOT held'}. Mean target 5xx per tick canary ${E.mean_5xx_per_tick.canary} / control ${E.mean_5xx_per_tick.control}. Non-rollback verdicts: ${E.E4.non_rollback_verdicts.map((x) => `${x.run}:${x.verdict}@${x.ticks}`).join(', ') || 'none'}.`] : []), '',
   `Attempts ${E.attempts}: deploy failures ${E.deploy_failures} (runs ${E.deploy_failure_runs.join(', ') || 'none'}), attempts interrupted before arm-ready ${E.interrupted_attempts.length} (runs ${E.interrupted_attempts.join(', ') || 'none'}), runs with a runner ${E.runs_with_runner}; summaries ${E.summaries}; executable ${E.executable}; void ${E.void}; stop rule tripped: ${E.stop_rule_tripped}.`, '',
   `Post-hoc, no verdict — share of scored ticks with canary p99 above control p99, over the ticks the scored session used: holds (n ${E.hold_p99_worse_shares.length}) min ${f3(Math.min(...E.hold_p99_worse_shares))}, median ${f3([...E.hold_p99_worse_shares].sort((a, b) => a - b)[Math.floor(E.hold_p99_worse_shares.length / 2)] ?? null)}, max ${f3(Math.max(...E.hold_p99_worse_shares))}; rollbacks min ${f3(Math.min(...E.rollback_ticks.map((r) => r.p99_canary_worse_share)))}, max ${f3(Math.max(...E.rollback_ticks.map((r) => r.p99_canary_worse_share)))}. Fired by detector: ${JSON.stringify(E.fired_by_detector)}.`, '',
   '| Lane | Attempts | Executable | Rollback | Hold |', '|---|---|---|---|---|',
