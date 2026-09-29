@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  twin-aa-real host: one EC2 instance in the study VPC that runs the gate, the runner and the load
+  generator (R8). Its instance profile carries the runner's single permission, cloudwatch:GetMetricData
+  (OPERATOR.md section 2). It holds no ECS or ELB write permission: the rotation script runs under the
+  operator's own profile, elsewhere.
+Parameters:
+  NetworkStack:
+    Type: String
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  OperatorCidr:
+    Type: String
+    Description: the operator's address for SSH, e.g. 203.0.113.4/32
+  InstanceType:
+    Type: String
+    Default: t3.small
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: twin-aa-runner-host
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: [{ Effect: Allow, Principal: { Service: ec2.amazonaws.com }, Action: sts:AssumeRole }]
+      Policies:
+        - PolicyName: twin-aa-runner-get-metric-data
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement: [{ Effect: Allow, Action: "cloudwatch:GetMetricData", Resource: "*" }]
+  Profile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: { Roles: [!Ref Role] }
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: twin-aa host; SSH from the operator only
+      VpcId: { "Fn::ImportValue": !Sub "${NetworkStack}-VpcId" }
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref OperatorCidr }
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref Profile
+      SubnetId: !Select [0, !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]]
+      SecurityGroupIds: [!Ref SecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: { VolumeSize: 30, VolumeType: gp3 }
+      Tags: [{ Key: Name, Value: twin-aa-host }]
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          set -e
+          dnf install -y git
+          curl -fsSL https://rpm.nodesource.com/setup_24.x | bash -
+          dnf install -y nodejs
+          echo "node $(node --version)" > /var/log/twin-aa-host-ready
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  PublicIp:
+    Value: !GetAtt Instance.PublicIp
+  HostSecurityGroupId:
+    Description: add this group to the network stack's ALB security group ingress if the ALB should accept the host by group rather than by VPC CIDR (the default VPC-CIDR rule already admits it)
+    Value: !Ref SecurityGroup

@@ -1,0 +1,275 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  twin-aa-real, one lane: an internal ALB with one listener and one weighted forward rule to three
+  identical target groups (prod-old 1-2w, baseline-old w, canary-new w; stickiness off), an ECS
+  cluster, one Fargate task definition shared by all three services, prod-old at a steady count and
+  the two arms at desired count 0 between runs (PREREGISTRATION.md section 2, R1, R5, R6, R7).
+Parameters:
+  NetworkStack:
+    Type: String
+    Description: name of the deployed network.yaml stack
+  LaneId:
+    Type: Number
+    MinValue: 0
+    MaxValue: 3
+  ImageUri:
+    Type: String
+    Description: the service image by digest, <repo>@sha256:... (R2; the same digest for every service)
+  WeightPercent:
+    Type: Number
+    Default: 25
+    MinValue: 5
+    MaxValue: 25
+    Description: w as a percent; prod-old gets 100 - 2w, each arm w (protocol section 2)
+  Fault503Fraction:
+    Type: String
+    Default: "0.005"
+    Description: FAULT_503_FRACTION in both arms and prod (R4, disclosed); AB-5xx changes the canary service only, by a stack update of CanaryFault503Fraction
+  CanaryFault503Fraction:
+    Type: String
+    Default: ""
+    Description: leave empty for A/A (the canary uses Fault503Fraction); set only for the AB-5xx cell
+  ProdTasks:
+    Type: Number
+    Default: 2
+  TaskCpu:
+    Type: String
+    Default: "256"
+  TaskMemory:
+    Type: String
+    Default: "512"
+  EnableFaultInjection:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: set true from AA run 0 only if the AB-lat cell (AWS FIS) is planned; it must not change during the study
+Conditions:
+  CanaryHasOwnFault: !Not [!Equals [!Ref CanaryFault503Fraction, ""]]
+  FaultInjection: !Equals [!Ref EnableFaultInjection, "true"]
+Resources:
+  Alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "twin-aa-l${LaneId}"
+      Scheme: internal
+      Type: application
+      IpAddressType: ipv4
+      Subnets: !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]
+      SecurityGroups: [{ "Fn::ImportValue": !Sub "${NetworkStack}-AlbSgId" }]
+      LoadBalancerAttributes:
+        - { Key: idle_timeout.timeout_seconds, Value: "60" }
+        - { Key: load_balancing.cross_zone.enabled, Value: "true" }
+  ProdTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "twin-aa-l${LaneId}-prod-old"
+      VpcId: { "Fn::ImportValue": !Sub "${NetworkStack}-VpcId" }
+      TargetType: ip
+      Protocol: HTTP
+      Port: 8080
+      HealthCheckPath: /healthz
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      TargetGroupAttributes:
+        - { Key: stickiness.enabled, Value: "false" }
+        - { Key: load_balancing.algorithm.type, Value: round_robin }
+        - { Key: deregistration_delay.timeout_seconds, Value: "30" }
+        - { Key: slow_start.duration_seconds, Value: "0" }
+  BaselineTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "twin-aa-l${LaneId}-baseline-old"
+      VpcId: { "Fn::ImportValue": !Sub "${NetworkStack}-VpcId" }
+      TargetType: ip
+      Protocol: HTTP
+      Port: 8080
+      HealthCheckPath: /healthz
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      TargetGroupAttributes:
+        - { Key: stickiness.enabled, Value: "false" }
+        - { Key: load_balancing.algorithm.type, Value: round_robin }
+        - { Key: deregistration_delay.timeout_seconds, Value: "30" }
+        - { Key: slow_start.duration_seconds, Value: "0" }
+  CanaryTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "twin-aa-l${LaneId}-canary-new"
+      VpcId: { "Fn::ImportValue": !Sub "${NetworkStack}-VpcId" }
+      TargetType: ip
+      Protocol: HTTP
+      Port: 8080
+      HealthCheckPath: /healthz
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      TargetGroupAttributes:
+        - { Key: stickiness.enabled, Value: "false" }
+        - { Key: load_balancing.algorithm.type, Value: round_robin }
+        - { Key: deregistration_delay.timeout_seconds, Value: "30" }
+        - { Key: slow_start.duration_seconds, Value: "0" }
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref Alb
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          ForwardConfig:
+            TargetGroupStickinessConfig: { Enabled: false }
+            TargetGroups:
+              # The one rule. rotate-arms.sh sets the arm weights to 0 between runs and back to w
+              # together before arm-ready; a change inside a run voids it (V7).
+              - { TargetGroupArn: !Ref ProdTargetGroup, Weight: 100 }
+              - { TargetGroupArn: !Ref BaselineTargetGroup, Weight: 0 }
+              - { TargetGroupArn: !Ref CanaryTargetGroup, Weight: 0 }
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "twin-aa-l${LaneId}"
+      ClusterSettings: [{ Name: containerInsights, Value: disabled }]
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/twin-aa/l${LaneId}"
+      RetentionInDays: 30
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "twin-aa-l${LaneId}-exec"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: [{ Effect: Allow, Principal: { Service: ecs-tasks.amazonaws.com }, Action: sts:AssumeRole }]
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy]
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "twin-aa-l${LaneId}"
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      EnableFaultInjection: !If [FaultInjection, true, false]
+      ContainerDefinitions:
+        - Name: service
+          Image: !Ref ImageUri
+          Essential: true
+          PortMappings: [{ ContainerPort: 8080, Protocol: tcp }]
+          Environment:
+            - { Name: PORT, Value: "8080" }
+            - { Name: FAULT_503_FRACTION, Value: !Ref Fault503Fraction }
+          LogConfiguration:
+            LogDriver: awslogs
+            Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: svc }
+  # The canary's task definition differs from the shared one ONLY in the AB-5xx cell (a higher
+  # 503 fraction on the canary). In every A/A run CanaryFault503Fraction is empty and the canary
+  # service uses TaskDefinition, so the two arms run the same revision (R5).
+  CanaryTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Condition: CanaryHasOwnFault
+    Properties:
+      Family: !Sub "twin-aa-l${LaneId}-canary-ab"
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      EnableFaultInjection: !If [FaultInjection, true, false]
+      ContainerDefinitions:
+        - Name: service
+          Image: !Ref ImageUri
+          Essential: true
+          PortMappings: [{ ContainerPort: 8080, Protocol: tcp }]
+          Environment:
+            - { Name: PORT, Value: "8080" }
+            - { Name: FAULT_503_FRACTION, Value: !Ref CanaryFault503Fraction }
+          LogConfiguration:
+            LogDriver: awslogs
+            Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: canary-ab }
+  ProdService:
+    Type: AWS::ECS::Service
+    DependsOn: Listener
+    Properties:
+      ServiceName: prod-old
+      Cluster: !Ref Cluster
+      LaunchType: FARGATE
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: !Ref ProdTasks
+      HealthCheckGracePeriodSeconds: 30
+      DeploymentConfiguration: { MinimumHealthyPercent: 100, MaximumPercent: 200 }
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]
+          SecurityGroups: [{ "Fn::ImportValue": !Sub "${NetworkStack}-TaskSgId" }]
+      LoadBalancers: [{ ContainerName: service, ContainerPort: 8080, TargetGroupArn: !Ref ProdTargetGroup }]
+  BaselineService:
+    Type: AWS::ECS::Service
+    DependsOn: Listener
+    Properties:
+      ServiceName: baseline-old
+      Cluster: !Ref Cluster
+      LaunchType: FARGATE
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: 0
+      HealthCheckGracePeriodSeconds: 30
+      DeploymentConfiguration: { MinimumHealthyPercent: 100, MaximumPercent: 200 }
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]
+          SecurityGroups: [{ "Fn::ImportValue": !Sub "${NetworkStack}-TaskSgId" }]
+      LoadBalancers: [{ ContainerName: service, ContainerPort: 8080, TargetGroupArn: !Ref BaselineTargetGroup }]
+  CanaryService:
+    Type: AWS::ECS::Service
+    DependsOn: Listener
+    Properties:
+      ServiceName: canary-new
+      Cluster: !Ref Cluster
+      LaunchType: FARGATE
+      TaskDefinition: !If [CanaryHasOwnFault, !Ref CanaryTaskDefinition, !Ref TaskDefinition]
+      DesiredCount: 0
+      HealthCheckGracePeriodSeconds: 30
+      DeploymentConfiguration: { MinimumHealthyPercent: 100, MaximumPercent: 200 }
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]
+          SecurityGroups: [{ "Fn::ImportValue": !Sub "${NetworkStack}-TaskSgId" }]
+      LoadBalancers: [{ ContainerName: service, ContainerPort: 8080, TargetGroupArn: !Ref CanaryTargetGroup }]
+Outputs:
+  LaneId:
+    Value: !Ref LaneId
+  Region:
+    Value: !Ref "AWS::Region"
+  AlbDnsName:
+    Value: !GetAtt Alb.DNSName
+  LoadBalancerDimension:
+    Description: the CloudWatch LoadBalancer dimension value, app/<name>/<id>
+    Value: !GetAtt Alb.LoadBalancerFullName
+  ListenerArn:
+    Value: !Ref Listener
+  ProdTargetGroupArn:
+    Value: !Ref ProdTargetGroup
+  BaselineTargetGroupArn:
+    Value: !Ref BaselineTargetGroup
+  CanaryTargetGroupArn:
+    Value: !Ref CanaryTargetGroup
+  BaselineTargetGroupDimension:
+    Description: the CloudWatch TargetGroup dimension value for the control arm
+    Value: !GetAtt BaselineTargetGroup.TargetGroupFullName
+  CanaryTargetGroupDimension:
+    Description: the CloudWatch TargetGroup dimension value for the canary arm
+    Value: !GetAtt CanaryTargetGroup.TargetGroupFullName
+  ClusterName:
+    Value: !Ref Cluster
+  TaskDefinitionArn:
+    Value: !Ref TaskDefinition
+  WeightPercent:
+    Value: !Ref WeightPercent
+  IdleTimeoutSeconds:
+    Value: "60"

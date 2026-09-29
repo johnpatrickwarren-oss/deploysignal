@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TwinAaRotateArms",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:ModifyListener",
+        "ecs:UpdateService"
+      ],
+      "Resource": "*",
+      "Condition": { "StringLike": { "aws:ResourceTag/aws:cloudformation:stack-name": "twin-aa-lane*" } }
+    },
+    {
+      "Sid": "TwinAaRotateArmsRead",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:DescribeStacks",
+        "elasticloadbalancing:DescribeListeners", "elasticloadbalancing:DescribeTargetHealth",
+        "ecs:DescribeServices", "ecs:ListTasks", "ecs:DescribeTasks"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: twin-aa-real; the ECR repository for the synthetic service image (one per account).
+Resources:
+  Repo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: twin-aa-service
+      ImageTagMutability: IMMUTABLE
+      ImageScanningConfiguration: { ScanOnPush: false }
+Outputs:
+  RepositoryUri:
+    Value: !GetAtt Repo.RepositoryUri
+    Export: { Name: !Sub "${AWS::StackName}-RepositoryUri" }

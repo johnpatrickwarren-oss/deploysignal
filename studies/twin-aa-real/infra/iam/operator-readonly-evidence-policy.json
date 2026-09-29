@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TwinAaEvidenceReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:LookupEvents",
+        "ecs:DescribeServices", "ecs:ListTasks", "ecs:DescribeTasks",
+        "codedeploy:ListDeployments", "codedeploy:GetDeployment",
+        "autoscaling:Describe*",
+        "elasticloadbalancing:DescribeRules", "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeTargetGroupAttributes", "elasticloadbalancing:DescribeTargetHealth",
+        "elasticloadbalancing:DescribeLoadBalancerAttributes",
+        "cloudformation:DescribeStacks"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
