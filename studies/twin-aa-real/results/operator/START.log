@@ -1,0 +1,11 @@
+AA_START 2026-09-29T05:44:11Z HEAD 082682656fe57f6af0265cbfe42d6ecf4ab49be6
+lane0 driver pid 27716
+lane1 driver pid 27935
+lane2 driver pid 28230
+lane3 driver pid 28532
+AA_RESTART 2026-09-29T06:20:44Z HEAD e3b62b1801571b7a515925f913ada53470c9114e from_index 19
+lane0 driver pid 31551
+lane1 driver pid 31681
+lane2 driver pid 31838
+lane3 driver pid 32113
+STOP_RULE 2026-09-29T18:47:56Z drivers killed, index 63

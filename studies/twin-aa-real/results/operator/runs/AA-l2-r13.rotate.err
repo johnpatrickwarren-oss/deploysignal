@@ -1,0 +1,2 @@
+
+aws: [ERROR]: An error occurred (AccessDeniedException) when calling the UpdateService operation: User: arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed is not authorized to perform: ecs:UpdateService on resource: arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l2/baseline-old because no identity-based policy allows the ecs:UpdateService action

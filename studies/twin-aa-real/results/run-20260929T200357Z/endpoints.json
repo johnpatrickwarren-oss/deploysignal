@@ -1,0 +1,312 @@
+{
+ "registered": {
+  "alpha": 0.05,
+  "R": 100,
+  "B": 0.1062,
+  "e1_max_rollbacks": 10,
+  "e2_max": 10,
+  "e3_max_halts": 2,
+  "stop_after_rollbacks": 11,
+  "attempt_cap": 150
+ },
+ "attempts": 63,
+ "deploy_failures": 17,
+ "deploy_failure_runs": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16
+ ],
+ "interrupted_attempts": [
+  17,
+  18
+ ],
+ "runs_with_runner": 44,
+ "summaries": 44,
+ "missing_summary": [],
+ "executable": 44,
+ "void": 0,
+ "void_runs": [],
+ "stop_rule_tripped": true,
+ "E1": {
+  "rollbacks": 12,
+  "executable": 44,
+  "rate": 0.2727272727272727,
+  "cp_lower95": 0.16554038600201168,
+  "cp_upper95": 0.40410392031069126,
+  "verdict": "FAIL",
+  "rollback_runs": [
+   26,
+   29,
+   32,
+   35,
+   39,
+   44,
+   45,
+   47,
+   54,
+   57,
+   59,
+   62
+  ]
+ },
+ "E2": {
+  "count": 12,
+  "verdict": "FAIL"
+ },
+ "E3": {
+  "halts": 0,
+  "attempted": 63,
+  "verdict": "PASS"
+ },
+ "P1": {
+  "registered": "E1 holds; point figure 0–6 rollbacks in 100",
+  "held": false
+ },
+ "P2": {
+  "registered": "E2 holds with at most 1 void run ending in rollback",
+  "held": false,
+  "void_rollbacks": 0
+ },
+ "P3": {
+  "registered": "E3 holds with 0 halts",
+  "held": true
+ },
+ "P4": {
+  "registered": "W0 rollbacks at most 10 in 100",
+  "w0_rollbacks": 14,
+  "held": false
+ },
+ "per_lane": [
+  {
+   "lane": 0,
+   "attempts": 18,
+   "executable": 11,
+   "rollbacks": 3,
+   "holds": 8
+  },
+  {
+   "lane": 1,
+   "attempts": 16,
+   "executable": 11,
+   "rollbacks": 4,
+   "holds": 7
+  },
+  {
+   "lane": 2,
+   "attempts": 15,
+   "executable": 11,
+   "rollbacks": 3,
+   "holds": 8
+  },
+  {
+   "lane": 3,
+   "attempts": 14,
+   "executable": 11,
+   "rollbacks": 2,
+   "holds": 9
+  }
+ ],
+ "rollback_ticks": [
+  {
+   "run": 26,
+   "lane": 3,
+   "scored_tick": 19,
+   "w0_tick": 32,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.8421052631578947
+  },
+  {
+   "run": 29,
+   "lane": 1,
+   "scored_tick": 11,
+   "w0_tick": 13,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 1
+  },
+  {
+   "run": 32,
+   "lane": 3,
+   "scored_tick": 13,
+   "w0_tick": 27,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.9230769230769231
+  },
+  {
+   "run": 35,
+   "lane": 2,
+   "scored_tick": 11,
+   "w0_tick": 21,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 1
+  },
+  {
+   "run": 39,
+   "lane": 0,
+   "scored_tick": 14,
+   "w0_tick": 13,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.9285714285714286
+  },
+  {
+   "run": 44,
+   "lane": 1,
+   "scored_tick": 13,
+   "w0_tick": 22,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.9230769230769231
+  },
+  {
+   "run": 45,
+   "lane": 2,
+   "scored_tick": 33,
+   "w0_tick": 32,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.7575757575757576
+  },
+  {
+   "run": 47,
+   "lane": 1,
+   "scored_tick": 13,
+   "w0_tick": 17,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.9230769230769231
+  },
+  {
+   "run": 54,
+   "lane": 1,
+   "scored_tick": 48,
+   "w0_tick": 62,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.7291666666666666
+  },
+  {
+   "run": 57,
+   "lane": 2,
+   "scored_tick": 11,
+   "w0_tick": 16,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 1
+  },
+  {
+   "run": 59,
+   "lane": 0,
+   "scored_tick": 31,
+   "w0_tick": 41,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.7741935483870968
+  },
+  {
+   "run": 62,
+   "lane": 0,
+   "scored_tick": 23,
+   "w0_tick": 16,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.8260869565217391
+  }
+ ],
+ "fired_by_detector": {
+  "twin_sign_p99_latency": 12
+ },
+ "hold_p99_worse_shares": [
+  0.2833333333333333,
+  0.35,
+  0,
+  0.3,
+  0.6333333333333333,
+  0.5833333333333334,
+  0.6166666666666667,
+  0.6,
+  0.3333333333333333,
+  0.06666666666666667,
+  0.05,
+  0.16666666666666666,
+  0.2,
+  0.25,
+  0.3,
+  0.26666666666666666,
+  0.13333333333333333,
+  0.65,
+  0.13333333333333333,
+  0.5666666666666667,
+  0.18333333333333332,
+  0.6,
+  0.21666666666666667,
+  0.6,
+  0.03333333333333333,
+  0.6666666666666666,
+  0.2833333333333333,
+  0.03333333333333333,
+  0.5166666666666667,
+  0.4666666666666667,
+  0.6333333333333333,
+  0.6833333333333333
+ ],
+ "authority_violations": 0,
+ "any_unhealthy_target_runs": [],
+ "v67": {
+  "evaluated_runs": 44,
+  "flagged_runs": [],
+  "unassigned_inside_runs": []
+ },
+ "repo_shas": [
+  "61794dccf4acec34699dedbe9223f2d787cb8779"
+ ],
+ "engines": [
+  {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  }
+ ],
+ "config_sha256_by_lane": {
+  "0": [
+   "fd26eb3e1dc9e99e1270fdc192695184b68af1cd8607ad2e43c397689ef9b39b"
+  ],
+  "1": [
+   "b3d90a3ce1cc704ff12157585f6724588e1b93ba98cb7f323b9b6a13b52e6387"
+  ],
+  "2": [
+   "d722dfe87323d4c2c35d7cddb134b40df264232d9a0b39b5c1d08c9b0a8d4b80"
+  ],
+  "3": [
+   "3770cfe87f555fc4f07366d4f1165cd501b73a35232c7973776a3106e91e0aa3"
+  ]
+ }
+}
