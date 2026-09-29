@@ -3,7 +3,7 @@
 //
 //   POST /v1/sessions            {"mode":"twin","twin_arm":{canary_weight, alpha_rollback,
 //                                  alpha_proceed, alpha_srm, max_ticks, allow_unequal_rate_split?,
-//                                  metrics:[{id, kind, worse, tolerance}]}}
+//                                  metrics:[{id, kind, worse, tolerance, margin?:{relative?, absolute?}}]}}
 //                                -> 201 {"session_id","mode":"twin"}   (no scenario.baseline)
 //   POST /v1/sessions/{id}/ticks {canary_requests, control_requests, observations:{<id>:
 //                                  {canary_events, canary_total, control_events, control_total}
@@ -62,7 +62,8 @@ const isNonNegInt = (v: unknown): v is number => isNum(v) && Number.isInteger(v)
 // ── parsing: session create ────────────────────────────────────────────────────────────────
 
 const ARM_KEYS = new Set(['canary_weight', 'alpha_rollback', 'alpha_proceed', 'alpha_srm', 'max_ticks', 'allow_unequal_rate_split', 'metrics']);
-const METRIC_KEYS = new Set(['id', 'kind', 'worse', 'tolerance']);
+const METRIC_KEYS = new Set(['id', 'kind', 'worse', 'tolerance', 'margin']);
+const MARGIN_KEYS = new Set(['relative', 'absolute']);
 
 function rejectExtraKeys(o: Record<string, unknown>, allowed: Set<string>, where: string): void {
   const extra = Object.keys(o).filter((k) => !allowed.has(k));
@@ -77,7 +78,17 @@ function parseMetric(raw: unknown, i: number): TwinArmMetricProfile {
   if (raw.kind !== 'rate' && raw.kind !== 'sign') throw bad(`${where}.kind must be 'rate' or 'sign'`);
   if (raw.worse !== 'higher' && raw.worse !== 'lower') throw bad(`${where}.worse must be 'higher' or 'lower'`);
   if (!isNum(raw.tolerance)) throw bad(`${where}.tolerance must be a number`);
-  return { id: raw.id, kind: raw.kind, worse: raw.worse, tolerance: raw.tolerance };
+  const out: TwinArmMetricProfile = { id: raw.id, kind: raw.kind, worse: raw.worse, tolerance: raw.tolerance };
+  if (raw.margin !== undefined) {
+    // engine ADR 0037: shape checked here, ranges and the sign-only rule by the engine (checkTwinMetricSpec)
+    if (!isObj(raw.margin)) throw bad(`${where}.margin must be an object { relative?, absolute? }`);
+    rejectExtraKeys(raw.margin, MARGIN_KEYS, `${where}.margin`);
+    const margin: { relative?: number; absolute?: number } = {};
+    if (raw.margin.relative !== undefined) { if (!isNum(raw.margin.relative)) throw bad(`${where}.margin.relative must be a number`); margin.relative = raw.margin.relative; }
+    if (raw.margin.absolute !== undefined) { if (!isNum(raw.margin.absolute)) throw bad(`${where}.margin.absolute must be a number`); margin.absolute = raw.margin.absolute; }
+    out.margin = margin;
+  }
+  return out;
 }
 
 function parseArmScalars(raw: Record<string, unknown>): Omit<TwinArmProfile, 'metrics'> {

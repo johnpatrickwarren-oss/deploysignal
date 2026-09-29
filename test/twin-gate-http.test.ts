@@ -218,3 +218,26 @@ test('twin: a twin tick to an unknown session is 404', async () => {
     assert.equal(r.status, 404);
   } finally { await stop(s); }
 });
+
+test('twin / engine ADR 0037: a sign metric margin passes through session create and a malformed one is 400', async () => {
+  const s = await start();
+  try {
+    const sign = TWIN_PROFILE.metrics.find((m) => m.kind === 'sign')!;
+    const withMargin = { ...TWIN_PROFILE, metrics: TWIN_PROFILE.metrics.map((m) => (m.kind === 'sign' ? { ...m, margin: { relative: 0.1 } } : m)) };
+    const ok = await req(s.baseUrl, 'POST', '/v1/sessions', twinBody(withMargin as never));
+    assert.equal(ok.status, 201, ok.raw);
+    const rec = s.handle.store.getSession(ok.json.session_id)!;
+    const stored = rec.twin_arm!.metrics.find((m: { id: string }) => m.id === sign.id) as { margin?: unknown };
+    assert.deepEqual(stored.margin, { relative: 0.1 });
+    const bad: Array<[Record<string, unknown>, RegExp]> = [
+      [twinBody({ ...TWIN_PROFILE, metrics: [{ ...sign, margin: { relative: 0.1, extra: 1 } }] } as never), /margin: unknown field/],
+      [twinBody({ ...TWIN_PROFILE, metrics: [{ ...sign, margin: 0.1 }] } as never), /margin must be an object/],
+      [twinBody({ ...TWIN_PROFILE, metrics: [{ ...sign, margin: { relative: 'x' } }] } as never), /margin\.relative must be a number/],
+    ];
+    for (const [body, re] of bad) {
+      const r = await req(s.baseUrl, 'POST', '/v1/sessions', body);
+      assert.equal(r.status, 400, `${JSON.stringify(body).slice(0, 80)} -> ${r.raw}`);
+      assert.match(r.json.error, re);
+    }
+  } finally { await stop(s); }
+});

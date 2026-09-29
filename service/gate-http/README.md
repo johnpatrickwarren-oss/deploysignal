@@ -114,6 +114,13 @@ POST /v1/sessions/{id}/ticks
   three tests; engine ADR 0036 "Gate-level measurements"):
   - `tolerance` is the smallest regression you would block. Below it the proceed test usually wins:
     a ×1.2 rate regression under tolerance 0.5 ended `proceed` in 72% of runs.
+  - A `sign` metric should declare a `margin` (`{relative?, absolute?}`, engine ADR 0037): a tick
+    counts as "canary worse" only beyond it. Without one, the real-service A/A
+    (`studies/twin-aa-real`, 2026-09-29) rolled back 12 of 44 identical deployments on CloudWatch
+    p99, because two fresh task pairs carry a persistent 0.01–2 ms offset and direction alone
+    scores it. With a 10% relative margin those 44 runs replay as 2 rollbacks, with 25% as none
+    (engine study `2026-10-twin-sign-margin`, post-hoc replay). The margin is your minimum effect
+    of interest, per metric and per service; nothing chooses it for you.
   - Keep a metric's source near-complete. At a ×1.2 regression, rollback detection fell from 1.00
     to 0.83 at 5% missing ticks and 0.01 at 10%; at 30% every A/A run ended `hold`. Watch
     `missing` in the tick response.

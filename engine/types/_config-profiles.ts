@@ -111,6 +111,10 @@ export interface TwinArmMetricProfile {
   kind: 'rate' | 'sign';
   worse: 'higher' | 'lower';
   tolerance: number;
+  /** Engine ADR 0037, `sign` only: a tick is "canary worse" only beyond this band (worse 'higher':
+   *  canary > control · (1 + relative) + absolute). Absent = ADR 0036 scoring, which the T3 A/A
+   *  (studies/twin-aa-real) measured at 0.2727 false rollback on p99. The engine validates it. */
+  margin?: { relative?: number; absolute?: number };
 }
 
 /** Plan B — the `twin_arm` profile block (profiles/schema/profile.schema.json), field for field the
