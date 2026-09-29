@@ -113,3 +113,6 @@ studies/twin-aa-real/lane*.json
 # studies/gwdg-gate: compiled configs are 60 MB per run and deterministic from bundles/ + the
 # pinned compiler; each run keeps configs.SHA256SUMS instead of the files.
 studies/gwdg-gate/results/*/configs/
+
+# studies/twin-aa-real/infra: load-generator logs are per-run artifacts kept with the run record, not in git
+studies/twin-aa-real/infra/scripts/loadgen-*.ndjson

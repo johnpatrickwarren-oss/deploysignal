@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  twin-aa-real network: one VPC, two public subnets in two AZs, an internet gateway, and the two
+  security groups every lane shares. Public subnets with public IPs on the tasks avoid a NAT gateway
+  (the tasks only need to pull the image from ECR). The ALBs are internal; only the host reaches them.
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: 10.42.0.0/16
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: [{ Key: Name, Value: twin-aa-vpc }]
+  Igw:
+    Type: AWS::EC2::InternetGateway
+  IgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: { VpcId: !Ref Vpc, InternetGatewayId: !Ref Igw }
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags: [{ Key: Name, Value: twin-aa-public-a }]
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Select [1, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags: [{ Key: Name, Value: twin-aa-public-b }]
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: { VpcId: !Ref Vpc }
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IgwAttach
+    Properties: { RouteTableId: !Ref RouteTable, DestinationCidrBlock: 0.0.0.0/0, GatewayId: !Ref Igw }
+  RouteA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref SubnetA, RouteTableId: !Ref RouteTable }
+  RouteB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref SubnetB, RouteTableId: !Ref RouteTable }
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: twin-aa internal ALBs; HTTP from inside the VPC only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: !Ref VpcCidr }
+  TaskSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: twin-aa tasks; container port from the ALB security group only
+      VpcId: !Ref Vpc
+  TaskIngressFromAlb:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref TaskSecurityGroup
+      IpProtocol: tcp
+      FromPort: 8080
+      ToPort: 8080
+      SourceSecurityGroupId: !Ref AlbSecurityGroup
+Outputs:
+  VpcId:
+    Value: !Ref Vpc
+    Export: { Name: !Sub "${AWS::StackName}-VpcId" }
+  VpcCidr:
+    Value: !Ref VpcCidr
+    Export: { Name: !Sub "${AWS::StackName}-VpcCidr" }
+  SubnetIds:
+    Value: !Join [",", [!Ref SubnetA, !Ref SubnetB]]
+    Export: { Name: !Sub "${AWS::StackName}-SubnetIds" }
+  AlbSecurityGroupId:
+    Value: !Ref AlbSecurityGroup
+    Export: { Name: !Sub "${AWS::StackName}-AlbSgId" }
+  TaskSecurityGroupId:
+    Value: !Ref TaskSecurityGroup
+    Export: { Name: !Sub "${AWS::StackName}-TaskSgId" }
