@@ -182,3 +182,42 @@ Deploys, canary or control arms, the twin path, Families B, D and E, `FB_USED`, 
 counter and XID as gate signals, node-level and scrape-pipeline metrics, day-of-week cells, bake
 lengths beyond four days, α other than 1e-3, the two `when-good` aggregates, any tuning of the
 compiler, and the post-incident days after `I + 24 h`.
+
+## Amendment 1 — 2026-09-28, before any run (from the §6 smoke, not from a result)
+
+The §6 smoke on unit `ggpu142_2025-07-03__gpu0` (both arms compiled and run on its null window,
+committed unchanged as `harness/smoke.mjs`) found two instrument facts. Neither is a study result;
+both are disclosed, and the changes below apply to every unit before the first scored run.
+
+1. **Family A never evaluated.** With a 432-tick calibration the compiler's 24 hour cells hold 18
+   samples each, below `MIN_SAMPLES_POOLED = 20` (`tools/calibrate/_calibrate-constants.ts`), so no
+   cell carries a `family_A` block; the gate enables Family A only when some cell does
+   (`engine/gates/health.ts` `familyAPromoted`), and the aggregate fallback, which does carry the
+   per-signal parameters, is never consulted. `family_A_shadow` was empty on every tick of both
+   arms, and the +5σ step of check (ii) did not fire on arm `A`. This is a property of the shipped
+   compiler and gate on thin calibrations, recorded for the wiki; for the study it means 72 h is
+   too short. **Change:** the calibration window becomes the first **576 ticks (96 h)** and the
+   per-signal presence floor **530**; the null window is `[calibration end, E_first − 24 h)` as
+   before. Applied to the manifest this keeps the same ten files (each starts seven days before its
+   incident); the null windows shrink from three days to two.
+2. **`DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` is identically zero** on 16 of the 40 candidate units
+   (four files) and takes at most 6 values on eleven more. On a zero series the compiler emits
+   `baseline_mean 0`, `baseline_sigma_squared 0` with no floor (the floor is relative to the mean),
+   so the signal's z-score is undefined. **Change:** the signal is removed from both profiles; the
+   study signals are the remaining **seven** and `bonferroni_factor` is 7.
+   `DCGM_FI_DEV_MEM_CLOCK` is constant on every unit (one value) with a nonzero mean; the compiler's
+   floor gives it σ = 10⁻³·μ and it stays: inert under calibration, a strong signal if the clock
+   ever moves, and it counts in the Bonferroni split (harder to pass on detection).
+3. **Thresholds.** The compiled configs carry no `betting_sliding_buffer_threshold` and no
+   `sliding_buffer_threshold`: the compiler stamps the joint-AR(1) bootstrap thresholds only when
+   Family D is compiled (`tools/calibrate/_calibrate-main.ts`, `if (baselineCells && emit.D)`), and
+   both study profiles, like `generic-microservice`, have D off. Both arms therefore run at Ville's
+   1/α (`threshold_kind: 'ville'`), which is what a Family-A-only profile ships today. Disclosed;
+   no change.
+4. **Seen in the smoke and disclosed:** on the unmodified null window of that one unit, arm `AC`
+   rolled back at tick 14 on `hotelling_t2_safe` (wealth 4.1×10⁴ against 5,000, log-increment 3.7
+   nats per tick with an eight-signal vector that included the zero NVLINK column). Arm `A` ran no
+   Family A detector. Neither number is scored; the smoke is re-run under this amendment.
+
+Unchanged: the unit and window rules other than the two numbers above, arms, α, endpoints and
+bars, predictions, NOT-EXECUTABLE conditions.
