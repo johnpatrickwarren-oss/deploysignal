@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  twin-aa-real operator instance (optional): a small EC2 instance that runs drive-lane.sh for the
+  study's 2-3 days so no laptop has to stay awake. Its instance profile is the OPERATOR role of
+  OPERATOR.md section 2 (rotate arms on the lane stacks; read-only evidence), and NOTHING else; it is
+  a separate identity from the runner host, which keeps cloudwatch:GetMetricData only.
+Parameters:
+  NetworkStack:
+    Type: String
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  OperatorCidr:
+    Type: String
+  InstanceType:
+    Type: String
+    Default: t3.micro
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: twin-aa-operator-instance
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: [{ Effect: Allow, Principal: { Service: ec2.amazonaws.com }, Action: sts:AssumeRole }]
+      Policies:
+        - PolicyName: twin-aa-rotate-arms
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ["elasticloadbalancing:ModifyListener", "ecs:UpdateService"]
+                Resource: "*"
+                Condition: { StringLike: { "aws:ResourceTag/aws:cloudformation:stack-name": "twin-aa-lane*" } }
+              - Effect: Allow
+                Action: ["cloudformation:DescribeStacks", "cloudtrail:LookupEvents",
+                         "ecs:DescribeServices", "ecs:ListTasks", "ecs:DescribeTasks",
+                         "elasticloadbalancing:DescribeListeners", "elasticloadbalancing:DescribeRules",
+                         "elasticloadbalancing:DescribeTargetHealth", "elasticloadbalancing:DescribeTargetGroupAttributes",
+                         "elasticloadbalancing:DescribeLoadBalancerAttributes"]
+                Resource: "*"
+  Profile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: { Roles: [!Ref Role] }
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: twin-aa operator instance; SSH from the operator only
+      VpcId: { "Fn::ImportValue": !Sub "${NetworkStack}-VpcId" }
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref OperatorCidr }
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref Profile
+      SubnetId: !Select [1, !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]]
+      SecurityGroupIds: [!Ref SecurityGroup]
+      Tags: [{ Key: Name, Value: twin-aa-operator }]
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          set -e
+          dnf install -y git jq
+          echo ready > /var/log/twin-aa-operator-ready
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  PublicIp:
+    Value: !GetAtt Instance.PublicIp
+  PrivateIp:
+    Value: !GetAtt Instance.PrivateIp
