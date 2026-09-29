@@ -29,6 +29,14 @@ Parameters:
     Type: String
     Default: ""
     Description: leave empty for A/A (the canary uses Fault503Fraction); set only for the AB-5xx cell
+  LatencyMedianMs:
+    Type: String
+    Default: "0"
+    Description: LATENCY_MEDIAN_MS in every arm and prod (2026-10-twin-aa-real-2 section 1.1, 30 there); "0" is the first study's service with no added delay
+  LatencySigma:
+    Type: String
+    Default: "0.4"
+    Description: LATENCY_SIGMA in every arm and prod (2026-10-twin-aa-real-2 section 1.1)
   ProdTasks:
     Type: Number
     Default: 2
@@ -163,6 +171,8 @@ Resources:
           Environment:
             - { Name: PORT, Value: "8080" }
             - { Name: FAULT_503_FRACTION, Value: !Ref Fault503Fraction }
+            - { Name: LATENCY_MEDIAN_MS, Value: !Ref LatencyMedianMs }
+            - { Name: LATENCY_SIGMA, Value: !Ref LatencySigma }
           LogConfiguration:
             LogDriver: awslogs
             Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: svc }
@@ -189,6 +199,8 @@ Resources:
           Environment:
             - { Name: PORT, Value: "8080" }
             - { Name: FAULT_503_FRACTION, Value: !Ref CanaryFault503Fraction }
+            - { Name: LATENCY_MEDIAN_MS, Value: !Ref LatencyMedianMs }
+            - { Name: LATENCY_SIGMA, Value: !Ref LatencySigma }
           LogConfiguration:
             LogDriver: awslogs
             Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: canary-ab }

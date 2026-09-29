@@ -26,6 +26,11 @@ Requirement mapping:
   from the same code path in both arms (`FAULT_503_FRACTION`, default 0.005 → ≥ 5 per 1,050).
   Disclosed as in the protocol; the rate cells then test routing and counting, not a failure
   mechanism. AB-5xx raises the fraction on the canary service only (a configuration difference).
+- **Latency scale (2026-10-twin-aa-real-2 §1.1):** `LATENCY_MEDIAN_MS` and `LATENCY_SIGMA`
+  (lane.yaml `LatencyMedianMs`, `LatencySigma`; every arm and prod) add a seeded lognormal delay
+  per request so the p99 sits well above task-placement noise (30 / 0.4 → p99 ≈ 76 ms). The
+  defaults ("0", "0.4") reproduce the first study's service; a stack update with the new image
+  digest and `LatencyMedianMs=30` is the second study's deploy, after its AB-5xx runs on the first.
 - **R5** equal arms: both arm services use the same task definition, count, subnets and
   attributes; `scripts/rotate-arms.sh start` starts them together and waits for every target to be
   healthy before printing arm-ready.
