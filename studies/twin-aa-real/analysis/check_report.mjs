@@ -12,8 +12,21 @@ const R = join(STUDY, 'results', dirs[0]);
 const E = JSON.parse(readFileSync(join(R, 'endpoints.json'), 'utf8'));
 const runs = JSON.parse(readFileSync(join(R, 'runs.json'), 'utf8'));
 const M = JSON.parse(readFileSync(join(R, 'manifest.json'), 'utf8'));
-const summaries = readdirSync(join(STUDY, 'results', 'runs')).filter((f) => f.endsWith('.summary.json'));
-check('44 summaries, 44 runs, 44 jsonl', summaries.length === 44 && runs.length === 44 && readdirSync(join(STUDY, 'results', 'runs')).filter((f) => f.endsWith('.jsonl')).length === 44);
+const summaries = readdirSync(join(STUDY, 'results', 'runs')).filter((f) => f.startsWith('AA-') && f.endsWith('.summary.json'));
+check('44 AA summaries, 44 runs, 44 jsonl', summaries.length === 44 && runs.length === 44 && readdirSync(join(STUDY, 'results', 'runs')).filter((f) => f.startsWith('AA-') && f.endsWith('.jsonl')).length === 44);
+// AB-5xx cell (§5 E4, P6), analysed by the same script with --cell AB-5xx into results/ab5xx-<UTC>/
+const abDirs = readdirSync(join(STUDY, 'results')).filter((d) => d.startsWith('ab5xx-')).sort();
+check('exactly one AB-5xx analysis dir', abDirs.length === 1 && abDirs[0] === 'ab5xx-20260930T031426Z' && report.includes(abDirs[0]));
+const AB = JSON.parse(readFileSync(join(STUDY, 'results', abDirs[0], 'endpoints.json'), 'utf8'));
+const abRuns = JSON.parse(readFileSync(join(STUDY, 'results', abDirs[0], 'runs.json'), 'utf8'));
+const abSummaries = readdirSync(join(STUDY, 'results', 'runs')).filter((f) => f.startsWith('AB-5xx-') && f.endsWith('.summary.json'));
+check('AB-5xx: 20 attempts, 20 executable, 20 rollbacks', abSummaries.length === 20 && abRuns.length === 20 && AB.attempts === 20 && AB.executable === 20 && AB.void === 0 && AB.E4.rollbacks === 20 && AB.E4.executable === 20 && AB.E4.verdict === 'PASS' && AB.E3.halts === 0 && report.includes('E4: PASS') && report.includes('20 of 20'));
+const abTicks = abRuns.filter((r) => r.executable && r.scored.verdict === 'rollback').map((r) => r.scored.ticks).sort((a, b) => a - b);
+check('AB-5xx: median tick 25, P6 held', AB.E4.median_rollback_tick === 25 && abTicks[Math.floor(abTicks.length / 2)] === 25 && AB.P6.held === true && abTicks.join(',') === '11,11,13,14,25,25,25,25,25,25,25,25,26,26,26,26,26,26,26,26' && report.includes('median rollback tick 25'));
+check('AB-5xx: rate fired in 16, sign first in 4 (68, 74, 75, 80)', AB.E4.fired_rate === 16 && AB.E4.fired_sign_only.map((x) => x.run).join(',') === '68,74,75,80' && abRuns.filter((r) => r.fired.includes('twin_rate_http_5xx')).length === 16 && report.includes('16 of 20') && /68, 74, 75 and\s+80/.test(report));
+check('AB-5xx: 5xx per tick 12.21 / 6.1, V6/V7 clean, no authority violation', AB.mean_5xx_per_tick.canary === 12.21 && AB.mean_5xx_per_tick.control === 6.1 && AB.v67.evaluated_runs === 20 && AB.v67.flagged_runs.length === 0 && AB.authority_violations === 0 && abRuns.every((r) => r.repo_sha.startsWith('61794dc') && r.engine.version === '0.12.2-pre') && report.includes('12.21') && report.includes('6.10'));
+const abEvidence = JSON.parse(readFileSync(join(STUDY, 'results', 'evidence', 'cloudtrail-write-events-ab5xx.json'), 'utf8'));
+check('AB-5xx evidence: 318 events, four identities, no account id', abEvidence.count === 318 && report.includes('318 write events') && !JSON.stringify(abEvidence).includes('556890483612'));
 check('runner commit and engine', M.runner_repo_shas.length === 1 && M.runner_repo_shas[0].startsWith('61794dc') && M.engines.length === 1 && M.engines[0].version === '0.12.2-pre' && M.engines[0].resolved.endsWith('0434afcdc7a4716788dc81427295c6c4cd14e019') && report.includes('61794dc') && report.includes('v0.12.2-pre'));
 check('attempts', E.attempts === 63 && E.deploy_failures === 17 && E.interrupted_attempts.length === 2 && E.runs_with_runner === 44 && report.includes('0 of 63') && report.includes('deploy failures 17'));
 // E1 recomputed from runs.json, not from endpoints.json

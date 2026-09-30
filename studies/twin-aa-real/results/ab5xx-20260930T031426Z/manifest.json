@@ -1,0 +1,30 @@
+{
+ "study_id": "2026-10-twin-aa-real",
+ "cell": "AB-5xx",
+ "generated_at": "2026-09-30T03:14:26.158Z",
+ "analysis_repo_head": "ded4d271e5b6b0242e0dfc6154274ceb11c6bfa8",
+ "analysis_tracked_changes": [
+  "M studies/twin-aa-real/analysis/analyze.mjs",
+  " M studies/twin-aa-real/results/operator/START.log"
+ ],
+ "inputs": {
+  "summaries": 20,
+  "driver_logs": 20,
+  "evidence": {
+   "count": 318,
+   "start": "2026-09-29T22:50:00Z",
+   "end": "2026-09-30T03:20:00Z",
+   "generated_at": "2026-09-30T03:12:45.100Z"
+  }
+ },
+ "runner_repo_shas": [
+  "61794dccf4acec34699dedbe9223f2d787cb8779"
+ ],
+ "engines": [
+  {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  }
+ ],
+ "deviation": "analysis script written after the runs (PREREGISTRATION.md §8 asks for it before the first run it summarizes)"
+}

@@ -9,3 +9,8 @@ lane1 driver pid 31681
 lane2 driver pid 31838
 lane3 driver pid 32113
 STOP_RULE 2026-09-29T18:47:56Z drivers killed, index 63
+AB5XX_START 2026-09-29T23:05:10Z HEAD 6c1f3789b43068db3711e8a0c4096edc27662a24 from_index 63 canary_flag 0.0100
+lane0 AB-5xx driver pid 94817
+lane1 AB-5xx driver pid 94972
+lane2 AB-5xx driver pid 95219
+lane3 AB-5xx driver pid 95418

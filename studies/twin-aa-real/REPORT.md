@@ -117,6 +117,43 @@ slower service is unmeasured.
 with the two arms' 5xx rates equal to four decimals. This is the prediction the registration held
 with confidence (§6 P1, `http_5xx`).
 
+## 3b. AB-5xx cell (§4, optional; §5 E4; run 2026-09-29 23:05Z – 2026-09-30 03:03Z)
+
+Registered before its run 0 (OPERATOR.md §3): the flag's 503 fraction is the pooled AA target 5xx
+rate, 0.0050, plus the flag at the base rate — canary `FAULT_503_FRACTION` **0.0100**, applied by
+a stack update of `CanaryFault503Fraction` on the four lanes (canary-new on task definition
+`twin-aa-l<N>-canary-ab:1`, same image digest; baseline-old and prod-old unchanged at 0.005;
+arms at 0 tasks during the update). Runner host untouched (`61794dc`, engine `v0.12.2-pre`, the
+gate up since 03:53:54Z); drivers on the operator instance with `ALLOW_AB=1`, 5 runs per lane,
+global indices 63–82. Analysis: `analysis/analyze.mjs --cell AB-5xx` (the E4 readout was added at
+`6481c63`, 2026-09-29 23:30Z, after the first four runs had started and before any closed) into
+`results/ab5xx-20260930T031426Z/`; evidence `results/evidence/cloudtrail-write-events-ab5xx.json`
+(318 write events over 22:50Z–03:20Z; four identities: the laptop operator user for the stack
+update at ≈22:55Z, the operator instance's role, ECS's service-linked role, `ecs.amazonaws.com`;
+none on a lane's resources inside any run's interval).
+
+| Endpoint | Registered | Observed | Verdict |
+|---|---|---|---|
+| E4 AB-5xx power | ≥ 16 of 20 executable runs roll back | **20 of 20**, median rollback tick 25 (11, 11, 13, 14, then 25–26) | **E4: PASS** |
+| E3 (this cell) | ≤ 2 halts | 0 of 20 attempts | PASS |
+
+P6 (power ≥ 0.9, median tick 15–45) held. 20 attempts, 20 executable, 0 void, 0 deploy failures,
+0 authority violations, no unhealthy target. Mean target 5xx per tick: canary 12.21, control 6.10
+(the flag doubles the canary's rate as designed).
+
+**Which detector fired.** The `rate` detector on `http_5xx` fired in **16 of 20** rollbacks, at
+ticks 25–26 in every one (e-values 44–47 against 40): the ×2 fault at about 6 events per tick per
+arm is detected in 25 minutes, the T2 local study's 26–27. In the other four (runs 68, 74, 75 and
+80, ticks 11–14) the `sign` detector on p99 latency fired first, with the rate detector's wealth
+still below threshold — the AA cell's false-rollback mechanism arriving before the true one.
+E4 counts a rollback from either metric, as registered; those four are the right verdict for the
+wrong reason and the rate detector's own power over the cell is 16 of 20 with 4 runs pre-empted,
+not 4 misses (its wealth was 15–30 at pre-emption and rising in each).
+
+Not measured by this cell: a real failure mechanism (the fault is a deliberate 503 fraction, so
+the cell tests routing, counting and the rate test — disclosed in §1 R4); faults smaller than ×2;
+latency regressions (AB-lat did not run); anything with a margin on the sign kind.
+
 ## 4. Deviations, stated
 
 - **The analysis script was written after the runs.** §8 asks for it to be committed before the
@@ -144,7 +181,9 @@ rollback in 44 runs; the sample-ratio guard never fired. Under §9, no authority
 study, DORMANCY.md's Plan B entry records the failure, and the failure is explained (§3) before
 any further T3 is designed.
 
-Not measured: power (AB-5xx and AB-lat did not run; AB-5xx follows this report, §4 of the
-registration); the proceed side (`alpha_proceed` 1e-12); more than two tasks per arm; a service
-with a p99 above about 1 ms; the `sign` kind with any margin; Prometheus sources; the Argo and
-CodeDeploy paths; ELB-generated 5xx.
+Measured after the AA cell (§3b): the `rate` kind's power on a ×2 target-5xx fault, E4 PASS at
+20 of 20 with the rate detector itself first in 16 and the latency sign detector pre-empting it in
+4. Not measured: AB-lat (did not run); the proceed side (`alpha_proceed` 1e-12); more than two
+tasks per arm; a service with a p99 above about 1 ms; the `sign` kind with any margin; a fault
+smaller than ×2 or a real failure mechanism; Prometheus sources; the Argo and CodeDeploy paths;
+ELB-generated 5xx.

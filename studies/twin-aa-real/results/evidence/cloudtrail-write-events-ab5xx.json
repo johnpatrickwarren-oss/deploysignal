@@ -1,0 +1,4853 @@
+{
+ "generated_at": "2026-09-30T03:12:45.100Z",
+ "region": "us-east-1",
+ "start": "2026-09-29T22:50:00Z",
+ "end": "2026-09-30T03:20:00Z",
+ "pages": 12,
+ "sources": [
+  "elasticloadbalancing.amazonaws.com",
+  "ecs.amazonaws.com"
+ ],
+ "read_only": false,
+ "count": 318,
+ "events": [
+  {
+   "t": "2026-09-29T16:03:13-07:00",
+   "name": "RegisterTaskDefinition",
+   "src": "ecs.amazonaws.com",
+   "id": "9df8e2ca-7585-4fb3-987a-d3960b6014a2",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:03:13-07:00",
+   "name": "RegisterTaskDefinition",
+   "src": "ecs.amazonaws.com",
+   "id": "ac84bec6-eaf0-4c44-bab4-b0338fd0db4c",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:03:15-07:00",
+   "name": "RegisterTaskDefinition",
+   "src": "ecs.amazonaws.com",
+   "id": "caff1f54-6012-450d-8ac9-dc3da16a1a7b",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:03:16-07:00",
+   "name": "RegisterTaskDefinition",
+   "src": "ecs.amazonaws.com",
+   "id": "a9c447e9-8f4e-4d76-99a0-9783b2adfb6d",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:03:17-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "36c8a1ca-7004-4688-8cbc-fa95618a433c",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l1/canary-new\",\"desiredCount\":0,\"taskDefinition\":\"arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1\"}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l1/canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:03:17-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "5139c322-0f58-4d11-b1fc-21c11a115e17",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l0/canary-new\",\"desiredCount\":0,\"taskDefinition\":\"arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1\"}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l0/canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:03:19-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "505e5039-410c-47f8-a77e-968dd1b33233",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l2/canary-new\",\"desiredCount\":0,\"taskDefinition\":\"arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1\"}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l2/canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:03:20-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "d58789ce-2722-4a20-a20d-c919bec1ad29",
+   "identity": "arn:aws:iam::<acct>:user/twin-aa-operator",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l3/canary-new\",\"desiredCount\":0,\"taskDefinition\":\"arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1\"}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "arn:aws:ecs:us-east-1:<acct>:service/twin-aa-l3/canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:05:16-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "d1f87437-24ee-4c7b-8d6f-fd4e59190a71",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:05:17-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "9a33c738-2679-4e86-9da3-529d99f84713",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:05:18-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "a06126e8-f984-43d7-8589-6cb3924b22c9",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:05:19-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "368de10d-11c0-4af9-9134-9c3109d7629a",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:05:19-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "7bcabeb7-c70d-4048-a8fd-90a0a0d0b4e8",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:05:25-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "9d9b337a-96d5-4524-90e8-0f48fc9234fb",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:05:25-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "bdfe82c6-6646-4b5b-9987-8a7becd5e188",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:05:39-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "fe238229-be09-44a5-acb0-9852349052b2",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.126",
+    "10.42.0.126",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:05:44-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "ccba5e5d-b47a-4dde-be53-a2247a19a1b5",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.248",
+    "10.42.0.135",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:05:59-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "04cd6860-a962-45d4-898e-a8edeb99a8b5",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:03-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "ee2f465e-48f6-4cd1-a906-a8abd8676dab",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:04-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "4c5ab9eb-7399-4a36-9721-a72da64b7770",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:05-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "96151e36-5050-41f4-a423-51d720ad8246",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:09-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "5645b5b5-dd37-453b-89c2-60aa02e2e048",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:06:09-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "87188c6d-0ea0-40fa-aa99-fb68206176b7",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:06:13-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "16f5c6a2-9334-4f57-b30b-6465c748de9c",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:06:13-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "f0cf052f-3a57-467d-b543-b1101a8d6ac3",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:06:28-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "5f0b05c5-acd0-4214-8a99-07dfe4eb1ce8",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.0.106",
+    "10.42.1.45",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:31-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "76ca4276-272a-4842-ba14-4bc526c05830",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":1}",
+   "resources": [
+    "10.42.0.125",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:40-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7dd824ec-c645-43b1-ace2-6a611eac16bf",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":1}",
+   "resources": [
+    "10.42.1.177",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:46-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "6bc9254c-6536-4f64-8e32-48485f5f553d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:48-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "67490bb5-d56f-4466-a8cb-8497d3e4709c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:49-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "94c7b1b2-aad5-44ff-add9-c36d56134c60",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:50-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "72bdf98e-db32-4864-9b90-b21a069e3159",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:06:52-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "1a88224f-01e4-4832-a53a-4918b04852a8",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:06:52-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "89e4b8b7-a015-4918-9eec-2a9e22b9a825",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:06:57-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "003c3c7c-26d9-43ae-95ec-c6e3c5b4979e",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:06:57-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "6545141e-486f-4e3e-96f4-56899481bfad",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:07:11-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "ea22c20a-eead-4683-9566-8a55205b1d39",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.170",
+    "10.42.0.11",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:07:16-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a4820a26-1081-46e6-a9e3-a70f327b6a81",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.0.107",
+    "10.42.1.216",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:07:31-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a3343d4e-9efb-481a-80e1-1789bbcc45fb",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:07:33-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7df8666d-88a2-4b99-8cc6-62ecbf6468e0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:07:34-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "14a2383e-29b2-40d8-8805-66ea6505e61e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:07:34-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "303bce0c-f687-47eb-8e4f-4fca7f5d6725",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:07:39-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "c1940bfb-d46f-4331-9c01-c92cf4e6044b",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:07:39-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "fa9f84ac-d61f-4d61-8742-47c61d5cb60d",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:07:43-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "798c212c-24f5-4f9f-9aab-14dc40ec6d8a",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:07:43-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "89a600c9-8405-42ba-aa23-98af143221fe",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:08:02-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "25e188a6-235d-44c4-9d59-c8d91fd78710",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":1}",
+   "resources": [
+    "10.42.0.195",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:08:06-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "bd66d870-10f3-4657-9c86-4d5ea0e9bf34",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.74",
+    "10.42.0.56",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:08:12-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "8ee33152-3013-45cf-a6cc-b669c2e9859e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":1}",
+   "resources": [
+    "10.42.1.25",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:08:27-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "c8b4eeba-1606-4a14-944a-154ced9cfb62",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:11-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "6bdb4261-4e2b-4701-92f4-572e034d701a",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:11-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "6c269627-91c4-4a44-bc33-0fb7151b7ca6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:12-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "54b8a9f6-d163-4014-a492-b1b2b9bfa02d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:24-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "747befd8-7bb4-4cc6-8479-7056e558f215",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:25-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "eabf7f32-611a-468d-8681-bde34b2ed4c2",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:26-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "22f8e398-b5f0-4f8b-9819-bbd3ef0779c2",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:27-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "90ef4ed0-424f-43d6-802f-c4512a73519a",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.1.177",
+    "10.42.0.125",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:28-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "469e2f3d-5ae7-4aa4-a1e6-5cfa9aed9143",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.0.106",
+    "10.42.1.45",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:35-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "70285da7-0ab3-4ca8-a2f5-3e9dff91b10c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.126",
+    "10.42.0.126",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:51:42-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "94020f2f-8590-40ef-87dc-79202668d530",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.248",
+    "10.42.0.135",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:52:55-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "e6fdd681-e85a-4f1c-b3e9-db7d8c797dc0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:52:56-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "20365e6a-2218-4bd4-ac25-c1216dbcf5f2",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:52:57-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "b9bca574-347f-41f9-828b-9aae9c3c2b94",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:10-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "1e1a7e80-aeb0-453e-9800-763ab13b84d0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.0.107",
+    "10.42.1.216",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:11-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7aa91494-ab87-410e-a569-e990b9810e88",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.170",
+    "10.42.0.11",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:23-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "5247ce54-92ff-4ce9-8a45-b22e83fd9af0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:24-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "471a7732-37bc-4bd4-876a-a1d93504fee3",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:25-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "e8bc720c-5e7a-49c4-a041-3683711bef50",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:29-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "07a194de-7db6-483b-b6fe-dd49901465f3",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:29-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "a9e16e73-0887-4369-81b4-9bc6d9e16d86",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "5a93bfb2-a91f-41be-81db-54a55970fbd7",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "dd3c1bb8-c2eb-4341-8d28-669c096d554d",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:36-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7bec0040-81ef-4125-aa40-62f0a43e50f3",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:37-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "ea5ff086-48dd-4c7e-a4cd-707757ee8d9a",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:38-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "173ee8eb-8035-460f-a933-8c83eec41f3c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:44-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "7137d368-fac9-49e9-8621-8669c693f414",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:44-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "74baa11c-7394-4da5-9112-c61934090558",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:47-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "2332b4e8-e1d9-4c84-829d-5e178b41742b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.1.233",
+    "10.42.0.138",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:47-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "306711d8-b3ea-4cfb-931b-fa8f84ede1c9",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:47-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "b3bb97e3-6445-4ae8-b636-1b7df396aaa5",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:53:52-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "4125be85-c591-41b2-b21f-07250911f36a",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":1}",
+   "resources": [
+    "10.42.1.172",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:52-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "6a0de72a-cb3c-4fae-a6c0-4f63740886a8",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:54-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "e95083a9-5c19-4507-b678-bf4588e3c27d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:53:55-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "f4e790b9-5b90-488d-9b5c-772964d4f476",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:54:01-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "adcd11ea-66da-438e-9022-5f931480b935",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":1}",
+   "resources": [
+    "10.42.0.75",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:54:03-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "0a854436-dceb-44af-955a-45a8c0bd4ab6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.168",
+    "10.42.0.31",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:54:06-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "f7a104c7-08bd-4d98-9a18-e0baacff6e93",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.74",
+    "10.42.0.56",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:54:06-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "f8905b9e-9ab2-4ecd-bd1f-984417188faf",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.195",
+    "10.42.1.25",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:54:07-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "5ba502e4-edaa-43a3-a7cc-e8379036e39f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.173",
+    "10.42.0.8",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:54:08-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7261584d-9298-4064-806d-2f31a4eefaba",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:54:22-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7bcf6247-af15-4610-baf0-c72c2ac77b65",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:55:07-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "c5a38d78-1d61-4b49-82f5-403ffb24c70d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:55:08-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "cd2b413b-c213-4219-9259-0d445dd6dd61",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:55:09-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "2c8a3cf7-c9ca-4f4b-a817-02cfe61e5bfe",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:55:12-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "04f4bd36-ff8b-4573-ba69-24c70c9ceed0",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:55:12-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "39f86f86-237d-4303-96f6-4f1ee7a0e905",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:55:12-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "7cd9d206-1547-4edc-9e70-47eb012daaa0",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:55:12-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "be791a9c-1319-4654-bc9c-e7f7604a826d",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:55:30-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "d21903ff-645a-440b-9c71-6aa1b9488c43",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.0.171",
+    "10.42.1.207",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:55:32-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "24e6f3b0-d389-40e4-ac39-d1964af110b0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.0.109",
+    "10.42.1.11",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:55:49-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "54197e76-43c6-4c8a-9a1a-3e04a4f1f40b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:56:06-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "3d3918c2-6748-4fc8-a106-c5a2701e634b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:56:07-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "f7138275-6d03-4f8d-9b5a-9e02822fc06b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:56:08-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "fae53e21-8f7b-4aa1-b3de-03daf9a517a1",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:56:13-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "0a67a28c-ad8a-4ae0-8db6-2cef427d285f",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:56:13-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "ea945a00-0238-4310-bc50-21ef7ede942a",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:56:17-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "3bd61471-80d7-4d4b-bec1-e66cfd447cbe",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:56:17-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "e0166fad-4592-423b-b64d-6119b04658b1",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T16:56:30-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a3cf4921-2a8f-43e6-b1ac-bc37ec79e196",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":1}",
+   "resources": [
+    "10.42.0.107",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:56:35-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "199379ad-9001-45b0-8e18-690e967bdc80",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":1}",
+   "resources": [
+    "10.42.0.175",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:56:40-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "4761e197-a923-4705-be66-a9a05a859f1c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":1}",
+   "resources": [
+    "10.42.1.127",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:56:45-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "d18df2be-82f6-4dd6-aeaf-80cf371868bf",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":1}",
+   "resources": [
+    "10.42.1.158",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T16:57:00-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "df6e0f32-de31-4474-926e-8e6a166b3669",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:27:43-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "3785b00b-4235-4e77-aee1-9dcf6864fbb0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:27:43-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "8956b36b-d431-4339-8620-684e1eabe393",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:27:44-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "80302843-617f-4b8e-ac94-0b721719dfa7",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:27:57-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "ad0ef514-6f68-4098-9a28-6b06217bfbe1",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.168",
+    "10.42.0.31",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:28:00-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a4c3636b-8bd2-4fc6-b005-0e66996e22f1",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.173",
+    "10.42.0.8",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:29:55-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "dbb46c28-7fb6-4433-b811-01d21ec17cbc",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:29:56-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "bc06f10d-db65-4447-aacd-0ef604caba60",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:29:57-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "91f234cb-38e0-45be-9436-19a739b6d46e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:29:59-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "86631ec1-1fdc-4302-be95-ff19d8a0f00c",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:29:59-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "ca9240c7-3f8f-40ff-afa2-ad7af0458a60",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:30:02-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "6d89b3ab-e875-4b41-afd2-dcdcf768fdd7",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:30:02-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "9d575801-cc9f-4b8d-b735-9f10b3e6323e",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:30:18-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "99b51a9c-28cb-4dff-9886-63980dc4d043",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":1}",
+   "resources": [
+    "10.42.0.58",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:30:28-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "c1a867bb-4555-4bfc-89d5-9ca2c3adfe29",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":1}",
+   "resources": [
+    "10.42.1.95",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:30:29-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a7c136d6-7312-4554-a6c1-50efa8b0d1b4",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.171",
+    "10.42.0.136",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:30:37-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "0d3de06c-0989-4600-8df2-eaa6b5e04c37",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:38:32-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "e852d472-0935-49be-afc0-13252c85188b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:38:33-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "505a0227-ab36-43cf-b425-4fe068f9bebc",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:38:34-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "0fe09083-13bf-4c6e-ad66-f413cb4d127c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:38:44-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "d20ec3ec-dd1a-4504-81aa-6786629f4068",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.1.172",
+    "10.42.0.75",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:38:53-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "fc90a278-9f9c-43c9-9228-1afc8fba3d7c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.1.233",
+    "10.42.0.138",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:39:13-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "caf47755-a01d-47c9-8950-70a21522519b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:39:14-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "8fa91737-aa30-45c6-8bf0-c939523f776c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:39:15-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "7ab3a175-1d48-4073-a3e3-576bc74f57dc",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:39:27-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "c8f78e1d-f113-4d17-92d7-5aac25c04d23",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.0.109",
+    "10.42.1.11",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:39:33-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "f8ed864c-d951-4baa-a8a1-b6576f682bb7",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.0.171",
+    "10.42.1.207",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:40:45-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "8eb1fe5b-7786-4663-84d1-497dc50412bb",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:40:46-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "5effe9c6-958d-4923-9cc1-149066c61f1c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:40:47-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "70305af2-d47e-4409-b485-12cb785fbbae",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:40:54-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "3d9af2b7-42bf-450f-a54b-082e4e5414fa",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:40:54-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "4b7a1cd7-deca-42ba-bbfa-e7e8a3e69f75",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:40:55-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "7960a0a5-8ffe-481b-8b68-1b0026ee716e",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:40:55-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "e8a4c504-da9e-4c80-98df-b9de947e16f3",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:41:13-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "fc1a50f1-538b-44e2-846a-f9ddd5e1754f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.0.41",
+    "10.42.1.237",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:41:14-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "09a7913f-c630-407c-8477-f6af26037221",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.1.62",
+    "10.42.0.249",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:41:27-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "b7fe3e82-42a0-44d5-a4e8-6224339be7d0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:41:28-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "614c5e2f-2291-4de7-b03f-f2f0f7c44c2f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:41:28-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "ad96c143-0b33-4c16-abaa-bc125c92ef5b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:41:29-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "ce1a30c7-41a7-4a55-9d8d-db7eb6c2eba0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:41:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "76071f5c-1380-4f1e-8170-205fea1f0f9f",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:41:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "f557083c-dbd3-4536-bd26-6503110b489e",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:41:35-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "1e991348-3cef-4ef3-a041-d83cb215dc30",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:41:35-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "cf5df56a-025a-449b-b2f6-f2e3e455db7c",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:41:52-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "b0a25ad6-be31-4565-b47b-b2aeb1c23817",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.146",
+    "10.42.0.66",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:41:53-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "df1a69f8-8ee6-4251-90be-4e71886d6b53",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.0.122",
+    "10.42.1.107",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:42:09-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a5bd0f3e-1487-44f5-af68-7a900ffcb28b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:42:24-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "df5e255e-f735-4110-8e47-fa4714d91956",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:42:25-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "a5b685c3-7f75-4fc3-84b7-b2ab2241616d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:42:26-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "44cbeeed-153a-440b-9cb8-00249dd0bbc6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:42:36-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "35f050a3-d9ab-4477-8424-dec5f7ffccde",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.107",
+    "10.42.1.127",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:42:44-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "007441db-db5b-4e54-a976-0fc0bdb372f9",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.175",
+    "10.42.1.158",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:44:37-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "f7972c95-f283-48ed-8f1b-80b0888bacc2",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:44:38-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "61391a04-5417-4114-ba0a-64cec1b1421d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:44:39-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "391d1367-2ec3-4c14-8d30-3ece9dbe26c2",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:44:42-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "64f34763-8a91-49a2-ac02-e886958aad99",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:44:42-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "8928a125-9e7f-4702-b0de-7d7ee6a3446f",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:44:49-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "1784567d-bb0b-4bec-9c81-5a33bcebad1d",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:44:49-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "89a62257-6435-4b85-8b28-062d6ea7d05c",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T17:45:01-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "dc9fbae6-abef-4516-ba3c-da973d4c624b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.145",
+    "10.42.1.159",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:45:18-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "23affebe-c9ae-4c49-9b05-48e7d6904cac",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.8",
+    "10.42.1.6",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T17:45:31-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7defabdd-f063-48b5-9899-9a1dbd69b0a6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:15:51-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "32a21e3a-6edd-4b8b-a9f9-9fecd84ab9cd",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:15:52-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "e603c323-cc49-4c59-bf72-8b18eb130064",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:15:53-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "dfdd4b48-4df3-42b6-b62f-6c865b566b60",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:16:02-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "735e17c3-637f-4d67-b771-e7ba9ea88eb6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:16:03-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "a6714bed-9b30-42fd-929b-e9b9bc12b36f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:16:04-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "50c3134b-6206-4b5c-9de7-3f851b8b1387",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:16:06-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "09258442-3ed7-4133-8824-e984f8d43444",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.8",
+    "10.42.1.6",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:16:11-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "b7d82439-e54f-4fef-9c53-340008b87e02",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.145",
+    "10.42.1.159",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:16:16-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "68af8b7f-b048-4c86-9703-ca005097dd10",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.95",
+    "10.42.0.58",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:16:18-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "28fc07ed-ae7d-4d69-9f3b-ed22bb2563a4",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.171",
+    "10.42.0.136",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:05-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "3e5c888d-c3e8-480f-936e-a2e544f5e44f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:06-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "59a703e0-a502-481d-aba8-7300e3e3674b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:07-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "145e80c4-1133-45d4-8782-fb14f24ca429",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:08-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "0b51dcb3-c237-440e-b95d-7543b86b1764",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:08-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "897c05f7-3bab-4467-8c41-5721593cea9b",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:15-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "0f421f5d-4d82-4c3d-a332-665f742aa0e7",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:15-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "f459db67-8b04-4eed-86ad-5e5b56fc3018",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:16-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "51aaef2c-0786-49d2-8579-030f008b8942",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:17-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "56ea09ab-c1c0-4f04-9c09-c92b37c7d74d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:18-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "5b0c00ee-3af2-4134-8ef1-7bf372db6ab2",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:18-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "835b631f-f530-415c-bdaf-b1a4880a25d3",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:18-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "9e77e11a-f430-40bc-888e-099815a45894",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:20-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "385eb557-c773-4162-bc30-bc654dfcbd68",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:20-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "7d18e54e-bb3f-4fda-8066-b3f72003eb92",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:18:26-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "3c436c4b-a6ab-4cb3-bce5-76000deec6c4",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.136",
+    "10.42.0.235",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:32-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "2d72b138-cf0b-4a93-978d-df4d9460fe8d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.57",
+    "10.42.0.31",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:38-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "953f5fad-d41c-47d6-860f-cc1e7ed9a3ff",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.130",
+    "10.42.0.130",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:39-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "91dc1981-4b88-49ec-b4bb-e7f01b3a2352",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.0.206",
+    "10.42.1.67",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:47-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "9593c336-c026-4ba4-92b2-e7af9b57d217",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:18:49-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "2f1b7ba2-7964-4f7e-919d-1619b5509a86",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:25:52-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "ca9c7e1d-9c37-4e52-b64f-a38d0d499abd",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:25:53-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "2cf015f4-8d21-41d3-b853-dbcc85c05833",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:25:54-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "9174e1fa-6852-4bd1-9b5f-8bb6bcc3c2c1",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:26:06-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "1dae4157-c50c-49cb-9e81-af0bc31ef727",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.1.62",
+    "10.42.0.249",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:26:06-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "77283cb7-3073-4420-b82e-536170bd17c5",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.0.41",
+    "10.42.1.237",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:26:32-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "23b472ae-9a31-4b3d-90ca-01a3d1ca7c8c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:26:33-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "3cdf5fdf-15a2-4ea7-a101-d9f3d4a7b5eb",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:26:34-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "97d64fde-b9d6-4a2f-930f-61165f4cfdf4",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:26:46-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "9a471cc9-1b09-4bd1-98be-1ff0efb272d5",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.0.122",
+    "10.42.1.107",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:26:48-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "dfc0594e-c453-476e-b06b-f7ef2e7d82ca",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.146",
+    "10.42.0.66",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:05-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "c9ffc230-5d59-44a0-a8e7-4c240092f748",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:06-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "2e3dd230-d677-434b-bb5f-4115989c1e3d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:07-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "43ca4425-a800-43eb-afc5-a95197653d46",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:08-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "5a77d970-6ba8-4296-934b-7004e83c55dd",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:28:08-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "e3d646fd-156c-47ad-94df-7d7f84c07841",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:28:09-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "ac81074f-6ef8-48fb-921f-f282e92cf297",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:28:09-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "c79af808-74a9-4622-8893-facb8990252c",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:28:27-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a59fbc04-a7c7-472e-84aa-b43467779eda",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":1}",
+   "resources": [
+    "10.42.0.232",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:28-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "2ec3aee2-ef9b-4c7b-9faa-c4dc5a8a02c6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":1}",
+   "resources": [
+    "10.42.1.111",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:36-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "9ddb3f4a-8dab-459d-b814-76fe71d1c7e4",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":1}",
+   "resources": [
+    "10.42.1.27",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:38-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "63048fe0-3fac-440d-8272-43bab0ce674e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":1}",
+   "resources": [
+    "10.42.0.127",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:45-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "22e79703-a3dc-41e5-9545-e8442c9f9fce",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:46-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "16d6c4d5-6a08-4fdc-8fd5-33fef4f031a6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:47-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "9b863ec4-1896-4572-a0fe-f2f2a309a913",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:48-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "1bb391d1-02b4-4a8e-a1c3-931c88ab8ca2",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:28:48-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "a7c8b971-5247-402b-9f99-d1bddf668304",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:28:48-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "b5679ecc-23e2-4f33-ac21-a9424dcdcbc9",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:28:54-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "d52ea5b9-2a54-4137-b247-8f0a9c5ece3d",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:28:54-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "e865d992-68fc-4300-a2c1-890104b0e73b",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:29:07-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "c75a830d-cd2b-46ac-b95c-c65f80f3279e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":1}",
+   "resources": [
+    "10.42.0.63",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:29:16-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7d867aa3-24d7-426c-b974-331146d325a6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":1}",
+   "resources": [
+    "10.42.1.200",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:29:21-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "eb5555c7-2d2a-4dea-b491-a1fa31ca3d11",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.232",
+    "10.42.0.77",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:29:28-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "3ceca864-99e2-4531-adba-a032743b2a8f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:49:09-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "84cd15be-67b2-404e-8071-60797960818b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:49:10-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "b85d7e43-45f3-4aca-ab0b-21a928f1e0e1",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:49:11-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "a59988ad-7608-45fe-a2c7-93e2af5cb11f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:49:23-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "0ee4d202-aa26-4c9d-8413-af6b4dba93f0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.57",
+    "10.42.0.31",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:49:26-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "e234fce6-21f5-453b-8838-bba6f0734e56",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.136",
+    "10.42.0.235",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:51:22-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "b655e7d0-e689-444a-bdac-be7daeb8f80c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:51:23-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "43a86bfe-91ea-48cf-b6fa-53f43d977fea",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:51:23-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "77ea8dfd-280f-4bb2-8d3a-f5c4c6111191",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:51:30-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "2551bb91-a365-4cca-86ac-3be823868f75",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:51:30-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "2a2813f3-5e06-4260-8350-80387f9bc98d",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:51:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "9459f731-d1b6-4f2e-bb9b-0d661d038d94",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:51:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "ccb6fe57-e5ea-4ade-a10e-fcfc5e36058e",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T18:51:52-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "34a51d31-3613-47ce-bd22-3880d1c8ffc1",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.171",
+    "10.42.1.207",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:51:58-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "8e57aa07-49e3-49d8-b3da-4edb7ed7ad60",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.194",
+    "10.42.0.27",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T18:52:04-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "48767e7a-a04b-4085-a3db-001f47185921",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:02:11-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "fdfff51d-2a82-4028-9f31-cf273831af3d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:02:12-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "5c2d3139-ba9a-46ee-9a24-c902b88bdba6",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:02:13-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "c058abe8-3a1d-425a-b100-622bad01e855",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:02:23-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "9501a7c3-f8fb-4e6e-87b2-ede64ccd8f1f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.130",
+    "10.42.0.130",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:02:25-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "8db6b86f-ec68-4503-a245-13cbae98af1f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.0.206",
+    "10.42.1.67",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:04:23-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "2faa7d87-39f6-4517-ad5f-3996cbd2a23a",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:04:24-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "9aeef2cc-31ce-49d1-9f05-ae7e53460fbf",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:04:25-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "46df8c32-ba8e-4b0a-b953-7699fcc78b61",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:04:26-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "7ab0b001-33a5-45ec-ac24-d790ebf949c4",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:04:26-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "bf3ab34d-fb55-4b8b-b2a4-a03ab362376e",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:04:27-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "9f03c4b2-09a9-40bf-9f83-6106917b10ab",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:04:27-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "f3c27cfe-ad91-4e32-b98f-91707b36f289",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:04:45-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "8587dcd9-f91e-4e4e-95e7-b01c2729bfff",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.144",
+    "10.42.0.157",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:04:46-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "fc7c43be-780d-45ce-a2db-66a693939478",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":1}",
+   "resources": [
+    "10.42.0.139",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:04:56-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "e609960d-4707-4d92-a668-30c48b4c8bfc",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":1}",
+   "resources": [
+    "10.42.1.46",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:05:05-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "6a1a0b8a-5554-4da1-b615-3be0e5318aac",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:12-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "0d700422-182d-4a69-90b3-5ae94e4b9e2f",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:13-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "05f50fc0-9689-41d7-8a53-92417053375b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:14-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "0dd70fd2-02d4-49c8-87e8-d0d0bb8a396c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:30-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "4fb404f6-7fb8-4bec-ae60-759eb748a2b9",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.0.232",
+    "10.42.1.27",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:31-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "46c9078a-ed68-4dba-9328-a086967c2268",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.1.111",
+    "10.42.0.127",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:51-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "578a04f1-1552-4a20-aa97-83b37349be67",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:52-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "0acd872e-66ca-4792-8d44-02d9e26ca982",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:13:53-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "aa40f081-fbcc-4f0b-9763-bf5f39dc1007",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:14:08-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "d0e8c1cf-3912-4cf0-9235-271796966402",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.1.200",
+    "10.42.0.63",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:14:13-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a71b7a31-b47c-4f35-9fd1-8f2987f71817",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.232",
+    "10.42.0.77",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:15:25-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "9c43fb0b-283e-493d-9d87-bd317b173ded",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:15:26-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "6b4a62a1-00cf-41cc-87cb-eaaafedea55d",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:15:27-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "cc4d7beb-18cf-4328-82ab-5e027ede18b4",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:15:31-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "3f370bc7-8f63-4483-a046-ba379fda62e6",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:15:31-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "53803f04-4026-4b4d-834a-a901a4c64f49",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:15:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "af507035-dcb2-492c-abfe-ae345a29f04f",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:15:33-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "dde61fb0-6564-4a0c-8e6d-2f230b77e0d2",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:15:51-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "f4c24b09-62ee-4f95-ae43-96374bf15d41",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.1.223",
+    "10.42.0.45",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:15:59-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "f6bcebc1-926f-435c-ae19-3f60baa0c1c0",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.0.254",
+    "10.42.1.10",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:16:04-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "4b27565d-2eda-4d05-9c4e-2a1171debf96",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:16:06-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "2f2fa2df-3381-4dde-9048-a5623aa12152",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:16:07-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "ce7aebae-a25e-443f-a235-336095919242",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":2}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:16:08-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "f3a7ba79-5385-4ec5-a76f-518c6334d5ee",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:16:11-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "0bb39a2d-7687-42fa-955b-985c553be99f",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:16:11-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "b03b0fc7-953d-4a2f-ad79-2563323659b7",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:16:14-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "384c9e5a-e268-42f7-92e7-af88d88a974a",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:16:14-07:00",
+   "name": "TaskCreated",
+   "src": "ecs.amazonaws.com",
+   "id": "53cc3cdf-abd4-4290-9f00-7b381be98dd0",
+   "identity": "ecs.amazonaws.com",
+   "lane": null,
+   "lanes_named": [],
+   "params": "{}",
+   "resources": []
+  },
+  {
+   "t": "2026-09-29T19:16:30-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "eb5de6c9-6639-403b-925b-f134c5d1384b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.1.28",
+    "10.42.0.136",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:16:43-07:00",
+   "name": "RegisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "a2857032-8480-4873-b21f-2728bf9c12a5",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.235",
+    "10.42.0.159",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:16:47-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "da5da2a4-6d93-4f5a-84a6-b01cc44bda3e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:36:28-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "4e247608-3b47-4aa9-bca3-0b302646bd88",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+    "twin-aa-l3",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:36:28-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "b57ef19b-58c7-4be2-a578-7c34a51dfd15",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l3/c3b55d75fa39421d",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l3/c3b55d75fa39421d/c679175b69ed6e09"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:36:29-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "506a13e5-4afa-4e23-945b-f8e553347cbc",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"cluster\":\"twin-aa-l3\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+    "twin-aa-l3",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:36:44-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "d6ebf94d-2b4f-41ca-85a7-9507237c5e08",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e\",\"targets\":2}",
+   "resources": [
+    "10.42.1.194",
+    "10.42.0.27",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-canary-new/459edaccb4471b9e"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:36:45-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "ff22d82c-afaf-424f-b620-27aab005ec6c",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 3,
+   "lanes_named": [
+    3
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e\",\"targets\":2}",
+   "resources": [
+    "10.42.0.171",
+    "10.42.1.207",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l3-baseline-old/9693c4c6f333855e"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:37:26-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "ce2fc17f-d8c8-4c46-b447-6530552042fa",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l0/2517eac385982987",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l0/2517eac385982987/2c9f6cfa2f607544"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:37:27-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "0e4b724c-9c67-405e-bbf5-cf47b0c6f81e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+    "twin-aa-l0",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:37:28-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "8eb375cd-c985-4002-99f4-c8ae37543a2e",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"cluster\":\"twin-aa-l0\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+    "twin-aa-l0",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:37:38-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "c632edaa-3e07-417e-8bb6-605ea68841ca",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9\",\"targets\":2}",
+   "resources": [
+    "10.42.1.144",
+    "10.42.0.157",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-baseline-old/5d4a4ed6e88be5e9"
+   ]
+  },
+  {
+   "t": "2026-09-29T19:37:39-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "8bb92eb0-9e4e-4050-a2d7-15f213a779cf",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 0,
+   "lanes_named": [
+    0
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9\",\"targets\":2}",
+   "resources": [
+    "10.42.0.139",
+    "10.42.1.46",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l0-canary-new/ff220a5794da82c9"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:00:32-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7ebf23ce-f3e1-46a0-9e78-c799534c7595",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l1/64ba9a35ae9545ff",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l1/64ba9a35ae9545ff/512125423cc6731d"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:00:33-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "b71370c4-ab3f-4f3c-8a07-ba873575b45b",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+    "twin-aa-l1",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:00:34-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "640650ad-95d4-4800-83c2-0b94f6f5fd89",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"cluster\":\"twin-aa-l1\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+    "twin-aa-l1",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:00:43-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "799ae241-ba0d-47dd-9502-2697fe9782d3",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03\",\"targets\":2}",
+   "resources": [
+    "10.42.1.223",
+    "10.42.0.45",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-canary-new/6ebb0d60f63bab03"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:00:51-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "42bcac5d-7915-47b0-8ae2-201a6f3ba90a",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 1,
+   "lanes_named": [
+    1
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535\",\"targets\":2}",
+   "resources": [
+    "10.42.0.254",
+    "10.42.1.10",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l1-baseline-old/8b971dc62baf1535"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:01:11-07:00",
+   "name": "ModifyListener",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "3b356ca3-807e-43e3-952a-bfade159b9ab",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"listenerArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f\"}",
+   "resources": [
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/twin-aa-l2/e5be3705a6d06372",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:listener/app/twin-aa-l2/e5be3705a6d06372/2782d9e3e9c3c91f"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:01:12-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "23a0f22d-8c2f-443c-9243-65a657da0135",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"baseline-old\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+    "twin-aa-l2",
+    "baseline-old"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:01:13-07:00",
+   "name": "UpdateService",
+   "src": "ecs.amazonaws.com",
+   "id": "4a056c22-4531-4e6c-a69b-0031a2dbd4b8",
+   "identity": "arn:aws:sts::<acct>:assumed-role/twin-aa-operator-instance/i-0cc80f96945253aed",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"cluster\":\"twin-aa-l2\",\"service\":\"canary-new\",\"desiredCount\":0}",
+   "resources": [
+    "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+    "twin-aa-l2",
+    "canary-new"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:01:23-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "626176b2-4bb6-413c-b684-d79ef074e48a",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39\",\"targets\":2}",
+   "resources": [
+    "10.42.1.28",
+    "10.42.0.136",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-baseline-old/d1e76dd435a9fe39"
+   ]
+  },
+  {
+   "t": "2026-09-29T20:01:23-07:00",
+   "name": "DeregisterTargets",
+   "src": "elasticloadbalancing.amazonaws.com",
+   "id": "7723d4e2-cbef-4d8c-b51b-ef5464adf5b3",
+   "identity": "arn:aws:sts::<acct>:assumed-role/AWSServiceRoleForECS/ecs-service-scheduler",
+   "lane": 2,
+   "lanes_named": [
+    2
+   ],
+   "params": "{\"targetGroupArn\":\"arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3\",\"targets\":2}",
+   "resources": [
+    "10.42.1.235",
+    "10.42.0.159",
+    "arn:aws:elasticloadbalancing:us-east-1:<acct>:targetgroup/twin-aa-l2-canary-new/c1348b518d1e9fa3"
+   ]
+  }
+ ]
+}

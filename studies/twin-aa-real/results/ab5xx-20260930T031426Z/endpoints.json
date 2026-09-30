@@ -1,0 +1,417 @@
+{
+ "registered": {
+  "alpha": 0.05,
+  "R": 100,
+  "B": 0.1062,
+  "e1_max_rollbacks": 10,
+  "e2_max": 10,
+  "e3_max_halts": 2,
+  "stop_after_rollbacks": 11,
+  "attempt_cap": 150
+ },
+ "attempts": 20,
+ "deploy_failures": 0,
+ "deploy_failure_runs": [],
+ "interrupted_attempts": [],
+ "runs_with_runner": 20,
+ "summaries": 20,
+ "missing_summary": [],
+ "executable": 20,
+ "void": 0,
+ "void_runs": [],
+ "stop_rule_tripped": null,
+ "E1": {
+  "rollbacks": 20,
+  "executable": 20,
+  "rate": 1,
+  "cp_lower95": 0.8608916593317347,
+  "cp_upper95": 0.999999999,
+  "verdict": "not applicable (AB cell)",
+  "rollback_runs": [
+   63,
+   64,
+   65,
+   66,
+   67,
+   68,
+   69,
+   70,
+   71,
+   72,
+   73,
+   74,
+   75,
+   76,
+   77,
+   78,
+   79,
+   80,
+   81,
+   82
+  ]
+ },
+ "E2": {
+  "count": 20,
+  "verdict": "not applicable (AB cell)"
+ },
+ "E3": {
+  "halts": 0,
+  "attempted": 20,
+  "verdict": "PASS"
+ },
+ "P1": {
+  "registered": "E1 holds; point figure 0–6 rollbacks in 100",
+  "held": null
+ },
+ "P2": {
+  "registered": "E2 holds with at most 1 void run ending in rollback",
+  "held": null,
+  "void_rollbacks": 0
+ },
+ "P3": {
+  "registered": "E3 holds with 0 halts",
+  "held": true
+ },
+ "P4": {
+  "registered": "W0 rollbacks at most 10 in 100",
+  "w0_rollbacks": 20,
+  "held": null
+ },
+ "per_lane": [
+  {
+   "lane": 0,
+   "attempts": 5,
+   "executable": 5,
+   "rollbacks": 5,
+   "holds": 0
+  },
+  {
+   "lane": 1,
+   "attempts": 5,
+   "executable": 5,
+   "rollbacks": 5,
+   "holds": 0
+  },
+  {
+   "lane": 2,
+   "attempts": 5,
+   "executable": 5,
+   "rollbacks": 5,
+   "holds": 0
+  },
+  {
+   "lane": 3,
+   "attempts": 5,
+   "executable": 5,
+   "rollbacks": 5,
+   "holds": 0
+  }
+ ],
+ "rollback_ticks": [
+  {
+   "run": 63,
+   "lane": 0,
+   "scored_tick": 26,
+   "w0_tick": 13,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.7692307692307693
+  },
+  {
+   "run": 64,
+   "lane": 1,
+   "scored_tick": 26,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.5
+  },
+  {
+   "run": 65,
+   "lane": 2,
+   "scored_tick": 26,
+   "w0_tick": 26,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.6923076923076923
+  },
+  {
+   "run": 66,
+   "lane": 3,
+   "scored_tick": 26,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.46153846153846156
+  },
+  {
+   "run": 67,
+   "lane": 1,
+   "scored_tick": 25,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.24
+  },
+  {
+   "run": 68,
+   "lane": 0,
+   "scored_tick": 14,
+   "w0_tick": 24,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.9285714285714286
+  },
+  {
+   "run": 69,
+   "lane": 2,
+   "scored_tick": 25,
+   "w0_tick": 26,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.04
+  },
+  {
+   "run": 70,
+   "lane": 3,
+   "scored_tick": 26,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.6538461538461539
+  },
+  {
+   "run": 71,
+   "lane": 0,
+   "scored_tick": 26,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.038461538461538464
+  },
+  {
+   "run": 72,
+   "lane": 1,
+   "scored_tick": 25,
+   "w0_tick": 26,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.36
+  },
+  {
+   "run": 73,
+   "lane": 2,
+   "scored_tick": 25,
+   "w0_tick": 26,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.64
+  },
+  {
+   "run": 74,
+   "lane": 3,
+   "scored_tick": 11,
+   "w0_tick": 19,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 1
+  },
+  {
+   "run": 75,
+   "lane": 3,
+   "scored_tick": 11,
+   "w0_tick": 21,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 1
+  },
+  {
+   "run": 76,
+   "lane": 0,
+   "scored_tick": 25,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.08
+  },
+  {
+   "run": 77,
+   "lane": 1,
+   "scored_tick": 26,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.19230769230769232
+  },
+  {
+   "run": 78,
+   "lane": 2,
+   "scored_tick": 25,
+   "w0_tick": 26,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.36
+  },
+  {
+   "run": 79,
+   "lane": 3,
+   "scored_tick": 25,
+   "w0_tick": 18,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.8
+  },
+  {
+   "run": 80,
+   "lane": 0,
+   "scored_tick": 13,
+   "w0_tick": 18,
+   "fired": [
+    "twin_sign_p99_latency"
+   ],
+   "p99_canary_worse_share": 0.9230769230769231
+  },
+  {
+   "run": 81,
+   "lane": 1,
+   "scored_tick": 25,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.04
+  },
+  {
+   "run": 82,
+   "lane": 2,
+   "scored_tick": 26,
+   "w0_tick": 25,
+   "fired": [
+    "twin_rate_http_5xx"
+   ],
+   "p99_canary_worse_share": 0.34615384615384615
+  }
+ ],
+ "fired_by_detector": {
+  "twin_rate_http_5xx": 16,
+  "twin_sign_p99_latency": 4
+ },
+ "hold_p99_worse_shares": [],
+ "authority_violations": 0,
+ "any_unhealthy_target_runs": [],
+ "v67": {
+  "evaluated_runs": 20,
+  "flagged_runs": [],
+  "unassigned_inside_runs": []
+ },
+ "repo_shas": [
+  "61794dccf4acec34699dedbe9223f2d787cb8779"
+ ],
+ "engines": [
+  {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  }
+ ],
+ "config_sha256_by_lane": {
+  "0": [
+   "fd26eb3e1dc9e99e1270fdc192695184b68af1cd8607ad2e43c397689ef9b39b"
+  ],
+  "1": [
+   "b3d90a3ce1cc704ff12157585f6724588e1b93ba98cb7f323b9b6a13b52e6387"
+  ],
+  "2": [
+   "d722dfe87323d4c2c35d7cddb134b40df264232d9a0b39b5c1d08c9b0a8d4b80"
+  ],
+  "3": [
+   "3770cfe87f555fc4f07366d4f1165cd501b73a35232c7973776a3106e91e0aa3"
+  ]
+ },
+ "E4": {
+  "registered": "at least 16 of 20 executable AB-5xx runs roll back (power ≥ 0.8)",
+  "rollbacks": 20,
+  "executable": 20,
+  "power": 1,
+  "verdict": "PASS",
+  "median_rollback_tick": 25,
+  "rollback_ticks": [
+   11,
+   11,
+   13,
+   14,
+   25,
+   25,
+   25,
+   25,
+   25,
+   25,
+   25,
+   25,
+   26,
+   26,
+   26,
+   26,
+   26,
+   26,
+   26,
+   26
+  ],
+  "non_rollback_verdicts": [],
+  "fired_rate": 16,
+  "fired_sign_only": [
+   {
+    "run": 68,
+    "tick": 14,
+    "fired": [
+     "twin_sign_p99_latency"
+    ]
+   },
+   {
+    "run": 74,
+    "tick": 11,
+    "fired": [
+     "twin_sign_p99_latency"
+    ]
+   },
+   {
+    "run": 75,
+    "tick": 11,
+    "fired": [
+     "twin_sign_p99_latency"
+    ]
+   },
+   {
+    "run": 80,
+    "tick": 13,
+    "fired": [
+     "twin_sign_p99_latency"
+    ]
+   }
+  ]
+ },
+ "P6": {
+  "registered": "AB-5xx power ≥ 0.9, median rollback tick between 15 and 45",
+  "held": true
+ },
+ "mean_5xx_per_tick": {
+  "canary": 12.21,
+  "control": 6.1
+ }
+}
