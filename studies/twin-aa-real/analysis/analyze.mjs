@@ -35,7 +35,7 @@ const driver = new Map();
 for (const f of driverFiles) {
   // a driver log may carry the rotate script's stderr (plain text, e.g. the IAM denials of attempts 0–18): kept, not parsed
   const lines = readFileSync(join(RES, 'operator', 'runs', f), 'utf8').split('\n').filter(Boolean).map((l) => (/^[[{]/.test(l) ? JSON.parse(l) : { raw: l }));
-  const m = /^(\w+)-l(\d)-r(\d+)\.ndjson$/.exec(f); if (!m) throw new Error(`driver file name ${f}`);
+  const m = /^(.+)-l(\d)-r(\d+)\.ndjson$/.exec(f); if (!m) throw new Error(`driver file name ${f}`); // cell ids carry hyphens (AB-5xx)
   const ev = (name) => lines.find((l) => !Array.isArray(l) && l.event === name);
   driver.set(Number(m[3]), {
     file: f, lane: Number(m[2]), run: Number(m[3]),
@@ -47,7 +47,9 @@ for (const f of driverFiles) {
     driver_events: lines.filter(Array.isArray).flat().map((e) => ({ t: e.t, name: e.name, id: e.id })),
   });
 }
-const evidencePath = join(RES, 'evidence', 'cloudtrail-write-events.json');
+// one evidence file per cell, each pulled over that cell's interval and never overwritten: the AA file keeps
+// its original name; AB-5xx reads cloudtrail-write-events-ab5xx.json
+const evidencePath = join(RES, 'evidence', CELL === 'AA' ? 'cloudtrail-write-events.json' : `cloudtrail-write-events-${CELL.toLowerCase().replace(/[^a-z0-9]/g, '')}.json`);
 const evidence = existsSync(evidencePath) ? JSON.parse(readFileSync(evidencePath, 'utf8')) : null;
 const toMs = (t) => { const ms = Date.parse(t); if (Number.isNaN(ms)) throw new Error(`bad time ${t}`); return ms; };
 
@@ -172,6 +174,11 @@ if (CELL === 'AB-5xx') {
     median_rollback_tick: med, rollback_ticks: ticks, non_rollback_verdicts: exec.filter((r) => r.scored.verdict !== 'rollback').map((r) => ({ run: r.run, verdict: r.scored.verdict, ticks: r.scored.ticks })) };
   E.P6 = { registered: 'AB-5xx power ≥ 0.9, median rollback tick between 15 and 45', held: exec.length >= 20 && rb.length / exec.length >= 0.9 && med !== null && med >= 15 && med <= 45 };
   E.E1.verdict = 'not applicable (AB cell)'; E.E2.verdict = 'not applicable (AB cell)'; E.P1.held = null; E.P2.held = null; E.P4.held = null;
+  E.stop_rule_tripped = null; // the AA 11-rollback rule does not apply; the AB cell stops at 30 attempts (§3 of OPERATOR.md)
+  // the registered E4 counts a rollback from either metric; the rate detector's own count, with the runs where the
+  // latency sign detector fired first (the AA study's false-rollback mechanism), is reported beside it
+  E.E4.fired_rate = rb.filter((r) => r.fired.includes('twin_rate_http_5xx')).length;
+  E.E4.fired_sign_only = rb.filter((r) => !r.fired.includes('twin_rate_http_5xx')).map((r) => ({ run: r.run, tick: r.scored.ticks, fired: r.fired }));
   E.mean_5xx_per_tick = { canary: +(exec.reduce((a, r) => a + r.mean_5xx.canary, 0) / Math.max(exec.length, 1)).toFixed(2), control: +(exec.reduce((a, r) => a + r.mean_5xx.control, 0) / Math.max(exec.length, 1)).toFixed(2) };
 }
 
@@ -194,9 +201,9 @@ const table = [
   `| E1 false rollback | ≤ ${REG.e1_max_rollbacks} of ${REG.R} executable (B ${REG.B}); stop at ${REG.stop_after_rollbacks} | ${E.E1.rollbacks}/${E.E1.executable} = ${f3(E.E1.rate)} (95% one-sided bounds ${f3(E.E1.cp_lower95)}–${f3(E.E1.cp_upper95)}) | ${E.E1.verdict} |`,
   `| E2 sensitivity count | ≤ ${REG.e2_max} | ${E.E2.count} | ${E.E2.verdict} |`,
   `| E3 sample-ratio halts | ≤ ${REG.e3_max_halts} of attempted | ${E.E3.halts} of ${E.E3.attempted} | ${E.E3.verdict} |`,
-  ...(E.E4 ? [`| E4 AB-5xx power | ≥ 16 of 20 executable roll back | ${E.E4.rollbacks}/${E.E4.executable} = ${f3(E.E4.power)}, median rollback tick ${E.E4.median_rollback_tick ?? '—'} (ticks ${E.E4.rollback_ticks.join(', ') || 'none'}) | ${E.E4.verdict} |`, `P6 (power ≥ 0.9, median tick 15–45): ${E.P6.held ? 'held' : 'NOT held'}. Mean target 5xx per tick canary ${E.mean_5xx_per_tick.canary} / control ${E.mean_5xx_per_tick.control}. Non-rollback verdicts: ${E.E4.non_rollback_verdicts.map((x) => `${x.run}:${x.verdict}@${x.ticks}`).join(', ') || 'none'}.`] : []), '',
+  ...(E.E4 ? [`| E4 AB-5xx power | ≥ 16 of 20 executable roll back | ${E.E4.rollbacks}/${E.E4.executable} = ${f3(E.E4.power)}, median rollback tick ${E.E4.median_rollback_tick ?? '—'} (ticks ${E.E4.rollback_ticks.join(', ') || 'none'}) | ${E.E4.verdict} |`, `P6 (power ≥ 0.9, median tick 15–45): ${E.P6.held ? 'held' : 'NOT held'}. Mean target 5xx per tick canary ${E.mean_5xx_per_tick.canary} / control ${E.mean_5xx_per_tick.control}. Non-rollback verdicts: ${E.E4.non_rollback_verdicts.map((x) => `${x.run}:${x.verdict}@${x.ticks}`).join(', ') || 'none'}. Rate detector fired in ${E.E4.fired_rate} of ${E.E4.rollbacks} rollbacks; the sign detector fired first in ${E.E4.fired_sign_only.length} (${E.E4.fired_sign_only.map((x) => `${x.run}@${x.tick}`).join(', ') || 'none'}).`] : []), '',
   `Attempts ${E.attempts}: deploy failures ${E.deploy_failures} (runs ${E.deploy_failure_runs.join(', ') || 'none'}), attempts interrupted before arm-ready ${E.interrupted_attempts.length} (runs ${E.interrupted_attempts.join(', ') || 'none'}), runs with a runner ${E.runs_with_runner}; summaries ${E.summaries}; executable ${E.executable}; void ${E.void}; stop rule tripped: ${E.stop_rule_tripped}.`, '',
-  `Post-hoc, no verdict — share of scored ticks with canary p99 above control p99, over the ticks the scored session used: holds (n ${E.hold_p99_worse_shares.length}) min ${f3(Math.min(...E.hold_p99_worse_shares))}, median ${f3([...E.hold_p99_worse_shares].sort((a, b) => a - b)[Math.floor(E.hold_p99_worse_shares.length / 2)] ?? null)}, max ${f3(Math.max(...E.hold_p99_worse_shares))}; rollbacks min ${f3(Math.min(...E.rollback_ticks.map((r) => r.p99_canary_worse_share)))}, max ${f3(Math.max(...E.rollback_ticks.map((r) => r.p99_canary_worse_share)))}. Fired by detector: ${JSON.stringify(E.fired_by_detector)}.`, '',
+  `Post-hoc, no verdict — share of scored ticks with canary p99 above control p99, over the ticks the scored session used: holds (n ${E.hold_p99_worse_shares.length}) min ${f3(E.hold_p99_worse_shares.length ? Math.min(...E.hold_p99_worse_shares) : null)}, median ${f3([...E.hold_p99_worse_shares].sort((a, b) => a - b)[Math.floor(E.hold_p99_worse_shares.length / 2)] ?? null)}, max ${f3(E.hold_p99_worse_shares.length ? Math.max(...E.hold_p99_worse_shares) : null)}; rollbacks min ${f3(E.rollback_ticks.length ? Math.min(...E.rollback_ticks.map((r) => r.p99_canary_worse_share)) : null)}, max ${f3(E.rollback_ticks.length ? Math.max(...E.rollback_ticks.map((r) => r.p99_canary_worse_share)) : null)}. Fired by detector: ${JSON.stringify(E.fired_by_detector)}.`, '',
   '| Lane | Attempts | Executable | Rollback | Hold |', '|---|---|---|---|---|',
   ...E.per_lane.map((l) => `| ${l.lane} | ${l.attempts} | ${l.executable} | ${l.rollbacks} | ${l.holds} |`), '',
   '| Rollback run | Lane | Scored tick | W0 tick | Fired | p99 canary-worse share |', '|---|---|---|---|---|---|',

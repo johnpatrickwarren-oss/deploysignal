@@ -1,0 +1,2422 @@
+[
+ {
+  "run": 63,
+  "lane": 0,
+  "file": "AB-5xx-l0-r63-20260929T230600Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l0-r63",
+  "arm_ready": "2026-09-29T23:05:59Z",
+  "runner_start": "2026-09-29T23:05:59Z",
+  "runner_exit": "2026-09-29T23:51:13Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 13
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "fd26eb3e1dc9e99e1270fdc192695184b68af1cd8607ad2e43c397689ef9b39b",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 35
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 0.9911868663869641,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 45.435081294483346,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 26.501274915035772,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.7692307692307693,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1225,
+   "control": 1224
+  },
+  "mean_5xx": {
+   "canary": 12.23,
+   "control": 6.15
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 64,
+  "lane": 1,
+  "file": "AB-5xx-l1-r64-20260929T230647Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l1-r64",
+  "arm_ready": "2026-09-29T23:06:46Z",
+  "runner_start": "2026-09-29T23:06:46Z",
+  "runner_exit": "2026-09-29T23:51:00Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "b3d90a3ce1cc704ff12157585f6724588e1b93ba98cb7f323b9b6a13b52e6387",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 21
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 1.0082718242620325,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 44.14342430748292,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 0.2762416354339499,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.5,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1229,
+   "control": 1218
+  },
+  "mean_5xx": {
+   "canary": 12.31,
+   "control": 6.15
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 65,
+  "lane": 2,
+  "file": "AB-5xx-l2-r65-20260929T230731Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l2-r65",
+  "arm_ready": "2026-09-29T23:07:31Z",
+  "runner_start": "2026-09-29T23:07:31Z",
+  "runner_exit": "2026-09-29T23:52:44Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "d722dfe87323d4c2c35d7cddb134b40df264232d9a0b39b5c1d08c9b0a8d4b80",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 21
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 0.9983801608572898,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 46.732330140528695,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 2.308064137300434,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.6923076923076923,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1227,
+   "control": 1219
+  },
+  "mean_5xx": {
+   "canary": 12.23,
+   "control": 6.15
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 66,
+  "lane": 3,
+  "file": "AB-5xx-l3-r66-20260929T230827Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l3-r66",
+  "arm_ready": "2026-09-29T23:08:27Z",
+  "runner_start": "2026-09-29T23:08:27Z",
+  "runner_exit": "2026-09-29T23:53:40Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "3770cfe87f555fc4f07366d4f1165cd501b73a35232c7973776a3106e91e0aa3",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 25
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 0.9977132325939421,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 45.80612953332526,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 0.5192307692307693,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.46153846153846156,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1221,
+   "control": 1214
+  },
+  "mean_5xx": {
+   "canary": 12.23,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 67,
+  "lane": 1,
+  "file": "AB-5xx-l1-r67-20260929T235409Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l1-r67",
+  "arm_ready": "2026-09-29T23:54:09Z",
+  "runner_start": "2026-09-29T23:54:09Z",
+  "runner_exit": "2026-09-30T00:38:22Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "b3d90a3ce1cc704ff12157585f6724588e1b93ba98cb7f323b9b6a13b52e6387",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 39
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 0.9936135816620558,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 41.56378243913948,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 0.3461538461538462,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.24,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1213,
+   "control": 1220
+  },
+  "mean_5xx": {
+   "canary": 12.16,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 68,
+  "lane": 0,
+  "file": "AB-5xx-l0-r68-20260929T235422Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l0-r68",
+  "arm_ready": "2026-09-29T23:54:22Z",
+  "runner_start": "2026-09-29T23:54:22Z",
+  "runner_exit": "2026-09-30T00:27:32Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 14
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 24
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "fd26eb3e1dc9e99e1270fdc192695184b68af1cd8607ad2e43c397689ef9b39b",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 22
+  },
+  "windows": 29,
+  "scored_windows": 14,
+  "final": {
+   "tick": 14,
+   "verdict": "rollback",
+   "srm_e": 0.9948573687056661,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 7.253791295441617,
+     "rollback_threshold": 40,
+     "used": 14,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 55.4471529447116,
+     "rollback_threshold": 40,
+     "used": 14,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_sign_p99_latency"
+  ],
+  "p99_canary_worse_share": 0.9285714285714286,
+  "p99_ties": 0,
+  "p99_ticks": 14,
+  "mean_requests": {
+   "canary": 1211,
+   "control": 1222
+  },
+  "mean_5xx": {
+   "canary": 12,
+   "control": 6.14
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 69,
+  "lane": 2,
+  "file": "AB-5xx-l2-r69-20260929T235549Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l2-r69",
+  "arm_ready": "2026-09-29T23:55:49Z",
+  "runner_start": "2026-09-29T23:55:49Z",
+  "runner_exit": "2026-09-30T00:39:03Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "d722dfe87323d4c2c35d7cddb134b40df264232d9a0b39b5c1d08c9b0a8d4b80",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 33
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 0.9992043416668599,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 40.64491961843202,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 1,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.04,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1214,
+   "control": 1225
+  },
+  "mean_5xx": {
+   "canary": 12.16,
+   "control": 6.16
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 70,
+  "lane": 3,
+  "file": "AB-5xx-l3-r70-20260929T235700Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l3-r70",
+  "arm_ready": "2026-09-29T23:57:00Z",
+  "runner_start": "2026-09-29T23:57:00Z",
+  "runner_exit": "2026-09-30T00:42:14Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "3770cfe87f555fc4f07366d4f1165cd501b73a35232c7973776a3106e91e0aa3",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 46
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 1.0008480825968231,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 46.32354602070801,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 0.7218948833631562,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.6538461538461539,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1227,
+   "control": 1219
+  },
+  "mean_5xx": {
+   "canary": 12.23,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 71,
+  "lane": 0,
+  "file": "AB-5xx-l0-r71-20260930T003037Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l0-r71",
+  "arm_ready": "2026-09-30T00:30:37Z",
+  "runner_start": "2026-09-30T00:30:37Z",
+  "runner_exit": "2026-09-30T01:15:50Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "fd26eb3e1dc9e99e1270fdc192695184b68af1cd8607ad2e43c397689ef9b39b",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 45
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 0.9901201716338925,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 45.43529858219604,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 1,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.038461538461538464,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1225,
+   "control": 1224
+  },
+  "mean_5xx": {
+   "canary": 12.23,
+   "control": 6.15
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 72,
+  "lane": 1,
+  "file": "AB-5xx-l1-r72-20260930T004128Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l1-r72",
+  "arm_ready": "2026-09-30T00:41:28Z",
+  "runner_start": "2026-09-30T00:41:28Z",
+  "runner_exit": "2026-09-30T01:25:41Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "b3d90a3ce1cc704ff12157585f6724588e1b93ba98cb7f323b9b6a13b52e6387",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 53
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 0.9960493896739573,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 41.007449009687775,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 1,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.36,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1221,
+   "control": 1219
+  },
+  "mean_5xx": {
+   "canary": 12.24,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 73,
+  "lane": 2,
+  "file": "AB-5xx-l2-r73-20260930T004209Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l2-r73",
+  "arm_ready": "2026-09-30T00:42:09Z",
+  "runner_start": "2026-09-30T00:42:09Z",
+  "runner_exit": "2026-09-30T01:26:22Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "d722dfe87323d4c2c35d7cddb134b40df264232d9a0b39b5c1d08c9b0a8d4b80",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 50
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 0.9935540104802036,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 40.09075197310163,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 0.6981938201610829,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.64,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1222,
+   "control": 1219
+  },
+  "mean_5xx": {
+   "canary": 12.24,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 74,
+  "lane": 3,
+  "file": "AB-5xx-l3-r74-20260930T004531Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l3-r74",
+  "arm_ready": "2026-09-30T00:45:31Z",
+  "runner_start": "2026-09-30T00:45:31Z",
+  "runner_exit": "2026-09-30T01:15:40Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 11
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 19
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "3770cfe87f555fc4f07366d4f1165cd501b73a35232c7973776a3106e91e0aa3",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 0
+  },
+  "windows": 26,
+  "scored_windows": 11,
+  "final": {
+   "tick": 11,
+   "verdict": "rollback",
+   "srm_e": 0.9961942303317599,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 4.850279780528473,
+     "rollback_threshold": 40,
+     "used": 11,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 57.66503906250008,
+     "rollback_threshold": 40,
+     "used": 11,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_sign_p99_latency"
+  ],
+  "p99_canary_worse_share": 1,
+  "p99_ties": 0,
+  "p99_ticks": 11,
+  "mean_requests": {
+   "canary": 1207,
+   "control": 1218
+  },
+  "mean_5xx": {
+   "canary": 12.18,
+   "control": 6
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 75,
+  "lane": 3,
+  "file": "AB-5xx-l3-r75-20260930T011849Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l3-r75",
+  "arm_ready": "2026-09-30T01:18:49Z",
+  "runner_start": "2026-09-30T01:18:49Z",
+  "runner_exit": "2026-09-30T01:48:58Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 11
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 21
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "3770cfe87f555fc4f07366d4f1165cd501b73a35232c7973776a3106e91e0aa3",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 33
+  },
+  "windows": 26,
+  "scored_windows": 11,
+  "final": {
+   "tick": 11,
+   "verdict": "rollback",
+   "srm_e": 0.9996893635732564,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 4.8017503721593,
+     "rollback_threshold": 40,
+     "used": 11,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 57.66503906250008,
+     "rollback_threshold": 40,
+     "used": 11,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_sign_p99_latency"
+  ],
+  "p99_canary_worse_share": 1,
+  "p99_ties": 0,
+  "p99_ticks": 11,
+  "mean_requests": {
+   "canary": 1221,
+   "control": 1209
+  },
+  "mean_5xx": {
+   "canary": 12.18,
+   "control": 6
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 76,
+  "lane": 0,
+  "file": "AB-5xx-l0-r76-20260930T011847Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l0-r76",
+  "arm_ready": "2026-09-30T01:18:47Z",
+  "runner_start": "2026-09-30T01:18:47Z",
+  "runner_exit": "2026-09-30T02:02:00Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "fd26eb3e1dc9e99e1270fdc192695184b68af1cd8607ad2e43c397689ef9b39b",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 49
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 1.0276277671181484,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 43.23488412403921,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 1,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.08,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1199,
+   "control": 1218
+  },
+  "mean_5xx": {
+   "canary": 12,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 77,
+  "lane": 1,
+  "file": "AB-5xx-l1-r77-20260930T012848Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l1-r77",
+  "arm_ready": "2026-09-30T01:28:48Z",
+  "runner_start": "2026-09-30T01:28:48Z",
+  "runner_exit": "2026-09-30T02:13:02Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "b3d90a3ce1cc704ff12157585f6724588e1b93ba98cb7f323b9b6a13b52e6387",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 37
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 0.9959118413691563,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 44.10399156508531,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 1,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.19230769230769232,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1231,
+   "control": 1223
+  },
+  "mean_5xx": {
+   "canary": 12.31,
+   "control": 6.15
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 78,
+  "lane": 2,
+  "file": "AB-5xx-l2-r78-20260930T012928Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l2-r78",
+  "arm_ready": "2026-09-30T01:29:28Z",
+  "runner_start": "2026-09-30T01:29:28Z",
+  "runner_exit": "2026-09-30T02:13:41Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "d722dfe87323d4c2c35d7cddb134b40df264232d9a0b39b5c1d08c9b0a8d4b80",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 36
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 0.9958359510371073,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 40.295300475597074,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 0.5878454902527772,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.36,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1217,
+   "control": 1224
+  },
+  "mean_5xx": {
+   "canary": 12.16,
+   "control": 6.16
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 79,
+  "lane": 3,
+  "file": "AB-5xx-l3-r79-20260930T015204Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l3-r79",
+  "arm_ready": "2026-09-30T01:52:04Z",
+  "runner_start": "2026-09-30T01:52:04Z",
+  "runner_exit": "2026-09-30T02:36:17Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 18
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "3770cfe87f555fc4f07366d4f1165cd501b73a35232c7973776a3106e91e0aa3",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l3-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 46
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 0.9896197844377312,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 40.97984465394128,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 37.95811577564228,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.8,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1219,
+   "control": 1218
+  },
+  "mean_5xx": {
+   "canary": 12.24,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 80,
+  "lane": 0,
+  "file": "AB-5xx-l0-r80-20260930T020506Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l0-r80",
+  "arm_ready": "2026-09-30T02:05:05Z",
+  "runner_start": "2026-09-30T02:05:05Z",
+  "runner_exit": "2026-09-30T02:37:16Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 13
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 18
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "fd26eb3e1dc9e99e1270fdc192695184b68af1cd8607ad2e43c397689ef9b39b",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l0-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 35
+  },
+  "windows": 28,
+  "scored_windows": 13,
+  "final": {
+   "tick": 13,
+   "verdict": "rollback",
+   "srm_e": 0.9974780200351787,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 6.4740669049938235,
+     "rollback_threshold": 40,
+     "used": 13,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 43.248779296875064,
+     "rollback_threshold": 40,
+     "used": 13,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_sign_p99_latency"
+  ],
+  "p99_canary_worse_share": 0.9230769230769231,
+  "p99_ties": 0,
+  "p99_ticks": 13,
+  "mean_requests": {
+   "canary": 1226,
+   "control": 1217
+  },
+  "mean_5xx": {
+   "canary": 12.31,
+   "control": 6.15
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 81,
+  "lane": 1,
+  "file": "AB-5xx-l1-r81-20260930T021608Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l1-r81",
+  "arm_ready": "2026-09-30T02:16:08Z",
+  "runner_start": "2026-09-30T02:16:08Z",
+  "runner_exit": "2026-09-30T03:00:22Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "b3d90a3ce1cc704ff12157585f6724588e1b93ba98cb7f323b9b6a13b52e6387",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l1-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 17
+  },
+  "windows": 40,
+  "scored_windows": 25,
+  "final": {
+   "tick": 25,
+   "verdict": "rollback",
+   "srm_e": 0.9957395384897053,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 40.570706111457994,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 1,
+     "rollback_threshold": 40,
+     "used": 25,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.04,
+  "p99_ties": 0,
+  "p99_ticks": 25,
+  "mean_requests": {
+   "canary": 1225,
+   "control": 1219
+  },
+  "mean_5xx": {
+   "canary": 12.24,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ },
+ {
+  "run": 82,
+  "lane": 2,
+  "file": "AB-5xx-l2-r82-20260930T021647Z.summary.json",
+  "deploy_ref": "t3-AB-5xx-l2-r82",
+  "arm_ready": "2026-09-30T02:16:47Z",
+  "runner_start": "2026-09-30T02:16:47Z",
+  "runner_exit": "2026-09-30T03:01:00Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "counts_for_e2": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 26
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 25
+  },
+  "authority_violation": false,
+  "gate_healthz": {
+   "ok": true,
+   "service_id": "default",
+   "mode": "enforce",
+   "fail_policy": "fail_closed"
+  },
+  "repo_sha": "61794dccf4acec34699dedbe9223f2d787cb8779",
+  "engine": {
+   "version": "0.12.2-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#0434afcdc7a4716788dc81427295c6c4cd14e019"
+  },
+  "node": "v24.21.0",
+  "config_sha256": "d722dfe87323d4c2c35d7cddb134b40df264232d9a0b39b5c1d08c9b0a8d4b80",
+  "tasks": [
+   {
+    "service": "baseline-old",
+    "tasks": [
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:1",
+      "status": "RUNNING"
+     }
+    ]
+   },
+   {
+    "service": "canary-new",
+    "tasks": [
+     {
+      "az": "us-east-1b",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     },
+     {
+      "az": "us-east-1a",
+      "td": "arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:1",
+      "status": "RUNNING"
+     }
+    ]
+   }
+  ],
+  "v67": {
+   "evaluated": true,
+   "coverage": [
+    "2026-09-29T22:50:00Z",
+    "2026-09-30T03:20:00Z"
+   ],
+   "events_inside": [],
+   "unassigned_inside": [],
+   "other_lane_inside": 15
+  },
+  "windows": 41,
+  "scored_windows": 26,
+  "final": {
+   "tick": 26,
+   "verdict": "rollback",
+   "srm_e": 0.9963141255274917,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "detector_id": "twin_rate_http_5xx",
+     "rollback_e": 46.67294002605635,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    },
+    {
+     "id": "p99_latency",
+     "detector_id": "twin_sign_p99_latency",
+     "rollback_e": 1,
+     "rollback_threshold": 40,
+     "used": 26,
+     "ties": 0,
+     "missing": 0
+    }
+   ]
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "p99_canary_worse_share": 0.34615384615384615,
+  "p99_ties": 0,
+  "p99_ticks": 26,
+  "mean_requests": {
+   "canary": 1233,
+   "control": 1224
+  },
+  "mean_5xx": {
+   "canary": 12.31,
+   "control": 6.08
+  },
+  "any_unhealthy_target": false
+ }
+]
