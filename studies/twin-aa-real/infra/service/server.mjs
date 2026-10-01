@@ -21,6 +21,12 @@ const LATENCY_SIGMA = Number(process.env.LATENCY_SIGMA ?? 0.4);
 if (!(LATENCY_MEDIAN_MS >= 0 && LATENCY_MEDIAN_MS < 10_000)) { console.error(`LATENCY_MEDIAN_MS must be in [0, 10000), got ${process.env.LATENCY_MEDIAN_MS}`); process.exit(2); }
 if (!(LATENCY_SIGMA >= 0 && LATENCY_SIGMA < 3)) { console.error(`LATENCY_SIGMA must be in [0, 3), got ${process.env.LATENCY_SIGMA}`); process.exit(2); }
 
+// 2026-10-twin-fault-shapes AB-reset: RESET_FRACTION (default 0) destroys the socket without a reply on an
+// evenly spaced fraction of requests, half a period away from the 503 schedule so the two never coincide.
+// The ALB then answers the client with an ELB-generated 502, which HTTPCode_Target_5XX_Count does not count.
+const RESET_FRACTION = Number(process.env.RESET_FRACTION ?? 0);
+if (!(RESET_FRACTION >= 0 && RESET_FRACTION < 1)) { console.error(`RESET_FRACTION must be in [0, 1), got ${process.env.RESET_FRACTION}`); process.exit(2); }
+
 let n = 0;
 const startedAt = new Date().toISOString();
 const seed = (() => { let h = 2166136261 >>> 0; for (const c of `${ARM}|${startedAt}`) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; })();
@@ -32,8 +38,9 @@ const delayMs = () => (LATENCY_MEDIAN_MS > 0 ? LATENCY_MEDIAN_MS * Math.exp(LATE
 function work(k) { let x = 0; for (let i = 0; i < 2000 + (k % 500); i++) x += Math.sqrt(i); return x; }
 
 const server = createServer((req, res) => {
-  if (req.url === '/healthz') { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ ok: true, arm: ARM, latency_median_ms: LATENCY_MEDIAN_MS, latency_sigma: LATENCY_SIGMA, seed, started_at: startedAt }) + '\n'); return; }
+  if (req.url === '/healthz') { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ ok: true, arm: ARM, fault_503_fraction: FRACTION, reset_fraction: RESET_FRACTION, latency_median_ms: LATENCY_MEDIAN_MS, latency_sigma: LATENCY_SIGMA, seed, started_at: startedAt }) + '\n'); return; }
   n++;
+  if (RESET_FRACTION > 0 && Math.floor(n * RESET_FRACTION + 0.5) > Math.floor((n - 1) * RESET_FRACTION + 0.5)) { req.socket.destroy(); return; }
   const fault = Math.floor(n * FRACTION) > Math.floor((n - 1) * FRACTION);
   const x = work(n);
   const body = JSON.stringify({ arm: ARM, n, x: Math.round(x), fault, started_at: startedAt });
@@ -42,4 +49,4 @@ const server = createServer((req, res) => {
   if (d > 0) setTimeout(reply, d); else reply();
 });
 server.keepAliveTimeout = 65000;   // above the ALB's 60 s idle timeout, so the ALB closes first
-server.listen(PORT, () => console.log(`twin-aa service arm=${ARM} port=${PORT} fault_503_fraction=${FRACTION} latency_median_ms=${LATENCY_MEDIAN_MS} latency_sigma=${LATENCY_SIGMA} seed=${seed}`));
+server.listen(PORT, () => console.log(`twin-aa service arm=${ARM} port=${PORT} fault_503_fraction=${FRACTION} latency_median_ms=${LATENCY_MEDIAN_MS} latency_sigma=${LATENCY_SIGMA} reset_fraction=${RESET_FRACTION} seed=${seed}`));

@@ -29,6 +29,14 @@ Parameters:
     Type: String
     Default: ""
     Description: leave empty for A/A (the canary uses Fault503Fraction); set only for the AB-5xx cell
+  CanaryLatencyMedianMs:
+    Type: String
+    Default: ""
+    Description: leave empty except for a latency AB cell (2026-10-twin-fault-shapes AB-lat30 sets 39); the canary then runs its own task definition
+  CanaryResetFraction:
+    Type: String
+    Default: ""
+    Description: leave empty except for 2026-10-twin-fault-shapes AB-reset (0.005) - the canary destroys the socket on that fraction of requests (ELB-generated 502)
   LatencyMedianMs:
     Type: String
     Default: "0"
@@ -52,7 +60,10 @@ Parameters:
     AllowedValues: ["true", "false"]
     Description: set true from AA run 0 only if the AB-lat cell (AWS FIS) is planned; it must not change during the study
 Conditions:
-  CanaryHasOwnFault: !Not [!Equals [!Ref CanaryFault503Fraction, ""]]
+  Canary503Set: !Not [!Equals [!Ref CanaryFault503Fraction, ""]]
+  CanaryLatencySet: !Not [!Equals [!Ref CanaryLatencyMedianMs, ""]]
+  CanaryResetSet: !Not [!Equals [!Ref CanaryResetFraction, ""]]
+  CanaryHasOwnFault: !Or [!Condition Canary503Set, !Condition CanaryLatencySet, !Condition CanaryResetSet]
   FaultInjection: !Equals [!Ref EnableFaultInjection, "true"]
 Resources:
   Alb:
@@ -176,8 +187,8 @@ Resources:
           LogConfiguration:
             LogDriver: awslogs
             Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: svc }
-  # The canary's task definition differs from the shared one ONLY in the AB-5xx cell (a higher
-  # 503 fraction on the canary). In every A/A run CanaryFault503Fraction is empty and the canary
+  # The canary's task definition differs from the shared one ONLY in an AB cell: a higher 503
+  # fraction (AB-5xx, AB-5xx-1.5), a longer delay (AB-lat30) or a reset fraction (AB-reset). In every A/A run CanaryFault503Fraction is empty and the canary
   # service uses TaskDefinition, so the two arms run the same revision (R5).
   CanaryTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -198,9 +209,10 @@ Resources:
           PortMappings: [{ ContainerPort: 8080, Protocol: tcp }]
           Environment:
             - { Name: PORT, Value: "8080" }
-            - { Name: FAULT_503_FRACTION, Value: !Ref CanaryFault503Fraction }
-            - { Name: LATENCY_MEDIAN_MS, Value: !Ref LatencyMedianMs }
+            - { Name: FAULT_503_FRACTION, Value: !If [Canary503Set, !Ref CanaryFault503Fraction, !Ref Fault503Fraction] }
+            - { Name: LATENCY_MEDIAN_MS, Value: !If [CanaryLatencySet, !Ref CanaryLatencyMedianMs, !Ref LatencyMedianMs] }
             - { Name: LATENCY_SIGMA, Value: !Ref LatencySigma }
+            - { Name: RESET_FRACTION, Value: !If [CanaryResetSet, !Ref CanaryResetFraction, "0"] }
           LogConfiguration:
             LogDriver: awslogs
             Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: canary-ab }
