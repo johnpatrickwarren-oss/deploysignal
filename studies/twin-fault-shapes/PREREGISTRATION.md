@@ -127,3 +127,50 @@ cite, cell by cell.
 False rollback (the A/A studies); regressions other than +30% latency and ×1.5 errors; faults
 that are bursty, localized to a subset of requests, load-dependent, or that appear as slowness
 before errors; the proceed side; bakes other than 60 ticks; any real failure mechanism (§0 (b)).
+
+## Amendment 1 — 2026-10-01, before run 0 (the pins, §6)
+
+Written before any run, lane deploy or host change for this study, while `2026-10-twin-aa-real-2`'s
+AA cell is still running. It changes no bar, endpoint, prediction or void rule.
+
+- **Engine.** `v0.13.0-pre`, resolved `de25786c0a6b15935aa9416b04359f6a3e309106`, unchanged from the
+  second study.
+- **The trees the runs execute from.** The runner host runs DeploySignal `main` at `dbd6beb` (PR
+  #144) or a later `main` commit whose git tree hashes at every path below are identical; the
+  report verifies each against the run commit recorded in every run's manifest:
+
+  | Path | Tree at `dbd6beb` |
+  |---|---|
+  | `studies/twin-fault-shapes/harness` | `926205cf7d5fb46034516081b353b77acc294b24` |
+  | `studies/twin-fault-shapes/analysis` | `7f66ee732c3bc85b2d19ab5bc6704b45ef87b5c2` |
+  | `service/gate-http` | `5e0f86e3a05d9165e18009299f7010a7d451529e` |
+  | `service/sources` | `c10785a9612812b4c7b063c6f10d93b008918523` |
+  | `engine/gates` | `7eb52c902cbde9c37fd982b5552533f8011042a2` |
+  | `engine/guarantees.ts` | `c99401c57fa2a5a048e8598d9786a06d5e700e1f` |
+  | `studies/twin-aa-real/infra/service` | `6f65c09e3cd4444fc47a470debf1372638d0b5c4` |
+
+  The gate service, sources, engine gates and guarantees trees are the second study's (its
+  Amendment 1), so the gate on the host need not be rebuilt for this study; it is restarted from
+  the run commit anyway and its start time and `git rev-parse HEAD` recorded, after the second
+  study's cell has closed and its artifacts are pulled.
+- **Service image (R2).** `twin-aa-service:old-v3-20261001` = `sha256:11b0f047493f6df41ad82612c6f111a7fa508a7392d18fe81a6150d41997ea30`
+  (linux/arm64), built from the service tree `6f65c09e…` above under colima: the second study's
+  service plus `RESET_FRACTION` (default 0). Every service in every lane references this digest
+  for this study; base `FAULT_503_FRACTION` 0.005, `LATENCY_MEDIAN_MS` 30, `LATENCY_SIGMA` 0.4.
+- **Per-cell canary settings** (lane template at `dbd6beb`; all three overrides empty between
+  cells is the A/A configuration and is never run in this study):
+
+  | Cell | `CanaryLatencyMedianMs` | `CanaryFault503Fraction` | `CanaryResetFraction` |
+  |---|---|---|---|
+  | `AB-lat30` | 39 | empty | empty |
+  | `AB-5xx-1.5` | empty | 0.0075 | empty |
+  | `AB-reset` | empty | empty | 0.005 |
+
+  After each cell's stack update and before its run 0, the canary service's task-definition
+  revision per lane is read (`ecs:DescribeServices`) with its environment
+  (`ecs:DescribeTaskDefinition`) and written to `results/operator/cell-revisions.json` (V9) and
+  the study record.
+- **Lane configs and drivers.** `studies/twin-fault-shapes/lane<N>.json` = the second study's
+  with `study_id` `2026-10-twin-fault-shapes`; `RUNNER=studies/twin-fault-shapes/harness/run-real.mjs
+  ALLOW_AB=1 drive-lane.sh --cell <cell> --tasks 4 --runs 5` per lane, global run indices
+  continuing after the second study's last.
