@@ -1,7 +1,7 @@
 {
   "id": "demo-tokens-creep",
   "name": "Demo 5 — Tokens-Per-Turn Slow Cost Regression",
-  "description": "Slow cost regression — cost-per-request drifts slowly upward over 32 ticks simulating a prompt-template change or retrieval-returns-longer-contexts regression. No single tick's cost_req crosses cascade's 1.20 ratio threshold (cumulative drift reaches only ~9% by tick 31). Family A's Page-CUSUM with mixture prior accumulates evidence across ticks and fires at tick 16 (mSPRT_cost_req), catching the regression before it surfaces in monthly billing.",
+  "description": "Slow cost regression — cost-per-request drifts slowly upward over 32 ticks simulating a prompt-template change or retrieval-returns-longer-contexts regression. No single tick's cost_req crosses cascade's 1.20 ratio threshold (cumulative drift reaches only ~9% by tick 31). Family A's Page-CUSUM with mixture prior accumulates evidence across ticks and fires at tick 16 (mSPRT_cost_req), detecting the regression before it surfaces in monthly billing. Since 2026-10-02 (C87) these fires are advisory: they are recorded and reported, the gate does not roll back on them, and this deploy ends in proceed.",
   "narrative": "Cost regressions that accumulate below per-tick thresholds are the class of failure threshold-based gates miss — no single tick is alarming, but the cumulative bill is. Here a slow drift in cost-per-request simulates a prompt-template change or retrieval-layer regression: by tick 32 the cumulative drift is ~9%, still below cascade's 1.20 ratio threshold for cost_req. Family A's Page-CUSUM with mixture prior accumulates evidence across ticks and fires at tick 16 — catching the regression weeks before it would surface in monthly billing. Order-of-magnitude dollar framing: a 10% cost regression on 1B requests/month at $0.005/request is ~$500K/month of additional spend. Caught at week 1 (Page-CUSUM): roughly $125K exposure. Caught at month 3 (monthly-billing investigation): roughly $1.5M. Per regression. Across multiple regressions per year, the cumulative delta is meaningful platform spend. Numbers are defensible mid-range for foundation-model inference; actual values depend on customer scale and per-request cost — the load-bearing variable is the time-to-detection delta.",
   "baseline_ref": "baselines/llm-inference-streaming.json",
   "baseline_override": {
@@ -555,7 +555,15 @@
     }
   ],
   "expected_outcome": {
-    "verdict": "rollback",
+    "verdict": "proceed",
+    "advisory": {
+      "families": [
+        "A"
+      ],
+      "first_fire_tick": 15,
+      "reason_code": "advisory_temporal_path_no_valid_null",
+      "verdict_before_c87": "rollback"
+    },
     "first_fire_tick": 15,
     "first_families": [
       "A"

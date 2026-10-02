@@ -21,7 +21,7 @@ import {
 
 function group(deploy_id: string, window_start_ts = 100, window_end_ts = 400): VerdictGroup {
   const v: FusedVerdict = {
-    verdict: 'rollback', firing_families: ['A'],
+    verdict: 'rollback', firing_families: ['A'], advisory_families: [],
     per_family_verdicts: { A: null, B: null, C: null, D: null, E: null },
     total_alpha_spent: 1e-4, fusion_topology: 'portfolio',
     tick: 0, deploy_ref: deploy_id,

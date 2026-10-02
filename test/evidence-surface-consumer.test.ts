@@ -211,7 +211,9 @@ test('ADR 0027 outlook: fuseVerdict is deterministic and deepEqual across '
   const first = fuseVerdict(build(), opts);
   const second = fuseVerdict(build(), opts);
   assert.deepEqual(first, second);
-  assert.equal(first.verdict, 'rollback');
+  // C87 (2026-10-02): the Family A fire is advisory; the indeterminate verdicts beside it extend.
+  assert.equal(first.verdict, 'extend');
+  assert.deepEqual(first.advisory_families, ['A']);
   for (const entry of first.evidence_outlook) {
     for (const k of EVIDENCE_KEYS) assert.ok(!(k in entry));
   }

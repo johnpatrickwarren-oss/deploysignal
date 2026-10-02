@@ -18,7 +18,7 @@ function makeVerdict(
 ): FusedVerdict {
   return {
     verdict: 'proceed',
-    firing_families: [],
+    firing_families: [], advisory_families: [],
     per_family_verdicts: { A: null, B: null, C: null, D: null, E: null },
     total_alpha_spent: 0,
     fusion_topology: 'portfolio',

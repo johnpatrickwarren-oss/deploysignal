@@ -31,6 +31,7 @@
 //        green; resolution is architect-scope (UI cascade-only-lock OR
 //        per-scenario cell_patch).
 
+import { advisoryIds } from './_c87-detection';
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -107,14 +108,24 @@ function applyCellPatch(src: any, patch: any): any {
 interface TickFrame {
   tick: number;
   verdict: string;
+  /** C87: ids of the advisory A/C/D fires this tick, and the fused verdict's advisory_families. */
+  advisoryIds: string[];
+  advisoryFamilies: string[];
   families: Record<FamilyId, { verdict: string; detectors: any[]; alpha_spent: number }>;
 }
 
 interface TraceSummary {
   frames: TickFrame[];
   firstRollback: number | null;
+  /** C87 (2026-10-02): first tick with a rollback OR an advisory A/C/D fire. Families A, C and D
+   *  are advisory, so on the compiled (portfolio) path this is where the demo's regression is
+   *  detected; `firstRollback` says whether the gate then rolled the deploy back. */
+  firstDetection: number | null;
+  /** The fused verdict's advisory_families over the whole run, sorted. */
+  advisoryFamilies: FamilyId[];
   firstFireByFam: Record<FamilyId, number | null>;
   firstFireDetectorsByFam: Record<FamilyId, string[] | null>;
+  /** α summed through the first detection tick (C87; before: the first rollback tick). */
   alphaAtDecision: number;
   /** Final-tick verdict — the stakeholder-facing terminal decision. §A0
    *  asserts this matches the shipped demo's expected_outcome.verdict
@@ -127,8 +138,12 @@ function summarize(frames: TickFrame[]): TraceSummary {
   const firstFireByFam: Record<FamilyId, number | null> = { A: null, B: null, C: null, D: null, E: null };
   const firstFireDetectorsByFam: Record<FamilyId, string[] | null> = { A: null, B: null, C: null, D: null, E: null };
   let firstRollback: number | null = null;
+  let firstDetection: number | null = null;
+  const advFams = new Set<FamilyId>();
   for (const f of frames) {
     if (f.verdict === 'rollback' && firstRollback === null) firstRollback = f.tick;
+    if ((f.verdict === 'rollback' || f.advisoryIds.length > 0) && firstDetection === null) firstDetection = f.tick;
+    for (const fam of f.advisoryFamilies) advFams.add(fam as FamilyId);
     for (const fam of FAMS) {
       const fa = f.families[fam];
       if (fa && fa.verdict === 'fire' && firstFireByFam[fam] === null) {
@@ -137,7 +152,7 @@ function summarize(frames: TickFrame[]): TraceSummary {
       }
     }
   }
-  const decT = firstRollback === null ? frames.length - 1 : firstRollback;
+  const decT = firstDetection === null ? frames.length - 1 : firstDetection;
   let alphaAtDecision = 0;
   for (let t = 0; t <= decT; t++) {
     for (const fam of FAMS) {
@@ -148,6 +163,8 @@ function summarize(frames: TickFrame[]): TraceSummary {
   return {
     frames,
     firstRollback,
+    firstDetection,
+    advisoryFamilies: Array.from(advFams).sort(),
     firstFireByFam,
     firstFireDetectorsByFam,
     alphaAtDecision,
@@ -196,6 +213,8 @@ function runCanned(demo: any, mode: 'cascade' | 'portfolio', V4: CompiledConfig)
     frames.push({
       tick: t,
       verdict: res.verdict,
+      advisoryIds: advisoryIds(res),
+      advisoryFamilies: res.gateResults?.fusion?.advisory_families ?? [],
       families: (rec.families as any) || EMPTY_FAMS(),
     });
   }
@@ -263,7 +282,11 @@ function runInline(sc: any, mode: 'cascade' | 'portfolio', V4: CompiledConfig, s
       };
       const res = orchestrate(params);
       const rec = buildAuditRecord(params, res, { service: sc.id }) as AuditRecordV2;
-      frames.push({ tick: t, verdict: res.verdict, families: (rec.families as any) || EMPTY_FAMS() });
+      frames.push({
+        tick: t, verdict: res.verdict, advisoryIds: advisoryIds(res),
+        advisoryFamilies: res.gateResults?.fusion?.advisory_families ?? [],
+        families: (rec.families as any) || EMPTY_FAMS(),
+      });
     }
     return summarize(frames);
   });
@@ -338,6 +361,32 @@ test('right-reasons §A0: canned demos land the expected final verdict (portfoli
   }
 });
 
+// §A0b — C87 (2026-10-02). Every demo that used to end in `rollback` did so on Family A, C, D or
+// E fires. Those families are advisory, so the fixture now states the verdict the gate returns
+// and, in `expected_outcome.advisory`, what is detected: which families fire (advisory) and when.
+test('right-reasons §A0b: canned demos detect what expected_outcome.advisory says, as advisory fires, and never roll back on them (portfolio)', () => {
+  for (const id of ['demo-clean', 'demo-novelty', 'demo-github-2020',
+                     'demo-anthropic-2025', 'demo-tokens-creep',
+                     'demo-baseline-maintenance'] as const) {
+    const exp = CANNED[id].expected_outcome;
+    const tr = TRACES[id].portfolio;
+    assert.equal(tr.firstRollback, null, `${id}: portfolio rolled back at t=${tr.firstRollback}`);
+    if (!exp.advisory) {
+      assert.equal(tr.firstDetection, null, `${id}: unexpected detection at t=${tr.firstDetection}`);
+      assert.deepEqual(tr.advisoryFamilies, [], `${id}: unexpected advisory families`);
+      continue;
+    }
+    assert.equal(exp.advisory.reason_code, 'advisory_temporal_path_no_valid_null');
+    assert.equal(exp.advisory.verdict_before_c87, 'rollback');
+    assert.deepEqual(tr.advisoryFamilies, exp.advisory.families, `${id}: advisory families over the run`);
+    assert.equal(tr.firstDetection, exp.advisory.first_fire_tick, `${id}: first advisory fire tick`);
+    // No α is booked by any family on any tick: A, C, D (C87) and E (C25) are advisory, B books none.
+    for (const f of tr.frames) for (const fam of FAMS) {
+      assert.equal(f.families[fam]?.alpha_spent || 0, 0, `${id} t=${f.tick}: family ${fam} booked α`);
+    }
+  }
+});
+
 test('right-reasons §A1: demo-clean produces no fires in either mode (cascade + portfolio)', () => {
   const d = CANNED['demo-clean'];
   const cap = d.expected_outcome.alpha_total_max;
@@ -371,15 +420,15 @@ test('right-reasons §A1b: demo-clean cell_patch fully overrides v4 cell (14,2) 
     'demo-clean: family_C.mean_vector not patched');
 });
 
-test('right-reasons §A2: demo-novelty portfolio fires at t=10 with first_families={C,E}; cascade does not roll back', () => {
+test('right-reasons §A2: demo-novelty portfolio detects at t=10 with first_families={C,E} (advisory, C87); cascade does not roll back', () => {
   const d = CANNED['demo-novelty'];
   const exp = d.expected_outcome;
   const cap = exp.alpha_total_max;
   const port = TRACES['demo-novelty'].portfolio;
   const casc = TRACES['demo-novelty'].cascade;
 
-  assert.equal(port.firstRollback, exp.first_fire_tick,
-    `demo-novelty portfolio: first rollback t=${port.firstRollback}, expected t=${exp.first_fire_tick}`);
+  assert.equal(port.firstDetection, exp.first_fire_tick,
+    `demo-novelty portfolio: first detection t=${port.firstDetection}, expected t=${exp.first_fire_tick}`);
 
   // Per the demo's own divergence_from_spec note, both C and E are
   // expected to fire at t=10 (Family E sole-catcher per pure spec; v4
@@ -405,7 +454,7 @@ test('right-reasons §A2: demo-novelty portfolio fires at t=10 with first_famili
     `demo-novelty cascade: unexpected rollback at t=${casc.firstRollback}`);
 });
 
-test('right-reasons §A3: demo-github-2020 cascade rolls back at t=5 (legacy Family B slowbleed), portfolio at t=7 with Family B holding only; first_families thru t=8 ⊇ {A,C,E}', () => {
+test('right-reasons §A3: demo-github-2020 cascade rolls back at t=5 (legacy Family B slowbleed); portfolio holds on Family B, detects at t=7 (advisory Family A fire, C87) and does not roll back; first_families thru t=8 ⊇ {A,C,E}', () => {
   const d = CANNED['demo-github-2020'];
   const exp = d.expected_outcome;
   const cap = exp.alpha_total_max;
@@ -414,11 +463,15 @@ test('right-reasons §A3: demo-github-2020 cascade rolls back at t=5 (legacy Fam
 
   assert.equal(casc.firstRollback, exp.cascade_first_rollback_tick,
     `demo-github-2020 cascade: first rollback t=${casc.firstRollback}, expected t=${exp.cascade_first_rollback_tick}`);
+  assert.equal(exp.portfolio_first_rollback_tick, null, 'C87: the fixture states that the portfolio path does not roll back');
   assert.equal(port.firstRollback, exp.portfolio_first_rollback_tick,
     `demo-github-2020 portfolio: first rollback t=${port.firstRollback}, expected t=${exp.portfolio_first_rollback_tick}`);
+  assert.equal(port.firstDetection, exp.portfolio_first_fire_tick,
+    `demo-github-2020 portfolio: first detection t=${port.firstDetection}, expected t=${exp.portfolio_first_fire_tick}`);
+  assert.equal(exp.portfolio_first_fire_tick - exp.cascade_first_rollback_tick, exp.timing_delta_ticks);
 
   // FAMILY_B_AUTHORITY (2026-09-27): on the compiled (portfolio) path Family B holds and never
-  // fires; the statistical families carry the rollback, 2 ticks after cascade's legacy slowbleed.
+  // fires; the statistical families detect (advisory, C87) 2 ticks after cascade's legacy slowbleed.
   assert.equal(port.firstFireByFam.B, null,
     `demo-github-2020 portfolio: Family B must not fire under a compiled profile; got t=${port.firstFireByFam.B}`);
 
@@ -434,15 +487,15 @@ test('right-reasons §A3: demo-github-2020 cascade rolls back at t=5 (legacy Fam
 
 // ── §A4. Demo 4 (Anthropic 2025 reconstruction) — portfolio catches via
 //         Families C + E; cascade clean. W10 addition per ARCHITECT-REPLY-20.
-test('right-reasons §A4: demo-anthropic-2025 portfolio fires C+E at expected tick; cascade clean', () => {
+test('right-reasons §A4: demo-anthropic-2025 portfolio fires C+E at expected tick (advisory, C87); cascade clean', () => {
   const d = CANNED['demo-anthropic-2025'];
   const exp = d.expected_outcome;
   const cap = exp.alpha_total_max;
   const port = TRACES['demo-anthropic-2025'].portfolio;
   const casc = TRACES['demo-anthropic-2025'].cascade;
 
-  assert.equal(port.firstRollback, exp.first_fire_tick,
-    `demo-anthropic-2025 portfolio: first rollback t=${port.firstRollback}, expected t=${exp.first_fire_tick}`);
+  assert.equal(port.firstDetection, exp.first_fire_tick,
+    `demo-anthropic-2025 portfolio: first detection t=${port.firstDetection}, expected t=${exp.first_fire_tick}`);
 
   for (const fam of (exp.first_families as FamilyId[])) {
     assert.equal(port.firstFireByFam[fam], exp.first_fire_tick,
@@ -466,15 +519,15 @@ test('right-reasons §A4: demo-anthropic-2025 portfolio fires C+E at expected ti
 
 // ── §A5. Demo 5 (tokens/turn slow cost regression) — portfolio catches via
 //         Family A mSPRT_cost_req; cascade clean. W10 addition.
-test('right-reasons §A5: demo-tokens-creep portfolio fires Family A at expected tick; cascade clean', () => {
+test('right-reasons §A5: demo-tokens-creep portfolio fires Family A at expected tick (advisory, C87); cascade clean', () => {
   const d = CANNED['demo-tokens-creep'];
   const exp = d.expected_outcome;
   const cap = exp.alpha_total_max;
   const port = TRACES['demo-tokens-creep'].portfolio;
   const casc = TRACES['demo-tokens-creep'].cascade;
 
-  assert.equal(port.firstRollback, exp.first_fire_tick,
-    `demo-tokens-creep portfolio: first rollback t=${port.firstRollback}, expected t=${exp.first_fire_tick}`);
+  assert.equal(port.firstDetection, exp.first_fire_tick,
+    `demo-tokens-creep portfolio: first detection t=${port.firstDetection}, expected t=${exp.first_fire_tick}`);
   assert.equal(port.firstFireByFam.A, exp.first_fire_tick,
     `demo-tokens-creep portfolio: Family A expected to first-fire at t=${exp.first_fire_tick}, got t=${port.firstFireByFam.A}`);
   assert.ok(port.firstFireDetectorsByFam.A?.includes(exp.first_fire_detector),
@@ -553,7 +606,7 @@ test('right-reasons §A6: drift detector Mahalanobis matches closed-form on 2D c
 // ── §A7. Demo 6 driver correctness — portfolio lands proceed, no
 //         rollback families fire, drift detector trips on the
 //         trajectory. W13 addition per ARCHITECT-REPLY-24 Items 1 + 4.
-test('right-reasons §A7: demo-baseline-maintenance portfolio proceeds; no families fire; drift fires', () => {
+test('right-reasons §A7: demo-baseline-maintenance portfolio proceeds; Family A fires at t=26 as advisory (C87); drift fires', () => {
   const d = CANNED['demo-baseline-maintenance'];
   const exp = d.expected_outcome;
   const port = TRACES['demo-baseline-maintenance'].portfolio;
@@ -572,8 +625,9 @@ test('right-reasons §A7: demo-baseline-maintenance portfolio proceeds; no famil
   // via mSPRT_p99_latency + mSPRT_cost_req. HALT-CRITERION (a2)
   // checked: fire ordering preserved (Family A first; no semantic
   // shift from prior Q68.b empirical state).
-  assert.equal(port.firstRollback, exp.first_fire_tick,
-    `demo-baseline-maintenance portfolio: first rollback t=${port.firstRollback}, expected t=${exp.first_fire_tick}`);
+  // C87: that Family A fire is advisory; it is the first detection and no rollback follows.
+  assert.equal(port.firstDetection, exp.first_fire_tick,
+    `demo-baseline-maintenance portfolio: first detection t=${port.firstDetection}, expected t=${exp.first_fire_tick}`);
   // Only Family A fires (mixture-supermartingale on p99_latency +
   // cost_req drift); other families stay clean per architectural
   // priority ordering (REPLY-24 lines 153-155 preserved).
@@ -649,8 +703,8 @@ test('right-reasons §C1: adv_slowbleed portfolio fires via Family B slowbleed (
   () => {
     const tr = INLINE_TRACES['adv_slowbleed'].portfolio;
     const driverFam = (Object.keys(tr.firstFireByFam) as FamilyId[])
-      .filter((f) => tr.firstFireByFam[f] === tr.firstRollback)[0];
-    assert.equal(driverFam, 'B', `adv_slowbleed portfolio: rollback driven by family ${driverFam}, expected B`);
+      .filter((f) => tr.firstFireByFam[f] === tr.firstDetection)[0];  // C87: first detection, not first rollback
+    assert.equal(driverFam, 'B', `adv_slowbleed portfolio: detection driven by family ${driverFam}, expected B`);
   });
 
 test('right-reasons §C2: adv_mfu_drop_no_lat_corr portfolio fires via Family C Hotelling (intended detector)',
@@ -658,8 +712,8 @@ test('right-reasons §C2: adv_mfu_drop_no_lat_corr portfolio fires via Family C 
   () => {
     const tr = INLINE_TRACES['adv_mfu_drop_no_lat_corr'].portfolio;
     const driverFam = (Object.keys(tr.firstFireByFam) as FamilyId[])
-      .filter((f) => tr.firstFireByFam[f] === tr.firstRollback)[0];
-    assert.equal(driverFam, 'C', `adv_mfu_drop_no_lat_corr portfolio: rollback driven by family ${driverFam}, expected C`);
+      .filter((f) => tr.firstFireByFam[f] === tr.firstDetection)[0];  // C87: first detection, not first rollback
+    assert.equal(driverFam, 'C', `adv_mfu_drop_no_lat_corr portfolio: detection driven by family ${driverFam}, expected C`);
   });
 
 // §C3 was originally TODO per architect-scope cell-baseline-mismatch
@@ -678,8 +732,12 @@ test('right-reasons §C3: adv_slow_downstream portfolio fires via Family A mSPRT
   () => {
     const tr = INLINE_TRACES['adv_slow_downstream'].portfolio;
     const driverFam = (Object.keys(tr.firstFireByFam) as FamilyId[])
-      .filter((f) => tr.firstFireByFam[f] === tr.firstRollback)[0];
-    assert.equal(driverFam, 'A', `adv_slow_downstream portfolio: rollback driven by family ${driverFam}, expected A`);
+      .filter((f) => tr.firstFireByFam[f] === tr.firstDetection)[0];
+    // C87: Family A is advisory, so "driver" is the family that fires at the first detection
+    // tick; the portfolio run does not roll back.
+    assert.notEqual(tr.firstDetection, null, 'adv_slow_downstream portfolio: detected');
+    assert.equal(tr.firstRollback, null, 'adv_slow_downstream portfolio: no rollback (C87)');
+    assert.equal(driverFam, 'A', `adv_slow_downstream portfolio: detection driven by family ${driverFam}, expected A`);
     const dets = tr.firstFireDetectorsByFam.A || [];
     assert.ok(dets.includes('mSPRT_downstream_err'),
       `adv_slow_downstream portfolio: Family A first-fire detectors=${JSON.stringify(dets)}, expected to include mSPRT_downstream_err`);

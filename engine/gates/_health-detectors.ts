@@ -14,8 +14,9 @@ import { evaluateFamilyCBettingEProcess } from '@johnpatrickwarren-oss/deploysig
 import { shouldSuppress } from '../l0/schema-continuity';
 import {
   FAMILY_E_ADVISORY, FAMILY_A_PLUGIN_ADVISORY_REASON, familyAPluginAdvisory,
-  FAMILY_A_UNAUTHORIZED_ADVISORY_REASON, familyARollbackAuthorized,
+  FAMILY_A_UNAUTHORIZED_ADVISORY_REASON, familyARollbackAuthorized, temporalPathAdvisory,
 } from '../guarantees';
+import { temporalAdvisoryVerdict } from '../_verdict-advisory';
 import type {
   Metrics, FiredSignal, HealthResult,
   TrendBufferI, DetectorVerdict,
@@ -63,6 +64,11 @@ function advisoryPlugin(v: DetectorVerdict, routed: ReadonlySet<string> | undefi
   return { ...v, alpha_consumed: 0, alpha_spent: 0, reason_code: v.verdict === 'fire' ? reason : v.reason_code };
 }
 
+/** C87 — `id` unless the warm-up suppression list holds it (then the fire was never a rollback). */
+function unsuppressedId(sup: string[], id: string): string | null {
+  return sup.indexOf(id) >= 0 ? null : id;
+}
+
 /** Is this plug-in verdict an advisory fire (never promoted to rollback[])? */
 function isAdvisoryFire(v: DetectorVerdict): boolean {
   return v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON || v.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON;
@@ -91,12 +97,14 @@ function runFamilyACusum(
         ...detectorCtx(liveMetrics, opts),
         ignoredSignals:    opts.ignoredSignals,
       },
-    ).map((v) => advisoryPlugin(v, routed, opts));
+    ).map((v) => temporalAdvisoryVerdict(advisoryPlugin(v, routed, opts), unsuppressedId(sup, 'family_A_' + v.signal)));
     result.family_A_shadow = shadow;
     // Promote Page-CUSUM fires to primary rollback entries. Provenance
     // (S_n, threshold, α) lives in `family_A_shadow` — the rollback
     // array carries the minimum v1-schema-compatible surface.
     // An advisory fire (C64 b routed signal, or an unauthorized signal) is recorded, not promoted.
+    // C87: while the temporal path is advisory no Family A fire is promoted at all.
+    if (temporalPathAdvisory()) return;
     for (const v of shadow) {
       if (v.verdict !== 'fire' || !v.signal || isAdvisoryFire(v)) continue;
       const id = 'family_A_' + v.signal;
@@ -131,13 +139,14 @@ function runFamilyABetting(
         ...detectorCtx(liveMetrics, opts),
         ignoredSignals:    opts.ignoredSignals,
       },
-    ).map((v) => advisoryPlugin(v, routed, opts));
+    ).map((v) => temporalAdvisoryVerdict(advisoryPlugin(v, routed, opts), unsuppressedId(sup, 'family_A_betting_' + v.signal)));
     if (bettingShadow.length > 0) {
       // Extend the existing family_A_shadow array so audit consumers
       // see one contiguous Family A block; fires get a distinct
       // rollback id via the 'family_A_betting_' prefix.
       result.family_A_shadow = (result.family_A_shadow ?? []).concat(bettingShadow);
       for (const v of bettingShadow) {
+        if (temporalPathAdvisory()) break;  // C87: recorded above, never promoted
         if (v.verdict !== 'fire' || !v.signal || isAdvisoryFire(v)) continue;
         const id = 'family_A_betting_' + v.signal;
         if (sup.indexOf(id) >= 0) continue;
@@ -180,8 +189,8 @@ function runFamilyCHotelling(
   try {
     const v = evaluateFamilyC(opts.compiledConfig!, liveMetrics, detectorCtx(liveMetrics, opts), shStates);
     if (v) {
-      result.family_C_verdict = v;
-      if (v.verdict === 'fire' && sup.indexOf('family_C') < 0) {
+      result.family_C_verdict = temporalAdvisoryVerdict(v, unsuppressedId(sup, 'family_C'));
+      if (!temporalPathAdvisory() && v.verdict === 'fire' && sup.indexOf('family_C') < 0) {
         rollbackFired.push({ id: 'family_C', label: 'Family C (multivariate)' });
       }
     }
@@ -208,8 +217,8 @@ function runFamilyCEMmd(
     if (emmd) {
       // Reuse family_C_mmd_verdict slot since bootstrap_null and
       // betting_e_process are mutually exclusive per cell.variant.
-      result.family_C_mmd_verdict = emmd;
-      if (emmd.verdict === 'fire' && sup.indexOf('family_C_mmd') < 0) {
+      result.family_C_mmd_verdict = temporalAdvisoryVerdict(emmd, unsuppressedId(sup, 'family_C_mmd'));
+      if (!temporalPathAdvisory() && emmd.verdict === 'fire' && sup.indexOf('family_C_mmd') < 0) {
         rollbackFired.push({ id: 'family_C_mmd', label: 'Family C (e-MMD)' });
       }
     }
@@ -237,17 +246,19 @@ function runFamilyCBetting(
       // bootstrap-null are mutually exclusive per cell.variant +
       // cell-params layout (supersession guards in evaluateEMmd +
       // evaluateSequentialMMD enforce single-route).
-      result.family_C_mmd_verdict = fcb;
-      if (fcb.verdict === 'fire' && sup.indexOf('family_C_mmd') < 0) {
+      result.family_C_mmd_verdict = temporalAdvisoryVerdict(fcb, unsuppressedId(sup, 'family_C_mmd'));
+      if (!temporalPathAdvisory() && fcb.verdict === 'fire' && sup.indexOf('family_C_mmd') < 0) {
         rollbackFired.push({ id: 'family_C_mmd', label: 'Family C (canonical betting-e-process)' });
       }
     }
   } catch (_e) { /* silent */ }
 }
 
-/** Family C (Hotelling T²) — W3 addition. End of the cascade; any fire
- *  adds a `family_C` rollback entry. Stateless (per-tick test); error
- *  swallowing identical to Family A. */
+/** Family C (Hotelling T²) — W3 addition. End of the cascade; a fire
+ *  adds a `family_C` rollback entry only when the temporal path holds
+ *  rollback authority (C87, TEMPORAL_PATH_AUTHORITY: advisory today, so a
+ *  fire is recorded and nothing is pushed). Stateless (per-tick test);
+ *  error swallowing identical to Family A. */
 export function runFamilyC(
   result: HealthResult, rollbackFired: FiredSignal[], sup: string[],
   liveMetrics: Metrics, tb: TrendBufferI | null, opts: HealthOpts,
@@ -268,7 +279,8 @@ export function runFamilyC(
 
 /** Family D (ACF oscillation) — W4 addition. Per-signal; consumes the
  *  TrendBuffer's long view (default 30 samples). Fires push
- *  `family_D_${signal}` into rollback. Silent error swallow per Family A. */
+ *  `family_D_${signal}` into rollback only when the temporal path holds
+ *  rollback authority (C87: advisory today). Silent error swallow per Family A. */
 export function runFamilyD(
   result: HealthResult, rollbackFired: FiredSignal[], sup: string[],
   liveMetrics: Metrics, tb: TrendBufferI, opts: HealthOpts,
@@ -314,8 +326,9 @@ export function runFamilyD(
       }
     }
     if (out.length > 0) {
-      result.family_D_shadow = out;
+      result.family_D_shadow = out.map((v) => temporalAdvisoryVerdict(v, unsuppressedId(sup, 'family_D_' + v.signal)));
       for (const v of out) {
+        if (temporalPathAdvisory()) break;  // C87: recorded above, never promoted
         if (v.verdict !== 'fire' || !v.signal) continue;
         const id = 'family_D_' + v.signal;
         if (sup.indexOf(id) >= 0) continue;

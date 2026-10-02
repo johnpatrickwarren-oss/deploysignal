@@ -34,8 +34,13 @@ test('co-ship demo: demo-tokens-creep Page-CUSUM fire tick unchanged (legacy cal
   // tick materially.
   if (!fs.existsSync(DEMO_PATH)) return;
   const demo = JSON.parse(fs.readFileSync(DEMO_PATH, 'utf8'));
-  assert.equal(demo.expected_outcome.verdict, 'rollback',
-    'demo-tokens-creep expected verdict should remain rollback');
+  // C87 (2026-10-02): the Family A fire is advisory; the fixture's verdict is the gate's (proceed)
+  // and the fire is stated under expected_outcome.advisory at the same tick.
+  assert.equal(demo.expected_outcome.verdict, 'proceed',
+    'demo-tokens-creep expected verdict is proceed: the Family A fire is advisory');
+  assert.deepEqual(demo.expected_outcome.advisory.families, ['A']);
+  assert.equal(demo.expected_outcome.advisory.first_fire_tick, 15);
+  assert.equal(demo.expected_outcome.advisory.verdict_before_c87, 'rollback');
   assert.equal(demo.expected_outcome.first_fire_tick, 15,
     'Page-CUSUM first_fire_tick at t=15 (Q72 SLICE 2 Phase 3.B re-baseline post-RFF + post-Q66 .A mixture-supermartingale; was t=17 at Q57 Path-3 era; fire-tick re-baselined to RFF empirical state per accuracy-first directive 2026-05-07)');
   assert.equal(demo.expected_outcome.first_fire_detector, 'mSPRT_cost_req',
