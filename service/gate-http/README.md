@@ -68,6 +68,40 @@ The `AnalysisTemplate`'s `successCondition`/`failureCondition`/
 `inconclusiveCondition` reference these three codes directly
 (`result == 0` / `result == 1` / `result == -1`).
 
+## Advisory fires on the tick response and `GET /v1/verdict` (C87)
+
+Families A, C and D are advisory (`TEMPORAL_PATH_AUTHORITY`, `engine/guarantees.ts`): a fire of
+theirs does not roll back, so it is not in `fires`, which lists the health gate's `rollback[]` ids
+as before. The gate reports such a fire beside it:
+
+```
+POST /v1/sessions/{id}/ticks
+  -> 200 {"tick":31,"verdict":"extend","verdict_code":-1,"alpha_consumed":0,"fires":[],
+          "advisory_fires":[{"id":"family_A_p99_latency","family":"A",
+                             "advisory_reason":"advisory_temporal_path_no_valid_null","tick":31}],
+          "replayed":false}
+
+GET /v1/verdict/{deploy_ref}
+  -> 200 {"verdict_code":-1,"verdict":"extend","tick":32,"total_ticks":60,"config_version":"…",
+          "alpha_consumed":0,"fires":[],
+          "advisory_fires":[{"id":"family_A_p99_latency","family":"A",
+                             "advisory_reason":"advisory_temporal_path_no_valid_null","tick":31}]}
+```
+
+- `advisory_fires` is always present on both (an empty array when nothing fired), except on a twin
+  session, whose responses are unchanged.
+- An entry is `{id, family, advisory_reason, tick}`. `id` is the rollback id the fire would have
+  carried before C87: `family_A_{signal}`, `family_A_betting_{signal}`, `family_A_safe_t_{signal}`,
+  `family_C`, `family_C_mmd`, `family_D_{signal}`. `family` is `A`, `C` or `D`.
+- On a tick response the list is that tick's fires and `tick` is that tick. A replayed tick
+  (`replayed: true`) returns the list it returned the first time.
+- On `GET /v1/verdict` the list is the session's: one entry per `id`, at the first tick it fired.
+- Nothing in `advisory_fires` affects `verdict`, `verdict_code` or the Argo mapping below. It is
+  stored on the verdict-history line and the session record only when non-empty.
+- Not listed: Family E fires and the Family A plug-in fires that were advisory before C87 (a
+  signal routed to the valid path, or one without rollback authority). They are in the audit
+  record.
+
 ## Twin mode — the randomized twin, advisory (engine ADR 0036)
 
 A `mode: "twin"` session tests the canary against a **concurrent control arm on the old

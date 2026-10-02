@@ -165,3 +165,33 @@ test('verdict-grouper-basic: late-arrival within grace attaches to prior closed 
   assert.notEqual(beyond.attributed_group.group_id, priorGroupId);
   assert.equal(beyond.attributed_group.closed, false);
 });
+
+// ── C87 (2026-10-02): advisory fires still group ─────────────────────
+// Families A, C and D are advisory, so their fires are on `advisory_families`, not
+// `firing_families`. The grouper counts both; a group whose fires are all advisory is marked.
+
+test('verdict-grouper-basic (C87): advisory fires enter firing_verdicts, set root_cause and confidence, and mark the group advisory', () => {
+  const grouper = new VerdictGrouper();
+  grouper.ingest(makeVerdict({ tick: 3, verdict: 'baking' }), 10);
+  grouper.ingest(makeVerdict({ tick: 7, verdict: 'extend', advisory_families: ['A'] }), 20);
+  const r = grouper.ingest(makeVerdict({ tick: 8, verdict: 'extend', advisory_families: ['A', 'C'] }), 30);
+  const g = r.attributed_group;
+  assert.equal(g.verdicts.length, 3);
+  assert.equal(g.firing_verdicts.length, 2, 'the two verdicts with an advisory fire');
+  assert.equal(g.root_cause!.tick, 7, 'earliest fire, advisory or not');
+  assert.equal(g.advisory, true);
+  assert.ok(g.confidence > 0, 'two distinct families fired');
+  assert.equal(g.confidence, Math.min(1, 2 / 3));
+});
+
+test('verdict-grouper-basic (C87): a group with any authoritative fire is not advisory; a silent group is not advisory', () => {
+  const grouper = new VerdictGrouper();
+  grouper.ingest(makeVerdict({ tick: 7, verdict: 'extend', advisory_families: ['A'] }), 20);
+  const r = grouper.ingest(makeVerdict({ tick: 8, verdict: 'rollback', firing_families: ['B'], advisory_families: ['A'] }), 30);
+  assert.equal(r.attributed_group.advisory, false);
+  assert.equal(r.attributed_group.firing_verdicts.length, 2);
+  const silent = new VerdictGrouper().ingest(makeVerdict({ tick: 1 }), 5).attributed_group;
+  assert.equal(silent.advisory, false);
+  assert.equal(silent.root_cause, null);
+  assert.equal(silent.confidence, 0);
+});

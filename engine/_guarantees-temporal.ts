@@ -43,3 +43,8 @@ export const TEMPORAL_PATH_FAMILIES: ReadonlySet<string> = new Set(['A', 'C', 'D
 export function temporalPathAdvisory(): boolean {
   return TEMPORAL_PATH_AUTHORITY === 'advisory';
 }
+
+/** `alpha_participating` on every DETECTOR_GUARANTEES row of Families A, C and D (C87): false while
+ *  the path is advisory, because an advisory fire books no α. The rows keep their validity class,
+ *  which describes the construction; this says no α is spent on it and no rollback follows. */
+export const TEMPORAL_ALPHA_PARTICIPATING: boolean = temporalPathAdvisory() === false;

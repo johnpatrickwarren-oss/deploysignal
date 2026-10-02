@@ -10,6 +10,7 @@ import type {
 import { DETECTOR_REGISTRY } from './types';
 import { isAdvisoryPluginFire, advisoryReasonOf } from './_verdict-advisory';
 import { familyBHolds } from './gates/_health-structural';
+import { FAMILY_E_ADVISORY, TEMPORAL_PATH_FAMILIES, temporalPathAdvisory } from './guarantees';
 
 // ── v2 record construction helpers (W4 §4.1.h) ──────────────────────
 
@@ -96,7 +97,7 @@ function tripFromVerdict(
   rid: { family_id: FamilyId; detector_id: DetectorId },
   v: DetectorVerdict,
   label: string,
-  gate: 'health_rollback' | 'health_extend',
+  gate: DetectorTripV2['gate'],
   provExtras?: Partial<Pick<Provenance, 'family_c_shrink_fraction_used'>>,
 ): DetectorTripV2 {
   const prov = cellProvenance(params.compiledConfig, params.currentHourOfDay, params.currentDayOfWeek);
@@ -198,6 +199,16 @@ function familyARollbackId(v: DetectorVerdict): string {
   return (v.reason_code.startsWith('safe_t_') ? 'family_A_safe_t_' : 'family_A_') + v.signal;
 }
 
+/** The gate label of a fired verdict's trip: `health_advisory` when the fire cannot drive the
+ *  verdict (C87 temporal path, on the family constant so a replayed pre-C87 verdict reads the
+ *  same; Family E while FAMILY_E_ADVISORY; a C64 (b) / unauthorized advisory plug-in fire). */
+function fireGate(v: DetectorVerdict): DetectorTripV2['gate'] {
+  const advisory = isAdvisoryPluginFire(v) || advisoryReasonOf(v) !== undefined
+    || (temporalPathAdvisory() && TEMPORAL_PATH_FAMILIES.has(v.family))
+    || (FAMILY_E_ADVISORY && v.family === 'E');
+  return advisory ? 'health_advisory' : 'health_rollback';
+}
+
 /** C87 — record a temporal-path fire's `advisory_reason` (absent when the path holds authority). */
 function pushAdvisory(out: Array<{ signal: string; reason_code: string }>, signal: string, v: object): void {
   const reason = advisoryReasonOf(v);
@@ -222,7 +233,7 @@ function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerd
       anyFire = true;
       const rid = resolveDetectorId(familyARollbackId(v));
       if (rid) {
-        fa.detectors.push(tripFromVerdict(params, rid, v, 'Family A ' + v.signal, 'health_rollback'));
+        fa.detectors.push(tripFromVerdict(params, rid, v, 'Family A ' + v.signal, fireGate(v)));
         alphaSum += v.alpha_spent;
       }
     } else if (v.verdict === 'indeterminate') {
@@ -316,7 +327,7 @@ function evalFamilyC(params: OrchestrateParams, hr: HealthResult, fc: FamilyVerd
         ? { family_id: 'C' as const, detector_id: sig }
         : rr;
       const provExtras = familyCShrinkExtras(params, sig);
-      fc.detectors.push(tripFromVerdict(params, ridResolved, v, label, 'health_rollback', provExtras));
+      fc.detectors.push(tripFromVerdict(params, ridResolved, v, label, fireGate(v), provExtras));
       alphaSum += v.alpha_spent;
       pushAdvisory(advisory, ridResolved.detector_id, v);  // C87
     } else if (v.verdict === 'suppressed') {
@@ -366,7 +377,7 @@ function evalFamilyD(params: OrchestrateParams, hr: HealthResult, fd: FamilyVerd
             ridResolved = { family_id: 'D' as const, detector_id: did };
           }
         }
-        fd.detectors.push(tripFromVerdict(params, ridResolved, v, 'Family D ' + v.signal, 'health_rollback'));
+        fd.detectors.push(tripFromVerdict(params, ridResolved, v, 'Family D ' + v.signal, fireGate(v)));
         alphaSum += v.alpha_spent;
       }
     } else if (v.verdict === 'suppressed') anySuppressed = true;
@@ -383,7 +394,7 @@ function evalFamilyE(params: OrchestrateParams, hr: HealthResult, fe: FamilyVerd
   const v = hr.family_E_verdict;
   if (v.verdict === 'fire') {
     const rid = resolveDetectorId('family_E')!;
-    fe.detectors.push(tripFromVerdict(params, rid, v, 'Family E (novelty)', 'health_rollback'));
+    fe.detectors.push(tripFromVerdict(params, rid, v, 'Family E (novelty)', fireGate(v)));
     fe.verdict = 'fire';
     fe.alpha_spent = v.alpha_spent;
   } else if (v.verdict === 'suppressed') {
@@ -420,6 +431,8 @@ export function buildFlatTripped(families: Record<FamilyId, FamilyVerdictV2>): T
   for (const fam of order) {
     const fv = families[fam];
     for (const t of fv.detectors) {
+      // C87: an advisory trip is not a v1 tripped entry — v1 readers take tripped[] as the cause.
+      if (t.gate === 'health_advisory') continue;
       out.push({ id: t.detector_id, label: t.label, gate: t.gate });
     }
   }

@@ -37,18 +37,29 @@ export function temporalAdvisoryVerdict(v: DetectorVerdict, rollbackId: string |
  *  rollback ids the temporal path would have pushed this tick had it held authority, read off the
  *  marks the health gate left. Empty when nothing fired, or when the path holds authority (then
  *  the ids are on `rollback[]` itself). */
-export function temporalAdvisoryFireIds(hr: {
+export function temporalAdvisoryFireIds(hr: TemporalVerdicts | null | undefined): string[] {
+  return temporalAdvisoryFires(hr).map((f) => f.id);
+}
+
+type TemporalVerdicts = {
   family_A_shadow?: object[]; family_C_verdict?: object | null;
   family_C_mmd_verdict?: object | null; family_D_shadow?: object[];
-} | null | undefined): string[] {
+};
+
+/** One advisory temporal-path fire as the reporting surfaces carry it (the gate service's
+ *  `advisory_fires`): the rollback id it would have had, its family, and why it is advisory. */
+export interface TemporalAdvisoryFire { id: string; family: 'A' | 'C' | 'D'; advisory_reason: string }
+
+/** C87 — the advisory A/C/D fires on a health result, in A, C, D order. */
+export function temporalAdvisoryFires(hr: TemporalVerdicts | null | undefined): TemporalAdvisoryFire[] {
   if (!hr) return [];
   const all: Array<object | null | undefined> = [
     ...(hr.family_A_shadow ?? []), hr.family_C_verdict, hr.family_C_mmd_verdict, ...(hr.family_D_shadow ?? []),
   ];
-  const out: string[] = [];
+  const out: TemporalAdvisoryFire[] = [];
   for (const v of all) {
-    const id = v ? (v as { advisory_id?: string }).advisory_id : undefined;
-    if (id !== undefined) out.push(id);
+    const m = (v ?? {}) as { advisory_id?: string; advisory_reason?: string; family?: 'A' | 'C' | 'D' };
+    if (m.advisory_id !== undefined && m.family) out.push({ id: m.advisory_id, family: m.family, advisory_reason: m.advisory_reason ?? '' });
   }
   return out;
 }
