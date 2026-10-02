@@ -53,21 +53,75 @@ export const REGISTERED = Object.freeze({
   armReadyMaxLeadMs: 60_000,
   minArmRequests: 500,
   minMean5xxPerTick: 2,
-  cells: Object.freeze(['AB-lat30', 'AB-5xx-1.5', 'AB-reset']),
+  cells: Object.freeze(['AB-lat30', 'AB-5xx-1.5', 'AB-reset', 'AB-reset-nr']),
   lanes: 4,
 });
 export const RATE_ID = 'http_5xx';
 export const SIGN_ID = 'p99_latency';
+// Amendment 2 (2026-10-twin-fault-shapes): the fourth cell declares a third metric counting requests the
+// target never answered: RequestCount − (target 2xx + 3xx + 4xx + 5xx), per arm.
+export const NR_ID = 'no_response';
+export const NR_CELL = 'AB-reset-nr';
 
-export function twinArm(maxTicks) {
+export function twinArm(maxTicks, cell) {
   return {
     canary_weight: 0.5, alpha_rollback: 0.05, alpha_proceed: 1e-12, alpha_srm: 0.001, max_ticks: maxTicks,
     metrics: [
       { id: RATE_ID, kind: 'rate', worse: 'higher', tolerance: 0.2 },
       // 2026-10-twin-aa-real-2 §1.3: the margin (engine ADR 0037) — a tick is worse only beyond +10%
       { id: SIGN_ID, kind: 'sign', worse: 'higher', tolerance: 0.15, margin: { relative: 0.10 } },
+      ...(cell === NR_CELL ? [{ id: NR_ID, kind: 'rate', worse: 'higher', tolerance: 0.2 }] : []),
     ],
   };
+}
+
+/** Amendment 2: the status-class sums the twin source does not fetch (2XX, 3XX, 4XX), per arm, for one window. */
+function noResponseQueries(cfg, periodS) {
+  const out = [];
+  for (const arm of ['canary', 'control']) {
+    const dims = [{ Name: 'TargetGroup', Value: cfg.target_groups[arm] }, { Name: 'LoadBalancer', Value: cfg.load_balancer }];
+    for (const cls of ['2XX', '3XX', '4XX']) {
+      out.push({ Id: `t${cls[0]}_${arm}`, ReturnData: true, MetricStat: { Metric: { Namespace: 'AWS/ApplicationELB', MetricName: `HTTPCode_Target_${cls}_Count`, Dimensions: dims }, Period: periodS, Stat: 'Sum' } });
+    }
+  }
+  return out;
+}
+
+/** events = RequestCount − (2xx + 3xx + 4xx + 5xx), clamped to [0, total]; RequestCount and the 5xx sum are the tick body's own. */
+export function noResponseObservation(body, sums) {
+  const arm = (a) => {
+    const total = body[`${a}_requests`];
+    const t5 = body.observations[RATE_ID][`${a}_events`];
+    const answered = Math.round(sums[`t2_${a}`] + sums[`t3_${a}`] + sums[`t4_${a}`]) + t5;
+    return { events: Math.min(total, Math.max(0, total - answered)), total };
+  };
+  const c = arm('canary'), k = arm('control');
+  return { canary_events: c.events, canary_total: c.total, control_events: k.events, control_total: k.total };
+}
+
+/** One further GetMetricData for the window, with the registered retries; null observation = fetch failure (V3). */
+export async function fetchNoResponse(cloudwatch, cfg, ws, we, body, now, sleep) {
+  const record = { attempts: [] };
+  for (let attempt = 1; attempt <= REGISTERED.fetchAttempts; attempt++) {
+    try {
+      const out = await bounded('no_response GetMetricData', REGISTERED.callTimeoutMs, (signal) => cloudwatch.send(
+        new GetMetricDataCommand({ MetricDataQueries: noResponseQueries(cfg, REGISTERED.tickMs / 1000), StartTime: new Date(ws), EndTime: new Date(we) }),
+        { abortSignal: signal }));
+      const results = out.MetricDataResults ?? [];
+      const sums = Object.fromEntries(results.map((r) => [r.Id, (r.Values ?? []).reduce((a, b) => a + b, 0)]));
+      for (const id of ['t2_canary', 't3_canary', 't4_canary', 't2_control', 't3_control', 't4_control']) if (!(id in sums)) sums[id] = 0;
+      record.attempts.push({ at_ms: now(), ok: true });
+      record.raw = { MetricDataResults: results, NextToken: out.NextToken ?? null };
+      record.sums = sums;
+      return { record, observation: noResponseObservation(body, sums) };
+    } catch (e) {
+      const auth = isAuthError(e);
+      record.attempts.push({ at_ms: now(), error: e instanceof Error ? `${e.name}: ${e.message}` : String(e), auth });
+      if (auth) { record.auth_failed = true; break; }
+      if (attempt < REGISTERED.fetchAttempts) await sleep(REGISTERED.fetchRetryMs);
+    }
+  }
+  return { record, observation: null };
 }
 
 const PLACEHOLDER = /REPLACE_ME|<[^>]*>/;
@@ -276,7 +330,7 @@ export async function runOne({
   const gate = gateClient(cfg.gate.base_url, fetchFn, token);
   const record = {
     study_id: REGISTERED.studyId, cell, lane: cfg.lane, run, deploy_ref: ref, registered: REGISTERED,
-    twin_arm: { scored: twinArm(T), w0: twinArm(W + T) },
+    twin_arm: { scored: twinArm(T, cell), w0: twinArm(W + T, cell) },
     alb_idle_timeout_s: cfg.alb_idle_timeout_s, arm_ready_ms: armReadyMs, started_at_ms: t0, first_window_start_ms: null, gate_healthz: null, windows: [],
     scored: { session_id: null, verdict: null, ticks: 0, window: null },
     w0: { session_id: null, verdict: null, ticks: 0, window: null },
@@ -311,6 +365,12 @@ export async function runOne({
       const body = await fetchWindow(cloudwatch, cfg, ws, we, entry, now, sleep);
       entry.lag_ms = now() - due;
       if (body === null) { entry.fetch_failed = true; failed = true; flush(entry); break; }
+      if (cell === NR_CELL) {
+        const nr = await fetchNoResponse(cloudwatch, cfg, ws, we, body, now, sleep);
+        entry.no_response = nr.record;
+        if (nr.observation === null) { entry.fetch_failed = true; failed = true; flush(entry); break; }
+        body.observations[NR_ID] = nr.observation;
+      }
       entry.body = body;
       const diag = await fetchDiagnostics(cloudwatch, cfg, ws, we);
       entry.health = diag.health;
