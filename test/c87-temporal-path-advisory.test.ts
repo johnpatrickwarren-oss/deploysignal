@@ -275,15 +275,22 @@ test('C87 orchestrate: the same run with a policy gate set rolls back as before,
 
 // ── 5. the audit record ─────────────────────────────────────────────
 
-test('C87 audit: a temporal fire is on the family block as a fire with α 0 and on advisory_fires with the reason', () => {
+test('C87 audit: a temporal fire is on the family block as a fire with α 0 and gate health_advisory, on advisory_fires with the reason, and absent from v1 tripped[]', () => {
   const r = runGithub('portfolio');
   const seen: Record<string, boolean> = { A: false, C: false, D: false };
   for (const rec of r.audits) {
     assert.notEqual(rec.verdict, 'rollback');
+    // v1 tripped[] names causes; an advisory trip (A, C, D, and E since C25) is not one.
+    const advisoryIds = new Set((['A', 'C', 'D', 'E'] as const).flatMap((fam) => rec.families[fam].detectors.map((d) => d.detector_id as string)));
+    assert.ok(!rec.tripped.some((t) => advisoryIds.has(t.id)), JSON.stringify(rec.tripped));
+    for (const d of rec.families.E.detectors) assert.equal(d.gate, 'health_advisory');
     for (const fam of ['A', 'C', 'D'] as const) {
       const f = rec.families[fam];
       assert.equal(f.alpha_spent, 0, `${fam}: family α`);
-      for (const d of f.detectors) assert.equal(d.alpha_spent, 0, `${fam} ${d.detector_id}: trip α`);
+      for (const d of f.detectors) {
+        assert.equal(d.alpha_spent, 0, `${fam} ${d.detector_id}: trip α`);
+        assert.equal(d.gate, 'health_advisory', `${fam} ${d.detector_id}: an advisory trip is not labelled health_rollback`);
+      }
       if (f.verdict !== 'fire') { assert.equal(f.advisory_fires, undefined); continue; }
       seen[fam] = true;
       assert.ok(f.advisory_fires && f.advisory_fires.length > 0, `${fam}: ${JSON.stringify(f)}`);

@@ -60,10 +60,11 @@ export const FALLBACK_BEHAVIOR: readonly string[] = [
     + 'GPU units through Family A, 42 of 44 with Family C beside it '
     + '(studies/gwdg-gate/REPORT.md), and 13 of 87 healthy request-stream '
     + 'windows (studies/burstgpt-gate/REPORT.md), against a bar of 0.05. The '
-    + 'per-detector rows of this manifest still describe each detector\'s '
-    + 'construction (validity class, alpha_participating, compiled alpha); '
-    + 'while the path is advisory none of that alpha is spent and none of '
-    + 'those rows describes a rollback.',
+    + 'per-detector rows of this manifest report alpha_participating false '
+    + 'for every A, C and D id while the path is advisory; validity_class and '
+    + 'the compiled alpha_budget still describe the construction and the '
+    + 'stamped allocation, none of which is spent, and effective_validity '
+    + 'reads no_alpha_participating_family.',
   'Family E conformal: ADVISORY since 2026-09-02 (FAMILY_E_ADVISORY, '
     + 'engine/guarantees.ts; WORKLIST C25; knowledge/stats/family-e-budget-ruling '
     + 'option 3) — alpha_participating false, profile budget 0 on the llm '

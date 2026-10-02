@@ -105,6 +105,10 @@ export interface VerdictGroupClosedPayload {
   window_end_ts: number;
   verdict_count: number;
   firing_family_count: number;
+  /** C87 — present (true) when every fire in the group was advisory; then
+   *  `firing_family_count` is 0 and `advisory_family_count` counts the families that fired. */
+  advisory?: boolean;
+  advisory_family_count?: number;
   root_cause_detector_id: string | null;
   confidence: number;
   closed_at_ts: number | null;

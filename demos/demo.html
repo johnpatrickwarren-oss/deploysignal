@@ -10910,10 +10910,15 @@ const TEMPORAL_PATH_FAMILIES = new Set(['A', 'C', 'D']);
 function temporalPathAdvisory() {
     return TEMPORAL_PATH_AUTHORITY === 'advisory';
 }
+/** `alpha_participating` on every DETECTOR_GUARANTEES row of Families A, C and D (C87): false while
+ *  the path is advisory, because an advisory fire books no α. The rows keep their validity class,
+ *  which describes the construction; this says no α is spent on it and no rollback follows. */
+const TEMPORAL_ALPHA_PARTICIPATING = temporalPathAdvisory() === false;
   __NS__.TEMPORAL_PATH_AUTHORITY = TEMPORAL_PATH_AUTHORITY;
   __NS__.TEMPORAL_PATH_ADVISORY_REASON = TEMPORAL_PATH_ADVISORY_REASON;
   __NS__.TEMPORAL_PATH_FAMILIES = TEMPORAL_PATH_FAMILIES;
   __NS__.temporalPathAdvisory = temporalPathAdvisory;
+  __NS__.TEMPORAL_ALPHA_PARTICIPATING = TEMPORAL_ALPHA_PARTICIPATING;
 })();
 
 // ══════════════════════════════════════════════════════════════════════
@@ -10922,6 +10927,7 @@ function temporalPathAdvisory() {
 (function () {
   var { DETECTOR_REGISTRY } = __NS__;
   var { FAMILY_A_PRIMARY_SIGNALS } = __NS__.__cjsRequire("dist/detectors/_page-cusum-core.js");
+  var { TEMPORAL_ALPHA_PARTICIPATING } = __NS__;
 // engine/guarantees.ts — per-detector statistical-guarantee metadata.
 //
 // Single source of truth for what statistical claim each DETECTOR_REGISTRY
@@ -11215,7 +11221,7 @@ function familyAMixtureEntry(id) {
         validity_class: 'ville_anytime_valid',
         null_assumptions: FAMILY_A_MIXTURE_ASSUMPTIONS,
         repeated_look_policy: VILLE_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         approximate_e_value: MIXTURE_APPROXIMATE_E_VALUE,
         citation: 'Howard, Ramdas, McAuliffe & Sekhon (2021), Annals of Statistics — '
             + 'time-uniform nonparametric confidence sequences (mixture supermartingale)',
@@ -11239,7 +11245,7 @@ function familyASafeTEntry(id) {
         validity_class: 'e_value_terminal',
         null_assumptions: FAMILY_A_SAFE_T_ASSUMPTIONS,
         repeated_look_policy: EPOCH_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         approximate_e_value: SAFE_T_APPROXIMATE_E_VALUE,
         citation: 'Pérez-Ortiz, Lardy, de Heide & Grünwald (2024) GROW e-statistics for the '
             + 'location-scale model; engine ADR 0005 (safe-t e-value); Ramdas & Wang (2025) Prop. 4.4',
@@ -11301,7 +11307,7 @@ function familyABettingEntry(id) {
             + 'not Ville\'s 1/α, so this row classifies the crossing-rate control DeploySignal actually runs.',
         null_assumptions: FAMILY_A_BETTING_ASSUMPTIONS,
         repeated_look_policy: BOOTSTRAP_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         approximate_e_value: BETTING_APPROXIMATE_E_VALUE,
         citation: 'Waudby-Smith & Ramdas (2024) GRAPA + Online Newton Step fallback betting e-process',
     };
@@ -11463,7 +11469,7 @@ const DETECTOR_GUARANTEES = {
         validity_class: 'classical_epoch_alpha',
         null_assumptions: HOTELLING_CHI_SQUARE_ASSUMPTIONS,
         repeated_look_policy: EPOCH_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         fallback_of: 'hotelling_t2_safe',
         citation: 'Hotelling (1931) T²; Wilson-Hilferty (1931) χ² approximation',
     },
@@ -11476,7 +11482,7 @@ const DETECTOR_GUARANTEES = {
             + 'threshold is the bootstrap quantile (C64 c), a median 3.6×10⁷⁶ above 1/α; this row classifies that path.',
         null_assumptions: HOTELLING_SAFE_ASSUMPTIONS,
         repeated_look_policy: BOOTSTRAP_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         citation: 'Grünwald, de Heide & Koolen (2024), JASA — safe testing / GROW e-test',
     },
     // Family C — Sequential MMD. All three live-registered ids are Ville
@@ -11492,7 +11498,7 @@ const DETECTOR_GUARANTEES = {
             + 'stamp (C21), so no shipped cell reaches either; alpha_participating is the stamped allocation, not a live spend.',
         null_assumptions: MMD_ASSUMPTIONS_CANONICAL,
         repeated_look_policy: VILLE_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process',
         id_mapping_note: 'Dormant for live attribution as of the '
             + "sequential_mmd_betting_e_process registration: the Q67 v2 canonical "
@@ -11511,7 +11517,7 @@ const DETECTOR_GUARANTEES = {
         validity_class: 'ville_anytime_valid',
         null_assumptions: MMD_ASSUMPTIONS_OPTION_B,
         repeated_look_policy: VILLE_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         citation: 'Addition #20 Option-B simplification of Shekhar & Ramdas (2023) via '
             + 'REPLY-34 GRAPA/ONS betting primitives',
     },
@@ -11528,7 +11534,7 @@ const DETECTOR_GUARANTEES = {
         validity_class: 'ville_anytime_valid',
         null_assumptions: MMD_ASSUMPTIONS_CANONICAL,
         repeated_look_policy: VILLE_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process',
     },
     // Family D — spectral ACF (bootstrap_null classical default / e_detector Ville).
@@ -11538,7 +11544,7 @@ const DETECTOR_GUARANTEES = {
         validity_class: 'classical_epoch_alpha',
         null_assumptions: SPECTRAL_BOOTSTRAP_ASSUMPTIONS,
         repeated_look_policy: EPOCH_POLICY,
-        alpha_participating: true,
+        alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
         fallback_of: 'spectral_e_detector_kv_cache',
         citation: 'Box-Jenkins ACF peak detection over a compile-time bootstrap null',
     },
@@ -11866,6 +11872,10 @@ function temporalAdvisoryVerdict(v, rollbackId) {
  *  marks the health gate left. Empty when nothing fired, or when the path holds authority (then
  *  the ids are on `rollback[]` itself). */
 function temporalAdvisoryFireIds(hr) {
+    return temporalAdvisoryFires(hr).map((f) => f.id);
+}
+/** C87 — the advisory A/C/D fires on a health result, in A, C, D order. */
+function temporalAdvisoryFires(hr) {
     if (!hr)
         return [];
     const all = [
@@ -11873,9 +11883,9 @@ function temporalAdvisoryFireIds(hr) {
     ];
     const out = [];
     for (const v of all) {
-        const id = v ? v.advisory_id : undefined;
-        if (id !== undefined)
-            out.push(id);
+        const m = (v ?? {});
+        if (m.advisory_id !== undefined && m.family)
+            out.push({ id: m.advisory_id, family: m.family, advisory_reason: m.advisory_reason ?? '' });
     }
     return out;
 }
@@ -11943,6 +11953,7 @@ function advisoryPluginClause(r) {
   __NS__.isAdvisoryPluginFire = isAdvisoryPluginFire;
   __NS__.temporalAdvisoryVerdict = temporalAdvisoryVerdict;
   __NS__.temporalAdvisoryFireIds = temporalAdvisoryFireIds;
+  __NS__.temporalAdvisoryFires = temporalAdvisoryFires;
   __NS__.splitFiredFamilies = splitFiredFamilies;
   __NS__.advisoryReasonOf = advisoryReasonOf;
   __NS__.advisoryFireFields = advisoryFireFields;
@@ -14133,9 +14144,11 @@ function _schemaV2Replacer(key, value) {
   var { DETECTOR_REGISTRY } = __NS__;
   var { isAdvisoryPluginFire, advisoryReasonOf } = __NS__;
   var { familyBHolds } = __NS__;
+  var { FAMILY_E_ADVISORY, TEMPORAL_PATH_FAMILIES, temporalPathAdvisory } = __NS__;
 // engine/_audit-families.ts — v2 record construction helpers (W4 §4.1.h).
 // Split verbatim from engine/audit.ts; buildFamilyVerdictsV2 decomposed into
 // per-family helpers (each <100 lines). Behavior is identical.
+
 
 
 
@@ -14315,6 +14328,15 @@ function mapSuppression(codes) {
 function familyARollbackId(v) {
     return (v.reason_code.startsWith('safe_t_') ? 'family_A_safe_t_' : 'family_A_') + v.signal;
 }
+/** The gate label of a fired verdict's trip: `health_advisory` when the fire cannot drive the
+ *  verdict (C87 temporal path, on the family constant so a replayed pre-C87 verdict reads the
+ *  same; Family E while FAMILY_E_ADVISORY; a C64 (b) / unauthorized advisory plug-in fire). */
+function fireGate(v) {
+    const advisory = isAdvisoryPluginFire(v) || advisoryReasonOf(v) !== undefined
+        || (temporalPathAdvisory() && TEMPORAL_PATH_FAMILIES.has(v.family))
+        || (FAMILY_E_ADVISORY && v.family === 'E');
+    return advisory ? 'health_advisory' : 'health_rollback';
+}
 /** C87 — record a temporal-path fire's `advisory_reason` (absent when the path holds authority). */
 function pushAdvisory(out, signal, v) {
     const reason = advisoryReasonOf(v);
@@ -14344,7 +14366,7 @@ function evalFamilyA(params, hr, fa) {
             anyFire = true;
             const rid = resolveDetectorId(familyARollbackId(v));
             if (rid) {
-                fa.detectors.push(tripFromVerdict(params, rid, v, 'Family A ' + v.signal, 'health_rollback'));
+                fa.detectors.push(tripFromVerdict(params, rid, v, 'Family A ' + v.signal, fireGate(v)));
                 alphaSum += v.alpha_spent;
             }
         }
@@ -14444,7 +14466,7 @@ function evalFamilyC(params, hr, fc) {
                 ? { family_id: 'C', detector_id: sig }
                 : rr;
             const provExtras = familyCShrinkExtras(params, sig);
-            fc.detectors.push(tripFromVerdict(params, ridResolved, v, label, 'health_rollback', provExtras));
+            fc.detectors.push(tripFromVerdict(params, ridResolved, v, label, fireGate(v), provExtras));
             alphaSum += v.alpha_spent;
             pushAdvisory(advisory, ridResolved.detector_id, v); // C87
         }
@@ -14503,7 +14525,7 @@ function evalFamilyD(params, hr, fd) {
                         ridResolved = { family_id: 'D', detector_id: did };
                     }
                 }
-                fd.detectors.push(tripFromVerdict(params, ridResolved, v, 'Family D ' + v.signal, 'health_rollback'));
+                fd.detectors.push(tripFromVerdict(params, ridResolved, v, 'Family D ' + v.signal, fireGate(v)));
                 alphaSum += v.alpha_spent;
             }
         }
@@ -14527,7 +14549,7 @@ function evalFamilyE(params, hr, fe) {
     const v = hr.family_E_verdict;
     if (v.verdict === 'fire') {
         const rid = resolveDetectorId('family_E');
-        fe.detectors.push(tripFromVerdict(params, rid, v, 'Family E (novelty)', 'health_rollback'));
+        fe.detectors.push(tripFromVerdict(params, rid, v, 'Family E (novelty)', fireGate(v)));
         fe.verdict = 'fire';
         fe.alpha_spent = v.alpha_spent;
     }
@@ -14561,6 +14583,9 @@ function buildFlatTripped(families) {
     for (const fam of order) {
         const fv = families[fam];
         for (const t of fv.detectors) {
+            // C87: an advisory trip is not a v1 tripped entry — v1 readers take tripped[] as the cause.
+            if (t.gate === 'health_advisory')
+                continue;
             out.push({ id: t.detector_id, label: t.label, gate: t.gate });
         }
     }
@@ -15165,6 +15190,14 @@ function _countFiringFamilies(group) {
     }
     return set.size;
 }
+/** C87 — distinct advisory families across the group's verdicts. */
+function _countAdvisoryFamilies(group) {
+    const set = new Set();
+    for (const v of group.firing_verdicts)
+        for (const f of v.advisory_families ?? [])
+            set.add(f);
+    return set.size;
+}
 // Topology-enrichment leg of the fan-out. Emits verdict_group.topology_enriched
 // on success and folds an enrichment error into the aggregate shape. Resolves
 // to an empty partial when no enricher is wired.
@@ -15258,6 +15291,8 @@ function maybeIngestAndFanOut(params, deployId, lifecycleEmitter, reversibility,
         window_end_ts: closed.window_end_ts,
         verdict_count: closed.verdicts.length,
         firing_family_count: _countFiringFamilies(closed),
+        // C87: fires that held no rollback authority still close into the group; say so.
+        ...(closed.advisory ? { advisory: true, advisory_family_count: _countAdvisoryFamilies(closed) } : {}),
         root_cause_detector_id: closed.root_cause ? `tick_${closed.root_cause.tick}` : null,
         confidence: closed.confidence,
         closed_at_ts: closed.closed_at_ts,

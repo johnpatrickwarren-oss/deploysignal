@@ -135,12 +135,17 @@ test('audit-v2-compat: portfolio topology produces v2 records with all new top-l
   assert.ok('scenario_ctx' in rec);
 });
 
-test('audit-v2-compat: v2 flattened tripped[] uses canonical detector_ids', () => {
+test('audit-v2-compat: v2 flattened tripped[] uses canonical detector_ids and leaves advisory trips out (C87)', () => {
   const rec = buildAuditRecord(baseParams('portfolio'), portfolioResult(), null) as AuditRecordV2;
-  // Family A p99 was emitted as family_A_p99_latency in rollback; v2 flatten
-  // projects it as mSPRT_p99_latency.
+  // C87 (2026-10-02): the Family A fire is advisory. Its trip stays on families.A.detectors under
+  // its canonical id with gate `health_advisory`, and is NOT projected into v1 tripped[] (before
+  // C87 it was, as mSPRT_p99_latency with gate health_rollback).
   const aTrip = rec.tripped.find((t) => t.id === 'mSPRT_p99_latency');
-  assert.ok(aTrip, `expected mSPRT_p99_latency in tripped; got ${JSON.stringify(rec.tripped.map((t) => t.id))}`);
+  assert.equal(aTrip, undefined, `advisory trip in tripped: ${JSON.stringify(rec.tripped.map((t) => t.id))}`);
+  const aDet = rec.families.A.detectors.find((d) => d.detector_id === 'mSPRT_p99_latency');
+  assert.ok(aDet, 'the trip is on the family block');
+  assert.equal(aDet!.gate, 'health_advisory');
+  for (const t of rec.tripped) assert.notEqual((t.gate as string), 'health_advisory');
   // Family B canonical id slowbleed unchanged.
   const bTrip = rec.tripped.find((t) => t.id === 'slowbleed');
   assert.ok(bTrip);

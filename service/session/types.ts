@@ -29,12 +29,19 @@ export interface SessionIndex {
   by_deploy_ref: Record<string, string>;
 }
 
+/** C87 — one advisory fire as the gate reports it: a detector of Family A, C or D fired on `tick`
+ *  and, being advisory (engine TEMPORAL_PATH_AUTHORITY), did not enter `fires` or the verdict.
+ *  `id` is the rollback id the fire would have carried. */
+export interface AdvisoryFire { id: string; family: 'A' | 'C' | 'D'; advisory_reason: string; tick: number }
+
 export interface LastVerdict {
   verdict: string;
   verdict_code: number;
   tick: number;
   alpha_consumed: number;
   fires: string[];
+  /** C87 — the advisory fires on that tick; absent when there were none. */
+  advisory_fires?: AdvisoryFire[];
   /** Plan B — a twin session's engine verdict (the `verdict` above is the mapped one). */
   engine_verdict?: string;
 }
@@ -78,6 +85,9 @@ export interface SessionRecord {
   begun_request_ts: number; // caller-supplied unix seconds
   last_tick_at: string | null;
   last_verdict: LastVerdict | null;
+  /** C87 — every advisory fire of the session so far, one entry per id at the first tick it
+   *  fired; absent until one fires. Served by GET /v1/verdict. */
+  advisory_fires?: AdvisoryFire[];
   deployment: SessionDeployment;
   scenario: SessionScenario;
   /** Plan B (engine ADR 0036) — present on a `mode: "twin"` session: the twin_arm it was begun
@@ -94,6 +104,9 @@ export interface VerdictHistoryEntry {
   verdict_code: number;
   alpha_consumed: number;
   fires: string[];
+  /** C87 — the advisory fires on this tick; absent when there were none (so a line without one
+   *  is byte-identical to a pre-C87 line). */
+  advisory_fires?: AdvisoryFire[];
   shadow: boolean;
   recorded_at: string;
   // Task 6 (WS4 session-durability-argo plan) — strict-additive. Set when

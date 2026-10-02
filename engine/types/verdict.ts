@@ -392,13 +392,19 @@ export interface VerdictGroup {
   window_end_ts: number;
   /** All FusedVerdicts attributed to this group in ingest order. */
   verdicts: FusedVerdict[];
-  /** Subset of `verdicts` where `firing_families.length > 0`. */
+  /** Subset of `verdicts` with a fire: `firing_families` or, since C87, `advisory_families`
+   *  non-empty (engine/verdict-groups.ts `firedFamilies`). */
   firing_verdicts: FusedVerdict[];
+  /** C87 — true when the group has fires and every one is advisory (no verdict in it carries a
+   *  family on `firing_families`): the group reports detections that did not drive a rollback.
+   *  Set by VerdictGrouper; optional so groups built before C87 still type-check. */
+  advisory?: boolean;
   /** Earliest-firing FusedVerdict by `tick`, tie-broken by
    *  `total_alpha_spent` (highest wins). `null` on all-silent groups. */
   root_cause: FusedVerdict | null;
   /** `min(1, k / confidence_saturation)` where k = count of distinct
-   *  firing families in the group. */
+   *  families with a fire in the group (firing or advisory). On an advisory group this is
+   *  agreement between detectors that hold no rollback authority, not confidence in a rollback. */
   confidence: number;
   /** Late-arrival verdicts attached within the grace window post-close.
    *  Also appended to `verdicts` / `firing_verdicts` as appropriate. */

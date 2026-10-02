@@ -147,7 +147,10 @@ export interface DetectorTripV2 {
   threshold: number | null;
   alpha_spent: number;
   reason_code: string;
-  gate: 'health_rollback' | 'health_extend';
+  /** `health_advisory` (C87): the detector fired and the fire cannot drive the verdict — A, C, D
+   *  under TEMPORAL_PATH_AUTHORITY, E under FAMILY_E_ADVISORY, a C64 (b) routed plug-in. Such a
+   *  trip stays on `families.*.detectors` and is left out of the v1 `tripped[]` projection. */
+  gate: 'health_rollback' | 'health_extend' | 'health_advisory';
   label: string;
   provenance: Provenance;
   /** Family-A-only diagnostic: `S_n / threshold` normalized CUSUM progress.
