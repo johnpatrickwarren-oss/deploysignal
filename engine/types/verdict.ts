@@ -97,6 +97,13 @@ export interface GroupCloseFanoutResult {
 export interface FusedVerdict {
   verdict: 'rollback' | 'extend' | 'proceed' | 'baking';
   firing_families: Array<'A' | 'B' | 'C' | 'D' | 'E'>;
+  /** C87 — families with at least one `fire` this tick that cannot drive the verdict: A, C, D
+   *  while TEMPORAL_PATH_AUTHORITY is 'advisory', E while FAMILY_E_ADVISORY, and A for an advisory
+   *  plug-in fire (C64 b, FAMILY_A_ROLLBACK_AUTHORITY). Same order as `firing_families`; disjoint
+   *  from it. The corpus tests' detection metric is narrower than this list: a rollback, or an
+   *  A/C/D fire carrying `advisory_id` (engine/_verdict-advisory.ts temporalAdvisoryFireIds),
+   *  which leaves out Family E and the C64 (b) / unauthorized-signal plug-in fires. */
+  advisory_families: Array<'A' | 'B' | 'C' | 'D' | 'E'>;
   per_family_verdicts: {
     A: DetectorVerdict[] | null;
     B: FiredSignal[] | null;
@@ -192,7 +199,10 @@ export interface EffectIntervalsEBy {
  *  parameters are threaded in for this. */
 export interface EvidenceOutlookEntry {
   family_id: 'A' | 'B' | 'C' | 'D' | 'E';
-  /** `'fired'` mirrors `firing_families` membership for this family;
+  /** `'fired'` when the family has a fire, whether it is on `firing_families` or, advisory, on
+   *  `advisory_families` (C25, C87: the rationale says which). One exception, unchanged since
+   *  C64 (b): a Family A whose only fires are advisory PLUG-IN fires (routed or unauthorized
+   *  signal) reads `'accumulating'` with an advisory note, while A is on `advisory_families`;
    *  `'accumulating'` when any evaluated detector in the family is
    *  `indeterminate`; `'suppressed'` when every evaluated detector in
    *  the family suppressed; `'clean'` otherwise (including families
@@ -315,6 +325,14 @@ export interface DetectorVerdict {
    *  Week 4 sums these for total-α accounting. */
   alpha_spent: number;
   reason_code: string;
+  /** C87 — set on a `fire` of a temporal-path family (A, C, D) while TEMPORAL_PATH_AUTHORITY is
+   *  'advisory' (engine/guarantees.ts): the fire is recorded, books no α and never reaches
+   *  rollback[] or firing_families. `reason_code` keeps the detector's own code. */
+  advisory_reason?: string;
+  /** C87 — beside `advisory_reason`: the rollback id this fire would have carried
+   *  (`family_A_{signal}`, `family_A_betting_{signal}`, `family_A_safe_t_{signal}`, `family_C`,
+   *  `family_C_mmd`, `family_D_{signal}`). */
+  advisory_id?: string;
   family: 'A' | 'B' | 'C' | 'D' | 'E';
   /** Which signal this verdict is for. */
   signal?: string;

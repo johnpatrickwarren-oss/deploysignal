@@ -41,6 +41,8 @@ import type {
   Metrics, FiredSignal, HealthResult, TrendBufferI, DetectorVerdict, CompiledConfig,
 } from '../types';
 import type { HealthOpts } from './_health-types';
+import { temporalPathAdvisory } from '../guarantees';
+import { temporalAdvisoryVerdict } from '../_verdict-advisory';
 
 /** Caller-supplied inputs for the valid path. Absent → the path is inert (byte-identical gate). */
 export interface ValidPathOpts {
@@ -171,7 +173,8 @@ export function validPathSignals(cfg: CompiledConfig | null | undefined): readon
 }
 
 /** Family A valid path (C64 a). Appends one verdict per routed signal to `family_A_shadow`;
- *  a terminal fire pushes `family_A_safe_t_{signal}` into rollback. */
+ *  a terminal fire pushes `family_A_safe_t_{signal}` into rollback when the temporal path holds
+ *  rollback authority (C87, TEMPORAL_PATH_AUTHORITY: advisory today). */
 export function runFamilyAValidPath(
   result: HealthResult, rollbackFired: FiredSignal[], sup: string[],
   liveMetrics: Metrics, tb: TrendBufferI, opts: HealthOpts,
@@ -185,9 +188,12 @@ export function runFamilyAValidPath(
     const calibration = vp.calibration[signal];
     if (!calibration) continue;
     const v = routeSignal(signal, calibration, store, liveMetrics, alpha, opts);
-    out.push(v);
+    // C87: the terminal safe-t path is a temporal construction too (calibration window against
+    // canary window); while TEMPORAL_PATH_AUTHORITY is 'advisory' its fire is recorded, books no
+    // α and is not pushed.
     const id = VALID_PATH_ROLLBACK_PREFIX + signal;
-    if (v.verdict === 'fire' && sup.indexOf(id) < 0) rollbackFired.push({ id, label: 'Family A safe-t ' + signal });
+    out.push(temporalAdvisoryVerdict(v, sup.indexOf(id) >= 0 ? null : id));
+    if (!temporalPathAdvisory() && v.verdict === 'fire' && sup.indexOf(id) < 0) rollbackFired.push({ id, label: 'Family A safe-t ' + signal });
   }
   if (out.length > 0) result.family_A_shadow = (result.family_A_shadow ?? []).concat(out);
 }

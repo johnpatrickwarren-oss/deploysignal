@@ -42,7 +42,7 @@ function snapshot(): TopologySnapshot {
 
 function group(window_start_ts: number, window_end_ts: number): VerdictGroup {
   const v: FusedVerdict = {
-    verdict: 'rollback', firing_families: ['A'],
+    verdict: 'rollback', firing_families: ['A'], advisory_families: [],
     per_family_verdicts: { A: null, B: null, C: null, D: null, E: null },
     total_alpha_spent: 1e-4, fusion_topology: 'portfolio',
     tick: 0, deploy_ref: 'A',

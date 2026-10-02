@@ -13,6 +13,8 @@
 //   4. Routed: the terminal safe-t fire still rolls back and spends the per-signal α.
 //   5. Mixed: an unrouted signal's plug-in fire still rolls back beside a routed signal.
 
+import { advisoryIds } from './_c87-detection';
+import { TEMPORAL_PATH_ADVISORY_REASON } from '../dist/engine/guarantees';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -50,7 +52,11 @@ function drive(opts: { routed: Signal[]; shifted: Signal[]; T?: number }) {
       ...(opts.routed.length > 0 ? { validPath: { calibration: calibrationFor, ar1Phi: { p99_latency: 0, ttft: 0 } }, terminalLook: i === T - 1 } : {}),
     });
     const fused = fuseVerdict(last, { topology: 'portfolio', tick: i, totalTicks: T, deployRef: 'c64b' });
-    if (firstATick === null && fused.firing_families.includes('A')) { firstATick = i; firstFused = fused; }
+    // C87 (2026-10-02): every Family A fire is advisory now. `firstATick` is the first tick with a
+    // Family A fire that WOULD have been a rollback before C87 (the health gate marks it with the
+    // id it would have pushed) — a C64 (b) plug-in fire on a routed signal carries no such mark,
+    // which is the distinction these tests are about.
+    if (firstATick === null && advisoryIds(last).some((id) => id.startsWith('family_A_'))) { firstATick = i; firstFused = fused; }
   }
   return { last: last!, firstATick, firstFused, alpha: validPathAlpha(cfg) };
 }
@@ -72,13 +78,17 @@ test('C64 (b): the flag is on and the three Family A constructions carry their a
 
 // ── 2. not routed: unchanged ─────────────────────────────────────────
 
-test('C64 (b): without validPath a plug-in fire spends α and drives the verdict, and no verdict is advisory', () => {
+test('C64 (b): without validPath a plug-in fire is detected before the end and no verdict is C64 (b)-advisory; under C87 it is a temporal-path advisory fire: no rollback, no α', () => {
   const { firstATick, firstFused } = drive({ routed: [], shifted: ['p99_latency'] });
   assert.ok(firstATick !== null && firstATick < 99, `plug-ins fire before the end: ${firstATick}`);
-  assert.equal(firstFused!.verdict, 'rollback');
-  assert.ok(firstFused!.total_alpha_spent > 0);
+  assert.notEqual(firstFused!.verdict, 'rollback');
+  assert.deepEqual(firstFused!.firing_families, []);
+  assert.ok(firstFused!.advisory_families.includes('A'));
+  assert.equal(firstFused!.total_alpha_spent, 0);
   const a = firstFused!.per_family_verdicts.A ?? [];
   assert.ok(!a.some((v) => v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON));
+  const fires = a.filter((v) => v.verdict === 'fire');
+  assert.ok(fires.length > 0 && fires.every((v) => v.advisory_reason === TEMPORAL_PATH_ADVISORY_REASON && v.alpha_spent === 0));
 });
 
 // ── 3. routed: advisory ──────────────────────────────────────────────
@@ -114,12 +124,14 @@ test('C64 (b): on a routed signal the plug-in fire is advisory — recorded, α 
 
 // ── 4. routed: the terminal safe-t fire still decides ────────────────
 
-test('C64 (b): the routed signal still rolls back at the terminal look, on safe-t, at the per-signal α', () => {
-  const { last, firstATick, firstFused, alpha } = drive({ routed: ['p99_latency'], shifted: ['p99_latency'] });
-  assert.equal(firstATick, 99, 'only the terminal look decides on a routed signal');
-  assert.deepEqual(last.rollback.filter((s) => s.id.startsWith('family_A_')).map((s) => s.id), [VALID_PATH_ROLLBACK_PREFIX + 'p99_latency']);
-  assert.equal(firstFused!.verdict, 'rollback');
-  assert.ok(Math.abs(firstFused!.total_alpha_spent - alpha) < 1e-18, `α ${firstFused!.total_alpha_spent} vs ${alpha}`);
+test('C64 (b): the routed signal is still detected only at the terminal look, on safe-t; under C87 that fire is advisory: the deploy proceeds and no α is booked', () => {
+  const { last, firstATick, firstFused } = drive({ routed: ['p99_latency'], shifted: ['p99_latency'] });
+  assert.equal(firstATick, 99, 'only the terminal look detects on a routed signal');
+  assert.deepEqual(last.rollback.filter((s) => s.id.startsWith('family_A_')).map((s) => s.id), []);
+  assert.deepEqual(advisoryIds(last).filter((id) => id.startsWith('family_A_')), [VALID_PATH_ROLLBACK_PREFIX + 'p99_latency']);
+  assert.equal(firstFused!.verdict, 'proceed');
+  assert.deepEqual(firstFused!.advisory_families, ['A']);
+  assert.equal(firstFused!.total_alpha_spent, 0);
   const a = firstFused!.evidence_outlook.find((e) => e.family_id === 'A')!;
   assert.equal(a.state, 'fired');
   assert.ok(a.note.includes('p99_latency'));
@@ -128,10 +140,11 @@ test('C64 (b): the routed signal still rolls back at the terminal look, on safe-
 
 // ── 5. mixed: an unrouted signal is unchanged beside a routed one ────
 
-test('C64 (b): an unrouted signal\'s plug-in fire drives the verdict as before while its neighbour is routed', () => {
+test('C64 (b): an unrouted signal\'s plug-in fire is detected as before while its neighbour is routed (C87: as a temporal-path advisory fire, α 0)', () => {
   const { firstATick, firstFused } = drive({ routed: ['p99_latency'], shifted: ['ttft'] });
   assert.ok(firstATick !== null && firstATick < 99, `ttft plug-in fires before the end: ${firstATick}`);
   const ids = firstFused!.per_family_verdicts.A!.filter((v) => v.verdict === 'fire' && v.reason_code !== FAMILY_A_PLUGIN_ADVISORY_REASON).map((v) => v.signal);
   assert.ok(ids.includes('ttft'));
-  assert.ok(firstFused!.total_alpha_spent > 0);
+  assert.equal(firstFused!.total_alpha_spent, 0);
+  assert.notEqual(firstFused!.verdict, 'rollback');
 });

@@ -8,7 +8,7 @@ import type {
   CompiledConfig, BaselineCellEntry, TrippedEntry,
 } from './types';
 import { DETECTOR_REGISTRY } from './types';
-import { isAdvisoryPluginFire } from './_verdict-advisory';
+import { isAdvisoryPluginFire, advisoryReasonOf } from './_verdict-advisory';
 import { familyBHolds } from './gates/_health-structural';
 
 // ── v2 record construction helpers (W4 §4.1.h) ──────────────────────
@@ -198,6 +198,12 @@ function familyARollbackId(v: DetectorVerdict): string {
   return (v.reason_code.startsWith('safe_t_') ? 'family_A_safe_t_' : 'family_A_') + v.signal;
 }
 
+/** C87 — record a temporal-path fire's `advisory_reason` (absent when the path holds authority). */
+function pushAdvisory(out: Array<{ signal: string; reason_code: string }>, signal: string, v: object): void {
+  const reason = advisoryReasonOf(v);
+  if (reason) out.push({ signal, reason_code: reason });
+}
+
 // Family A — per-signal shadow verdicts.
 function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerdictV2): void {
   if (!hr.family_A_shadow || hr.family_A_shadow.length === 0) return;
@@ -208,6 +214,8 @@ function evalFamilyA(params: OrchestrateParams, hr: HealthResult, fa: FamilyVerd
   for (const v of hr.family_A_shadow) {
     anyEvaluated = true;
     if (v.signal && isAdvisoryPluginFire(v)) advisory.push({ signal: v.signal, reason_code: v.reason_code });
+    // C87: a temporal-path fire is advisory; its own reason_code stays on the trip below.
+    else if (v.signal && v.verdict === 'fire') pushAdvisory(advisory, v.signal, v);
     if (v.verdict !== 'suppressed') allSuppressed = false;
     else suppressCodes.push(v.reason_code);
     if (v.verdict === 'fire' && v.signal) {
@@ -286,6 +294,7 @@ function evalFamilyC(params: OrchestrateParams, hr: HealthResult, fc: FamilyVerd
   let anyIndet = false;
   let alphaSum = 0;
   const suppressCodes: string[] = [];
+  const advisory: Array<{ signal: string; reason_code: string }> = [];
   for (const { v, rid, label } of familyCVerdicts) {
     if (v.verdict === 'fire') {
       anyFire = true;
@@ -309,6 +318,7 @@ function evalFamilyC(params: OrchestrateParams, hr: HealthResult, fc: FamilyVerd
       const provExtras = familyCShrinkExtras(params, sig);
       fc.detectors.push(tripFromVerdict(params, ridResolved, v, label, 'health_rollback', provExtras));
       alphaSum += v.alpha_spent;
+      pushAdvisory(advisory, ridResolved.detector_id, v);  // C87
     } else if (v.verdict === 'suppressed') {
       anySuppressed = true;
       suppressCodes.push(v.reason_code);
@@ -325,6 +335,7 @@ function evalFamilyC(params: OrchestrateParams, hr: HealthResult, fc: FamilyVerd
     fc.suppression_reason = mapSuppression(suppressCodes);
   } else if (anyIndet) fc.verdict = 'indeterminate';
   fc.alpha_spent = alphaSum;
+  if (advisory.length > 0) fc.advisory_fires = advisory;
 }
 
 // Family D — per-signal array (kv_cache in W4 registry).
@@ -333,11 +344,13 @@ function evalFamilyD(params: OrchestrateParams, hr: HealthResult, fd: FamilyVerd
   let anyFire = false, anySuppressed = false, allSuppressed = true;
   let alphaSum = 0;
   const suppressCodes: string[] = [];
+  const advisory: Array<{ signal: string; reason_code: string }> = [];
   for (const v of hr.family_D_shadow) {
     if (v.verdict !== 'suppressed') allSuppressed = false;
     else suppressCodes.push(v.reason_code);
     if (v.verdict === 'fire' && v.signal) {
       anyFire = true;
+      pushAdvisory(advisory, v.signal, v);  // C87
       const rid = resolveDetectorId('family_D_' + v.signal);
       if (rid) {
         // Addition #21 — variant-aware detector_id projection. When the
@@ -361,6 +374,7 @@ function evalFamilyD(params: OrchestrateParams, hr: HealthResult, fd: FamilyVerd
   if (anyFire) fd.verdict = 'fire';
   else if (allSuppressed && anySuppressed) { fd.verdict = 'suppressed'; fd.suppression_reason = mapSuppression(suppressCodes); }
   fd.alpha_spent = alphaSum;
+  if (advisory.length > 0) fd.advisory_fires = advisory;
 }
 
 // Family E — single conformal verdict.

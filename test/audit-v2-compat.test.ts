@@ -62,7 +62,7 @@ function portfolioResult(): VerdictResult {
   };
   const fused: FusedVerdict = {
     verdict: 'rollback',
-    firing_families: ['A', 'B'],
+    firing_families: ['A', 'B'], advisory_families: [],
     per_family_verdicts: { A: [fireA('p99_latency')], B: [{ id: 'slowbleed', label: 'Slow Bleed (Multi-Metric Drift)' }], C: null, D: null, E: null },
     total_alpha_spent: 6.67e-5,
     fusion_topology: 'portfolio',
@@ -89,7 +89,7 @@ function cascadeResult(): VerdictResult {
   };
   const fused: FusedVerdict = {
     verdict: 'rollback',
-    firing_families: ['B'],
+    firing_families: ['B'], advisory_families: [],
     per_family_verdicts: { A: null, B: [{ id: 'slowbleed', label: 'Slow Bleed (Multi-Metric Drift)' }], C: null, D: null, E: null },
     total_alpha_spent: 0,
     fusion_topology: 'cascade',

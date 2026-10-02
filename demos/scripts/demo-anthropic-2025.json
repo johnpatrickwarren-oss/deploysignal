@@ -1,7 +1,7 @@
 {
   "id": "demo-anthropic-2025",
   "name": "Demo 4 — Anthropic August 2025 Quality Regression (stylized)",
-  "description": "Stylized reconstruction of the regression class Anthropic described in their September 2025 postmortem — joint-distribution shift in monitored infrastructure signals where individual metrics stay within daily noise bands but the joint pattern shifts. This demo uses three infrastructure signals (corpus_delta, collective_ops, mfu) drifting together in a coordinated direction below per-signal cascade thresholds. Portfolio catches via Family C (Hotelling T² on joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing at the onset tick. Cascade's threshold detectors miss the pattern entirely.",
+  "description": "Stylized reconstruction of the regression class Anthropic described in their September 2025 postmortem — joint-distribution shift in monitored infrastructure signals where individual metrics stay within daily noise bands but the joint pattern shifts. This demo uses three infrastructure signals (corpus_delta, collective_ops, mfu) drifting together in a coordinated direction below per-signal cascade thresholds. Portfolio detects via Family C (Hotelling T² on joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing at the onset tick. Cascade's threshold detectors miss the pattern entirely. Since 2026-10-02 (C87) these fires are advisory: they are recorded and reported, the gate does not roll back on them, and this deploy ends in proceed.",
   "narrative": "Anthropic's September 2025 postmortem describes three simultaneous quality regressions their own evaluation suite missed for days to weeks — noting that 'the evaluations run simply didn't capture the degradation users were reporting.' The regression class: individual monitored signals stay within per-signal bounds; the joint distribution shifts in a coordinated direction. This stylization uses three infrastructure-layer signals — corpus_delta, collective_ops, mfu — drifting together. Each individual drift stays below cascade's per-signal threshold. The joint motion crosses Family C's Hotelling T² threshold and Family E's conformal Mahalanobis quantile, both firing at the same onset tick. Independent statistical tests agreeing — the corroboration pattern the architecture is designed for. Cascade's threshold-based detectors miss the joint motion entirely.",
   "baseline_ref": "baselines/llm-inference-streaming.json",
   "riskLevel": "high",
@@ -538,7 +538,16 @@
     }
   ],
   "expected_outcome": {
-    "verdict": "rollback",
+    "verdict": "proceed",
+    "advisory": {
+      "families": [
+        "C",
+        "E"
+      ],
+      "first_fire_tick": 11,
+      "reason_code": "advisory_temporal_path_no_valid_null",
+      "verdict_before_c87": "rollback"
+    },
     "first_fire_tick": 11,
     "first_families": [
       "C",

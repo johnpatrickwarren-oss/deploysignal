@@ -5,7 +5,9 @@
 // and `extend[]` arrays and emits a single `Verdict`, portfolio fusion
 // aggregates per-family verdicts explicitly:
 //
-//   - Any family fires `rollback` → fused verdict is `rollback`.
+//   - Any family with rollback authority fires, or a policy gate → `rollback`.
+//     Since C87 (TEMPORAL_PATH_AUTHORITY, 2026-10-02) A, C and D have none: their
+//     fires go on `advisory_families` and contribute 0 to α_spent.
 //   - No fires but ≥1 family `indeterminate` or ≥1 extend signal → `extend`.
 //   - All families `clean` (or `suppressed`) → `proceed`.
 //   - Family E is ADVISORY while `FAMILY_E_ADVISORY` (C25, 2026-09-02):
@@ -26,12 +28,13 @@ import type {
   FusedVerdict, HealthResult, DetectorVerdict, FiredSignal, EvidenceOutlookEntry,
   EvidenceSurface,
 } from './types';
-import { FAMILY_E_ADVISORY, POLICY_GATE_IDS } from './guarantees';
+import { FAMILY_E_ADVISORY, POLICY_GATE_IDS, TEMPORAL_PATH_FAMILIES, temporalPathAdvisory } from './guarantees';
 import { familyBHolds } from './gates/_health-structural';
 import { eByEffectIntervals } from './_verdict-e-by';
 import { contrastArmReport } from './_verdict-contrast';
 import type { ApproximateEValueForm } from './guarantees';
-import { isAdvisoryPluginFire, approximateEValueFor, advisoryPluginClause, advisoryFireFields } from './_verdict-advisory';
+import { isAdvisoryPluginFire, approximateEValueFor, advisoryPluginClause, advisoryFireFields, splitFiredFamilies } from './_verdict-advisory';
+
 
 export interface FuseOpts {
   topology: 'cascade' | 'portfolio';
@@ -600,10 +603,12 @@ function toEvidenceOutlook(raw: FamilyEvidenceRaw[]): EvidenceOutlookEntry[] {
   }));
 }
 
-/** C25 — true for a family whose `fired` state cannot drive the verdict
- *  (Family E while `FAMILY_E_ADVISORY`). */
+/** C25, C87 — true for a family whose `fired` state cannot drive the verdict
+ *  (Family E while `FAMILY_E_ADVISORY`; Families A, C, D while
+ *  TEMPORAL_PATH_AUTHORITY is 'advisory'). */
 function isAdvisoryFamily(r: FamilyEvidenceRaw): boolean {
-  return FAMILY_E_ADVISORY && r.family_id === 'E';
+  return (FAMILY_E_ADVISORY && r.family_id === 'E')
+    || (temporalPathAdvisory() && TEMPORAL_PATH_FAMILIES.has(r.family_id));
 }
 
 /** Trailing clause naming advisory families that fired, so the rationale
@@ -657,7 +662,10 @@ function rationaleSettled(verdict: 'proceed' | 'baking', raw: FamilyEvidenceRaw[
       ? 'Proceed: observation window closed with no rollback signals; some evidence remained below the fire threshold.'
       : 'Proceed: observation window closed with no rollback signals across all families.';
   } else {
-    base = 'Baking: all families clean so far; continuing observation within the window.';
+    // C87: with an advisory fire, "all families clean" would contradict the clause appended below.
+    base = raw.some((r) => r.state === 'fired' && isAdvisoryFamily(r))
+      ? 'Baking: no rollback signal so far; continuing observation within the window.'
+      : 'Baking: all families clean so far; continuing observation within the window.';
   }
   const s = suppressed.length > 0 ? `${base} ${suppressed.map(renderNote).join('; ')}.` : base;
   return s + advisoryClause(raw);
@@ -688,28 +696,17 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
   const { familyB, policy } = partitionRollbacks(health);
   const holds = familyBHolds(health);
 
-  const firing: FusedVerdict['firing_families'] = [];
-
-  // Family A: any per-signal CUSUM fire.
-  const aFires = anyFire(famA);
-  if (aFires) firing.push('A');
-
-  // Family B: any structural-rule rollback (after stripping A/C synthetic IDs).
-  const bFires = familyB.length > 0;
-  if (bFires) firing.push('B');
-
-  // Family C: Hotelling T² + Sequential MMD (Addition #18). Either firing
-  // flips Family C to fire. Both detectors spend α independently under
-  // the 50/50 D8 split.
-  const cFires = famC?.verdict === 'fire' || famCMmd?.verdict === 'fire';
-  if (cFires) firing.push('C');
-
-  // Family D: per-signal array. Any fire pushes D into firing_families.
-  const dFires = anyFire(famDArr) || famDInjected?.verdict === 'fire';
-  if (dFires) firing.push('D');
-  // Family E: single multivariate verdict.
-  const eFires = familyEFires(famE);
-  if (eFires) firing.push('E');
+  // Which families have a fire: A any per-signal fire (plug-ins, the terminal safe-t path); B any
+  // structural-rule rollback (after stripping the synthetic ids); C Hotelling T² or Sequential MMD
+  // (Addition #18); D per-signal or injected; E the single conformal verdict. C87: A, C and D are
+  // advisory while TEMPORAL_PATH_AUTHORITY says so, E while FAMILY_E_ADVISORY — they go on
+  // `advisory_families`, not `firing_families`, and do not drive the verdict.
+  const { firing, advisory: advisoryFamilies } = splitFiredFamilies({
+    A: anyFire(famA), aPluginAdvisory: (famA ?? []).some(isAdvisoryPluginFire), B: familyB.length > 0,
+    C: famC?.verdict === 'fire' || famCMmd?.verdict === 'fire',
+    D: anyFire(famDArr) || famDInjected?.verdict === 'fire',
+    E: familyEFires(famE), eDetected: famE?.verdict === 'fire',
+  });
 
   // ── Verdict ──
   // Portfolio tick-level semantics described in WEEK4-HANDOFF.md §4.1.b,
@@ -748,7 +745,10 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
 
   // ── α_spent sum (Ville's per-family bounds → union bound) ──
   // Family B doesn't spend Ville budget (hand-tuned rule-based detectors).
-  const total_alpha_spent = alphaSpent(famA, famC, famCMmd, famDArr, famDInjected, familyEForAlpha(famE));
+  // C87: an advisory family spends none, whatever its verdicts carry.
+  const total_alpha_spent = temporalPathAdvisory()
+    ? alphaSpent(familyEForAlpha(famE))
+    : alphaSpent(famA, famC, famCMmd, famDArr, famDInjected, familyEForAlpha(famE));
 
   // Surface a single Family D verdict (first fire, else first indeterminate,
   // else first clean) for the FusedVerdict shape. Per-signal breakdown is
@@ -779,6 +779,7 @@ export function fuseVerdict(health: HealthResult, opts: FuseOpts): FusedVerdict 
   return {
     verdict,
     firing_families: firing,
+    advisory_families: advisoryFamilies,
     per_family_verdicts: {
       A: famA,
       B: familyB.length > 0 ? familyB : null,
