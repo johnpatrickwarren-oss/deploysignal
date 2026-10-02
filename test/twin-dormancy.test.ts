@@ -25,7 +25,7 @@ test('Plan B dormancy: the twin entry has status, activation mechanism, review d
   const mech = body.match(/^-\s*activation_mechanism:\s*(.+)$/m)?.[1] ?? '';
   assert.match(mech, /ADR/);
   assert.match(mech, /A\/A/);
-  assert.match(body, /^-\s*last_reviewed_ts:\s*2026-09-29/m);
+  assert.match(body, /^-\s*last_reviewed_ts:\s*2026-10-02/m);
   assert.match(body, /^-\s*activation_disposition:\s*conditional/m);
 });
 

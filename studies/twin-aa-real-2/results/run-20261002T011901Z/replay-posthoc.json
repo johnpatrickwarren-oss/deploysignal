@@ -1,0 +1,43 @@
+{
+ "post_hoc": true,
+ "engine": "0.13.0-pre",
+ "runs": 100,
+ "margins": {
+  "0": {
+   "rollbacks": 1,
+   "of": 100,
+   "rollback_runs": [
+    {
+     "run": 128,
+     "lane": 1,
+     "verdict": "rollback",
+     "tick": 27,
+     "fired": [
+      "p99_latency"
+     ]
+    }
+   ],
+   "verdict_counts": {
+    "inconclusive": 99,
+    "rollback": 1
+   }
+  },
+  "0.05": {
+   "rollbacks": 0,
+   "of": 100,
+   "rollback_runs": [],
+   "verdict_counts": {
+    "inconclusive": 100
+   }
+  },
+  "0.1": {
+   "rollbacks": 0,
+   "of": 100,
+   "rollback_runs": [],
+   "verdict_counts": {
+    "inconclusive": 100
+   }
+  }
+ },
+ "reproduces_as_run": true
+}
