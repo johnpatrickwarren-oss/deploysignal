@@ -1,0 +1,24 @@
+{
+ "study_id": "2026-10-twin-fault-shapes",
+ "cell": "AB-reset",
+ "generated_at": "2026-10-02T20:45:10.789Z",
+ "analysis_repo_head": "f5123f087f36f973bdc7f52927c1be38bc44d601",
+ "analysis_tracked_changes": [
+  "M studies/twin-fault-shapes/results/operator/cell-revisions.json"
+ ],
+ "inputs": {
+  "summaries": 20,
+  "driver_logs": 20,
+  "revisions": {
+   "0": "twin-aa-l0-canary-ab:4",
+   "1": "twin-aa-l1-canary-ab:4",
+   "2": "twin-aa-l2-canary-ab:4",
+   "3": "twin-aa-l3-canary-ab:4"
+  },
+  "evidence": {
+   "count": 415,
+   "start": "2026-10-02T13:35:00Z",
+   "end": "2026-10-02T20:37:00Z"
+  }
+ }
+}

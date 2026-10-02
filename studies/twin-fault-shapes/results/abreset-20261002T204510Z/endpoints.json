@@ -1,0 +1,186 @@
+{
+ "cell": "AB-reset",
+ "registered": {
+  "R": 20,
+  "attempt_cap": 30,
+  "margin": 0.1,
+  "v8_lo_s": 0.02,
+  "v8_hi_s": 0.4,
+  "f4_max_halts": 2,
+  "planner_ticks_5xx_1_5": 44,
+  "endpoint": "F3",
+  "min_rollbacks": null
+ },
+ "attempts": 20,
+ "deploy_failures": [],
+ "runs_with_runner": 20,
+ "summaries": 20,
+ "executable": 20,
+ "void_runs": [],
+ "power": {
+  "rollbacks": 0,
+  "executable": 20,
+  "rate": 0,
+  "median_rollback_tick": null,
+  "rollback_ticks": [],
+  "non_rollback": [
+   {
+    "run": 223,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 224,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 225,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 226,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 227,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 228,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 229,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 230,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 231,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 232,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 233,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 234,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 235,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 236,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 237,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 238,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 239,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 240,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 241,
+    "verdict": "hold",
+    "ticks": 60
+   },
+   {
+    "run": 242,
+    "verdict": "hold",
+    "ticks": 60
+   }
+  ]
+ },
+ "verdict": "reported, no bar",
+ "fired_by_detector": {},
+ "rollbacks_by_run": [],
+ "halts": 0,
+ "F4_cell": "within bar (study-level F4 sums the cells)",
+ "descriptives": {
+  "median_p99_ms": {
+   "canary": 76.73951276656044,
+   "control": 76.22923290643786
+  },
+  "margined_share": {
+   "min": 0,
+   "median": 0.05,
+   "max": 0.08333333333333333
+  },
+  "mean_5xx_per_tick": {
+   "canary": 6.106666666666667,
+   "control": 6.108333333333334
+  },
+  "mean_requests_per_tick": {
+   "canary": 1219.3483333333334,
+   "control": 1221.448333333333
+  },
+  "mean_elb_5xx_lb_per_tick": 6.093333333333333,
+  "final_srm_e": {
+   "min": 0.9723202595284802,
+   "max": 1.078526247628203
+  },
+  "mean_no_response_per_tick": null
+ },
+ "authority_violations": 0,
+ "v67": {
+  "evaluated_runs": 20,
+  "flagged_runs": [],
+  "unassigned_inside_runs": []
+ },
+ "repo_shas": [
+  "163308f766f51d9d60b7313aa4c4b189f7d1341a"
+ ],
+ "engines": [
+  {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  }
+ ],
+ "canary_tds": [
+  "twin-aa-l0-canary-ab:4",
+  "twin-aa-l1-canary-ab:4",
+  "twin-aa-l2-canary-ab:4",
+  "twin-aa-l3-canary-ab:4"
+ ],
+ "control_tds": [
+  "twin-aa-l0:3",
+  "twin-aa-l1:3",
+  "twin-aa-l2:3",
+  "twin-aa-l3:3"
+ ]
+}
