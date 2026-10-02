@@ -16,7 +16,7 @@ const LANE = path.join(__dirname, '..', 'studies', 'twin-aa-real', 'infra', 'clo
 test('twin-fault-shapes: study id, the three AB cells, the margin and four tasks per arm as the second study', async () => {
   const m: any = await import(FS);
   assert.equal(m.REGISTERED.studyId, '2026-10-twin-fault-shapes');
-  assert.deepEqual([...m.REGISTERED.cells], ['AB-lat30', 'AB-5xx-1.5', 'AB-reset']);
+  assert.deepEqual([...m.REGISTERED.cells], ['AB-lat30', 'AB-5xx-1.5', 'AB-reset', 'AB-reset-nr']);
   const sign = m.twinArm(60).metrics.find((x: any) => x.kind === 'sign');
   assert.deepEqual(sign, { id: 'p99_latency', kind: 'sign', worse: 'higher', tolerance: 0.15, margin: { relative: 0.10 } });
   const cfg = {
@@ -30,15 +30,37 @@ test('twin-fault-shapes: study id, the three AB cells, the margin and four tasks
   assert.throws(() => m.validateConfig({ ...cfg, study_id: '2026-10-twin-aa-real-2' }), /study_id/);
 });
 
-test('twin-fault-shapes: the runner differs from the second study\'s only in the study id, the cells and comments', () => {
+test('twin-fault-shapes: every line of the second study\'s runner survives; this study only adds (Amendment 2\'s fourth cell)', () => {
   const norm = (l: string) => l.replace(/twin-fault-shapes/g, 'twin-aa-real-2');
   const a = fs.readFileSync(V2, 'utf8').split('\n').map(norm);
-  const b = fs.readFileSync(FS, 'utf8').split('\n').map(norm);
-  const setA = new Set(a), setB = new Set(b);
-  const onlyB = b.filter((l) => !setA.has(l));
-  const onlyA = a.filter((l) => !setB.has(l));
-  assert.ok(onlyB.every((l) => l.startsWith('//') || /cells: Object\.freeze\(\['AB-lat30', 'AB-5xx-1\.5', 'AB-reset'\]\)/.test(l)), `unexpected lines only in this study's runner:\n${onlyB.join('\n')}`);
-  assert.ok(onlyA.every((l) => l.startsWith('//') || /cells: Object\.freeze\(\['AA'\]\)/.test(l)), `unexpected lines only in the second study's runner:\n${onlyA.join('\n')}`);
+  const b = new Set(fs.readFileSync(FS, 'utf8').split('\n').map(norm));
+  const missing = a.filter((l) => !b.has(l));
+  // the only second-study lines changed: comments, the cell list, twinArm's signature, the two twinArm call sites
+  assert.ok(missing.every((l) => l.startsWith('//') || /cells: Object\.freeze\(\['AA'\]\)/.test(l) || /^export function twinArm\(maxTicks\) \{$/.test(l) || /twin_arm: \{ scored: twinArm\(T\), w0: twinArm\(W \+ T\) \}/.test(l)),
+    `second-study lines missing from this study's runner:\n${missing.join('\n')}`);
+});
+
+test('twin-fault-shapes: cells 1–3 declare the second study\'s two metrics; AB-reset-nr adds exactly the no_response rate metric', async () => {
+  const m: any = await import(FS);
+  const v2: any = await import(V2);
+  for (const cell of [undefined, 'AB-lat30', 'AB-5xx-1.5', 'AB-reset']) assert.deepEqual(m.twinArm(60, cell), v2.twinArm(60));
+  const nr = m.twinArm(60, 'AB-reset-nr');
+  assert.deepEqual(nr.metrics.slice(0, 2), v2.twinArm(60).metrics);
+  assert.deepEqual(nr.metrics[2], { id: 'no_response', kind: 'rate', worse: 'higher', tolerance: 0.2 });
+  assert.equal(nr.metrics.length, 3);
+});
+
+test('twin-fault-shapes: no_response = requests routed minus target responses, per arm, clamped to [0, total]', async () => {
+  const m: any = await import(FS);
+  const body = { canary_requests: 1209, control_requests: 1219, observations: { http_5xx: { canary_events: 6, canary_total: 1209, control_events: 6, control_total: 1219 } } };
+  assert.deepEqual(m.noResponseObservation(body, { t2_canary: 1197, t3_canary: 0, t4_canary: 0, t2_control: 1213, t3_control: 0, t4_control: 0 }),
+    { canary_events: 6, canary_total: 1209, control_events: 0, control_total: 1219 });
+  // publication skew: more responses than requests clamps to 0, never negative
+  assert.deepEqual(m.noResponseObservation(body, { t2_canary: 1300, t3_canary: 0, t4_canary: 0, t2_control: 1213.4, t3_control: 1, t4_control: 2 }),
+    { canary_events: 0, canary_total: 1209, control_events: 0, control_total: 1219 });
+  // 3xx and 4xx responses are answers too
+  assert.deepEqual(m.noResponseObservation(body, { t2_canary: 1000, t3_canary: 100, t4_canary: 97, t2_control: 1000, t3_control: 100, t4_control: 100 }),
+    { canary_events: 6, canary_total: 1209, control_events: 13, control_total: 1219 });
 });
 
 test('twin-fault-shapes: the reset schedule is evenly spaced and half a period from the 503 schedule', () => {

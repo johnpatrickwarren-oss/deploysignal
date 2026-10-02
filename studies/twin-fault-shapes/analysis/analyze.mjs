@@ -1,7 +1,7 @@
 // analysis/analyze.mjs — endpoint table for 2026-10-twin-fault-shapes (PREREGISTRATION.md §2, §5).
 // Committed BEFORE run 0. One invocation per cell:
 //
-//   node studies/twin-fault-shapes/analysis/analyze.mjs --cell AB-lat30|AB-5xx-1.5|AB-reset
+//   node studies/twin-fault-shapes/analysis/analyze.mjs --cell AB-lat30|AB-5xx-1.5|AB-reset|AB-reset-nr
 //
 // Reads, never writes, the run artifacts:
 //   results/runs/<cell>-l<lane>-r<k>-<UTC>.{summary.json,jsonl}   the runner's files
@@ -22,7 +22,7 @@ const RES = join(STUDY, 'results');
 const args = Object.fromEntries(process.argv.slice(2).reduce((a, x, i, arr) => (x.startsWith('--') ? [...a, [x.slice(2), arr[i + 1] ?? true]] : a), []));
 const CELL = args.cell;
 // §2 — registered bars. power = executable runs whose scored session ends rollback, of R = 20; cell stops at 30 attempts.
-const BARS = { 'AB-lat30': { endpoint: 'F1', min_rollbacks: 16 }, 'AB-5xx-1.5': { endpoint: 'F2', min_rollbacks: 10 }, 'AB-reset': { endpoint: 'F3', min_rollbacks: null } };
+const BARS = { 'AB-lat30': { endpoint: 'F1', min_rollbacks: 16 }, 'AB-5xx-1.5': { endpoint: 'F2', min_rollbacks: 10 }, 'AB-reset': { endpoint: 'F3', min_rollbacks: null }, 'AB-reset-nr': { endpoint: 'F5', min_rollbacks: 16 } }; // F5: Amendment 2
 if (!BARS[CELL]) { console.error(`--cell must be one of ${Object.keys(BARS).join(', ')}`); process.exit(2); }
 const REG = { R: 20, attempt_cap: 30, margin: 0.10, v8_lo_s: 0.020, v8_hi_s: 0.400, f4_max_halts: 2, planner_ticks_5xx_1_5: 44 };
 const slug = CELL.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -98,6 +98,8 @@ for (const file of runFiles) {
     mean_5xx: { canary: mean(bodies.map((b) => b.observations?.http_5xx?.canary_events ?? 0)), control: mean(bodies.map((b) => b.observations?.http_5xx?.control_events ?? 0)) },
     mean_elb_5xx_lb_per_tick: mean(scored.map((w) => w.stall?.elb_5xx_lb ?? 0)),
     final_srm_e: last?.scored?.srm_e ?? null, final_e: Object.fromEntries((last?.scored?.metrics ?? []).map((m) => [m.id, m.rollback_e])),
+    // Amendment 2: unanswered requests per tick per arm, where the cell declares the metric
+    mean_no_response: bodies.some((b) => b.observations?.no_response) ? { canary: mean(bodies.map((b) => b.observations?.no_response?.canary_events ?? 0)), control: mean(bodies.map((b) => b.observations?.no_response?.control_events ?? 0)) } : null,
   });
 }
 runs.sort((a, b) => a.run - b.run);
@@ -126,6 +128,7 @@ const E = {
     mean_requests_per_tick: { canary: exec.length ? exec.reduce((a, r) => a + r.mean_requests.canary, 0) / exec.length : null, control: exec.length ? exec.reduce((a, r) => a + r.mean_requests.control, 0) / exec.length : null },
     mean_elb_5xx_lb_per_tick: exec.length ? exec.reduce((a, r) => a + r.mean_elb_5xx_lb_per_tick, 0) / exec.length : null,
     final_srm_e: { min: exec.length ? Math.min(...exec.map((r) => r.final_srm_e)) : null, max: exec.length ? Math.max(...exec.map((r) => r.final_srm_e)) : null },
+    mean_no_response_per_tick: exec.some((r) => r.mean_no_response) ? { canary: exec.reduce((a, r) => a + (r.mean_no_response?.canary ?? 0), 0) / exec.length, control: exec.reduce((a, r) => a + (r.mean_no_response?.control ?? 0), 0) / exec.length } : null,
   },
   authority_violations: runs.filter((r) => r.authority_violation).length,
   v67: { evaluated_runs: runs.filter((r) => r.v67.evaluated).length, flagged_runs: runs.filter((r) => r.v67.events_inside.length).map((r) => r.run), unassigned_inside_runs: runs.filter((r) => r.v67.unassigned_inside.length).map((r) => r.run) },
@@ -153,6 +156,7 @@ const table = [
   `Fired by detector: ${JSON.stringify(E.fired_by_detector)}. Non-rollback: ${E.power.non_rollback.map((x) => `${x.run}:${x.verdict}@${x.ticks}`).join(', ') || 'none'}.`,
   `Median p99 (ms) canary ${f(E.descriptives.median_p99_ms.canary, 1)} / control ${f(E.descriptives.median_p99_ms.control, 1)}; share of scored ticks with canary p99 > control × 1.10: min ${f(E.descriptives.margined_share.min)}, median ${f(E.descriptives.margined_share.median)}, max ${f(E.descriptives.margined_share.max)}.`,
   `Mean per tick: target 5xx canary ${f(E.descriptives.mean_5xx_per_tick.canary, 2)} / control ${f(E.descriptives.mean_5xx_per_tick.control, 2)}; requests canary ${f(E.descriptives.mean_requests_per_tick.canary, 0)} / control ${f(E.descriptives.mean_requests_per_tick.control, 0)}; ELB-generated 5xx on the lane's load balancer ${f(E.descriptives.mean_elb_5xx_lb_per_tick, 2)}; final sample-ratio e-value ${f(E.descriptives.final_srm_e.min, 2)}–${f(E.descriptives.final_srm_e.max, 2)}.`,
+  ...(E.descriptives.mean_no_response_per_tick ? [`Unanswered requests per tick (no_response): canary ${f(E.descriptives.mean_no_response_per_tick.canary, 2)} / control ${f(E.descriptives.mean_no_response_per_tick.control, 2)}.`] : []),
   `V6/V7 evaluated on ${E.v67.evaluated_runs} of ${E.summaries}; flagged ${E.v67.flagged_runs.join(', ') || 'none'}. Canary revisions ${E.canary_tds.join(', ') || '—'}; control ${E.control_tds.join(', ') || '—'}.`,
 ];
 writeFileSync(join(OUT, 'REPORT-TABLE.md'), table.join('\n') + '\n');
