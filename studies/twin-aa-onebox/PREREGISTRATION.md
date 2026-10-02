@@ -163,3 +163,50 @@ and bar that followed from 50; nothing else changes.
   100 in S and more in X. R5: `twin_rate_http_5xx` fires in at most 3 of the 200 runs.
 - **Time and cost, for the record.** About 70 hours on four lanes; about $28 gross at list prices
   (8 arm tasks, the lanes' base cost, CloudWatch reads).
+
+## Amendment 2 — 2026-10-02, before run 0 (the pins, §6)
+
+Written before any run, lane deploy or host change for this study, while
+`2026-10-twin-fault-shapes`'s third cell is running. It changes no bar, endpoint, prediction or
+void rule.
+
+- **Engine.** `v0.13.0-pre`, resolved `de25786c0a6b15935aa9416b04359f6a3e309106`, unchanged from the
+  second study and the fault study.
+- **The trees the runs execute from.** The runner host runs DeploySignal `main` at `375c165` (PR #149)
+  or a later `main` commit whose git tree hashes at every path below are identical; the report
+  verifies each against the run commit recorded in every run's manifest:
+
+  | Path | Tree at `375c165` |
+  |---|---|
+  | `studies/twin-aa-onebox/harness` | `c1eb4f1fa6a0c4407d32cfec81279ad53c70abcd` |
+  | `studies/twin-aa-onebox/analysis` | `4bb5c8682fa2c478f78a131688fc2543c7eb4a6b` |
+  | `service/gate-http` | `5e0f86e3a05d9165e18009299f7010a7d451529e` |
+  | `service/sources` | `c10785a9612812b4c7b063c6f10d93b008918523` |
+  | `engine/gates` | `7eb52c902cbde9c37fd982b5552533f8011042a2` |
+  | `engine/guarantees.ts` | `c99401c57fa2a5a048e8598d9786a06d5e700e1f` |
+  | `studies/twin-aa-real/infra/service` | `6f65c09e3cd4444fc47a470debf1372638d0b5c4` |
+
+  The gate is restarted from the run commit and its start time and `git rev-parse HEAD` recorded,
+  after the fault study's last cell has closed and its artifacts are pulled.
+- **Service image (R2).** `twin-aa-service:old-v3-20261001` = `sha256:11b0f047493f6df41ad82612c6f111a7fa508a7392d18fe81a6150d41997ea30`,
+  the fault study's image (service tree `6f65c09e…`), with every canary override empty: both arms
+  and prod on one task-definition revision, `FAULT_503_FRACTION` 0.005, `LATENCY_MEDIAN_MS` 30,
+  `LATENCY_SIGMA` 0.4, `RESET_FRACTION` unset (0).
+- **Placement per lane** (lane template at `375c165`; the network stack's subnet list is
+  `us-east-1a`, `us-east-1b` in that order, read 2026-10-02):
+
+  | Lane | `BaselineSubnetIndex` | `CanarySubnetIndex` | Stratum |
+  |---|---|---|---|
+  | 0 | 0 (1a) | 0 (1a) | S |
+  | 1 | 1 (1b) | 1 (1b) | S |
+  | 2 | 0 (1a) | 1 (1b) | X |
+  | 3 | 1 (1b) | 0 (1a) | X |
+
+- **Lane configs and drivers.** `studies/twin-aa-onebox/lane<N>.json` = the second study's with
+  `study_id` `2026-10-twin-aa-onebox` and `tasks_per_arm` 1;
+  `RUNNER=studies/twin-aa-onebox/harness/run-real.mjs ALLOW_ONEBOX=1 drive-lane.sh --cell AA
+  --tasks 1 --runs 50` per lane, global run indices continuing after the fault study's last. The
+  per-stratum stop (11 executable rollbacks) is applied by the operator's watcher, which stops that
+  stratum's two drivers; a run in flight at the stop finishes and is counted.
+- **Pre-flight.** One rotation at one task per arm on a same-AZ lane and one on a cross-AZ lane
+  (not runs), to read R3, R4, the p99 scale and both tasks' AZs before run 0.
