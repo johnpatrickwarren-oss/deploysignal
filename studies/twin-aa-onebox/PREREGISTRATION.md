@@ -139,3 +139,27 @@ ADR 0001's eligibility rule, stratum by stratum.
 Regions (one region; §0 (b)); a production host; a onebox against the whole fleet (§0 (d)); more
 than two AZs; power at onebox size (the fault study ran four tasks per arm); the proceed side;
 arm sizes two and three with the margin.
+
+## Amendment 1 — 2026-10-02, before any code, deploy or run (the size: 100 per stratum)
+
+John, 2026-10-02, on being shown what each size resolves: "let's do option 1" (100 runs per
+stratum). §1.3 chose 50 per stratum to keep the study at 35 hours, a budget choice the registration
+made without asking. Nothing has been built, deployed or run. This amendment replaces every size
+and bar that followed from 50; nothing else changes.
+
+- **Size (replaces §1.3).** 50 runs per lane: **100 executable runs in S and 100 in X**, 200 in
+  all. A/A bar at R = 100, as in both earlier studies: B = 0.05 + 2.58 · √(0.05 · 0.95 / 100) =
+  **0.1062**, at most **10 of 100**. Each stratum stops early, with its endpoint failed, at 11
+  executable rollbacks; the other continues. 150 attempts cap per stratum.
+- **What R = 100 resolves.** The chance the count exceeds 10 is 0.011 at a true rate of 0.05,
+  0.176 at 0.08, 0.417 at 0.10, 0.666 at 0.12, 0.901 at 0.15 and 0.994 at 0.20. The one-sided 95%
+  upper bound after 0, 2, 5 and 10 rollbacks in 100 is 0.030, 0.062, 0.102 and 0.164. Each
+  stratum is then directly comparable to `2026-10-twin-aa-real-2` (0 of 100 at four tasks per arm).
+- **Endpoints (replace the counts in §2).** O1: ≤ 10 of 100 in S. O2: ≤ 10 of 100 in X. O3
+  unchanged (≤ 2 halts over the study). O4: in each stratum, rollbacks among executable runs plus
+  rollbacks reached in void runs, at most 10.
+- **Predictions (replace the counts in §3; the reasoning stands).** R1: O1 holds with 0 to 5
+  rollbacks. R2: O2 holds with 0 to 9, confidence low. R3: the unmargined replay gives 6 to 30 of
+  100 in S and more in X. R5: `twin_rate_http_5xx` fires in at most 3 of the 200 runs.
+- **Time and cost, for the record.** About 70 hours on four lanes; about $28 gross at list prices
+  (8 arm tasks, the lanes' base cost, CloudWatch reads).
