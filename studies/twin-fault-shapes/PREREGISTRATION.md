@@ -174,3 +174,48 @@ AA cell is still running. It changes no bar, endpoint, prediction or void rule.
   with `study_id` `2026-10-twin-fault-shapes`; `RUNNER=studies/twin-fault-shapes/harness/run-real.mjs
   ALLOW_AB=1 drive-lane.sh --cell <cell> --tasks 4 --runs 5` per lane, global run indices
   continuing after the second study's last.
+
+## Amendment 2 — 2026-10-02, a fourth cell: the same resets with a metric that counts unanswered requests (`AB-reset-nr`)
+
+Written while `AB-reset` is running: 12 of its 20 runs have closed, all `hold` at 60 ticks, and I
+have read those verdicts and, for one ten-minute window on lane 1, the load balancer's per-arm
+counts (canary: 12,092 requests routed, 11,972 target 2xx, 60 target 5xx, so 60 with no target
+response; control: 12,192 / 12,132 / 60 / 0; the load balancer's own 502 count 60). John, on being
+shown that: "let's do the fourth cell". This amendment adds a cell; it changes nothing registered
+for the first three, and `AB-reset` runs to its 20 as registered.
+
+- **Why.** `AB-reset` shows the blind spot: a dropped connection produces no target response, so
+  neither `HTTPCode_Target_5XX_Count` nor `TargetResponseTime` moves, the load balancer's own 502
+  is published per load balancer only, and `RequestCount` still counts the request. The same
+  CloudWatch namespace does carry the evidence per target group, as the difference between
+  requests routed and responses received.
+- **The cell.** `AB-reset-nr`: the canary exactly as in `AB-reset` (`RESET_FRACTION` 0.005; the
+  lanes stay on the `AB-reset` task-definition revisions, so there is no stack update between the
+  two cells and V9's recorded revision is the same), with a **third twin metric**:
+
+  | twin metric | kind | per arm | worse | tolerance |
+  |---|---|---|---|---|
+  | `no_response` | rate | events = `RequestCount` − (`HTTPCode_Target_2XX_Count` + `3XX` + `4XX` + `5XX`), Sum over the window, clamped to [0, total]; total = `RequestCount` | higher | 0.2 |
+
+  The three status-class sums the existing source does not fetch (2XX, 3XX, 4XX) come from one
+  further `GetMetricData` call for the same window, 180 s after it closes like every other fetch,
+  with the same retries; `RequestCount` and the 5XX sum are the tick body's own. A window whose
+  extra fetch fails on all attempts is a fetch failure (V3). The other two metrics are unchanged.
+  With three metrics the rollback threshold per metric is 3/α = 60 (Bonferroni), not 40.
+- **Size and endpoint.** R = 20 executable, 30 attempts cap, four lanes, as the other cells.
+  **F5:** power ≥ 0.8, at least 16 of 20 scored sessions end `rollback`. Report-only: the detector
+  that fired first in each run, the median rollback tick, `no_response` events per tick per arm.
+- **Prediction (registered). Q5.** F5 holds with 20 of 20, every rollback on
+  `twin_rate_no_response`, at a median scored tick between 8 and 20. Reasoning: about 6 unanswered
+  requests per tick on the canary against 0 on the control puts the canary's share of events at 1
+  on every tick that has any, which is the fastest the `rate` kind can move; the threshold is 60.
+  If the control shows unanswered requests too (ordinary publication skew between `RequestCount`
+  and the status sums), the test slows and the prediction's upper tick is where I would expect it.
+- **What it does not show.** That this metric is safe on identical arms: no A/A has run with
+  `no_response` declared. Under an A/A both arms should show zero events and the `rate` kind skips
+  a tick with no events, but that is an argument, not a measurement; the onebox A/A does not
+  declare this metric either. An A/A with it is a further study if the metric is to be eligible
+  under ADR 0001.
+- **Pins.** The runner and the analysis script change for this cell (the new fetch, the third
+  metric for this cell only, the F5 bar); a dated amendment names the commit and the new tree
+  hashes before the cell's run 0. Cells 1 to 3 ran from the trees of Amendment 1.
