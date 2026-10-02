@@ -1,0 +1,21 @@
+AA_START 2026-09-29T05:44:11Z HEAD 082682656fe57f6af0265cbfe42d6ecf4ab49be6
+lane0 driver pid 27716
+lane1 driver pid 27935
+lane2 driver pid 28230
+lane3 driver pid 28532
+AA_RESTART 2026-09-29T06:20:44Z HEAD e3b62b1801571b7a515925f913ada53470c9114e from_index 19
+lane0 driver pid 31551
+lane1 driver pid 31681
+lane2 driver pid 31838
+lane3 driver pid 32113
+STOP_RULE 2026-09-29T18:47:56Z drivers killed, index 63
+AB5XX_START 2026-09-29T23:05:10Z HEAD 6c1f3789b43068db3711e8a0c4096edc27662a24 from_index 63 canary_flag 0.0100
+lane0 AB-5xx driver pid 94817
+lane1 AB-5xx driver pid 94972
+lane2 AB-5xx driver pid 95219
+lane3 AB-5xx driver pid 95418
+AA2_START 2026-09-30T14:57:35Z HEAD ded4d271e5b6b0242e0dfc6154274ceb11c6bfa8 study 2026-10-twin-aa-real-2 from_index 83 tasks 4 runner studies/twin-aa-real-2/harness/run-real.mjs
+lane0 AA2 driver pid 134918
+lane1 AA2 driver pid 135076
+lane2 AA2 driver pid 135327
+lane3 AA2 driver pid 135606
