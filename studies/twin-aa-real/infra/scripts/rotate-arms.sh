@@ -52,7 +52,8 @@ service_revision() { "${AWS[@]}" ecs describe-services --cluster "$CLUSTER" --se
 
 case "$cmd" in
   start)
-    [ -n "$TASKS" ] && [ "$TASKS" -ge 2 ] || { echo "--tasks N (>= 2, R5) required" >&2; exit 2; }
+    # R5 asks for >= 2 tasks per arm; 2026-10-twin-aa-onebox registers one (ALLOW_ONEBOX=1 states that on purpose)
+    [ -n "$TASKS" ] && { [ "$TASKS" -ge 2 ] || { [ "$TASKS" -eq 1 ] && [ "${ALLOW_ONEBOX:-}" = "1" ]; }; } || { echo "--tasks N (>= 2, R5; 1 only with ALLOW_ONEBOX=1) required" >&2; exit 2; }
     rb=$(service_revision baseline-old); rc=$(service_revision canary-new)
     [ "$rb" = "$rc" ] || { echo "R5 violated before start: baseline-old $rb != canary-new $rc (AB-5xx cell only)" >&2; [ "${ALLOW_AB:-}" = "1" ] || exit 3; }
     set_weights 100 0 0

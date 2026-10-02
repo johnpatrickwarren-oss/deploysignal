@@ -37,6 +37,16 @@ Parameters:
     Type: String
     Default: ""
     Description: leave empty except for 2026-10-twin-fault-shapes AB-reset (0.005) - the canary destroys the socket on that fraction of requests (ELB-generated 502)
+  BaselineSubnetIndex:
+    Type: String
+    Default: ""
+    AllowedValues: ["", "0", "1"]
+    Description: leave empty (both subnets, ECS spreads the arm's tasks across AZs) except for 2026-10-twin-aa-onebox, where each one-task arm is pinned to one subnet of the network stack's list (0 = first AZ, 1 = second)
+  CanarySubnetIndex:
+    Type: String
+    Default: ""
+    AllowedValues: ["", "0", "1"]
+    Description: as BaselineSubnetIndex, for the canary arm
   LatencyMedianMs:
     Type: String
     Default: "0"
@@ -63,6 +73,8 @@ Conditions:
   Canary503Set: !Not [!Equals [!Ref CanaryFault503Fraction, ""]]
   CanaryLatencySet: !Not [!Equals [!Ref CanaryLatencyMedianMs, ""]]
   CanaryResetSet: !Not [!Equals [!Ref CanaryResetFraction, ""]]
+  BaselinePinned: !Not [!Equals [!Ref BaselineSubnetIndex, ""]]
+  CanaryPinned: !Not [!Equals [!Ref CanarySubnetIndex, ""]]
   CanaryHasOwnFault: !Or [!Condition Canary503Set, !Condition CanaryLatencySet, !Condition CanaryResetSet]
   FaultInjection: !Equals [!Ref EnableFaultInjection, "true"]
 Resources:
@@ -247,7 +259,7 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]
+          Subnets: !If [BaselinePinned, [!Select [!Ref BaselineSubnetIndex, !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]]], !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]]
           SecurityGroups: [{ "Fn::ImportValue": !Sub "${NetworkStack}-TaskSgId" }]
       LoadBalancers: [{ ContainerName: service, ContainerPort: 8080, TargetGroupArn: !Ref BaselineTargetGroup }]
   CanaryService:
@@ -264,7 +276,7 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]
+          Subnets: !If [CanaryPinned, [!Select [!Ref CanarySubnetIndex, !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]]], !Split [",", { "Fn::ImportValue": !Sub "${NetworkStack}-SubnetIds" }]]
           SecurityGroups: [{ "Fn::ImportValue": !Sub "${NetworkStack}-TaskSgId" }]
       LoadBalancers: [{ ContainerName: service, ContainerPort: 8080, TargetGroupArn: !Ref CanaryTargetGroup }]
 Outputs:
