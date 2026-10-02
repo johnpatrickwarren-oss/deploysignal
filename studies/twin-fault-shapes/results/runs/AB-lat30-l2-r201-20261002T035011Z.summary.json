@@ -1,0 +1,127 @@
+{
+ "study_id": "2026-10-twin-fault-shapes",
+ "cell": "AB-lat30",
+ "lane": 2,
+ "run": 201,
+ "deploy_ref": "t3-AB-lat30-l2-r201",
+ "registered": {
+  "studyId": "2026-10-twin-fault-shapes",
+  "tickMs": 60000,
+  "settleMs": 180000,
+  "warmupTicks": 15,
+  "scoredTicks": 60,
+  "fetchAttempts": 3,
+  "fetchRetryMs": 20000,
+  "callTimeoutMs": 30000,
+  "stallBoundMs": 300000,
+  "armReadyMaxLagMs": 300000,
+  "armReadyMaxLeadMs": 60000,
+  "minArmRequests": 500,
+  "minMean5xxPerTick": 2,
+  "cells": [
+   "AB-lat30",
+   "AB-5xx-1.5",
+   "AB-reset"
+  ],
+  "lanes": 4
+ },
+ "twin_arm": {
+  "scored": {
+   "canary_weight": 0.5,
+   "alpha_rollback": 0.05,
+   "alpha_proceed": 1e-12,
+   "alpha_srm": 0.001,
+   "max_ticks": 60,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    },
+    {
+     "id": "p99_latency",
+     "kind": "sign",
+     "worse": "higher",
+     "tolerance": 0.15,
+     "margin": {
+      "relative": 0.1
+     }
+    }
+   ]
+  },
+  "w0": {
+   "canary_weight": 0.5,
+   "alpha_rollback": 0.05,
+   "alpha_proceed": 1e-12,
+   "alpha_srm": 0.001,
+   "max_ticks": 75,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    },
+    {
+     "id": "p99_latency",
+     "kind": "sign",
+     "worse": "higher",
+     "tolerance": 0.15,
+     "margin": {
+      "relative": 0.1
+     }
+    }
+   ]
+  }
+ },
+ "alb_idle_timeout_s": 60,
+ "arm_ready_ms": 1790913010000,
+ "started_at_ms": 1790913011255,
+ "first_window_start_ms": 1790913060000,
+ "gate_healthz": {
+  "ok": true,
+  "service_id": "default",
+  "mode": "enforce",
+  "fail_policy": "fail_closed"
+ },
+ "scored": {
+  "session_id": "sess-t3-AB-lat30-l2-r201-1790913011",
+  "verdict": "rollback",
+  "ticks": 11,
+  "window": 25
+ },
+ "w0": {
+  "session_id": "sess-t3-AB-lat30-l2-r201-w0-1790913011",
+  "verdict": "rollback",
+  "ticks": 11,
+  "window": 10
+ },
+ "complete": true,
+ "authority": {
+  "violation": false,
+  "stated": null,
+  "window": null
+ },
+ "ended_at_ms": 1790914800100,
+ "window_count": 26,
+ "manifest": {
+  "command": "node --config studies/twin-fault-shapes/lane2.json --cell AB-lat30 --run 201 --arm-ready 2026-10-02T03:50:10Z",
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "tolerated_dirt": [
+   {
+    "path": "tools/calibrate/_calibrate-constants.js",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  ],
+  "node": "v24.21.0",
+  "platform": "linux x64",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "b4e7f6b85bb497fe251fc74bad151975915071033c7ed314c4cc04ae38124908"
+ },
+ "void_reasons": [],
+ "counts_for_e2": true
+}
