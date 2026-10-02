@@ -219,3 +219,34 @@ for the first three, and `AB-reset` runs to its 20 as registered.
 - **Pins.** The runner and the analysis script change for this cell (the new fetch, the third
   metric for this cell only, the F5 bar); a dated amendment names the commit and the new tree
   hashes before the cell's run 0. Cells 1 to 3 ran from the trees of Amendment 1.
+
+## Amendment 3 — 2026-10-02, before `AB-reset-nr`'s run 0 (the pins for the fourth cell)
+
+Written before any run of the fourth cell, while `AB-reset`'s last round is running. It changes no
+bar, endpoint, prediction or void rule.
+
+- **The trees `AB-reset-nr` executes from.** DeploySignal `main` at `5ab70e4` (PR #152) or a later
+  `main` commit with identical tree hashes at these paths:
+
+  | Path | Tree at `5ab70e4` | Changed since Amendment 1 |
+  |---|---|---|
+  | `studies/twin-fault-shapes/harness` | `c1bf9e3761045560d6c2f247d9eaf2544e871d11` | yes: the fourth cell's fetch and metric |
+  | `studies/twin-fault-shapes/analysis` | `5951cd68323a8fdbd6ad52a19ebacf73558eeef4` | yes: the F5 bar and the unanswered-requests readout |
+  | `service/gate-http` | `5e0f86e3a05d9165e18009299f7010a7d451529e` | no |
+  | `service/sources` | `c10785a9612812b4c7b063c6f10d93b008918523` | no |
+  | `engine/gates` | `7eb52c902cbde9c37fd982b5552533f8011042a2` | no |
+  | `engine/guarantees.ts` | `c99401c57fa2a5a048e8598d9786a06d5e700e1f` | no |
+  | `studies/twin-aa-real/infra/service` | `6f65c09e3cd4444fc47a470debf1372638d0b5c4` | no |
+
+  Cells 1 to 3 ran from the trees of Amendment 1 (host at `163308f`). The host is pulled to the new
+  commit only after `AB-reset`'s last runner has exited, and the gate is restarted from it then.
+- **Analysis script per cell.** `AB-lat30` and `AB-5xx-1.5` were analysed with the script at tree
+  `7f66ee73…` (Amendment 1) before this change; their analysis directories are kept as written.
+  `AB-reset` and `AB-reset-nr` are analysed with the script at tree `5951cd68…`, whose changes
+  are the F5 bar for the fourth cell and a readout that is empty for cells without the metric.
+- **Engine, image, lane parameters.** Unchanged: engine `v0.13.0-pre` `de25786…`; image
+  `old-v3-20261001`; the lanes stay as deployed for `AB-reset` (canary on
+  `twin-aa-l<N>-canary-ab:4`, `RESET_FRACTION` 0.005), no stack update. The V9 record lists the
+  same canary revisions for `AB-reset-nr`.
+- **Drivers.** `RUNNER=studies/twin-fault-shapes/harness/run-real.mjs ALLOW_AB=1 drive-lane.sh
+  --cell AB-reset-nr --tasks 4 --runs 5` per lane; lane configs unchanged.
