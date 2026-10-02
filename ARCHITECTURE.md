@@ -122,6 +122,12 @@ A facade over two detection surfaces evaluated against the `PolicyContext`:
   never rolls back; `structural_detectors.enabled: false` runs no rule; the
   no-config path and a B-only compiled config keep rollback. The flag-based
   policy gates (`POLICY_GATE_IDS`) are not Family B and keep their effect.
+- **Authority of Families A/C/D/E: advisory.** Since C87 (2026-10-02,
+  `TEMPORAL_PATH_AUTHORITY` in `engine/guarantees.ts`) a fire of A, C or D is recorded
+  (`advisory_reason`, `advisory_id` on the verdict; `advisory_families` on the fused verdict;
+  `advisory_fires` in the audit record), books no α and never reaches `rollback[]`; E has been
+  advisory since C25. With Family B hold-only beside them, a compiled profile rolls back on the
+  policy gates and the short-circuits only.
 - **Families A/C/D/E — statistical dispatch**
   (`engine/gates/_health-detectors.ts` → `engine/detectors/`): per-signal
   mixture-supermartingale Page-CUSUM + betting e-process (A), Hotelling T² +
