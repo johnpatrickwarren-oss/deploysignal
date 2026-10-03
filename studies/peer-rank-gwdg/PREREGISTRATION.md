@@ -103,3 +103,11 @@ windows scorable (at least one scorable tick on at least one signal).
 signals, 14 one-sided tests, Bonferroni threshold 14 / 0.05 = 280**. The tidy-file hashes are checked
 against `studies/gwdg-gate/SHA256SUMS` (the study's freeze file), not the bundle sums named in the
 header. No bar or prediction changes.
+
+## Amendment 2 — 2026-10-03, before the harness runs (the engine pin is the module, not the checkout)
+
+The engine checkout on this machine is at the `v0.15.0-pre` release commit, whose
+`dist/detectors/peer-rank.js` is byte-identical to `af805e8`'s. The pin is restated as: the harness
+refuses to run unless `af805e8` is an ancestor of the checkout's HEAD **and**
+`dist/detectors/peer-rank.js` has sha256 `b7901965efb891a0c60d6bbdd8383e7192a051e71979c27c31c8f56c6f97114c` (the file as committed at `af805e8`). Both are
+recorded in the manifest. No other change.
