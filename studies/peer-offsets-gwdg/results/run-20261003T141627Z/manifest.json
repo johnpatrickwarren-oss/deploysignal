@@ -1,0 +1,13 @@
+{
+  "repo_sha": "9feb7849f667e414eab850b21d1471be3774b452",
+  "engine_sha": "e768c05f724b4a52a1ea9706d0c5c66da753dcf1",
+  "engine_dist": "/Users/johnwarren/concord/deploysignal-engine/dist",
+  "peer_rank_js_sha256": "6ff4582a0de8bf94fa7059af323dc6707d611fb93e4d3baccc1cefee6f18c848",
+  "gwdg_run": "/Users/johnwarren/.sdd-worktrees/ds-pog/studies/gwdg-gate/results/run-20260929T012317Z",
+  "record_hashes": {
+    "windows_json": "351abe34b545cb5abe044f41ad26d1c8f562db671fc61fc7a8c34a6332483a20",
+    "units_json": "5afc3f33e9704715f8e0b0b678c9645edc7f9fce4e6a550740fad2d02f485219"
+  },
+  "data": "/Users/johnwarren/concord/tessera/runs/gwdg-data/gwdg-gpu-node-telemetry-gpu-detachment-failures-2025-2026-v1.0.0",
+  "node": "v25.9.0"
+}
