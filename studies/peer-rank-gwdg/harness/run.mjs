@@ -43,7 +43,8 @@ const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/,
 const out = join(STUDY, 'results', `${SMOKE ? 'smoke' : 'run'}-${stamp}`);
 if (existsSync(out)) throw new Error(`refusing to overwrite ${out}`);
 
-function specs(margin) { const s = []; for (const sig of SIGNALS) for (const worse of ['higher', 'lower']) s.push({ sig, worse, spec: { id: `${sig}:${worse}`, worse, tolerance: 0.1, margin: { relative: margin }, alpha: ALPHA } }); return s; }
+// Amendment 3: each spec carries the Bonferroni share, so the module's own 1/alpha is the window threshold (280)
+function specs(margin) { const s = []; for (const sig of SIGNALS) for (const worse of ['higher', 'lower']) s.push({ sig, worse, spec: { id: `${sig}:${worse}`, worse, tolerance: 0.1, margin: { relative: margin }, alpha: ALPHA / N_TESTS } }); return s; }
 
 function runWindow(tidy, w, margin) {
   const unitSeries = tidy.series[w.gpu]; const peerGpus = tidy.gpus.filter((g) => g !== w.gpu);
@@ -65,8 +66,8 @@ function runWindow(tidy, w, margin) {
       const st = pr.stepPeerRank(t.spec, t.state, { unit: u, peers });
       t.state = st.state; if (st.x === null) { if (!Number.isFinite(u)) missing++; else skipped++; } else scored++;
       t.maxE = Math.max(t.maxE, st.rollbackE);
-      if (fire === null && st.rollbackE >= THRESHOLD) { fire = k; }
-      if (fire === k && st.rollbackE >= THRESHOLD) firing.push(t.spec.id);
+      if (fire === null && st.fire) { fire = k; }
+      if (fire === k && st.rollbackE >= THRESHOLD - 1e-9) firing.push(t.spec.id);
     }
     if (fire !== null) break;
   }
