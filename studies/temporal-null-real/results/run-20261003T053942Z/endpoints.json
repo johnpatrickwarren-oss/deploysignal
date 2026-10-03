@@ -1,0 +1,103 @@
+{
+  "study": "2026-10-temporal-null-real",
+  "generated": "2026-10-03T05:39:42.385Z",
+  "sessions": 100,
+  "executable": 100,
+  "void": [],
+  "harness_failures": 0,
+  "not_executable": false,
+  "alpha_budget": {
+    "total": 0.001,
+    "per_family": {
+      "A": 0.0004,
+      "B": 0.0003000000000000001,
+      "C": 0.0002,
+      "D": 0.0001,
+      "E": 0
+    }
+  },
+  "compiled": {
+    "version": "v4-fusion-novelty",
+    "cells": 840,
+    "confidence": {
+      "none": 770,
+      "pooled": 2,
+      "strict": 68
+    },
+    "family_A_signals": [
+      "p99_latency",
+      "downstream_err"
+    ],
+    "family_D": true,
+    "family_C": false,
+    "family_E": false
+  },
+  "E1": {
+    "rollback_sessions": 0,
+    "N": 100,
+    "rate": 0,
+    "upper95": 0.029513049607039876,
+    "p_ge_at_alpha_total": 1,
+    "verdict": "PASS"
+  },
+  "E2": {
+    "A": {
+      "sessions_with_rollback_fire": 0,
+      "alpha_share": 0.0004,
+      "p_ge": 1,
+      "verdict": "PASS"
+    },
+    "C": {
+      "sessions_with_rollback_fire": 0,
+      "alpha_share": 0.0002,
+      "p_ge": 1,
+      "verdict": "PASS"
+    },
+    "D": {
+      "sessions_with_rollback_fire": 0,
+      "alpha_share": 0.0001,
+      "p_ge": 1,
+      "verdict": "PASS"
+    },
+    "E": {
+      "sessions_with_rollback_fire": 0,
+      "alpha_share": 0,
+      "p_ge": null,
+      "verdict": "no cells, no fires"
+    },
+    "B_holds": 81
+  },
+  "E3": {
+    "by_regime": {
+      "full": {
+        "sessions": 19,
+        "rollbacks": 0,
+        "any_rollback_fire": 0
+      },
+      "half": {
+        "sessions": 63,
+        "rollbacks": 0,
+        "any_rollback_fire": 0
+      },
+      "mixed": {
+        "sessions": 18,
+        "rollbacks": 0,
+        "any_rollback_fire": 0
+      }
+    },
+    "restart_sessions": {
+      "sessions": 4,
+      "rollbacks": 0,
+      "any_rollback_fire": 0
+    },
+    "concordance_two_or_more_families": 0,
+    "fire_ids": {}
+  },
+  "E4": {
+    "extend_sessions": 0,
+    "proceed_sessions": 100,
+    "hold_ids": {
+      "low_traffic": 81
+    }
+  }
+}
