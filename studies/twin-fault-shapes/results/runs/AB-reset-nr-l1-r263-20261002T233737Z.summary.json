@@ -1,0 +1,140 @@
+{
+ "study_id": "2026-10-twin-fault-shapes",
+ "cell": "AB-reset-nr",
+ "lane": 1,
+ "run": 263,
+ "deploy_ref": "t3-AB-reset-nr-l1-r263",
+ "registered": {
+  "studyId": "2026-10-twin-fault-shapes",
+  "tickMs": 60000,
+  "settleMs": 180000,
+  "warmupTicks": 15,
+  "scoredTicks": 60,
+  "fetchAttempts": 3,
+  "fetchRetryMs": 20000,
+  "callTimeoutMs": 30000,
+  "stallBoundMs": 300000,
+  "armReadyMaxLagMs": 300000,
+  "armReadyMaxLeadMs": 60000,
+  "minArmRequests": 500,
+  "minMean5xxPerTick": 2,
+  "cells": [
+   "AB-lat30",
+   "AB-5xx-1.5",
+   "AB-reset",
+   "AB-reset-nr"
+  ],
+  "lanes": 4
+ },
+ "twin_arm": {
+  "scored": {
+   "canary_weight": 0.5,
+   "alpha_rollback": 0.05,
+   "alpha_proceed": 1e-12,
+   "alpha_srm": 0.001,
+   "max_ticks": 60,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    },
+    {
+     "id": "p99_latency",
+     "kind": "sign",
+     "worse": "higher",
+     "tolerance": 0.15,
+     "margin": {
+      "relative": 0.1
+     }
+    },
+    {
+     "id": "no_response",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    }
+   ]
+  },
+  "w0": {
+   "canary_weight": 0.5,
+   "alpha_rollback": 0.05,
+   "alpha_proceed": 1e-12,
+   "alpha_srm": 0.001,
+   "max_ticks": 75,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    },
+    {
+     "id": "p99_latency",
+     "kind": "sign",
+     "worse": "higher",
+     "tolerance": 0.15,
+     "margin": {
+      "relative": 0.1
+     }
+    },
+    {
+     "id": "no_response",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    }
+   ]
+  }
+ },
+ "alb_idle_timeout_s": 60,
+ "arm_ready_ms": 1790984256000,
+ "started_at_ms": 1790984257367,
+ "first_window_start_ms": 1790984280000,
+ "gate_healthz": {
+  "ok": true,
+  "service_id": "default",
+  "mode": "enforce",
+  "fail_policy": "fail_closed"
+ },
+ "scored": {
+  "session_id": "sess-t3-AB-reset-nr-l1-r263-1790984257",
+  "verdict": "rollback",
+  "ticks": 12,
+  "window": 26
+ },
+ "w0": {
+  "session_id": "sess-t3-AB-reset-nr-l1-r263-w0-1790984257",
+  "verdict": "rollback",
+  "ticks": 12,
+  "window": 11
+ },
+ "complete": true,
+ "authority": {
+  "violation": false,
+  "stated": null,
+  "window": null
+ },
+ "ended_at_ms": 1790986080088,
+ "window_count": 27,
+ "manifest": {
+  "command": "node --config studies/twin-fault-shapes/lane1.json --cell AB-reset-nr --run 263 --arm-ready 2026-10-02T23:37:36Z",
+  "repo_sha": "b1b1ac354aa2f8c8b381849c5084d1f7a675df81",
+  "tolerated_dirt": [
+   {
+    "path": "tools/calibrate/_calibrate-constants.js",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  ],
+  "node": "v24.21.0",
+  "platform": "linux x64",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "f2f77ae81970e10fb5508b88ec8200482a859b95e9d84257c67353a98df46005"
+ },
+ "void_reasons": [],
+ "counts_for_e2": true
+}
