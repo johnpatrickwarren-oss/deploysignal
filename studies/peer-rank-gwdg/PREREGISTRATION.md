@@ -95,3 +95,11 @@ share a workload. No authority changes on any outcome.
 A hash mismatch on any tidy file or on the two gwdg-gate records; the engine checkout's sha not
 `af805e8`; a harness exception in more than 5% of windows; fewer than 40 null or 36 detection
 windows scorable (at least one scorable tick on at least one signal).
+
+## Amendment 1 — 2026-10-03, before the harness (seven signals, not eight)
+
+`2026-09-gwdg-gate`'s Amendment 1 removed `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL`; its `lib.mjs`
+`SIGNALS` carries seven. §0, §2 and §3 above read "eight signals, 16 tests, 320": they are **seven
+signals, 14 one-sided tests, Bonferroni threshold 14 / 0.05 = 280**. The tidy-file hashes are checked
+against `studies/gwdg-gate/SHA256SUMS` (the study's freeze file), not the bundle sums named in the
+header. No bar or prediction changes.
