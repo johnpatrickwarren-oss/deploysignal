@@ -1,18 +1,18 @@
 # ADR 0001 — Rollback authority for the randomized twin, scoped to what was measured
 
 - **Date:** 2026-10-02
-- **Status:** PROPOSED. Draft for John's decision. Nothing in this PR changes code: `TWIN_ARM_AUTHORITY`
-  stays `'advisory'` (`engine/guarantees.ts`) until this ADR is accepted and its implementation PR
-  is merged with its own authorization.
+- **Status:** ACCEPTED 2026-10-03 (John, 2026-10-02: "let's accept all 5 after the fault study
+  report"; the report is `studies/twin-fault-shapes/REPORT.md`, §5 below is filled from it). Decision
+  only: `TWIN_ARM_AUTHORITY` stays `'advisory'` (`engine/guarantees.ts`) until the implementation PR
+  (§6) is merged with its own authorization, after the onebox study (§2, last row) closes.
 - **Author and conflict of interest:** written by the same session that designed, ran and
   analysed every study it cites, for the project's owner. No one outside that loop has reviewed
   the registrations, the runs or this text.
 - **Register:** knowledge `WORKLIST.md` C84 (the twin; "an authority ADR" is its open item), C87
   (the temporal path's authority); `DORMANCY.md` "Plan B — randomized twin"; engine ADRs 0036, 0037.
-- **Open at drafting, to be filled before acceptance:** study `2026-10-twin-fault-shapes`
-  (registered, not run): the margined `sign` kind's power, the `rate` kind off its one verified
-  point, and ELB-generated errors. §5 marks where its results go. This ADR should not be accepted
-  before that study reports.
+- **Open at acceptance:** study `2026-10-twin-aa-onebox` (registered, pinned, not run): one task
+  per arm, same-AZ and cross-AZ strata. It sets D1's arm-size and placement clauses (§3, D1 item 6)
+  before implementation.
 
 ## 1. The question
 
@@ -35,7 +35,8 @@ generator, Fargate).
 | `2026-10-twin-aa-real` AB-5xx | T3 | ×2 target-5xx fault | E4 PASS 20/20; `rate` first in 16 at ticks 25–26; unmargined `sign` pre-empted 4 |
 | engine `2026-10-twin-sign-margin` | T1 + replay | the margin (ADR 0037) | ship rule met; false rollback 0.000–0.037 under offsets up to 0.9 of the margin |
 | `2026-10-twin-aa-real-2` AA | T3 | A/A, 76 ms service, 4 tasks per arm, 10% margin | **E1 PASS 0/100** (upper bound 0.030); E2, E3 PASS |
-| `2026-10-twin-fault-shapes` | T3 | latency +30%, 5xx ×1.5, ELB-generated resets | registered, not run |
+| `2026-10-twin-fault-shapes` | T3 | latency +30%, 5xx ×1.5, resets without and with a `no_response` metric | F1 20/20 (tick 11); F2 20/20 (median tick 40); resets 0/20 unseen; with `no_response` 20/20 (tick 12) |
+| `2026-10-twin-aa-onebox` | T3 | A/A at one task per arm, same-AZ and cross-AZ strata, 100 runs each | registered, not run |
 
 Pooled over both T3 A/A cells the `rate` kind on target 5xx has 0 false rollbacks in 144 runs
 (one-sided 95% upper bound 0.021; two configurations pooled). The sample-ratio guard has 0 halts in
@@ -68,6 +69,17 @@ response; otherwise the session is refused, not silently downgraded:
    (persistent arm state accumulates with the horizon: engine T1, 0.165 over 2,000 ticks).
 4. `alpha_rollback` ≤ 0.05.
 5. The service is **qualified** (D2).
+6. **The metric set counts unanswered requests.** Target 5xx and p99 alone passed twenty runs of a
+   canary dropping 0.5% of its connections (§5, `AB-reset`): a dropped request produces no target
+   response, the load balancer's own 502 is published per load balancer only, and the request is
+   still counted as routed. An eligible session declares a `rate` metric whose events are requests
+   the target never answered — on ALB CloudWatch, `RequestCount` minus the target 2xx/3xx/4xx/5xx
+   sums per target group (the `no_response` construction, 20 of 20 at tick 12) — or an equivalent
+   client-side or mesh failure rate. That metric needs an A/A with it declared before a service's
+   qualification counts it (none has run; §5).
+7. **Arm size and placement:** to be set from `2026-10-twin-aa-onebox` before the implementation PR.
+   Measured so far: two tasks per arm failed on a 1 ms service without a margin; four passed on a
+   76 ms service with one. One task per arm, in the same AZ and across AZs, is the open row.
 
 For an eligible session: the record is `mode: 'enforce'`, `GET /v1/verdict` serves the rollback
 code, the tick response carries `"authority": "rollback"`, and the verdict enters the audit record
@@ -106,9 +118,12 @@ registered run; neither has.
 
 - That the false-rollback rate is at or below α. The claim is "not grossly above α at one service,
   and screened per service by D2".
-- Detection of anything but a uniform ×2 target-5xx regression, until §5 is filled.
-- Anything for ELB-generated errors, client-side errors, or failures the declared metrics do not
-  count (§5, AB-reset).
+- Detection of faults other than the four shapes in §5, or of a fault that arrives at random: the
+  study's faults are evenly spaced per process, so the measured tick spreads (11, 38–42, 11–12)
+  understate what a random-arrival fault of the same rate would show; at ×1.5 some such runs would
+  cross a 60-tick bake and the study does not say how many.
+- Anything for failures the declared metrics do not count: client-side errors, timeouts as against
+  resets, or an ALB-generated error the `no_response` subtraction does not capture.
 - A rule for choosing the margin. It is the operator's minimum effect of interest per latency
   metric; D2's qualification is run at the chosen margin.
 - Any authority for the temporal path. A session or profile with `twin_arm` never runs it; for
@@ -117,14 +132,17 @@ registered run; neither has.
   taken with this one, so the product does not carry two rollback authorities with opposite
   evidence.
 
-## 5. Power (to be completed from `2026-10-twin-fault-shapes`)
+## 5. Power (from `2026-10-twin-fault-shapes`, `studies/twin-fault-shapes/REPORT.md`)
 
 | Cell | Registered bar | Result | Consequence for D1 |
 |---|---|---|---|
 | ×2 target 5xx (first study) | ≥ 16 of 20 | 20 of 20, `rate` first in 16, median tick 25 | `rate` eligible; planner verified at ×2 |
-| `AB-lat30` (p99 +30%, 10% margin) | ≥ 16 of 20 | pending | if it fails, D1 keeps margined `sign` eligible for veto but the ADR states no latency detection claim |
-| `AB-5xx-1.5` | ≥ 10 of 20 in 60 ticks | pending | sets the smallest error regression the ADR may say a one-hour bake detects |
-| `AB-reset` (ELB-generated 502s) | none | pending | names what an operator must add to see errors the ALB target metrics do not count |
+| `AB-lat30` (p99 +30%, 10% margin) | ≥ 16 of 20 | 20 of 20, every rollback at tick 11, `sign` detector in all | margined `sign` detects a 30% p99 regression in 11 ticks; smaller regressions unmeasured |
+| `AB-5xx-1.5` (target 5xx ×1.5) | ≥ 10 of 20 in 60 ticks | 20 of 20, median tick 40 (38–42), `rate` detector in all; planner 44 | at about 6 baseline errors per arm per tick a one-hour bake detects ×1.5 and larger; the planner may size bakes at this traffic; see §4 on regularity |
+| `AB-reset` (0.5% connections dropped) | none | 0 of 20 roll back; ELB 5xx 6.09 per tick on the lane; target 5xx and p99 unchanged; guard at 1 | target 5xx + p99 alone are not an eligible metric set (D1 item 6) |
+| `AB-reset-nr` (the same, plus `no_response`) | ≥ 16 of 20 | 20 of 20, median tick 12, `no_response` detector in all; 6.08 unanswered per tick canary, 0 control | the subtraction metric sees what the ALB target metrics miss; its A/A is still owed |
+
+Sample-ratio halts: 0 in 81 attempts.
 
 ## 6. Implementation, after acceptance (separate PR, separate authorization)
 
@@ -145,7 +163,7 @@ template and CodeDeploy hook are untouched (D5).
   restated or the `sign` kind leaves D1's eligible set; latency as a `rate` over an SLO threshold
   (ADR 0037's fallback) is the replacement design.
 
-## 8. Options for the decision
+## 8. Options at drafting (decided: option 1, with D1 item 6 added from the fault study)
 
 1. **Accept D1–D5 after the fault-shape study reports** (recommended). It grants only what was
    measured, makes generality the operator's 30-session screen instead of an assumption, and keeps
