@@ -111,3 +111,14 @@ The engine checkout on this machine is at the `v0.15.0-pre` release commit, whos
 refuses to run unless `af805e8` is an ancestor of the checkout's HEAD **and**
 `dist/detectors/peer-rank.js` has sha256 `b7901965efb891a0c60d6bbdd8383e7192a051e71979c27c31c8f56c6f97114c` (the file as committed at `af805e8`). Both are
 recorded in the manifest. No other change.
+
+## Amendment 3 — 2026-10-03, after a void run, before the scored run (the Bonferroni threshold)
+
+`run-20261003T131943Z` is **void: instrument defect**, preserved unscored at
+`results/void-20261003T131943Z-instrument-defect/`. `stepPeerRank` fires and becomes terminal at its own
+`1/alpha`; the harness set `alpha 0.05` per spec and applied the Bonferroni threshold 280 outside the
+module, so every e-process froze at about 20–30 and 280 was unreachable: 0 of 44 and 0 of 40 were
+not measurements. Found by the instrument check (§ Disclosures: a planted ×3 on a unit's GPU temperature
+with mean x = 1.00 over 288 ticks did not fire). Correction: each spec carries `alpha = 0.05 / 14`, so
+the module's own threshold is 280 and the window's rollback is the module's fire. No bar, cell or
+prediction changes; the scored run follows this amendment.
