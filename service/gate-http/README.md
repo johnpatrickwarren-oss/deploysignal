@@ -167,6 +167,19 @@ path turns a twin verdict into an automatic rollback or a failed rollout:
 `test/twin-authority.test.ts` drives a regressed canary to an engine `rollback` on each of these
 surfaces and checks that none of them rolls back.
 
+### Self-calibration (ADR 0002)
+
+Every tick response and `GET /v1/verdict/{deploy_ref}` carries `self_calibration`: the temporal
+path's own measured false-alarm rate on this service's undeployed history, or `null` when nobody has
+measured it. It is produced by `node tools/self-calibrate.js --service-id <id> --store <baselineHistoryDir>
+--raw <ticks.json> …` (calibrate from the first part of the history as production would, replay the
+shipped gate over non-overlapping sessions of the rest, count) and stored at
+`<baselineHistoryDir>/<service_id>/self-calibration/latest.json`. The served summary is
+`{sessions, fires, upper95, measured_at, stale, stale_reason, per_family, span_days, unreachable_signals}`;
+`stale` is true when the record is older than its span or the session runs on a different compiled
+config; `unreachable_signals` names Family A signals whose compiled betting threshold cannot be reached
+(a 0-fire count there measures nothing). The field explains a fire; it never decides one.
+
 ### Argo Rollouts
 
 `argo/twin-analysis-template.yaml` holds the `deploysignal-twin-gate` AnalysisTemplate and an

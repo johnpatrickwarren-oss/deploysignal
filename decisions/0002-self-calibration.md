@@ -1,9 +1,11 @@
 # ADR 0002 — Self-calibration: the gate measures its own false-alarm rate on the service's undeployed history and shows it beside every advisory fire
 
 - **Date:** 2026-10-03
-- **Status:** PROPOSED. Becomes ACCEPTED when study `2026-10-self-calibration` (§6, registered here,
-  before any code) meets its acceptance rule. No authority changes: this ADR adds a measurement and
-  a field, not a verdict.
+- **Status:** ACCEPTED 2026-10-03 (`0002-self-calibration-ACCEPTANCE.md`: A1–A4 hold; A4 in the study's own
+  configuration, with the shipped configuration's unreachable threshold recorded and served as
+  `unreachable_signals`). No authority changes: a measurement and a field, not a verdict. Implemented by
+  `tools/self-calibrate.ts`, `service/session/self-calibration.ts` and the `self_calibration` field on tick
+  and verdict responses; attachment to individual advisory fires follows C87.
 - **Author and conflict of interest:** written by the session that designed and ran every study it
   cites, for the project's owner; no outside review.
 - **Register:** knowledge `WORKLIST.md` C87 (the temporal path's authority); DeploySignal ADR 0001;
