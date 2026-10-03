@@ -1,0 +1,277 @@
+{
+ "cell": "AB-5xx-1.5",
+ "registered": {
+  "R": 20,
+  "attempt_cap": 30,
+  "margin": 0.1,
+  "v8_lo_s": 0.02,
+  "v8_hi_s": 0.4,
+  "f4_max_halts": 2,
+  "planner_ticks_5xx_1_5": 44,
+  "endpoint": "F2",
+  "min_rollbacks": 10
+ },
+ "attempts": 20,
+ "deploy_failures": [],
+ "runs_with_runner": 20,
+ "summaries": 20,
+ "executable": 20,
+ "void_runs": [],
+ "power": {
+  "rollbacks": 20,
+  "executable": 20,
+  "rate": 1,
+  "median_rollback_tick": 40,
+  "rollback_ticks": [
+   38,
+   39,
+   39,
+   39,
+   39,
+   39,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   41,
+   41,
+   41,
+   41,
+   41,
+   42,
+   42,
+   42
+  ],
+  "non_rollback": []
+ },
+ "verdict": "PASS",
+ "fired_by_detector": {
+  "twin_rate_http_5xx": 20
+ },
+ "rollbacks_by_run": [
+  {
+   "run": 203,
+   "lane": 0,
+   "tick": 39,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 204,
+   "lane": 1,
+   "tick": 39,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 205,
+   "lane": 2,
+   "tick": 42,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 206,
+   "lane": 3,
+   "tick": 39,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 207,
+   "lane": 0,
+   "tick": 38,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 208,
+   "lane": 1,
+   "tick": 42,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 209,
+   "lane": 2,
+   "tick": 41,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 210,
+   "lane": 3,
+   "tick": 41,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 211,
+   "lane": 0,
+   "tick": 40,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 212,
+   "lane": 2,
+   "tick": 41,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 213,
+   "lane": 1,
+   "tick": 41,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 214,
+   "lane": 3,
+   "tick": 40,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 215,
+   "lane": 0,
+   "tick": 40,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 216,
+   "lane": 3,
+   "tick": 40,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 217,
+   "lane": 2,
+   "tick": 40,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 218,
+   "lane": 1,
+   "tick": 40,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 219,
+   "lane": 0,
+   "tick": 41,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 220,
+   "lane": 3,
+   "tick": 39,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 221,
+   "lane": 2,
+   "tick": 42,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  },
+  {
+   "run": 222,
+   "lane": 1,
+   "tick": 39,
+   "fired": [
+    "twin_rate_http_5xx"
+   ]
+  }
+ ],
+ "halts": 0,
+ "F4_cell": "within bar (study-level F4 sums the cells)",
+ "descriptives": {
+  "median_p99_ms": {
+   "canary": 76.64205394832793,
+   "control": 76.12637555230674
+  },
+  "margined_share": {
+   "min": 0,
+   "median": 0.05,
+   "max": 0.15
+  },
+  "mean_5xx_per_tick": {
+   "canary": 9.174473002393412,
+   "control": 6.08944255573267
+  },
+  "mean_requests_per_tick": {
+   "canary": 1220.4825851801174,
+   "control": 1220.0616542822818
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": {
+   "min": 0.9817995706861833,
+   "max": 1.0519002305840524
+  }
+ },
+ "authority_violations": 0,
+ "v67": {
+  "evaluated_runs": 20,
+  "flagged_runs": [],
+  "unassigned_inside_runs": [
+   203,
+   204,
+   205,
+   206,
+   207,
+   212,
+   213,
+   214
+  ]
+ },
+ "repo_shas": [
+  "163308f766f51d9d60b7313aa4c4b189f7d1341a"
+ ],
+ "engines": [
+  {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  }
+ ],
+ "canary_tds": [
+  "twin-aa-l0-canary-ab:3",
+  "twin-aa-l1-canary-ab:3",
+  "twin-aa-l2-canary-ab:3",
+  "twin-aa-l3-canary-ab:3"
+ ],
+ "control_tds": [
+  "twin-aa-l0:3",
+  "twin-aa-l1:3",
+  "twin-aa-l2:3",
+  "twin-aa-l3:3"
+ ]
+}

@@ -1,0 +1,26 @@
+{
+  "AB-lat30": {
+    "0": "twin-aa-l0-canary-ab:2",
+    "1": "twin-aa-l1-canary-ab:2",
+    "2": "twin-aa-l2-canary-ab:2",
+    "3": "twin-aa-l3-canary-ab:2"
+  },
+  "AB-5xx-1.5": {
+    "0": "twin-aa-l0-canary-ab:3",
+    "1": "twin-aa-l1-canary-ab:3",
+    "2": "twin-aa-l2-canary-ab:3",
+    "3": "twin-aa-l3-canary-ab:3"
+  },
+  "AB-reset": {
+    "0": "twin-aa-l0-canary-ab:4",
+    "1": "twin-aa-l1-canary-ab:4",
+    "2": "twin-aa-l2-canary-ab:4",
+    "3": "twin-aa-l3-canary-ab:4"
+  },
+  "AB-reset-nr": {
+    "0": "twin-aa-l0-canary-ab:4",
+    "1": "twin-aa-l1-canary-ab:4",
+    "2": "twin-aa-l2-canary-ab:4",
+    "3": "twin-aa-l3-canary-ab:4"
+  }
+}

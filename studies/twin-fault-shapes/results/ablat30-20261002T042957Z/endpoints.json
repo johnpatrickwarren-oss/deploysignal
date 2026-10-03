@@ -1,0 +1,270 @@
+{
+ "cell": "AB-lat30",
+ "registered": {
+  "R": 20,
+  "attempt_cap": 30,
+  "margin": 0.1,
+  "v8_lo_s": 0.02,
+  "v8_hi_s": 0.4,
+  "f4_max_halts": 2,
+  "planner_ticks_5xx_1_5": 44,
+  "endpoint": "F1",
+  "min_rollbacks": 16
+ },
+ "attempts": 20,
+ "deploy_failures": [],
+ "runs_with_runner": 20,
+ "summaries": 20,
+ "executable": 20,
+ "void_runs": [],
+ "power": {
+  "rollbacks": 20,
+  "executable": 20,
+  "rate": 1,
+  "median_rollback_tick": 11,
+  "rollback_ticks": [
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11,
+   11
+  ],
+  "non_rollback": []
+ },
+ "verdict": "PASS",
+ "fired_by_detector": {
+  "twin_sign_p99_latency": 20
+ },
+ "rollbacks_by_run": [
+  {
+   "run": 183,
+   "lane": 0,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 184,
+   "lane": 1,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 185,
+   "lane": 2,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 186,
+   "lane": 3,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 187,
+   "lane": 0,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 188,
+   "lane": 2,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 189,
+   "lane": 1,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 190,
+   "lane": 3,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 191,
+   "lane": 0,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 192,
+   "lane": 2,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 193,
+   "lane": 1,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 194,
+   "lane": 3,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 195,
+   "lane": 0,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 196,
+   "lane": 3,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 197,
+   "lane": 2,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 198,
+   "lane": 1,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 199,
+   "lane": 0,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 200,
+   "lane": 3,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 201,
+   "lane": 2,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  },
+  {
+   "run": 202,
+   "lane": 1,
+   "tick": 11,
+   "fired": [
+    "twin_sign_p99_latency"
+   ]
+  }
+ ],
+ "halts": 0,
+ "F4_cell": "within bar (study-level F4 sums the cells)",
+ "descriptives": {
+  "median_p99_ms": {
+   "canary": 99.30057354085106,
+   "control": 76.49609774479572
+  },
+  "margined_share": {
+   "min": 1,
+   "median": 1,
+   "max": 1
+  },
+  "mean_5xx_per_tick": {
+   "canary": 6.10909090909091,
+   "control": 6.145454545454546
+  },
+  "mean_requests_per_tick": {
+   "canary": 1219.9727272727273,
+   "control": 1220.1318181818183
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": {
+   "min": 0.9939752288158049,
+   "max": 1.0095916731697132
+  }
+ },
+ "authority_violations": 0,
+ "v67": {
+  "evaluated_runs": 20,
+  "flagged_runs": [],
+  "unassigned_inside_runs": [
+   191
+  ]
+ },
+ "repo_shas": [
+  "163308f766f51d9d60b7313aa4c4b189f7d1341a"
+ ],
+ "engines": [
+  {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  }
+ ],
+ "canary_tds": [
+  "twin-aa-l0-canary-ab:2",
+  "twin-aa-l1-canary-ab:2",
+  "twin-aa-l2-canary-ab:2",
+  "twin-aa-l3-canary-ab:2"
+ ],
+ "control_tds": [
+  "twin-aa-l0:3",
+  "twin-aa-l1:3",
+  "twin-aa-l2:3",
+  "twin-aa-l3:3"
+ ]
+}

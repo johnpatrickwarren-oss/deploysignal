@@ -1,0 +1,2 @@
+R5 violated before start: baseline-old arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2:3 != canary-new arn:aws:ecs:us-east-1:<acct>:task-definition/twin-aa-l2-canary-ab:3 (AB-5xx cell only)
+ARM_READY=2026-10-02T04:38:45Z

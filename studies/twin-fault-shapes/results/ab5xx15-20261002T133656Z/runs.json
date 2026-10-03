@@ -1,0 +1,1300 @@
+[
+ {
+  "run": 203,
+  "lane": 0,
+  "file": "AB-5xx-1.5-l0-r203-20261002T043713Z.summary.json",
+  "arm_ready": "2026-10-02T04:37:13Z",
+  "runner_exit": "2026-10-02T05:35:30Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "0ef95c14bc375617ef5b0f9c9145886bee2f967eac92692c6c547637376372dd",
+  "canary_tds": [
+   "twin-aa-l0-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l0:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-01T21:40:32-07:00",
+     "name": "TaskCreated",
+     "id": "aa804260-3b41-4d42-b42a-cefbbe652346"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.41025641025641024,
+  "p99_canary_worse_share_margin": 0.02564102564102564,
+  "median_p99_s": {
+   "canary": 0.07664205394832793,
+   "control": 0.07791519398710078
+  },
+  "mean_requests": {
+   "canary": 1229.6153846153845,
+   "control": 1211.128205128205
+  },
+  "mean_5xx": {
+   "canary": 9.23076923076923,
+   "control": 6.051282051282051
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 1.0519002305840524,
+  "final_e": {
+   "http_5xx": 40.75864076638633,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 204,
+  "lane": 1,
+  "file": "AB-5xx-1.5-l1-r204-20261002T043800Z.summary.json",
+  "arm_ready": "2026-10-02T04:37:59Z",
+  "runner_exit": "2026-10-02T05:36:17Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "f2f77ae81970e10fb5508b88ec8200482a859b95e9d84257c67353a98df46005",
+  "canary_tds": [
+   "twin-aa-l1-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l1:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-01T21:40:32-07:00",
+     "name": "TaskCreated",
+     "id": "aa804260-3b41-4d42-b42a-cefbbe652346"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.48717948717948717,
+  "p99_canary_worse_share_margin": 0.07692307692307693,
+  "median_p99_s": {
+   "canary": 0.07653661323051313,
+   "control": 0.07567665158205195
+  },
+  "mean_requests": {
+   "canary": 1210.4871794871794,
+   "control": 1225.051282051282
+  },
+  "mean_5xx": {
+   "canary": 9.128205128205128,
+   "control": 6.051282051282051
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 1.0333822396750103,
+  "final_e": {
+   "http_5xx": 42.63955476792654,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 205,
+  "lane": 2,
+  "file": "AB-5xx-1.5-l2-r205-20261002T043845Z.summary.json",
+  "arm_ready": "2026-10-02T04:38:45Z",
+  "runner_exit": "2026-10-02T05:39:03Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 42
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "b4e7f6b85bb497fe251fc74bad151975915071033c7ed314c4cc04ae38124908",
+  "canary_tds": [
+   "twin-aa-l2-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l2:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-01T21:40:32-07:00",
+     "name": "TaskCreated",
+     "id": "aa804260-3b41-4d42-b42a-cefbbe652346"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.47619047619047616,
+  "p99_canary_worse_share_margin": 0,
+  "median_p99_s": {
+   "canary": 0.07603090315901856,
+   "control": 0.07685337136550782
+  },
+  "mean_requests": {
+   "canary": 1214.5238095238096,
+   "control": 1214.8333333333333
+  },
+  "mean_5xx": {
+   "canary": 9.142857142857142,
+   "control": 6.095238095238095
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9827126151644598,
+  "final_e": {
+   "http_5xx": 49.64266838422499,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 206,
+  "lane": 3,
+  "file": "AB-5xx-1.5-l3-r206-20261002T044143Z.summary.json",
+  "arm_ready": "2026-10-02T04:41:43Z",
+  "runner_exit": "2026-10-02T05:40:00Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "6a96f96791ef3283080852e967b01da475526738212a1701b3c815f0eaf79863",
+  "canary_tds": [
+   "twin-aa-l3-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l3:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-01T22:39:46-07:00",
+     "name": "TaskCreated",
+     "id": "13beaa8e-32d2-489d-a265-9c54825c716c"
+    },
+    {
+     "t": "2026-10-01T22:39:55-07:00",
+     "name": "TaskCreated",
+     "id": "3a29a67c-b19c-4c29-b568-103fced0b91e"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.5384615384615384,
+  "p99_canary_worse_share_margin": 0.02564102564102564,
+  "median_p99_s": {
+   "canary": 0.07751442259981565,
+   "control": 0.07720413725961715
+  },
+  "mean_requests": {
+   "canary": 1223.948717948718,
+   "control": 1217.948717948718
+  },
+  "mean_5xx": {
+   "canary": 9.23076923076923,
+   "control": 6.051282051282051
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9901262478914521,
+  "final_e": {
+   "http_5xx": 42.09142566710712,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 207,
+  "lane": 0,
+  "file": "AB-5xx-1.5-l0-r207-20261002T053836Z.summary.json",
+  "arm_ready": "2026-10-02T05:38:36Z",
+  "runner_exit": "2026-10-02T06:35:52Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 38
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "0ef95c14bc375617ef5b0f9c9145886bee2f967eac92692c6c547637376372dd",
+  "canary_tds": [
+   "twin-aa-l0-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l0:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-01T22:39:46-07:00",
+     "name": "TaskCreated",
+     "id": "13beaa8e-32d2-489d-a265-9c54825c716c"
+    },
+    {
+     "t": "2026-10-01T22:39:55-07:00",
+     "name": "TaskCreated",
+     "id": "3a29a67c-b19c-4c29-b568-103fced0b91e"
+    },
+    {
+     "t": "2026-10-01T22:40:52-07:00",
+     "name": "TaskCreated",
+     "id": "b9409fb5-6924-4001-b943-3fa2c639242e"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.5789473684210527,
+  "p99_canary_worse_share_margin": 0.07894736842105263,
+  "median_p99_s": {
+   "canary": 0.077110987856229,
+   "control": 0.07602883275319437
+  },
+  "mean_requests": {
+   "canary": 1227.1842105263158,
+   "control": 1220.5263157894738
+  },
+  "mean_5xx": {
+   "canary": 9.263157894736842,
+   "control": 6.105263157894737
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.996321006208861,
+  "final_e": {
+   "http_5xx": 42.13290744789184,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 208,
+  "lane": 1,
+  "file": "AB-5xx-1.5-l1-r208-20261002T054206Z.summary.json",
+  "arm_ready": "2026-10-02T05:42:05Z",
+  "runner_exit": "2026-10-02T06:43:23Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 42
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "f2f77ae81970e10fb5508b88ec8200482a859b95e9d84257c67353a98df46005",
+  "canary_tds": [
+   "twin-aa-l1-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l1:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.5476190476190477,
+  "p99_canary_worse_share_margin": 0.11904761904761904,
+  "median_p99_s": {
+   "canary": 0.07702284472605334,
+   "control": 0.07548215755013947
+  },
+  "mean_requests": {
+   "canary": 1228.047619047619,
+   "control": 1223.5238095238096
+  },
+  "mean_5xx": {
+   "canary": 9.238095238095237,
+   "control": 6.095238095238095
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9817995706861833,
+  "final_e": {
+   "http_5xx": 48.771998324301876,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 209,
+  "lane": 2,
+  "file": "AB-5xx-1.5-l2-r209-20261002T054235Z.summary.json",
+  "arm_ready": "2026-10-02T05:42:35Z",
+  "runner_exit": "2026-10-02T06:42:52Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "b4e7f6b85bb497fe251fc74bad151975915071033c7ed314c4cc04ae38124908",
+  "canary_tds": [
+   "twin-aa-l2-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l2:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.34146341463414637,
+  "p99_canary_worse_share_margin": 0.07317073170731707,
+  "median_p99_s": {
+   "canary": 0.07645965214542533,
+   "control": 0.07731704762753777
+  },
+  "mean_requests": {
+   "canary": 1211.8048780487804,
+   "control": 1228.7073170731708
+  },
+  "mean_5xx": {
+   "canary": 9.073170731707316,
+   "control": 6.146341463414634
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 1.0507934339840188,
+  "final_e": {
+   "http_5xx": 47.07846547906475,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 210,
+  "lane": 3,
+  "file": "AB-5xx-1.5-l3-r210-20261002T054320Z.summary.json",
+  "arm_ready": "2026-10-02T05:43:19Z",
+  "runner_exit": "2026-10-02T06:43:36Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "6a96f96791ef3283080852e967b01da475526738212a1701b3c815f0eaf79863",
+  "canary_tds": [
+   "twin-aa-l3-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l3:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.4634146341463415,
+  "p99_canary_worse_share_margin": 0.04878048780487805,
+  "median_p99_s": {
+   "canary": 0.07599548398516374,
+   "control": 0.07747441506282755
+  },
+  "mean_requests": {
+   "canary": 1220.8536585365853,
+   "control": 1209.6829268292684
+  },
+  "mean_5xx": {
+   "canary": 9.170731707317072,
+   "control": 6.048780487804878
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 1.019616498169679,
+  "final_e": {
+   "http_5xx": 42.163368945944406,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 211,
+  "lane": 0,
+  "file": "AB-5xx-1.5-l0-r211-20261002T063923Z.summary.json",
+  "arm_ready": "2026-10-02T06:39:22Z",
+  "runner_exit": "2026-10-02T07:38:39Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "0ef95c14bc375617ef5b0f9c9145886bee2f967eac92692c6c547637376372dd",
+  "canary_tds": [
+   "twin-aa-l0-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l0:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.6,
+  "p99_canary_worse_share_margin": 0.15,
+  "median_p99_s": {
+   "canary": 0.07687372102763446,
+   "control": 0.07575603349521713
+  },
+  "mean_requests": {
+   "canary": 1219.05,
+   "control": 1220.825
+  },
+  "mean_5xx": {
+   "canary": 9.1,
+   "control": 6.1
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9883298538760313,
+  "final_e": {
+   "http_5xx": 41.56238900389063,
+   "p99_latency": 0.5
+  }
+ },
+ {
+  "run": 212,
+  "lane": 2,
+  "file": "AB-5xx-1.5-l2-r212-20261002T064600Z.summary.json",
+  "arm_ready": "2026-10-02T06:45:59Z",
+  "runner_exit": "2026-10-02T07:46:17Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "b4e7f6b85bb497fe251fc74bad151975915071033c7ed314c4cc04ae38124908",
+  "canary_tds": [
+   "twin-aa-l2-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l2:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-02T00:42:09-07:00",
+     "name": "TaskCreated",
+     "id": "b6218f0c-2c94-4172-b56e-254f1e60927b"
+    },
+    {
+     "t": "2026-10-02T00:42:34-07:00",
+     "name": "TaskCreated",
+     "id": "7264f76e-dd17-4e52-b8ad-ae148e49e392"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.4878048780487805,
+  "p99_canary_worse_share_margin": 0.07317073170731707,
+  "median_p99_s": {
+   "canary": 0.07671513644975113,
+   "control": 0.07581973036377729
+  },
+  "mean_requests": {
+   "canary": 1226.0243902439024,
+   "control": 1221
+  },
+  "mean_5xx": {
+   "canary": 9.170731707317072,
+   "control": 6.048780487804878
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9949833927873947,
+  "final_e": {
+   "http_5xx": 46.274141153520965,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 213,
+  "lane": 1,
+  "file": "AB-5xx-1.5-l1-r213-20261002T064631Z.summary.json",
+  "arm_ready": "2026-10-02T06:46:30Z",
+  "runner_exit": "2026-10-02T07:46:48Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "f2f77ae81970e10fb5508b88ec8200482a859b95e9d84257c67353a98df46005",
+  "canary_tds": [
+   "twin-aa-l1-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l1:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-02T00:42:09-07:00",
+     "name": "TaskCreated",
+     "id": "b6218f0c-2c94-4172-b56e-254f1e60927b"
+    },
+    {
+     "t": "2026-10-02T00:42:34-07:00",
+     "name": "TaskCreated",
+     "id": "7264f76e-dd17-4e52-b8ad-ae148e49e392"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.4634146341463415,
+  "p99_canary_worse_share_margin": 0.04878048780487805,
+  "median_p99_s": {
+   "canary": 0.07598743647435122,
+   "control": 0.07612637555230674
+  },
+  "mean_requests": {
+   "canary": 1215.0487804878048,
+   "control": 1215.9756097560976
+  },
+  "mean_5xx": {
+   "canary": 9.170731707317072,
+   "control": 6.048780487804878
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.988288562546343,
+  "final_e": {
+   "http_5xx": 47.423634006273666,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 214,
+  "lane": 3,
+  "file": "AB-5xx-1.5-l3-r214-20261002T064645Z.summary.json",
+  "arm_ready": "2026-10-02T06:46:45Z",
+  "runner_exit": "2026-10-02T07:45:01Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "6a96f96791ef3283080852e967b01da475526738212a1701b3c815f0eaf79863",
+  "canary_tds": [
+   "twin-aa-l3-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l3:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": [
+    {
+     "t": "2026-10-02T00:42:09-07:00",
+     "name": "TaskCreated",
+     "id": "b6218f0c-2c94-4172-b56e-254f1e60927b"
+    },
+    {
+     "t": "2026-10-02T00:42:34-07:00",
+     "name": "TaskCreated",
+     "id": "7264f76e-dd17-4e52-b8ad-ae148e49e392"
+    }
+   ]
+  },
+  "p99_canary_worse_share": 0.525,
+  "p99_canary_worse_share_margin": 0.05,
+  "median_p99_s": {
+   "canary": 0.07648698471662145,
+   "control": 0.07639201352248418
+  },
+  "mean_requests": {
+   "canary": 1222.175,
+   "control": 1217.325
+  },
+  "mean_5xx": {
+   "canary": 9.2,
+   "control": 6.1
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9916150345885166,
+  "final_e": {
+   "http_5xx": 45.731962146481415,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 215,
+  "lane": 0,
+  "file": "AB-5xx-1.5-l0-r215-20261002T074258Z.summary.json",
+  "arm_ready": "2026-10-02T07:42:58Z",
+  "runner_exit": "2026-10-02T08:41:15Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 42
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "0ef95c14bc375617ef5b0f9c9145886bee2f967eac92692c6c547637376372dd",
+  "canary_tds": [
+   "twin-aa-l0-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l0:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.45,
+  "p99_canary_worse_share_margin": 0.075,
+  "median_p99_s": {
+   "canary": 0.07643779312107413,
+   "control": 0.07635041949849813
+  },
+  "mean_requests": {
+   "canary": 1226.45,
+   "control": 1225.3
+  },
+  "mean_5xx": {
+   "canary": 9.2,
+   "control": 6.1
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9893835959698638,
+  "final_e": {
+   "http_5xx": 44.8637662419658,
+   "p99_latency": 0.5
+  }
+ },
+ {
+  "run": 216,
+  "lane": 3,
+  "file": "AB-5xx-1.5-l3-r216-20261002T074819Z.summary.json",
+  "arm_ready": "2026-10-02T07:48:18Z",
+  "runner_exit": "2026-10-02T08:47:35Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "6a96f96791ef3283080852e967b01da475526738212a1701b3c815f0eaf79863",
+  "canary_tds": [
+   "twin-aa-l3-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l3:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.5,
+  "p99_canary_worse_share_margin": 0.025,
+  "median_p99_s": {
+   "canary": 0.07615661329992733,
+   "control": 0.0756539070801848
+  },
+  "mean_requests": {
+   "canary": 1208.05,
+   "control": 1223.4
+  },
+  "mean_5xx": {
+   "canary": 9.1,
+   "control": 6.2
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 1.036497637704541,
+  "final_e": {
+   "http_5xx": 43.303535104322904,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 217,
+  "lane": 2,
+  "file": "AB-5xx-1.5-l2-r217-20261002T074935Z.summary.json",
+  "arm_ready": "2026-10-02T07:49:34Z",
+  "runner_exit": "2026-10-02T08:48:51Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "b4e7f6b85bb497fe251fc74bad151975915071033c7ed314c4cc04ae38124908",
+  "canary_tds": [
+   "twin-aa-l2-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l2:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.625,
+  "p99_canary_worse_share_margin": 0.025,
+  "median_p99_s": {
+   "canary": 0.07676999405511171,
+   "control": 0.07596157524669339
+  },
+  "mean_requests": {
+   "canary": 1222.95,
+   "control": 1229.7
+  },
+  "mean_5xx": {
+   "canary": 9.2,
+   "control": 6.2
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9923075003029029,
+  "final_e": {
+   "http_5xx": 40.13664806401566,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 218,
+  "lane": 1,
+  "file": "AB-5xx-1.5-l1-r218-20261002T075006Z.summary.json",
+  "arm_ready": "2026-10-02T07:50:06Z",
+  "runner_exit": "2026-10-02T08:49:23Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 38
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "f2f77ae81970e10fb5508b88ec8200482a859b95e9d84257c67353a98df46005",
+  "canary_tds": [
+   "twin-aa-l1-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l1:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.5,
+  "p99_canary_worse_share_margin": 0.1,
+  "median_p99_s": {
+   "canary": 0.0768092020742527,
+   "control": 0.0759216252058201
+  },
+  "mean_requests": {
+   "canary": 1218.375,
+   "control": 1215.825
+  },
+  "mean_5xx": {
+   "canary": 9.2,
+   "control": 6.1
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.99008030183135,
+  "final_e": {
+   "http_5xx": 45.40936551249858,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 219,
+  "lane": 0,
+  "file": "AB-5xx-1.5-l0-r219-20261002T084421Z.summary.json",
+  "arm_ready": "2026-10-02T08:44:21Z",
+  "runner_exit": "2026-10-02T09:44:38Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 41
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "0ef95c14bc375617ef5b0f9c9145886bee2f967eac92692c6c547637376372dd",
+  "canary_tds": [
+   "twin-aa-l0-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l0:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.5609756097560976,
+  "p99_canary_worse_share_margin": 0.024390243902439025,
+  "median_p99_s": {
+   "canary": 0.07627768444385458,
+   "control": 0.07591504721466542
+  },
+  "mean_requests": {
+   "canary": 1221.341463414634,
+   "control": 1214.4146341463415
+  },
+  "mean_5xx": {
+   "canary": 9.073170731707316,
+   "control": 6.048780487804878
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 1.0039687250186717,
+  "final_e": {
+   "http_5xx": 43.5601269414193,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 220,
+  "lane": 3,
+  "file": "AB-5xx-1.5-l3-r220-20261002T085042Z.summary.json",
+  "arm_ready": "2026-10-02T08:50:41Z",
+  "runner_exit": "2026-10-02T09:48:58Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "6a96f96791ef3283080852e967b01da475526738212a1701b3c815f0eaf79863",
+  "canary_tds": [
+   "twin-aa-l3-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l3:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.38461538461538464,
+  "p99_canary_worse_share_margin": 0.02564102564102564,
+  "median_p99_s": {
+   "canary": 0.07568226171075408,
+   "control": 0.07647526956132061
+  },
+  "mean_requests": {
+   "canary": 1217.179487179487,
+   "control": 1221.2564102564102
+  },
+  "mean_5xx": {
+   "canary": 9.128205128205128,
+   "control": 6.051282051282051
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9860224509092372,
+  "final_e": {
+   "http_5xx": 40.0645106505568,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 221,
+  "lane": 2,
+  "file": "AB-5xx-1.5-l2-r221-20261002T085158Z.summary.json",
+  "arm_ready": "2026-10-02T08:51:58Z",
+  "runner_exit": "2026-10-02T09:52:16Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 42
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "b4e7f6b85bb497fe251fc74bad151975915071033c7ed314c4cc04ae38124908",
+  "canary_tds": [
+   "twin-aa-l2-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l2:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.5,
+  "p99_canary_worse_share_margin": 0.023809523809523808,
+  "median_p99_s": {
+   "canary": 0.07740060923634898,
+   "control": 0.07684686061140265
+  },
+  "mean_requests": {
+   "canary": 1227.952380952381,
+   "control": 1219.4761904761904
+  },
+  "mean_5xx": {
+   "canary": 9.238095238095237,
+   "control": 6.095238095238095
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9973862585372385,
+  "final_e": {
+   "http_5xx": 46.96676822616316,
+   "p99_latency": 1
+  }
+ },
+ {
+  "run": 222,
+  "lane": 1,
+  "file": "AB-5xx-1.5-l1-r222-20261002T085229Z.summary.json",
+  "arm_ready": "2026-10-02T08:52:29Z",
+  "runner_exit": "2026-10-02T09:50:45Z",
+  "runner_exit_code": "0",
+  "complete": true,
+  "operator_abort": false,
+  "void_reasons": [],
+  "executable": true,
+  "scored": {
+   "verdict": "rollback",
+   "ticks": 39
+  },
+  "w0": {
+   "verdict": "rollback",
+   "ticks": 40
+  },
+  "fired": [
+   "twin_rate_http_5xx"
+  ],
+  "authority_violation": false,
+  "repo_sha": "163308f766f51d9d60b7313aa4c4b189f7d1341a",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "f2f77ae81970e10fb5508b88ec8200482a859b95e9d84257c67353a98df46005",
+  "canary_tds": [
+   "twin-aa-l1-canary-ab:3"
+  ],
+  "control_tds": [
+   "twin-aa-l1:3"
+  ],
+  "v67": {
+   "evaluated": true,
+   "events_inside": [],
+   "unassigned_inside": []
+  },
+  "p99_canary_worse_share": 0.6666666666666666,
+  "p99_canary_worse_share_margin": 0.07692307692307693,
+  "median_p99_s": {
+   "canary": 0.07766334985285199,
+   "control": 0.0754192343840452
+  },
+  "mean_requests": {
+   "canary": 1218.5897435897436,
+   "control": 1225.3333333333333
+  },
+  "mean_5xx": {
+   "canary": 9.23076923076923,
+   "control": 6.051282051282051
+  },
+  "mean_elb_5xx_lb_per_tick": 0,
+  "final_srm_e": 0.9971461682369215,
+  "final_e": {
+   "http_5xx": 41.7329326479054,
+   "p99_latency": 1
+  }
+ }
+]

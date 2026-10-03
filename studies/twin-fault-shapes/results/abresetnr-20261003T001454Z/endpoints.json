@@ -1,0 +1,281 @@
+{
+ "cell": "AB-reset-nr",
+ "registered": {
+  "R": 20,
+  "attempt_cap": 30,
+  "margin": 0.1,
+  "v8_lo_s": 0.02,
+  "v8_hi_s": 0.4,
+  "f4_max_halts": 2,
+  "planner_ticks_5xx_1_5": 44,
+  "endpoint": "F5",
+  "min_rollbacks": 16
+ },
+ "attempts": 21,
+ "deploy_failures": [],
+ "runs_with_runner": 21,
+ "summaries": 21,
+ "executable": 20,
+ "void_runs": [
+  {
+   "run": 260,
+   "reasons": [
+    "V6/V7 write event on the lane's resources inside the run: TaskCreated@2026-10-02T15:57:39-07:00"
+   ]
+  }
+ ],
+ "power": {
+  "rollbacks": 20,
+  "executable": 20,
+  "rate": 1,
+  "median_rollback_tick": 12,
+  "rollback_ticks": [
+   11,
+   11,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12
+  ],
+  "non_rollback": []
+ },
+ "verdict": "PASS",
+ "fired_by_detector": {
+  "twin_rate_no_response": 20
+ },
+ "rollbacks_by_run": [
+  {
+   "run": 243,
+   "lane": 0,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 244,
+   "lane": 1,
+   "tick": 11,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 245,
+   "lane": 2,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 246,
+   "lane": 3,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 247,
+   "lane": 0,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 248,
+   "lane": 1,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 249,
+   "lane": 3,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 250,
+   "lane": 2,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 251,
+   "lane": 0,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 252,
+   "lane": 1,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 253,
+   "lane": 2,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 254,
+   "lane": 3,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 255,
+   "lane": 0,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 256,
+   "lane": 1,
+   "tick": 11,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 257,
+   "lane": 2,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 258,
+   "lane": 3,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 259,
+   "lane": 0,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 261,
+   "lane": 2,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 262,
+   "lane": 3,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  },
+  {
+   "run": 263,
+   "lane": 1,
+   "tick": 12,
+   "fired": [
+    "twin_rate_no_response"
+   ]
+  }
+ ],
+ "halts": 0,
+ "F4_cell": "within bar (study-level F4 sums the cells)",
+ "descriptives": {
+  "median_p99_ms": {
+   "canary": 76.80455415211884,
+   "control": 76.93480234950053
+  },
+  "margined_share": {
+   "min": 0,
+   "median": 0,
+   "max": 0.16666666666666666
+  },
+  "mean_5xx_per_tick": {
+   "canary": 6.126515151515151,
+   "control": 6.0666666666666655
+  },
+  "mean_requests_per_tick": {
+   "canary": 1222.0681818181818,
+   "control": 1215.3181818181818
+  },
+  "mean_elb_5xx_lb_per_tick": 6.08181818181818,
+  "final_srm_e": {
+   "min": 0.990558056078737,
+   "max": 1.05298022794313
+  },
+  "mean_no_response_per_tick": {
+   "canary": 6.08181818181818,
+   "control": 0
+  }
+ },
+ "authority_violations": 0,
+ "v67": {
+  "evaluated_runs": 21,
+  "flagged_runs": [
+   260
+  ],
+  "unassigned_inside_runs": []
+ },
+ "repo_shas": [
+  "b1b1ac354aa2f8c8b381849c5084d1f7a675df81"
+ ],
+ "engines": [
+  {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  }
+ ],
+ "canary_tds": [
+  "twin-aa-l0-canary-ab:4",
+  "twin-aa-l1-canary-ab:4",
+  "twin-aa-l2-canary-ab:4",
+  "twin-aa-l3-canary-ab:4"
+ ],
+ "control_tds": [
+  "twin-aa-l0:3",
+  "twin-aa-l1:3",
+  "twin-aa-l2:3",
+  "twin-aa-l3:3"
+ ]
+}
