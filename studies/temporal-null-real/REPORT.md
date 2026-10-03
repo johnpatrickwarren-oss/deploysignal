@@ -8,6 +8,18 @@
 - **Verdicts:** E1 PASS (0 of 100), E2 Family A PASS (0 of 100), E3 and E4 reported. **Family D was not
   exercised** (§2), so its registered E2 line is vacuous and carries no verdict here.
 
+## Correction to the registration's premise
+
+The registration (§0 and the note that motivated it) says no temporal family "has a measured null on
+real traffic". That was wrong when written. `2026-09-gwdg-gate` and `2026-09-burstgpt-gate` (knowledge
+`stats/gwdg-gate-2026-09-29`, `stats/burstgpt-gate-2026-09-29`, engine `v0.12.2-pre`) measured the
+temporal path's false rollback on two real substrates: Family A alone rolled back 40 of 44 healthy
+two-day GPU-telemetry windows (0.909), and 13 of 87 consecutive 100-tick canaries on a real LLM
+request stream's cost per request (0.149). Those are why the path was retired from authority. This
+study is a third substrate, not the first, and its 0 of 100 sits beside 0.909 and 0.149: the
+temporal path's null is substrate-dependent, and this report claims nothing about it beyond this
+service's two signals. The registration text stands as written; this paragraph is the correction.
+
 ## 0. The headline
 
 Replayed through the shipped temporal path, calibrated from 34.6 hours of its own history the way an
