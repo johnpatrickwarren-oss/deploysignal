@@ -45,7 +45,7 @@ function replayRun(file, spec) {
 const results = []; const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
 const out = join(STUDY, 'results', `run-${stamp}`); if (existsSync(out)) throw new Error('refusing to overwrite');
 for (const src of SOURCES) {
-  const files = readdirSync(src.dir).filter((f) => f.startsWith(src.prefix) && f.endsWith('.jsonl') && !f.includes('summary')).sort();
+  const files = readdirSync(src.dir).filter((f) => f.startsWith(src.prefix + 'l') && /^-l\d-r\d+-/.test(f.slice(src.prefix.length - 1)) && f.endsWith('.jsonl') && !f.includes('summary')).sort(); // Amendment 1: exact cell match (AB-reset vs AB-reset-nr)
   for (const f of files) {
     const base = f.replace(/-\d{8}T\d{6}Z\.jsonl$/, ''); const summ = readdirSync(src.dir).find((g) => g.startsWith(base + '-') && g.endsWith('.summary.json'));
     let voidReasons = [], scoredVerdict = null, scoredTicks = null, fired = [];
@@ -67,12 +67,12 @@ const E = {};
 for (const src of SOURCES) for (const arm of Object.keys(ARMS)) {
   const rows = results.filter((r) => r.study === src.study && r.cell === src.cell && r.arm === arm && r.executable && r.outcome !== 'exception');
   const rb = rows.filter((r) => r.outcome === 'rollback');
-  E[`${src.study}/${src.cell}/${arm}`] = { study: src.study, cell: src.cell, arm, tasks: src.tasks, runs: rows.length, rollbacks: rb.length, rate: rows.length ? rb.length / rows.length : null, upper95: rows.length ? upper95(rb.length, rows.length) : null, median_tick: med(rb.map((r) => r.fire_tick)), bar: src.bar, verdict: src.bar === null ? 'reported' : (rows.length ? (rb.length / rows.length <= src.bar ? 'PASS' : 'FAIL') : 'n/a'), permetric: src.permetric, permetric_rollbacks_same_runs: rows.filter((r) => r.permetric_verdict === 'rollback').length, mean_missing: rows.length ? rows.reduce((a, r) => a + r.missing, 0) / rows.length : null };
+  E[`${src.study}/${src.cell}/${arm}`] = { study: src.study, cell: src.cell, arm, tasks: src.tasks, runs: rows.length, scored_ticks_median: med(rows.map((r) => r.scored_ticks)), rollbacks: rb.length, rate: rows.length ? rb.length / rows.length : null, upper95: rows.length ? upper95(rb.length, rows.length) : null, median_tick: med(rb.map((r) => r.fire_tick)), bar: src.bar, verdict: src.bar === null ? 'reported' : (rows.length ? (rb.length / rows.length <= src.bar ? 'PASS' : 'FAIL') : 'n/a'), permetric: src.permetric, permetric_rollbacks_same_runs: rows.filter((r) => r.permetric_verdict === 'rollback').length, mean_missing: rows.length ? rows.reduce((a, r) => a + r.missing, 0) / rows.length : null };
 }
 mkdirSync(out, { recursive: true });
 const repoSha = execSync('git rev-parse HEAD', { cwd: REPO }).toString().trim(); const engineSha = execSync('git rev-parse HEAD', { cwd: join(ENGINE, '..') }).toString().trim();
 writeFileSync(join(out, 'runs.json'), JSON.stringify(results, null, 1));
 writeFileSync(join(out, 'endpoints.json'), JSON.stringify({ study: '2026-10-twin-two-sample-replay', generated: new Date().toISOString(), arms: ARMS, counters, exceptions: exceptionLog, rows: Object.values(E) }, null, 2));
 writeFileSync(join(out, 'manifest.json'), JSON.stringify({ repo_sha: repoSha, engine_sha: engineSha, module_sha256: hash, onebox_runs: process.env.ONEBOX_RUNS ?? null, node: process.version }, null, 2));
-for (const r of Object.values(E)) console.log(`${(r.study + '/' + r.cell).padEnd(28)} ${r.arm} tasks=${r.tasks} ${r.rollbacks}/${r.runs} (median tick ${r.median_tick}) ${r.verdict} | per-metric ${r.permetric}`);
+for (const r of Object.values(E)) console.log(`${(r.study + '/' + r.cell).padEnd(28)} ${r.arm} tasks=${r.tasks} ${r.rollbacks}/${r.runs} (median tick ${r.median_tick}; ticks available ${r.scored_ticks_median}) ${r.verdict} | per-metric ${r.permetric}`);
 console.log(`exceptions ${counters.exceptions}; written ${out}`);
