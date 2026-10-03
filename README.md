@@ -5,6 +5,18 @@
 
 **Statistical deploy-gate decision engine for AI inference workloads.** A reference architecture and reference implementation: Ville-bounded detector portfolio, calibration compiler that compiles healthy-baseline traces into per-cell threshold parameters, audit substrate that emits structured DetectorTrip records, and a worked-example demo surface (6 canned scenarios including a reconstruction of a publicly-disclosed AI inference regression).
 
+> **Rollback authority, 2026-10-02 (C87).** Families A, C and D are **advisory**. They run, fire and
+> are reported (`advisory_families` on the fused verdict, `advisory_fires` in the audit record) and
+> they do not roll a deploy back or spend α. Measured on real telemetry at engine v0.12.2-pre, the
+> gate rolled back 40 of 44 healthy GPU units through Family A, 42 of 44 with Family C beside it
+> (`studies/gwdg-gate/REPORT.md`), and 13 of 87 healthy request-stream windows
+> (`studies/burstgpt-gate/REPORT.md`), against a bar of 0.05. Family E has been advisory since
+> 2026-09-02 and Family B holds without rolling back on a compiled profile. A rollback now comes
+> from the policy gates and the policy, approval, state, fail-fast and sample-ratio
+> short-circuits. `engine/guarantees.ts` `TEMPORAL_PATH_AUTHORITY`; `DORMANCY.md`. Statements
+> below that a family "fires" describe detection, and statements about the α budget describe the
+> detectors' construction, which no longer drives the verdict.
+
 ## What this is
 
 A statistically-rigorous answer to one operational question: **given a new deploy and live telemetry, should we proceed, extend, or rollback?**

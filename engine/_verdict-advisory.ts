@@ -4,7 +4,10 @@
 // Split out so verdict.ts stays under the repo's file-size ratchet; no fusion logic lives here.
 
 import type { DetectorVerdict } from './types';
-import { FAMILY_A_PLUGIN_ADVISORY_REASON, FAMILY_A_UNAUTHORIZED_ADVISORY_REASON, DETECTOR_GUARANTEES } from './guarantees';
+import {
+  FAMILY_A_PLUGIN_ADVISORY_REASON, FAMILY_A_UNAUTHORIZED_ADVISORY_REASON, DETECTOR_GUARANTEES,
+  TEMPORAL_PATH_ADVISORY_REASON, temporalPathAdvisory,
+} from './guarantees';
 import type { ApproximateEValueForm } from './guarantees';
 
 /** An advisory Family A plug-in fire — on a signal the valid path is routed for (C64 b), or on a
@@ -13,6 +16,82 @@ import type { ApproximateEValueForm } from './guarantees';
 export function isAdvisoryPluginFire(v: DetectorVerdict): boolean {
   return v.verdict === 'fire'
     && (v.reason_code === FAMILY_A_PLUGIN_ADVISORY_REASON || v.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON);
+}
+
+/** C87 — the health gate's treatment of one temporal-path verdict while the path is advisory:
+ *  no α on any verdict; a fire that would have been pushed to rollback[] under `rollbackId`
+ *  carries `advisory_reason` and `advisory_id` instead (its own `reason_code` is kept, so scale
+ *  classification and the audit's detector-id resolution read what they read before). Not marked:
+ *  an advisory plug-in fire (C64 b / unauthorized signal — its reason_code already says why) and
+ *  a fire whose rollback id the warm-up suppression list holds (`rollbackId` null). */
+export function temporalAdvisoryVerdict(v: DetectorVerdict, rollbackId: string | null): DetectorVerdict {
+  if (!temporalPathAdvisory()) return v;
+  const mark = v.verdict === 'fire' && rollbackId !== null && !isAdvisoryPluginFire(v);
+  return {
+    ...v, alpha_consumed: 0, alpha_spent: 0,
+    ...(mark ? { advisory_reason: TEMPORAL_PATH_ADVISORY_REASON, advisory_id: rollbackId } : {}),
+  };
+}
+
+/** C87 — the detection half of the corpus metric ("rollback OR an advisory A/C/D fire"): the
+ *  rollback ids the temporal path would have pushed this tick had it held authority, read off the
+ *  marks the health gate left. Empty when nothing fired, or when the path holds authority (then
+ *  the ids are on `rollback[]` itself). */
+export function temporalAdvisoryFireIds(hr: TemporalVerdicts | null | undefined): string[] {
+  return temporalAdvisoryFires(hr).map((f) => f.id);
+}
+
+type TemporalVerdicts = {
+  family_A_shadow?: object[]; family_C_verdict?: object | null;
+  family_C_mmd_verdict?: object | null; family_D_shadow?: object[];
+};
+
+/** One advisory temporal-path fire as the reporting surfaces carry it (the gate service's
+ *  `advisory_fires`): the rollback id it would have had, its family, and why it is advisory. */
+export interface TemporalAdvisoryFire { id: string; family: 'A' | 'C' | 'D'; advisory_reason: string }
+
+/** C87 — the advisory A/C/D fires on a health result, in A, C, D order. */
+export function temporalAdvisoryFires(hr: TemporalVerdicts | null | undefined): TemporalAdvisoryFire[] {
+  if (!hr) return [];
+  const all: Array<object | null | undefined> = [
+    ...(hr.family_A_shadow ?? []), hr.family_C_verdict, hr.family_C_mmd_verdict, ...(hr.family_D_shadow ?? []),
+  ];
+  const out: TemporalAdvisoryFire[] = [];
+  for (const v of all) {
+    const m = (v ?? {}) as { advisory_id?: string; advisory_reason?: string; family?: 'A' | 'C' | 'D' };
+    if (m.advisory_id !== undefined && m.family) out.push({ id: m.advisory_id, family: m.family, advisory_reason: m.advisory_reason ?? '' });
+  }
+  return out;
+}
+
+type Fam = 'A' | 'B' | 'C' | 'D' | 'E';
+
+/** C87 — split the families with a fire this tick by authority; both lists in A<B<C<D<E order.
+ *  `A`, `C`, `D`: the family has a fire that is not an advisory plug-in fire; they drive the
+ *  verdict only when the temporal path holds authority. `aPluginAdvisory`: Family A has an
+ *  advisory plug-in fire (C64 b / unauthorized signal). `E`: Family E fires with authority
+ *  (never, while FAMILY_E_ADVISORY); `eDetected`: it has a fire at all. */
+export function splitFiredFamilies(d: {
+  A: boolean; aPluginAdvisory: boolean; B: boolean; C: boolean; D: boolean; E: boolean; eDetected: boolean;
+}): { firing: Fam[]; advisory: Fam[] } {
+  const temporal = !temporalPathAdvisory();
+  const firing: Fam[] = [], advisory: Fam[] = [];
+  const route = (fam: Fam, fires: boolean, detected: boolean): void => {
+    if (fires) firing.push(fam);
+    else if (detected) advisory.push(fam);
+  };
+  route('A', d.A && temporal, d.A || d.aPluginAdvisory);
+  route('B', d.B, false);
+  route('C', d.C && temporal, d.C);
+  route('D', d.D && temporal, d.D);
+  route('E', d.E, d.eDetected);
+  return { firing, advisory };
+}
+
+/** C87 — the `advisory_reason` a verdict carries, if any. The HealthResult's verdict arrays are
+ *  typed by the pinned engine package, whose DetectorVerdict does not declare the field. */
+export function advisoryReasonOf(v: object): string | undefined {
+  return (v as { advisory_reason?: string }).advisory_reason;
 }
 
 /** The advisory fires split by reason, as the FamilyEvidenceRaw fields; a list is present only

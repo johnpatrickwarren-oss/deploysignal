@@ -15,6 +15,7 @@
 // MMD_MIN_BASELINE_SAMPLES; Hotelling remains the only Family C signal
 // for that cell). There is no live classical MMD path to fall back to.
 
+import { TEMPORAL_ALPHA_PARTICIPATING } from '../engine/guarantees';
 import type { CompiledConfig, DetectorId, FamilyCPerCell } from '../engine/types';
 import { DETECTOR_GUARANTEES } from '../engine/guarantees';
 import type { ManifestDetectorEntry, ManifestFamilySection } from './_guarantee-manifest-types';
@@ -107,7 +108,7 @@ export function buildFamilyCSection(cfg: CompiledConfig): ManifestFamilySection 
 
   return {
     family: 'C',
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,  // C87: false while the temporal path is advisory
     alpha_budget: cfg.alpha_budget?.per_family?.C ?? null,
     detectors,
     classical_alpha_fraction: classicalAlphaFraction,

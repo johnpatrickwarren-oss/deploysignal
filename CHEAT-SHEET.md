@@ -2,6 +2,15 @@
 
 *An AI-inference deployment decision engine with formal false-positive control.*
 
+> **Rollback authority, 2026-10-02 (C87).** Families A, C and D are advisory: they fire and are
+> reported, and they neither roll back nor spend α (`engine/guarantees.ts` `TEMPORAL_PATH_AUTHORITY`).
+> On real telemetry the gate rolled back 40 of 44 healthy GPU units through Family A
+> (`studies/gwdg-gate/REPORT.md`) and 13 of 87 healthy request-stream windows
+> (`studies/burstgpt-gate/REPORT.md`). Family E is advisory since 2026-09-02 and Family B holds
+> only on a compiled profile, so a rollback comes from the policy gates and the short-circuits.
+> The false-positive control described below is the detectors' construction; it is not a
+> measured property on real telemetry and it no longer drives the verdict.
+
 DeploySignal gates canary rollouts by composing five independent detector families, each with formal statistical guarantees, against a segmented baseline derived from recent healthy traffic. The gate emits one of three surfaced verdicts — `proceed`, `extend`, or `rollback` (a fourth internal state, `baking`, marks in-window insufficient evidence and is never surfaced; per-family suppression — shipped reasons include `bake_profile`, `cell_confidence_none`, `ignore_threshold` — is recorded in the audit block, not as a top-level verdict; the Addition #11 `insufficient_samples` reason is planned v2.1, see `audit/SCHEMA.md`) — under a per-deploy false-positive budget `α_total = 10⁻³` allocated across families via Bonferroni correction (`40/20/20/10/10` across A/B/C/D/E). Family B is non-α-consuming structural (R2 disposition: 16 hand-designed absolute-threshold patterns, not statistical tests; the 2·10⁻⁴ Family B allocation is reserved-but-not-spent in the Ville claim). The α-participating portfolio (A+C+D+E) sums to `α_total_participating = 8·10⁻⁴`. The Ville-vs-classical partition originally documented at ARCHITECT-REPLY-52g has since shifted; verified against runtime dispatch 2026-07-17: the **Ville-bounded portion** is Family A's betting e-process AND its mixture-supermartingale Page-CUSUM (the classical Page-CUSUM path retired at Q68), Family C's safe-Hotelling and MMD betting e-process where a cell's baseline supports it (`α_ville ≈ 7·10⁻⁴`; sparse cells get **no MMD coverage** — the bootstrap-null fallback is retired, so sparseness costs coverage, not validity), and Family D's spectral e-detector. The **classical-epoch-α portion** as actually compiled in the committed configs is Family E's conformal detector: the compiler's auto-selector emits the classical `unweighted` kind when the baseline span / effective-sample-size gate isn't met (`α_classical ≈ 1·10⁻⁴`, valid only at canary boundaries; the weighted anytime-valid Family E variant compiles only when its span/ESS gate passes). Per-config ground truth lives in the generated guarantee manifest. Calibration happens at compile time; runtime arithmetic is cheap. Baseline history across recalibrations doubles as a service/engineering/product-maturity substrate.
 
 ## Architecture

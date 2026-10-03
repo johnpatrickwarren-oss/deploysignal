@@ -2,6 +2,11 @@
 // combined 131-scenario sweep (125 W3 + 6 W4) under portfolio fusion with
 // v4 compiled config (Families A/B/C/D/E all enabled). Acceptance:
 // ≥97.5% TP / 0% FP.
+//
+// C87 (2026-10-02): Families A, C and D are advisory, so TP is DETECTION — the
+// deploy rolled back, or an advisory A/C/D fire was recorded (test/_c87-detection.ts)
+// — not rollback. The rollback-only count is printed beside it and pinned below:
+// it is what the gate does to these deploys today.
 
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,6 +14,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import type { CompiledConfig } from '../dist/engine/types';
+import { advisoryIds, isDetection } from './_c87-detection';
 
 const engine = require('../shared');
 const { orchestrate, TrendBuffer, TOTAL_TICKS } = engine;
@@ -89,9 +95,10 @@ function precomputeTicks(sc: any): Record<string, number>[] {
   return ticks;
 }
 
-type FinalVerdict = 'rollback' | 'proceed' | 'extend';
+// 'advisory': the run stopped at its first advisory A/C/D fire (C87); the deploy did not roll back.
+type FinalVerdict = 'rollback' | 'advisory' | 'proceed' | 'extend';
 
-function runOne(sc: any, ticks: Record<string, number>[], cfg: CompiledConfig): { verdict: FinalVerdict; tick: number; rollbackIds: string[] } {
+function runOne(sc: any, ticks: Record<string, number>[], cfg: CompiledConfig): { verdict: FinalVerdict; tick: number; rollbackIds: string[]; via?: string } {
   const tb = new TrendBuffer(10);
   for (let i = 0; i < TOTAL_TICKS; i++) {
     const live = ticks[i];
@@ -106,8 +113,11 @@ function runOne(sc: any, ticks: Record<string, number>[], cfg: CompiledConfig): 
       fusionTopology: 'portfolio',
     });
     if (r.verdict === 'rollback') {
-      return { verdict: 'rollback', tick: i, rollbackIds: (r.healthResult?.rollback ?? []).map((s: any) => s.id) };
+      const ids: string[] = (r.healthResult?.rollback ?? []).map((s: any) => s.id);
+      return { verdict: 'rollback', tick: i, rollbackIds: ids, via: r.shortCircuit ? `short-circuit:${r.shortCircuit}` : ids.join('+') };
     }
+    const adv = advisoryIds(r);
+    if (adv.length > 0) return { verdict: 'advisory', tick: i, rollbackIds: adv };
     if (r.verdict === 'proceed') return { verdict: 'proceed', tick: i, rollbackIds: [] };
     if (i === TOTAL_TICKS - 1) {
       const fv: FinalVerdict = (r.healthResult && r.healthResult.extend.length > 0) ? 'extend' : 'proceed';
@@ -181,14 +191,15 @@ test('w4-sweep: 131-scenario TP ≥ 97.5% under portfolio + v4 config', () => {
     const ticks = precomputeTicks(sc);
     return { id: sc.id, ...runOne(sc, ticks, V4) };
   });
-  const tp = outcomes.filter((o) => o.verdict === 'rollback').length;
+  const tp = outcomes.filter((o) => isDetection(o.verdict)).length;
+  const rolledBack = outcomes.filter((o) => o.verdict === 'rollback').length;
   const rate = tp / SCENARIOS.length;
   const minTP = Math.ceil(SCENARIOS.length * 0.975);
 
   // Per-family breakdown — handoff §4.1.i expects this in the handoff-back.
   const perFamily = { A: 0, B: 0, C: 0, D: 0, E: 0, other: 0 };
   for (const o of outcomes) {
-    if (o.verdict !== 'rollback') continue;
+    if (!isDetection(o.verdict)) continue;
     const ids = o.rollbackIds;
     const fam = ids.find((id) => id.startsWith('family_A_')) ? 'A'
               : ids.find((id) => id === 'family_C') ? 'C'
@@ -199,14 +210,24 @@ test('w4-sweep: 131-scenario TP ≥ 97.5% under portfolio + v4 config', () => {
   }
 
   console.log(`\n────── w4 full sweep (${SCENARIOS.length} scenarios, v4, portfolio) ──────`);
-  console.log(`TP=${tp}/${SCENARIOS.length} (${(rate * 100).toFixed(1)}%); gate ≥ ${minTP}`);
+  console.log(`detected (rollback or advisory A/C/D fire) TP=${tp}/${SCENARIOS.length} (${(rate * 100).toFixed(1)}%); gate ≥ ${minTP}`);
+  console.log(`of which the deploy rolled back before any advisory fire: ${rolledBack}`);
+  const via: Record<string, number> = {};
+  for (const o of outcomes) if (o.verdict === 'rollback') via[o.via ?? '?'] = (via[o.via ?? '?'] ?? 0) + 1;
+  console.log(`rollbacks by source: ${JSON.stringify(via)}`);
   console.log(`first-fire per family: A=${perFamily.A} B=${perFamily.B} C=${perFamily.C} D=${perFamily.D} E=${perFamily.E} other=${perFamily.other}`);
-  const missed = outcomes.filter((o) => o.verdict !== 'rollback').map((o) => o.id);
+  const missed = outcomes.filter((o) => !isDetection(o.verdict)).map((o) => o.id);
   if (missed.length > 0) {
     console.log(`missed (${missed.length}): ${missed.join(', ')}`);
   }
   assert.ok(tp >= minTP,
-    `TP ${tp}/${SCENARIOS.length} below 97.5% gate (${minTP})`);
+    `detected ${tp}/${SCENARIOS.length} below 97.5% gate (${minTP})`);
+  // C87: no rollback in this sweep comes from the temporal path.
+  for (const o of outcomes) {
+    if (o.verdict !== 'rollback') continue;
+    assert.ok(!o.rollbackIds.some((id) => /^family_[ACD]/.test(id)),
+      `${o.id}: a temporal-path id on rollback[]: ${o.rollbackIds.join(',')}`);
+  }
 });
 
 test('w4-sweep: synthesized "clean" scenario fires under portfolio (mixture-supermartingale detects small-effect drift; expected post-Q68 .C close)', () => {
@@ -221,6 +242,7 @@ test('w4-sweep: synthesized "clean" scenario fires under portfolio (mixture-supe
   const sc = cleanScenario();
   const ticks = precomputeCleanTicks(sc);
   const r = runOne(sc, ticks, V4);
-  assert.equal(r.verdict, 'rollback',
+  // C87: the detection is an advisory Family A fire; the deploy itself does not roll back.
+  assert.equal(r.verdict, 'advisory',
     `mixture-supermartingale variant should detect "clean" scenario's small-effect drift; got ${r.verdict}`);
 });

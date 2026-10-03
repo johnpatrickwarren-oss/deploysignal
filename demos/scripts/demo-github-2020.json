@@ -1,8 +1,8 @@
 {
   "id": "demo-github-2020",
   "name": "Demo 3 — GitHub Jan 2020 Redis Cascade (reconstruction)",
-  "description": "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. Both cascade and portfolio engines fire rollback at the onset tick. Portfolio provides multi-family corroboration: Families A, B, C, and E each fire independently within the first few ticks of the incident, giving the rollback decision four orthogonal statistical confirmations.",
-  "narrative": "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. The cascade engine, which runs the legacy structural rules, rolls back at the onset tick (t=5) on the slow-bleed pattern: several metrics drifting together, each below its own threshold. The portfolio engine sees the same pattern and holds the canary, because that rule has no stated false-rollback rate. It rolls back two ticks later (t=7), when Family A's anytime-valid test crosses its threshold on downstream errors; Families C and E fire independently by t=8. The two ticks buy a rollback whose false-alarm rate is bounded: α spent 3.3×10⁻⁵ against a 10⁻³ budget. Fidelity note: signal trajectories are inferred from published postmortem detail; magnitudes within ±20% of reported values.",
+  "description": "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. The cascade engine rolls back at the onset tick on a legacy structural rule. The portfolio engine holds on that rule and records advisory fires from Families A, C, D and E within the incident; since 2026-10-02 (C87) those fires do not roll the deploy back, and the portfolio run ends in proceed.",
+  "narrative": "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. The cascade engine, which runs the legacy structural rules, rolls back at the onset tick (t=5) on the slow-bleed pattern: several metrics drifting together, each below its own threshold. The portfolio engine sees the same pattern and holds the canary, because that rule has no stated false-rollback rate. Two ticks later (t=7) Family A's test crosses its threshold on downstream errors; Families C and E fire independently by t=8. Since 2026-10-02 (C87) those fires are advisory: on real telemetry the gate rolled back 0.91 to 0.95 of healthy units through these families, so they are recorded and reported, no α is spent, and the portfolio run ends in proceed. Fidelity note: signal trajectories are inferred from published postmortem detail; magnitudes within ±20% of reported values.",
   "baseline_ref": "baselines/llm-inference-streaming.json",
   "cell_patch_override": {
     "family_A_per_signal": {
@@ -546,9 +546,20 @@
     }
   ],
   "expected_outcome": {
-    "verdict": "rollback",
+    "verdict": "proceed",
+    "advisory": {
+      "families": [
+        "A",
+        "C",
+        "D",
+        "E"
+      ],
+      "first_fire_tick": 7,
+      "reason_code": "advisory_temporal_path_no_valid_null",
+      "verdict_before_c87": "rollback"
+    },
     "portfolio_first_fire_tick": 7,
-    "portfolio_first_rollback_tick": 7,
+    "portfolio_first_rollback_tick": null,
     "cascade_first_rollback_tick": 5,
     "timing_delta_ticks": 2,
     "first_families": [
@@ -557,7 +568,7 @@
       "E"
     ],
     "alpha_total_max": 0.001,
-    "divergence_from_spec": "FAMILY_B_AUTHORITY (2026-09-27): Family B holds on a compiled profile and never rolls back. Cascade (no compiled config) still rolls back at t=5 via Family B slowbleed; portfolio (v4) rolls back at t=7 on Family A downstream_err, with C and E firing by t=8 — a 2-tick delay against cascade. Provenance/α-budget pitch beats unaffected.",
+    "divergence_from_spec": "FAMILY_B_AUTHORITY (2026-09-27): Family B holds on a compiled profile and never rolls back. TEMPORAL_PATH_AUTHORITY (C87, 2026-10-02): Families A, C and D are advisory. Cascade (no compiled config) still rolls back at t=5 via Family B slowbleed; portfolio (v4) does not roll back: Family A fires on downstream_err at t=7, C and E by t=8, D at t=19, all advisory, and the run ends in proceed. No α is spent.",
     "min_compiler_version": "0.3.0",
     "per_variant": {
       "spectral_bootstrap_null": {

@@ -21,6 +21,7 @@
 // its own no-coverage cells and is excluded from classical_alpha_fraction
 // for the same reason (absent capacity, not a classical substitute).
 
+import { TEMPORAL_ALPHA_PARTICIPATING } from '../engine/guarantees';
 import type { CompiledConfig, DetectorId, FamilyDPerSignal } from '../engine/types';
 import { DETECTOR_GUARANTEES } from '../engine/guarantees';
 import type { ManifestDetectorEntry, ManifestFamilySection } from './_guarantee-manifest-types';
@@ -96,7 +97,7 @@ export function buildFamilyDSection(cfg: CompiledConfig): ManifestFamilySection 
 
   return {
     family: 'D',
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,  // C87: false while the temporal path is advisory
     alpha_budget: cfg.alpha_budget?.per_family?.D ?? null,
     detectors: [
       bootstrapEntry('spectral_peak_acf_kv_cache', counts, total),

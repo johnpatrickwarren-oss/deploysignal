@@ -43,7 +43,8 @@ import type { LifecycleEventEmitter, LifecycleDeployState } from '../../engine/o
 import type { VerdictGrouper as VerdictGrouperType } from '../../engine/verdict-groups';
 
 import { SessionStore } from '../session/session-store';
-import type { SessionRecord, VerdictHistoryEntry, BeginSessionInput } from '../session/types';
+import type { SessionRecord, VerdictHistoryEntry, BeginSessionInput, AdvisoryFire } from '../session/types';
+import type { TemporalAdvisoryFire } from '../../engine/_verdict-advisory';
 import type { SessionStatus, DeploymentPhase } from '../session/types';
 import { resolveActiveCalibration } from '../session/active-calibration';
 import type { ActiveCalibration } from '../session/active-calibration';
@@ -69,6 +70,9 @@ const freshLifecycleState: () => LifecycleDeployState = lifecycleEventsRuntime.f
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const verdictGroupsRuntime = require('../../dist/engine/verdict-groups');
+// C87: the advisory A/C/D fires of a health result (same build-artifact convention).
+const temporalAdvisoryFires: (hr: unknown) => TemporalAdvisoryFire[] =
+  require('../../dist/engine/_verdict-advisory').temporalAdvisoryFires;
 const VerdictGrouperCtor: new () => VerdictGrouperType = verdictGroupsRuntime.VerdictGrouper;
 
 const NoOpLifecycleEventEmitterCtor: new () => LifecycleEventEmitter = lifecycleEventsRuntime.NoOpLifecycleEventEmitter;
@@ -148,12 +152,21 @@ export interface TickRequest {
   day_of_week?: number;
 }
 
+/** C87 — fold this tick's advisory fires into the session's list (first tick per id). Returns the
+ *  session patch, empty when nothing is new so the record is not rewritten for it. */
+function sessionAdvisoryFires(seen: AdvisoryFire[] | undefined, now: AdvisoryFire[]): { advisory_fires?: AdvisoryFire[] } {
+  const fresh = now.filter((f) => !(seen ?? []).some((s) => s.id === f.id));
+  return fresh.length > 0 ? { advisory_fires: [...(seen ?? []), ...fresh] } : {};
+}
+
 export interface TickResult {
   tick: number;
   verdict: string;
   verdict_code: number;
   alpha_consumed: number;
   fires: string[];
+  /** C87 — advisory A/C/D fires on this tick (never in `fires`, never part of the verdict). */
+  advisory_fires: AdvisoryFire[];
   replayed: boolean;
   shadow: boolean;
   shortCircuit: string | null;
@@ -170,6 +183,9 @@ export interface VerdictResponse {
   config_version: string;
   alpha_consumed: number;
   fires: string[];
+  /** C87 — every advisory A/C/D fire of the session so far, one per id at its first tick.
+   *  Absent on a twin session (its responses are unchanged). */
+  advisory_fires?: AdvisoryFire[];
   shadow_verdict_code?: number;
   degraded?: boolean;
   error?: string;
@@ -471,7 +487,8 @@ export class GateSessionRuntime {
       const stored = this.store.getStoredTickResponse(sessionId, req.emitted_at_ts)!;
       return {
         tick: stored.tick, verdict: stored.verdict, verdict_code: stored.verdict_code,
-        alpha_consumed: stored.alpha_consumed, fires: stored.fires, replayed: true,
+        alpha_consumed: stored.alpha_consumed, fires: stored.fires,
+        advisory_fires: stored.advisory_fires ?? [], replayed: true,
         shadow: stored.shadow, shortCircuit: null,
         ...(stored.error !== undefined ? { error: stored.error } : {}),
         ...(stored.degraded !== undefined ? { degraded: stored.degraded } : {}),
@@ -518,6 +535,7 @@ export class GateSessionRuntime {
     let verdictCodeVal: number;
     let alphaConsumed = 0;
     let fires: string[] = [];
+    let advisoryFires: AdvisoryFire[] = [];
     let firingFamilies: string[] = [];
     let shortCircuit: string | null = null;
     let degraded = false;
@@ -529,6 +547,9 @@ export class GateSessionRuntime {
       verdictCodeVal = codeFor(verdict);
       alphaConsumed = result.gateResults?.fusion?.total_alpha_spent ?? 0;
       fires = result.healthResult?.rollback.map((s) => s.id) ?? [];
+      // C87: Families A, C and D are advisory. Their fires are not on rollback[]; report them
+      // beside `fires` so the caller sees what was detected and did not drive the verdict.
+      advisoryFires = temporalAdvisoryFires(result.healthResult).map((f) => ({ ...f, tick: session.tick }));
       firingFamilies = result.gateResults?.fusion?.firing_families ?? [];
       shortCircuit = result.shortCircuit;
       state.failFastState = result.failFastState;
@@ -547,8 +568,9 @@ export class GateSessionRuntime {
     const recordedAt = new Date().toISOString();
     const entry: VerdictHistoryEntry = {
       session_id: sessionId, tick: session.tick, emitted_at_ts: req.emitted_at_ts,
-      verdict, verdict_code: verdictCodeVal, alpha_consumed: alphaConsumed, fires, shadow,
-      recorded_at: recordedAt,
+      verdict, verdict_code: verdictCodeVal, alpha_consumed: alphaConsumed, fires,
+      ...(advisoryFires.length > 0 ? { advisory_fires: advisoryFires } : {}),
+      shadow, recorded_at: recordedAt,
       ...(errorMsg !== undefined ? { error: errorMsg } : {}),
       ...(degraded ? { degraded: true } : {}),
     };
@@ -571,7 +593,9 @@ export class GateSessionRuntime {
         last_tick_at: recordedAt,
         last_verdict: {
           verdict, verdict_code: verdictCodeVal, tick: session.tick, alpha_consumed: alphaConsumed, fires,
+          ...(advisoryFires.length > 0 ? { advisory_fires: advisoryFires } : {}),
         },
+        ...sessionAdvisoryFires(session.advisory_fires, advisoryFires),
       });
 
       if (verdict === 'rollback') this.store.updatePhase(sessionId, 'rolled_back' as DeploymentPhase);
@@ -595,7 +619,7 @@ export class GateSessionRuntime {
     const finalRec = this.store.getSession(sessionId)!;
     return {
       tick: session.tick, verdict, verdict_code: verdictCodeVal, alpha_consumed: alphaConsumed,
-      fires, replayed: false, shadow, shortCircuit,
+      fires, advisory_fires: advisoryFires, replayed: false, shadow, shortCircuit,
       ...(degraded ? { degraded: true } : {}),
       ...(errorMsg !== undefined ? { error: errorMsg } : {}),
       session_status: finalRec.status,
@@ -747,6 +771,7 @@ export class GateSessionRuntime {
       config_version: session.active_calibration_version,
       alpha_consumed: alphaConsumed,
       fires,
+      ...(session.twin_arm ? {} : { advisory_fires: session.advisory_fires ?? [] }),
       ...extra,
     };
   }

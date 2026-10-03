@@ -105,9 +105,14 @@ Return shape from our service (minimal viable — richer provenance on a separat
   "total_ticks": 32,
   "config_version": "v2026-04-28-platform",
   "alpha_consumed": 0.00041,
-  "fires": []
+  "fires": [],
+  "advisory_fires": []
 }
 ```
+
+`advisory_fires` (C87, 2026-10-02) lists fires of the advisory detector families (A, C, D) as
+`{id, family, advisory_reason, tick}`; they never change `verdict_code`. See
+`service/gate-http/README.md`.
 
 Pros:
 - Zero K8s-specific code in the engine. Works with anything that can hit HTTP.

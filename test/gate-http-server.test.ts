@@ -4,6 +4,7 @@
 // Also covers Task 8's YAML-contract test (the AnalysisTemplate must
 // stay in lockstep with the live GET /v1/verdict response shape).
 
+import { loadCfg, canary, metricsAt, scenarioBaseline } from './_c64-fixture';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -387,15 +388,73 @@ test('tick idempotency over HTTP: two identical POSTs -> identical bodies, secon
 // GET verdict spec shape.
 // ────────────────────────────────────────────────────────────────────
 
-test('GET /v1/verdict/{deploy_ref} returns exactly the seven spec keys', async () => {
+// C87 (2026-10-02): an eighth key, `advisory_fires` — the session's advisory A/C/D fires. `fires`
+// keeps its meaning (rollback[] ids).
+test('GET /v1/verdict/{deploy_ref} returns exactly the seven spec keys plus advisory_fires', async () => {
   const s = await start();
   try {
     await req(s.baseUrl, 'POST', '/v1/sessions', { body: beginBody() });
     const r = await req(s.baseUrl, 'GET', '/v1/verdict/deploy-ref-1');
     assert.equal(r.status, 200);
     assert.deepEqual(Object.keys(r.json).sort(), [
-      'alpha_consumed', 'config_version', 'fires', 'tick', 'total_ticks', 'verdict', 'verdict_code',
+      'advisory_fires', 'alpha_consumed', 'config_version', 'fires', 'tick', 'total_ticks', 'verdict', 'verdict_code',
     ]);
+    assert.deepEqual(r.json.advisory_fires, []);
+  } finally { await stop(s); }
+});
+
+// C87: a 4σ step on p99_latency against the compiled cell makes Family A fire. The fire is
+// advisory: the gate does not roll back, `fires` stays empty, and the caller sees the fire on
+// `advisory_fires` — on the tick it happened, on a replay of that tick, and on GET /v1/verdict.
+test('C87: an advisory Family A fire is visible on the tick response and on GET /v1/verdict, and never in fires', async () => {
+  const cfg = loadCfg();
+  const dir = tmpRoot('ds-gate-http-c87-');
+  const cfgPath = path.join(dir, 'compiled.json');
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+  const T = 60;
+  const s = await start({ totalTicksDefault: T, compiledConfigOverride: cfgPath });
+  try {
+    const begin = await req(s.baseUrl, 'POST', '/v1/sessions', { body: beginBody({ scenario: { baseline: scenarioBaseline(cfg) } }) });
+    const sessionId = begin.json.session_id;
+    const traj = canary(cfg, 91, T, ['p99_latency'], 4);
+    let first: { tick: number; ts: number; body: any } | null = null;
+    for (let i = 0; i < T; i++) {
+      const ts = NOW + i * 30;
+      const r = await req(s.baseUrl, 'POST', `/v1/sessions/${sessionId}/ticks`, {
+        body: { emitted_at_ts: ts, metrics: metricsAt(cfg, traj, i), hour_of_day: 20, day_of_week: 3 },
+      });
+      assert.equal(r.status, 200, r.raw);
+      assert.ok(Array.isArray(r.json.advisory_fires), `tick ${i}: advisory_fires is always present`);
+      assert.notEqual(r.json.verdict, 'rollback', `tick ${i}`);
+      assert.ok(!r.json.fires.some((id: string) => /^family_[ACD]/.test(id)), `tick ${i}: fires ${r.json.fires}`);
+      for (const f of r.json.advisory_fires) {
+        assert.deepEqual(Object.keys(f).sort(), ['advisory_reason', 'family', 'id', 'tick']);
+        assert.equal(f.tick, i);
+        assert.equal(f.advisory_reason, 'advisory_temporal_path_no_valid_null');
+      }
+      if (first === null && r.json.advisory_fires.length > 0) first = { tick: i, ts, body: r.json };
+      if (r.json.verdict === 'proceed') break;
+    }
+    assert.ok(first !== null, 'the step produced an advisory fire');
+    assert.ok(first!.tick >= 30, 'not before the step');
+    const a = first!.body.advisory_fires.find((f: any) => f.family === 'A');
+    assert.ok(a && (a.id === 'family_A_p99_latency' || a.id === 'family_A_betting_p99_latency'), JSON.stringify(first!.body.advisory_fires));
+
+    // an idempotent replay of that tick carries the same advisory fires
+    const again = await req(s.baseUrl, 'POST', `/v1/sessions/${sessionId}/ticks`, {
+      body: { emitted_at_ts: first!.ts, metrics: metricsAt(cfg, traj, first!.tick), hour_of_day: 20, day_of_week: 3 },
+    });
+    assert.equal(again.json.replayed, true);
+    assert.deepEqual(again.json.advisory_fires, first!.body.advisory_fires);
+
+    // the verdict endpoint lists every advisory fire of the session at its first tick
+    const v = await req(s.baseUrl, 'GET', '/v1/verdict/deploy-ref-1');
+    assert.notEqual(v.json.verdict, 'rollback');
+    assert.ok(!v.json.fires.some((id: string) => /^family_[ACD]/.test(id)));
+    const listed = v.json.advisory_fires.find((f: any) => f.id === a.id);
+    assert.deepEqual(listed, a, 'same id, family, reason and first tick');
+    const ids = v.json.advisory_fires.map((f: any) => f.id);
+    assert.equal(new Set(ids).size, ids.length, 'one entry per id');
   } finally { await stop(s); }
 });
 
