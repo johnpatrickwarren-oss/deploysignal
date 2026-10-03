@@ -32,7 +32,7 @@ const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : nu
 
 // ---------- artifacts ----------
 const runFiles = readdirSync(join(RES, 'runs')).filter((f) => f.startsWith('AA-l') && f.endsWith('.summary.json')).sort();
-const driver = new Map(); const allScales = [];
+const driver = new Map(); const allScales = []; // scale times kept for the report's timeline, not for attribution
 for (const f of readdirSync(join(RES, 'operator', 'runs')).filter((x) => x.endsWith('.ndjson'))) {
   const lines = readFileSync(join(RES, 'operator', 'runs', f), 'utf8').split('\n').filter(Boolean).map((l) => (/^[[{]/.test(l) ? JSON.parse(l) : { raw: l }));
   const m = /^(.+)-l(\d)-r(\d+)\.ndjson$/.exec(f); if (!m) throw new Error(`driver file name ${f}`);
@@ -62,16 +62,17 @@ for (const file of runFiles) {
   const armReady = d?.arm_ready ?? new Date(s.arm_ready_ms).toISOString();
   const runEnd = d?.runner_exit ?? new Date(s.ended_at_ms).toISOString();
   const t0 = toMs(armReady), t1 = toMs(runEnd);
-  // V6/V7: a write event on this lane's resources strictly inside (arm-ready, runner-exit). ECS TaskCreated events name
-  // no lane; they go to the lane whose driver logged the nearest preceding `scale` within 120 s (the second study's
-  // 60 s window left one late task launch unattributed; 120 s is still shorter than the gap between a lane's runs)
+  // V6/V7: a write event on this lane's resources strictly inside (arm-ready, runner-exit). Only events that name a
+  // lane (listener, target group, cluster/service) decide a void. ECS-emitted TaskCreated events name no lane; the fault
+  // study's nearest-preceding-`scale` attribution voided its run 260 on a task that the surrounding events put on
+  // another lane's scale-up (REPORT.md §2 there), and a task replaced within a run also registers on the lane's own
+  // target group, which does name the lane. Lane-less events inside the interval are listed, report-only (Amendment 3).
   let v67 = { evaluated: false, events_inside: [], unassigned_inside: [] };
   if (evidence) {
-    const attribute = (e) => { const t = toMs(e.t); const hit = allScales.filter((x) => t >= x.t && t - x.t <= 120_000).sort((a, b) => b.t - a.t); return hit.length ? hit[0].lane : null; };
-    const inside = evidence.events.filter((e) => { const t = toMs(e.t); return t > t0 && t < t1; }).map((e) => ({ ...e, lane_final: e.lane ?? attribute(e) }));
+    const inside = evidence.events.filter((e) => { const t = toMs(e.t); return t > t0 && t < t1; });
     v67 = { evaluated: toMs(evidence.start) <= t0 && toMs(evidence.end) >= t1,
-      events_inside: inside.filter((e) => e.lane_final === s.lane).map((e) => ({ t: e.t, name: e.name, id: e.id, identity: e.identity })),
-      unassigned_inside: inside.filter((e) => e.lane_final === null).map((e) => ({ t: e.t, name: e.name, id: e.id })) };
+      events_inside: inside.filter((e) => e.lane === s.lane).map((e) => ({ t: e.t, name: e.name, id: e.id, identity: e.identity })),
+      unassigned_inside: inside.filter((e) => e.lane === null).map((e) => ({ t: e.t, name: e.name, id: e.id })) };
   }
   // V10: one task per arm, each in its lane's registered AZ, as the driver's task record shows after the runner exits
   const azOf = (svc) => (d?.tasks ?? []).filter((x) => x.service === svc).flatMap((x) => x.tasks.map((t) => t.az));
