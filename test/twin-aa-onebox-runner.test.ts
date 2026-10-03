@@ -69,4 +69,7 @@ test('twin-aa-onebox: the analysis carries the registered placement and Amendmen
   assert.match(s, /2: \{ stratum: 'X', baseline: 'us-east-1a', canary: 'us-east-1b' \}/);
   assert.match(s, /3: \{ stratum: 'X', baseline: 'us-east-1b', canary: 'us-east-1a' \}/);
   assert.match(s, /R: 100, B: 0\.1062, max_rollbacks: 10, stop_after_rollbacks: 11, attempt_cap: 150/);
+  // Amendment 3: lane-less ECS TaskCreated events never decide a void; only events naming the lane do
+  assert.match(s, /events_inside: inside\.filter\(\(e\) => e\.lane === s\.lane\)/);
+  assert.ok(!/attribute\(e\)/.test(s), 'no nearest-scale attribution');
 });
