@@ -210,3 +210,24 @@ void rule.
   stratum's two drivers; a run in flight at the stop finishes and is counted.
 - **Pre-flight.** One rotation at one task per arm on a same-AZ lane and one on a cross-AZ lane
   (not runs), to read R3, R4, the p99 scale and both tasks' AZs before run 0.
+
+## Amendment 3 — 2026-10-03, before run 0 (the analysis script's V6/V7 attribution)
+
+Written before any run, deploy or host change for this study. It changes no bar, endpoint or
+prediction. It changes how one void rule is applied and re-pins the analysis tree.
+
+- **Why.** `2026-10-twin-fault-shapes` run 260 was voided by the analysis rule this study inherited:
+  an ECS `TaskCreated` event (which names no lane) three seconds after lane 1's arm-ready was
+  attributed to lane 1 by the nearest preceding `scale` within 120 s, while the surrounding events
+  (lane 0's `RegisterTargets` nineteen seconds later, lane 1's 4 / 4 healthy targets in every window)
+  put the task on lane 0's scale-up. Two lanes' scale-ups overlap whenever runs finish within a
+  minute of each other, which they do.
+- **The rule (V6/V7).** Only CloudTrail write events that name the lane's resources — its listener,
+  its target groups, its cluster and services — decide a void. Lane-less events inside a run's
+  interval are listed in the run's record and the report, and decide nothing. A task that ECS
+  replaces within a run still registers on the lane's own target group, which names the lane, and
+  §7 of the first registration already says such a replacement is reported, not void.
+- **Pin.** `studies/twin-aa-onebox/analysis` tree `c1d97cf0e3e3ee4fe964fbba8cf0b071611d6e9c`
+  (DeploySignal `main` `4a11c74`, PR #159) replaces Amendment 2's `4bb5c868…`. Every other tree in
+  Amendment 2's table is unchanged at `4a11c74`; the runs execute from `4a11c74` or a later `main`
+  commit whose trees match.
