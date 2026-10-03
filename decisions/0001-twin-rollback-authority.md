@@ -120,8 +120,11 @@ registered run; neither has.
   and screened per service by D2".
 - Detection of faults other than the four shapes in §5, or of a fault that arrives at random: the
   study's faults are evenly spaced per process, so the measured tick spreads (11, 38–42, 11–12)
-  understate what a random-arrival fault of the same rate would show; at ×1.5 some such runs would
-  cross a 60-tick bake and the study does not say how many.
+  understate what a random-arrival fault of the same rate would show. Sized synthetically on
+  2026-10-03 (engine study `2026-10-twin-rate-random-arrivals`, T1, at the real cells' traffic):
+  random arrivals at ×1.5 leave 6.6% of 60-tick bakes undecided (median tick 43 against 40), none
+  at ×2, and detect 5.6% at ×1.2. The planner's figure is a median under either arrival model; it
+  gives no spread. A real random-arrival cell has not run.
 - Anything for failures the declared metrics do not count: client-side errors, timeouts as against
   resets, or an ALB-generated error the `no_response` subtraction does not capture.
 - A rule for choosing the margin. It is the operator's minimum effect of interest per latency
