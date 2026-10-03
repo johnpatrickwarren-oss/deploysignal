@@ -1,0 +1,412 @@
+{
+  "manifest_version": 1,
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "compiler_version": "0.3.0",
+  "config_version": "v4-fusion-novelty",
+  "baseline_ref": "temporal-null-real-cal@seed=0",
+  "baseline_provenance": "unknown",
+  "alpha_budget": {
+    "total": 0.001,
+    "per_family": {
+      "A": 0.0004,
+      "B": 0.0003000000000000001,
+      "C": 0.0002,
+      "D": 0.0001,
+      "E": 0
+    }
+  },
+  "families": {
+    "A": {
+      "family": "A",
+      "alpha_participating": true,
+      "alpha_budget": 0.0004,
+      "detectors": [
+        {
+          "detector_id": "mSPRT_p99_latency",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "mSPRT_ttft",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "mSPRT_eval_score",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "mSPRT_tool_success_rate",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "mSPRT_downstream_err",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "mSPRT_cost_req",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "page_cusum_p99_latency",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "page_cusum_ttft",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "page_cusum_eval_score",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "page_cusum_tool_success_rate",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "page_cusum_downstream_err",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "page_cusum_cost_req",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (reserved forward-compat id; not yet emitted) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "betting_e_process_p99_latency",
+          "validity_class": "bootstrap_crossing_rate",
+          "alpha_participating": true,
+          "configured_reality": "betting e-process co-ship — fires at the compiled bootstrap max-wealth quantile (crossing-rate control at the calibrated horizon, not an e-value bound), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "betting_e_process_ttft",
+          "validity_class": "bootstrap_crossing_rate",
+          "alpha_participating": true,
+          "configured_reality": "betting e-process co-ship — fires at the compiled bootstrap max-wealth quantile (crossing-rate control at the calibrated horizon, not an e-value bound), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "betting_e_process_eval_score",
+          "validity_class": "bootstrap_crossing_rate",
+          "alpha_participating": true,
+          "configured_reality": "betting e-process co-ship — fires at the compiled bootstrap max-wealth quantile (crossing-rate control at the calibrated horizon, not an e-value bound), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "betting_e_process_tool_success_rate",
+          "validity_class": "bootstrap_crossing_rate",
+          "alpha_participating": true,
+          "configured_reality": "betting e-process co-ship — fires at the compiled bootstrap max-wealth quantile (crossing-rate control at the calibrated horizon, not an e-value bound), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "betting_e_process_downstream_err",
+          "validity_class": "bootstrap_crossing_rate",
+          "alpha_participating": true,
+          "configured_reality": "betting e-process co-ship — fires at the compiled bootstrap max-wealth quantile (crossing-rate control at the calibrated horizon, not an e-value bound), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "betting_e_process_cost_req",
+          "validity_class": "bootstrap_crossing_rate",
+          "alpha_participating": true,
+          "configured_reality": "betting e-process co-ship — fires at the compiled bootstrap max-wealth quantile (crossing-rate control at the calibrated horizon, not an e-value bound), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "safe_t_e_value_p99_latency",
+          "validity_class": "e_value_terminal",
+          "alpha_participating": true,
+          "configured_reality": "safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)"
+        },
+        {
+          "detector_id": "safe_t_e_value_ttft",
+          "validity_class": "e_value_terminal",
+          "alpha_participating": true,
+          "configured_reality": "safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)"
+        },
+        {
+          "detector_id": "safe_t_e_value_eval_score",
+          "validity_class": "e_value_terminal",
+          "alpha_participating": true,
+          "configured_reality": "safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)"
+        },
+        {
+          "detector_id": "safe_t_e_value_tool_success_rate",
+          "validity_class": "e_value_terminal",
+          "alpha_participating": true,
+          "configured_reality": "safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)"
+        },
+        {
+          "detector_id": "safe_t_e_value_downstream_err",
+          "validity_class": "e_value_terminal",
+          "alpha_participating": true,
+          "configured_reality": "safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)"
+        },
+        {
+          "detector_id": "safe_t_e_value_cost_req",
+          "validity_class": "e_value_terminal",
+          "alpha_participating": true,
+          "configured_reality": "safe two-sample t e-value, one look at the canary end — inert unless the caller routes a calibration series (validPath)"
+        },
+        {
+          "detector_id": "contrast_null_p99_latency",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": false,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "contrast_null_ttft",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": false,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "contrast_null_eval_score",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": false,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "contrast_null_tool_success_rate",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": false,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "contrast_null_downstream_err",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": false,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        },
+        {
+          "detector_id": "contrast_null_cost_req",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": false,
+          "configured_reality": "mixture-supermartingale Page-CUSUM (emitted as this id) — Ville-bounded at 1/α (premise: the compiled baseline is the truth), active on 6 monitored signal(s)"
+        }
+      ],
+      "classical_alpha_fraction": 0
+    },
+    "B": {
+      "family": "B",
+      "alpha_participating": false,
+      "alpha_budget": 0.0003000000000000001,
+      "classical_alpha_fraction": 0,
+      "detectors": [
+        {
+          "detector_id": "kv_saturation",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "hbm_elevation",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "hbm_spill_roll",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "mfu_collapse",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "slowbleed",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "collective",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "capacity",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "gpu_eff",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "compound_lat",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "tok_econ",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "behavioral",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "eval_quality_drop",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "refusal_spike",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "output_len_drift",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "tool_call_degradation",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        },
+        {
+          "detector_id": "quality_warning",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "hand-tuned structural threshold — no statistical test, α reserved but never spent (9 structural cutoff group(s) compiled)"
+        }
+      ]
+    },
+    "C": {
+      "family": "C",
+      "alpha_participating": true,
+      "alpha_budget": 0.0002,
+      "detectors": [
+        {
+          "detector_id": "hotelling_t2_joint_vector",
+          "validity_class": "classical_epoch_alpha",
+          "alpha_participating": true,
+          "configured_reality": "hotelling_variant=chi_square [classical] on 0/0 cells",
+          "cell_counts": {},
+          "cell_total": 0
+        },
+        {
+          "detector_id": "hotelling_t2_safe",
+          "validity_class": "bootstrap_crossing_rate",
+          "alpha_participating": true,
+          "configured_reality": "hotelling_variant=safe_test [bootstrap crossing-rate] on 0/0 cells",
+          "cell_counts": {},
+          "cell_total": 0
+        },
+        {
+          "detector_id": "sequential_mmd",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "active [ville] on 0/0 cells; no Sequential-MMD coverage at all (neither betting_e_process_params nor e_mmd_params compiled — typically below MMD_MIN_BASELINE_SAMPLES) on 0/0 cells — Hotelling remains the sole Family C signal there",
+          "cell_counts": {},
+          "cell_total": 0
+        },
+        {
+          "detector_id": "sequential_mmd_e_process",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": true,
+          "configured_reality": "active [ville] on 0/0 cells; no Sequential-MMD coverage at all (neither betting_e_process_params nor e_mmd_params compiled — typically below MMD_MIN_BASELINE_SAMPLES) on 0/0 cells — Hotelling remains the sole Family C signal there",
+          "cell_counts": {},
+          "cell_total": 0
+        }
+      ],
+      "classical_alpha_fraction": 0
+    },
+    "D": {
+      "family": "D",
+      "alpha_participating": true,
+      "alpha_budget": 0.0001,
+      "detectors": [
+        {
+          "detector_id": "spectral_peak_acf_kv_cache",
+          "validity_class": "classical_epoch_alpha",
+          "alpha_participating": true,
+          "configured_reality": "spectral_variant=bootstrap_null [classical] on 0/0 cells (signal=kv_cache)",
+          "cell_counts": {},
+          "cell_total": 0
+        },
+        {
+          "detector_id": "spectral_e_detector_kv_cache",
+          "validity_class": "heuristic_structural",
+          "alpha_participating": false,
+          "configured_reality": "spectral_variant=e_detector [ville] on 0/0 cells; NO Family-D coverage at all (spectral_variant=e_detector configured but null_mean/null_std not compiled — engine/detectors/spectral.ts evaluateSpectralEDetector returns SUPPRESSED) on 0/0 cells (signal=kv_cache)",
+          "cell_counts": {},
+          "cell_total": 0
+        }
+      ],
+      "classical_alpha_fraction": 0
+    },
+    "E": {
+      "family": "E",
+      "alpha_participating": false,
+      "alpha_budget": 0,
+      "detectors": [
+        {
+          "detector_id": "mahalanobis_conformal_baseline",
+          "validity_class": "ville_anytime_valid",
+          "alpha_participating": false,
+          "configured_reality": "kind=weighted_e_value [ville] on 0/0 cells; kind=unweighted|weighted [classical — per-tick conformal test, no wealth process] on 0/0 cells",
+          "cell_counts": {},
+          "cell_total": 0
+        }
+      ],
+      "classical_alpha_fraction": 0
+    }
+  },
+  "effective_validity": {
+    "status": "fully_ville_bounded",
+    "classical_share_of_participating_alpha": 0,
+    "classical_paths": []
+  },
+  "known_limitations": [
+    "Baselines are synthetic: the formal Ville bound holds by construction, but empirical FPR is characterized only on synthetic and hand-curated postmortem-reconstruction baselines, not on ≥10^5 healthy production runs (deploysignal-paper.md §5).",
+    "Empirical FPR is not yet at the nominal bound under all nulls: under an i.i.d.-bootstrap null, several multivariate detectors show calibration gaps traced to per-cell covariance shrinkage and a μ-coherence issue under remediation (Q2.B); the betting and Page-CUSUM Family A paths are empirically Ville-clean across >196,000 trajectories. This is a calibration issue, not a formal-property gap (deploysignal-paper.md §5).",
+    "Family B is heuristic: hand-tuned absolute-threshold structural signatures with no anytime-valid or classical guarantee; they consume no α and their false-positive behavior is governed only by empirical sweep results (deploysignal-paper.md §5).",
+    "No live orchestrator integration: the engine is runtime-exercised TypeScript with a deterministic test substrate; wiring to Argo Rollouts, Spinnaker, or a custom operator is described but not shipped (deploysignal-paper.md §5).",
+    "Multi-metric dependence is handled conservatively via Bonferroni/union bounds, which are loose under strong dependence (deploysignal-paper.md §5)."
+  ],
+  "fallback_behavior": [
+    "Family C Hotelling T²: hotelling_variant defaults to (and falls back to, when safe_hotelling_params is missing) the classical chi_square Wilson-Hilferty test — engine/detectors/_hotelling-dispatch.ts hotellingVariantForDispatch.",
+    "Family C Sequential MMD: a cell needs ≥ MMD_MIN_BASELINE_SAMPLES (100; tools/calibrators/_family-c-mmd.ts) baseline samples for the compiler to stamp mmd_params at all; below that, e_mmd_params and betting_e_process_params are both null and NO Sequential-MMD detector runs for that cell at runtime (Hotelling remains the only Family C signal there). This is a coverage gap, not a classical-test fallback — the classical bootstrap-null MMD evaluator was retired from runtime dispatch at Q68 close.",
+    "Family E conformal: ADVISORY since 2026-09-02 (FAMILY_E_ADVISORY, engine/guarantees.ts; WORKLIST C25; knowledge/stats/family-e-budget-ruling option 3) — alpha_participating false, profile budget 0 on the llm profiles (share reserved in Family B's non-participating leftover). A Family E fire is recorded in evidence_outlook and the audit record but never triggers rollback and books alpha_spent 0. Advisory is live since engine pin v0.6.9-pre (C65): a zero budget evaluates at the nominal level and a fire carries reason_code advisory_zero_budget; at v0.6.7-pre and v0.6.8-pre it read suppressed/calibration_underpowered on every tick instead. Configs compiled with E at 1e-4 replay under the same guard (keyed on the constant, not alpha).",
+    "Family D spectral: the e_detector variant is RETIRED at the calibrator (FAMILY_D_E_DETECTOR_RETIRED, 2026-08-18, WORKLIST C53) — new compiles stamp bootstrap_null unconditionally. The calibrator supplied per-trajectory-MAX moments where the runtime standardizes single evaluations (null_mean median 0.5742 vs single-window 0.27-0.42 across all 219,769 shipped e_detector cells: the wealth cannot climb, the detector cannot fire), and the pinned runtime (v0.6.6-pre) predates both the engine disjoint-cadence fix (d3d6d06) and the priced c-bound (bb56070). Existing e_detector configs replay as artifacts and are inert. See knowledge/stats/family-d-emean-2026-08-18. spectral_variant defaults to the classical bootstrap_null quantile test when unset. A cell configured spectral_variant=e_detector does NOT fall back to bootstrap_null when its null_mean/null_std moments are missing — engine/detectors/spectral.ts spectralVariantForDispatch only falls back to bootstrap_null when the per-(deploy, signal) e-detector wealth-state object itself is absent, which the gate lazily allocates for every evaluated cell (a pre-Addition-#21 TrendBuffer compatibility path, not something this compiled config controls). An e_detector cell missing null_mean/null_std instead reaches evaluateSpectralEDetector and returns SUPPRESSED (spectral_e_detector_params_missing) — NO Family-D coverage runs for that cell at runtime. This is a coverage gap, not a classical-test fallback.",
+    "Family E conformal: the compiler's default 'auto' variant selector (tools/calibrators/family-e.ts resolveFamilyEVariantSelector) silently falls back from the Ville-bounded weighted_e_value wealth process to the classical unweighted parametric-Gaussian-bootstrap conformal p-value test when the baseline span is below FAMILY_E_MIN_SPAN_DAYS (7 days) or the expected/observed effective sample size is below FAMILY_E_ESS_THRESHOLD (0.9) · M. Route (b) real-held-out calibration (Tibshirani/Foygel-Barber/Candès/Ramdas 2019) is permanently deferred per engine/detectors/conformal.ts — the finite-sample coverage requirement n ≥ ⌈1/α⌉ exceeds typical per-cell sample counts at α = 1e-4.",
+    "Q70 Phase-3.d.E self-normalized e-process fallback (engine/detectors/self-normalized-e-process-fallback.ts, §7 EmpiricalProcessLILBound and §6 BetaBinomialMixture): SLICE 1 shipped schema only (self_normalized_fallback fields on FamilyCPerCell / FamilyDPerSignal / ConformalParams); calibrator stamping and detector consumption were deferred to SLICE 2, which never landed. DEPRECATED / dormant — no compiled config exercises it."
+  ]
+}
