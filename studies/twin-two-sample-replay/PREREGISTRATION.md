@@ -83,3 +83,13 @@ and E1 holds, the kind has a real null at these arm sizes and the fault cells sa
 
 A module hash other than the pinned one; exceptions in more than 5% of runs; a run count differing from
 the studies' executable counts.
+
+## Amendment 1 — 2026-10-03, after a void run, before the scored run
+
+`run-20261003T145930Z` is **void: instrument defect**, preserved at
+`results/void-20261003T145930Z-prefix-collision/`: the harness selected a cell's files by prefix, so the
+`AB-reset` row swept in the `AB-reset-nr` files (41 runs). Corrected to an exact cell match. Also found there
+and stated for the reading, not changed: the stored files hold only the scored ticks the real session ran,
+so a cell whose per-metric kinds rolled back at tick 11 (`AB-lat30`) or 12 (`AB-reset-nr`) offers the
+two-sample kind 11 or 12 ticks, and E2 on those cells can only say whether it fired first. The scored-tick
+count per run is now reported per row. No bar or prediction changes.

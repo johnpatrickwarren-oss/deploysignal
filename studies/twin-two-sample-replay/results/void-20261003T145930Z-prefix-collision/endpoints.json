@@ -1,0 +1,270 @@
+{
+  "study": "2026-10-twin-two-sample-replay",
+  "generated": "2026-10-03T14:59:33.688Z",
+  "arms": {
+    "TS-m": {
+      "id": "joint",
+      "alpha": 0.05,
+      "window": 200,
+      "localWindow": 20,
+      "coordinates": [
+        {
+          "id": "http_5xx",
+          "margin": {
+            "relative": 0.2
+          }
+        },
+        {
+          "id": "p99_latency",
+          "margin": {
+            "relative": 0.1
+          }
+        }
+      ]
+    },
+    "TS-0": {
+      "id": "joint",
+      "alpha": 0.05,
+      "window": 200,
+      "localWindow": 20,
+      "coordinates": [
+        {
+          "id": "http_5xx"
+        },
+        {
+          "id": "p99_latency"
+        }
+      ]
+    }
+  },
+  "counters": {
+    "exceptions": 0
+  },
+  "exceptions": [],
+  "rows": [
+    {
+      "study": "twin-aa-real",
+      "cell": "AA",
+      "arm": "TS-m",
+      "tasks": 2,
+      "runs": 44,
+      "rollbacks": 7,
+      "rate": 0.1590909090909091,
+      "upper95": 0.27814542079780885,
+      "median_tick": 31,
+      "bar": 0.1062,
+      "verdict": "FAIL",
+      "permetric": "12/44",
+      "permetric_rollbacks_same_runs": 12,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-aa-real",
+      "cell": "AA",
+      "arm": "TS-0",
+      "tasks": 2,
+      "runs": 44,
+      "rollbacks": 9,
+      "rate": 0.20454545454545456,
+      "upper95": 0.3298004530063011,
+      "median_tick": 34,
+      "bar": 0.1062,
+      "verdict": "FAIL",
+      "permetric": "12/44",
+      "permetric_rollbacks_same_runs": 12,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-aa-real-2",
+      "cell": "AA",
+      "arm": "TS-m",
+      "tasks": 4,
+      "runs": 100,
+      "rollbacks": 12,
+      "rate": 0.12,
+      "upper95": 0.18716610977897127,
+      "median_tick": 50,
+      "bar": 0.1062,
+      "verdict": "FAIL",
+      "permetric": "0/100",
+      "permetric_rollbacks_same_runs": 0,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-aa-real-2",
+      "cell": "AA",
+      "arm": "TS-0",
+      "tasks": 4,
+      "runs": 100,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.029513049607039876,
+      "median_tick": null,
+      "bar": 0.1062,
+      "verdict": "PASS",
+      "permetric": "0/100",
+      "permetric_rollbacks_same_runs": 0,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-aa-onebox",
+      "cell": "AA",
+      "arm": "TS-m",
+      "tasks": 1,
+      "runs": 32,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.08936819898626476,
+      "median_tick": null,
+      "bar": 0.1062,
+      "verdict": "PASS",
+      "permetric": "running",
+      "permetric_rollbacks_same_runs": 0,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-aa-onebox",
+      "cell": "AA",
+      "arm": "TS-0",
+      "tasks": 1,
+      "runs": 32,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.08936819898626476,
+      "median_tick": null,
+      "bar": 0.1062,
+      "verdict": "PASS",
+      "permetric": "running",
+      "permetric_rollbacks_same_runs": 0,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-lat30",
+      "arm": "TS-m",
+      "tasks": 4,
+      "runs": 20,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.13910834066826525,
+      "median_tick": null,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "20/20 @11",
+      "permetric_rollbacks_same_runs": 20,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-lat30",
+      "arm": "TS-0",
+      "tasks": 4,
+      "runs": 20,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.13910834066826525,
+      "median_tick": null,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "20/20 @11",
+      "permetric_rollbacks_same_runs": 20,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-5xx-1.5",
+      "arm": "TS-m",
+      "tasks": 4,
+      "runs": 20,
+      "rollbacks": 20,
+      "rate": 1,
+      "upper95": 1,
+      "median_tick": 30,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "20/20 @40",
+      "permetric_rollbacks_same_runs": 20,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-5xx-1.5",
+      "arm": "TS-0",
+      "tasks": 4,
+      "runs": 20,
+      "rollbacks": 17,
+      "rate": 0.85,
+      "upper95": 0.9578305921142992,
+      "median_tick": 31,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "20/20 @40",
+      "permetric_rollbacks_same_runs": 20,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-reset",
+      "arm": "TS-m",
+      "tasks": 4,
+      "runs": 41,
+      "rollbacks": 1,
+      "rate": 0.024390243902439025,
+      "upper95": 0.11055312897987707,
+      "median_tick": 46,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "0/20",
+      "permetric_rollbacks_same_runs": 21,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-reset",
+      "arm": "TS-0",
+      "tasks": 4,
+      "runs": 41,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.07046111727016408,
+      "median_tick": null,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "0/20",
+      "permetric_rollbacks_same_runs": 21,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-reset-nr",
+      "arm": "TS-m",
+      "tasks": 4,
+      "runs": 21,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.13294591102652337,
+      "median_tick": null,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "20/20 @12 (no_response)",
+      "permetric_rollbacks_same_runs": 21,
+      "mean_missing": 0
+    },
+    {
+      "study": "twin-fault-shapes",
+      "cell": "AB-reset-nr",
+      "arm": "TS-0",
+      "tasks": 4,
+      "runs": 21,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.13294591102652337,
+      "median_tick": null,
+      "bar": null,
+      "verdict": "reported",
+      "permetric": "20/20 @12 (no_response)",
+      "permetric_rollbacks_same_runs": 21,
+      "mean_missing": 0
+    }
+  ]
+}
