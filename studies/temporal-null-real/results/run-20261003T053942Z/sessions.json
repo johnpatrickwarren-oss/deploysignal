@@ -1,0 +1,2126 @@
+[
+ {
+  "lane": 0,
+  "session": 0,
+  "start": "2026-10-02T01:31:00.000Z",
+  "end": "2026-10-02T02:33:00.000Z",
+  "restart_session": true,
+  "regime": "half",
+  "mean_traffic_pct": 0.5518608829568789,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 2
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 1,
+  "start": "2026-10-02T02:35:00.000Z",
+  "end": "2026-10-02T03:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5538116016427105,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 2,
+  "start": "2026-10-02T03:39:00.000Z",
+  "end": "2026-10-02T04:41:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.6822702772073922,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 3,
+  "start": "2026-10-02T04:43:00.000Z",
+  "end": "2026-10-02T05:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5243294404517453,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 4,
+  "start": "2026-10-02T05:47:00.000Z",
+  "end": "2026-10-02T06:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5255710985626283,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 5,
+  "start": "2026-10-02T06:51:00.000Z",
+  "end": "2026-10-02T07:53:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5322349845995893,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 6,
+  "start": "2026-10-02T07:55:00.000Z",
+  "end": "2026-10-02T08:57:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5241337268993839,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 7,
+  "start": "2026-10-02T08:59:00.000Z",
+  "end": "2026-10-02T10:01:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.643467659137577,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 8,
+  "start": "2026-10-02T10:03:00.000Z",
+  "end": "2026-10-02T11:05:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0011774897330596,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 9,
+  "start": "2026-10-02T11:07:00.000Z",
+  "end": "2026-10-02T12:09:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 0.9993839835728953,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 10,
+  "start": "2026-10-02T12:11:00.000Z",
+  "end": "2026-10-02T13:13:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0026982802874744,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 11,
+  "start": "2026-10-02T13:15:00.000Z",
+  "end": "2026-10-02T14:17:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7154292864476387,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 14
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 12,
+  "start": "2026-10-02T14:19:00.000Z",
+  "end": "2026-10-02T15:21:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5262673254620124,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 13,
+  "start": "2026-10-02T15:23:00.000Z",
+  "end": "2026-10-02T16:25:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5211049794661191,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 14,
+  "start": "2026-10-02T16:27:00.000Z",
+  "end": "2026-10-02T17:29:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5035068018480494,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 1
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 15,
+  "start": "2026-10-02T17:31:00.000Z",
+  "end": "2026-10-02T18:33:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5247465349075976,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 16,
+  "start": "2026-10-02T18:35:00.000Z",
+  "end": "2026-10-02T19:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5250737936344969,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 17,
+  "start": "2026-10-02T19:39:00.000Z",
+  "end": "2026-10-02T20:41:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5674858829568789,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 18,
+  "start": "2026-10-02T20:43:00.000Z",
+  "end": "2026-10-02T21:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5371727412731006,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 19,
+  "start": "2026-10-02T21:47:00.000Z",
+  "end": "2026-10-02T22:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.533264887063655,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 1
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 20,
+  "start": "2026-10-02T22:51:00.000Z",
+  "end": "2026-10-02T23:53:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7328092915811089,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 21,
+  "start": "2026-10-02T23:55:00.000Z",
+  "end": "2026-10-03T00:57:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 0.9995123203285419,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 22,
+  "start": "2026-10-03T00:59:00.000Z",
+  "end": "2026-10-03T02:01:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 0.9996374486652978,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 23,
+  "start": "2026-10-03T02:03:00.000Z",
+  "end": "2026-10-03T03:05:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.853237294661191,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 23
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 0,
+  "session": 24,
+  "start": "2026-10-03T03:07:00.000Z",
+  "end": "2026-10-03T04:09:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5234567505133471,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 0,
+  "start": "2026-10-02T01:31:00.000Z",
+  "end": "2026-10-02T02:33:00.000Z",
+  "restart_session": true,
+  "regime": "half",
+  "mean_traffic_pct": 0.5596316735112937,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 2
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 1,
+  "start": "2026-10-02T02:35:00.000Z",
+  "end": "2026-10-02T03:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5576969969199178,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 2,
+  "start": "2026-10-02T03:39:00.000Z",
+  "end": "2026-10-02T04:41:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.6608155800821355,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 3,
+  "start": "2026-10-02T04:43:00.000Z",
+  "end": "2026-10-02T05:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.546570200205339,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 4,
+  "start": "2026-10-02T05:47:00.000Z",
+  "end": "2026-10-02T06:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5237230492813143,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 5,
+  "start": "2026-10-02T06:51:00.000Z",
+  "end": "2026-10-02T07:53:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5247593685831621,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 6,
+  "start": "2026-10-02T07:55:00.000Z",
+  "end": "2026-10-02T08:57:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5261742813141683,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 7,
+  "start": "2026-10-02T08:59:00.000Z",
+  "end": "2026-10-02T10:01:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5940997176591376,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 8,
+  "start": "2026-10-02T10:03:00.000Z",
+  "end": "2026-10-02T11:05:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0032822125256673,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 9,
+  "start": "2026-10-02T11:07:00.000Z",
+  "end": "2026-10-02T12:09:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0022940195071868,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 10,
+  "start": "2026-10-02T12:11:00.000Z",
+  "end": "2026-10-02T13:13:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.003160292607803,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 11,
+  "start": "2026-10-02T13:15:00.000Z",
+  "end": "2026-10-02T14:17:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7181949435318274,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 14
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 12,
+  "start": "2026-10-02T14:19:00.000Z",
+  "end": "2026-10-02T15:21:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5249294147843944,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 13,
+  "start": "2026-10-02T15:23:00.000Z",
+  "end": "2026-10-02T16:25:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5236171714579055,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 14,
+  "start": "2026-10-02T16:27:00.000Z",
+  "end": "2026-10-02T17:29:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5025571098562629,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 15,
+  "start": "2026-10-02T17:31:00.000Z",
+  "end": "2026-10-02T18:33:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5228952772073922,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 16,
+  "start": "2026-10-02T18:35:00.000Z",
+  "end": "2026-10-02T19:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5286158880903491,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 17,
+  "start": "2026-10-02T19:39:00.000Z",
+  "end": "2026-10-02T20:41:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5899223562628337,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 18,
+  "start": "2026-10-02T20:43:00.000Z",
+  "end": "2026-10-02T21:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5255005133470226,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 19,
+  "start": "2026-10-02T21:47:00.000Z",
+  "end": "2026-10-02T22:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5507571868583163,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 2
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 20,
+  "start": "2026-10-02T22:51:00.000Z",
+  "end": "2026-10-02T23:53:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5981455338809036,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 21,
+  "start": "2026-10-02T23:55:00.000Z",
+  "end": "2026-10-03T00:57:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.8918634496919918,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 22,
+  "start": "2026-10-03T00:59:00.000Z",
+  "end": "2026-10-03T02:01:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0002662987679671,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 23,
+  "start": "2026-10-03T02:03:00.000Z",
+  "end": "2026-10-03T03:05:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.8621406570841891,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 24
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 1,
+  "session": 24,
+  "start": "2026-10-03T03:07:00.000Z",
+  "end": "2026-10-03T04:09:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.513083932238193,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 0,
+  "start": "2026-10-02T01:31:00.000Z",
+  "end": "2026-10-02T02:33:00.000Z",
+  "restart_session": true,
+  "regime": "half",
+  "mean_traffic_pct": 0.5654421201232034,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 3
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 1,
+  "start": "2026-10-02T02:35:00.000Z",
+  "end": "2026-10-02T03:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5599974332648869,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 2,
+  "start": "2026-10-02T03:39:00.000Z",
+  "end": "2026-10-02T04:41:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.666189681724846,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 3,
+  "start": "2026-10-02T04:43:00.000Z",
+  "end": "2026-10-02T05:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5279196611909651,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 4,
+  "start": "2026-10-02T05:47:00.000Z",
+  "end": "2026-10-02T06:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5246727412731006,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 5,
+  "start": "2026-10-02T06:51:00.000Z",
+  "end": "2026-10-02T07:53:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5266234599589324,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 6,
+  "start": "2026-10-02T07:55:00.000Z",
+  "end": "2026-10-02T08:57:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5245091119096508,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 7,
+  "start": "2026-10-02T08:59:00.000Z",
+  "end": "2026-10-02T10:01:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5830082135523613,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 8,
+  "start": "2026-10-02T10:03:00.000Z",
+  "end": "2026-10-02T11:05:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0026918634496922,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 9,
+  "start": "2026-10-02T11:07:00.000Z",
+  "end": "2026-10-02T12:09:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.001787089322382,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 10,
+  "start": "2026-10-02T12:11:00.000Z",
+  "end": "2026-10-02T13:13:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0026020277207393,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 11,
+  "start": "2026-10-02T13:15:00.000Z",
+  "end": "2026-10-02T14:17:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7260042351129364,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 15
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 12,
+  "start": "2026-10-02T14:19:00.000Z",
+  "end": "2026-10-02T15:21:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5239412217659137,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 13,
+  "start": "2026-10-02T15:23:00.000Z",
+  "end": "2026-10-02T16:25:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5199306981519507,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 14,
+  "start": "2026-10-02T16:27:00.000Z",
+  "end": "2026-10-02T17:29:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5033816735112936,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 1
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 15,
+  "start": "2026-10-02T17:31:00.000Z",
+  "end": "2026-10-02T18:33:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5261101129363451,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 16,
+  "start": "2026-10-02T18:35:00.000Z",
+  "end": "2026-10-02T19:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5201071611909651,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 17,
+  "start": "2026-10-02T19:39:00.000Z",
+  "end": "2026-10-02T20:41:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5918249486652977,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 18,
+  "start": "2026-10-02T20:43:00.000Z",
+  "end": "2026-10-02T21:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5258181468172485,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 19,
+  "start": "2026-10-02T21:47:00.000Z",
+  "end": "2026-10-02T22:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5492235626283366,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 2
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 20,
+  "start": "2026-10-02T22:51:00.000Z",
+  "end": "2026-10-02T23:53:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7239476386036958,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 21,
+  "start": "2026-10-02T23:55:00.000Z",
+  "end": "2026-10-03T00:57:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0026148613963037,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 22,
+  "start": "2026-10-03T00:59:00.000Z",
+  "end": "2026-10-03T02:01:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0001058778234087,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 23,
+  "start": "2026-10-03T02:03:00.000Z",
+  "end": "2026-10-03T03:05:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.8634817761806982,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 24
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 2,
+  "session": 24,
+  "start": "2026-10-03T03:07:00.000Z",
+  "end": "2026-10-03T04:09:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5144539271047227,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 0,
+  "start": "2026-10-02T01:31:00.000Z",
+  "end": "2026-10-02T02:33:00.000Z",
+  "restart_session": true,
+  "regime": "half",
+  "mean_traffic_pct": 0.5696708162217661,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 3
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 1,
+  "start": "2026-10-02T02:35:00.000Z",
+  "end": "2026-10-02T03:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5509721509240247,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 2,
+  "start": "2026-10-02T03:39:00.000Z",
+  "end": "2026-10-02T04:41:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7046939168377823,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 3,
+  "start": "2026-10-02T04:43:00.000Z",
+  "end": "2026-10-02T05:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.52565772587269,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 4,
+  "start": "2026-10-02T05:47:00.000Z",
+  "end": "2026-10-02T06:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5233540811088295,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 5,
+  "start": "2026-10-02T06:51:00.000Z",
+  "end": "2026-10-02T07:53:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.529177361396304,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 6,
+  "start": "2026-10-02T07:55:00.000Z",
+  "end": "2026-10-02T08:57:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5221124229979467,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 7,
+  "start": "2026-10-02T08:59:00.000Z",
+  "end": "2026-10-02T10:01:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.6089707392197126,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 8,
+  "start": "2026-10-02T10:03:00.000Z",
+  "end": "2026-10-02T11:05:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 0.9997689938398356,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 9,
+  "start": "2026-10-02T11:07:00.000Z",
+  "end": "2026-10-02T12:09:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0025186088295688,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 10,
+  "start": "2026-10-02T12:11:00.000Z",
+  "end": "2026-10-02T13:13:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 0.9991112679671458,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 11,
+  "start": "2026-10-02T13:15:00.000Z",
+  "end": "2026-10-02T14:17:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7350423511293632,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 15
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 12,
+  "start": "2026-10-02T14:19:00.000Z",
+  "end": "2026-10-02T15:21:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5250096252566736,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 13,
+  "start": "2026-10-02T15:23:00.000Z",
+  "end": "2026-10-02T16:25:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.510728952772074,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 14,
+  "start": "2026-10-02T16:27:00.000Z",
+  "end": "2026-10-02T17:29:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.515698793634497,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 1
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 15,
+  "start": "2026-10-02T17:31:00.000Z",
+  "end": "2026-10-02T18:33:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5261261550308006,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 16,
+  "start": "2026-10-02T18:35:00.000Z",
+  "end": "2026-10-02T19:37:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5252695071868583,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 17,
+  "start": "2026-10-02T19:39:00.000Z",
+  "end": "2026-10-02T20:41:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5692505133470226,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 18,
+  "start": "2026-10-02T20:43:00.000Z",
+  "end": "2026-10-02T21:45:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5271720995893224,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 19,
+  "start": "2026-10-02T21:47:00.000Z",
+  "end": "2026-10-02T22:49:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5494866529774127,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 3
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 20,
+  "start": "2026-10-02T22:51:00.000Z",
+  "end": "2026-10-02T23:53:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.7075782854209446,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 21,
+  "start": "2026-10-02T23:55:00.000Z",
+  "end": "2026-10-03T00:57:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.0037185574948666,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 22,
+  "start": "2026-10-03T00:59:00.000Z",
+  "end": "2026-10-03T02:01:00.000Z",
+  "restart_session": false,
+  "regime": "full",
+  "mean_traffic_pct": 1.000147587268994,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {},
+  "families_rollback": [],
+  "families_extend": [],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 23,
+  "start": "2026-10-03T02:03:00.000Z",
+  "end": "2026-10-03T03:05:00.000Z",
+  "restart_session": false,
+  "regime": "mixed",
+  "mean_traffic_pct": 0.8679126026694045,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 24
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ },
+ {
+  "lane": 3,
+  "session": 24,
+  "start": "2026-10-03T03:07:00.000Z",
+  "end": "2026-10-03T04:09:00.000Z",
+  "restart_session": false,
+  "regime": "half",
+  "mean_traffic_pct": 0.5200205338809034,
+  "void_reasons": [],
+  "executable": true,
+  "verdict": "proceed",
+  "verdict_tick": 31,
+  "rollback_ids": {},
+  "extend_ids": {
+   "low_traffic": 0
+  },
+  "families_rollback": [],
+  "families_extend": [
+   "B"
+  ],
+  "failures": 0
+ }
+]
