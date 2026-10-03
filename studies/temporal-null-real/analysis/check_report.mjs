@@ -24,6 +24,6 @@ check('compiled: A two signals, C/E none, D attached', E.compiled.family_A_signa
 let dsig = null; try { dsig = require('@johnpatrickwarren-oss/deploysignal-engine/detectors/spectral').FAMILY_D_SIGNALS; } catch (e) { try { dsig = require(join(ROOT, 'node_modules', '@johnpatrickwarren-oss', 'deploysignal-engine', 'dist', 'detectors', 'spectral.js')).FAMILY_D_SIGNALS; } catch (e2) { dsig = null; } }
 check('FAMILY_D_SIGNALS is [kv_cache] at the pin', Array.isArray(dsig) && dsig.length === 1 && dsig[0] === 'kv_cache' && report.includes("`['kv_cache']`"));
 check('raw series present, no account id', [0, 1, 2, 3].every((l) => existsSync(join(STUDY, 'results', 'raw', `lane${l}.json`)) && !readFileSync(join(STUDY, 'results', 'raw', `lane${l}.json`), 'utf8').includes('556890483612')));
-for (const q of ['0 rollbacks and 0 rollback-class fires', 'P1 said E1 FAILS with 3–15 rollbacks', '**Wrong.** 0.', 'Family D was not exercised', 'p99 ×1.05 (3.8 ms, one δ_min) at tick 17', 'cannot confirm one as small as the 0.0004 budget']) check(`quotes ${q}`, report.includes(q));
+for (const q of ['That was wrong when written.', '40 of 44', '13 of 87', 'a third substrate, not the first', '0 rollbacks and 0 rollback-class fires', 'P1 said E1 FAILS with 3–15 rollbacks', '**Wrong.** 0.', 'Family D was not exercised', 'p99 ×1.05 (3.8 ms, one δ_min) at tick 17', 'cannot confirm one as small as the 0.0004 budget']) check(`quotes ${q}`, report.includes(q));
 if (failed) { console.error(`${failed} check(s) failed`); process.exit(1); }
 console.log('check_report: all checks passed');
