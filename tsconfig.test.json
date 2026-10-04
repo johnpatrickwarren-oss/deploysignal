@@ -15,6 +15,7 @@
     "service/gate-http/server.ts",
     "tools/calibrate.ts",
     "tools/recalibrate.ts",
+    "tools/self-calibrate.ts",
     "tools/calibrators/**/*.ts",
     "tools/build-guarantee-manifest.ts",
     "tools/benchmark-tick-latency.ts",

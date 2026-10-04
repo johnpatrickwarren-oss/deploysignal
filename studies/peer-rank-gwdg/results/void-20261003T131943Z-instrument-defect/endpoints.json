@@ -1,0 +1,124 @@
+{
+  "study": "2026-10-peer-rank-gwdg",
+  "generated": "2026-10-03T13:19:51.314Z",
+  "smoke": false,
+  "threshold": 280,
+  "n_tests": 14,
+  "signals": [
+    "DCGM_FI_DEV_GPU_TEMP",
+    "DCGM_FI_DEV_MEMORY_TEMP",
+    "DCGM_FI_DEV_POWER_USAGE",
+    "DCGM_FI_DEV_GPU_UTIL",
+    "DCGM_FI_DEV_MEM_COPY_UTIL",
+    "DCGM_FI_DEV_SM_CLOCK",
+    "DCGM_FI_DEV_MEM_CLOCK"
+  ],
+  "arms": {
+    "M10": 0.1,
+    "M5": 0.05
+  },
+  "windows_total": 168,
+  "voided": 0,
+  "counters": {
+    "exceptions": 0,
+    "hash_mismatches": 0
+  },
+  "exceptions": [],
+  "hash_checks": [
+    {
+      "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    }
+  ],
+  "not_executable": false,
+  "E1": {
+    "windows": 44,
+    "rollbacks": 0,
+    "rate": 0,
+    "upper95": 0.06581877114493401,
+    "per_1000_ticks": 0,
+    "ticks": 12672,
+    "verdict": "PASS",
+    "first_signals": {},
+    "temporal_rollbacks_same_windows": 40
+  },
+  "E2": {
+    "windows": 40,
+    "rollbacks": 0,
+    "rate": 0,
+    "verdict": "FAIL",
+    "lead_hours_vs_I_median": null,
+    "early_fraction": null,
+    "fire_minus_xid_median": null,
+    "with_disappearance": 0,
+    "fires_at_or_after_disappearance": 0,
+    "first_signals": {},
+    "temporal_rollbacks_same_windows": 34
+  },
+  "E4_M5": {
+    "null": {
+      "windows": 44,
+      "rollbacks": 0,
+      "rate": 0,
+      "upper95": 0.06581877114493401,
+      "per_1000_ticks": 0,
+      "ticks": 12672,
+      "verdict": "PASS",
+      "first_signals": {},
+      "temporal_rollbacks_same_windows": 40
+    },
+    "detection": {
+      "windows": 40,
+      "rollbacks": 0,
+      "rate": 0,
+      "verdict": "FAIL",
+      "lead_hours_vs_I_median": null,
+      "early_fraction": null,
+      "fire_minus_xid_median": null,
+      "with_disappearance": 0,
+      "fires_at_or_after_disappearance": 0,
+      "first_signals": {},
+      "temporal_rollbacks_same_windows": 34
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "posthoc": true,
+  "note": "relative-margin sweep on the same windows; no verdict",
+  "results": [
+    {
+      "margin": 0.1,
+      "null_rollbacks": "26/44",
+      "null_rate": 0.5909090909090909,
+      "detection_rollbacks": "28/40",
+      "detection_rate": 0.7,
+      "detection_fires_before_I": 27
+    },
+    {
+      "margin": 0.2,
+      "null_rollbacks": "22/44",
+      "null_rate": 0.5,
+      "detection_rollbacks": "19/40",
+      "detection_rate": 0.475,
+      "detection_fires_before_I": 18
+    },
+    {
+      "margin": 0.3,
+      "null_rollbacks": "21/44",
+      "null_rate": 0.4772727272727273,
+      "detection_rollbacks": "19/40",
+      "detection_rate": 0.475,
+      "detection_fires_before_I": 18
+    },
+    {
+      "margin": 0.5,
+      "null_rollbacks": "20/44",
+      "null_rate": 0.45454545454545453,
+      "detection_rollbacks": "17/40",
+      "detection_rate": 0.425,
+      "detection_fires_before_I": 16
+    },
+    {
+      "margin": 1,
+      "null_rollbacks": "9/44",
+      "null_rate": 0.20454545454545456,
+      "detection_rollbacks": "8/40",
+      "detection_rate": 0.2,
+      "detection_fires_before_I": 8
+    }
+  ]
+}

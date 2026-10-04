@@ -1,0 +1,156 @@
+{
+  "study": "2026-10-peer-rank-gwdg",
+  "generated": "2026-10-03T13:23:39.510Z",
+  "smoke": false,
+  "threshold": 280,
+  "n_tests": 14,
+  "signals": [
+    "DCGM_FI_DEV_GPU_TEMP",
+    "DCGM_FI_DEV_MEMORY_TEMP",
+    "DCGM_FI_DEV_POWER_USAGE",
+    "DCGM_FI_DEV_GPU_UTIL",
+    "DCGM_FI_DEV_MEM_COPY_UTIL",
+    "DCGM_FI_DEV_SM_CLOCK",
+    "DCGM_FI_DEV_MEM_CLOCK"
+  ],
+  "arms": {
+    "M10": 0.1,
+    "M5": 0.05
+  },
+  "windows_total": 168,
+  "voided": 0,
+  "counters": {
+    "exceptions": 0,
+    "hash_mismatches": 0
+  },
+  "exceptions": [],
+  "hash_checks": [
+    {
+      "file": "ggpu129_2026-01-09_gpu-lost_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu139_2025-03-21_gpus-dropped-off-bus-maybe_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-02-17_gpus-fallen-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-03-15_unknown-error-possibly-nongpu_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-07-03_gpu-problem_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu142_2025-09-12_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu143_2025-03-21_gpu-problem_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu144_2025-03-21_gpu-problem_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu149_2025-03-21_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu149_2025-06-12_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    },
+    {
+      "file": "ggpu149_2026-01-19_gpus-dropped-off-bus_tidy.csv",
+      "ok": true
+    }
+  ],
+  "not_executable": false,
+  "E1": {
+    "windows": 44,
+    "rollbacks": 26,
+    "rate": 0.5909090909090909,
+    "upper95": 0.7163681374488327,
+    "per_1000_ticks": 2.051767676767677,
+    "ticks": 12672,
+    "verdict": "FAIL",
+    "first_signals": {
+      "DCGM_FI_DEV_GPU_TEMP:higher": 7,
+      "DCGM_FI_DEV_GPU_TEMP:lower": 5,
+      "DCGM_FI_DEV_POWER_USAGE:lower": 5,
+      "DCGM_FI_DEV_POWER_USAGE:higher": 4,
+      "DCGM_FI_DEV_MEM_COPY_UTIL:higher": 3,
+      "DCGM_FI_DEV_MEMORY_TEMP:lower": 1,
+      "DCGM_FI_DEV_GPU_UTIL:lower": 1
+    },
+    "temporal_rollbacks_same_windows": 40
+  },
+  "E2": {
+    "windows": 40,
+    "rollbacks": 28,
+    "rate": 0.7,
+    "verdict": "PASS",
+    "lead_hours_vs_I_median": -17.833333333333332,
+    "early_fraction": 0.9642857142857143,
+    "fire_minus_xid_median": 37,
+    "with_disappearance": 0,
+    "fires_at_or_after_disappearance": 0,
+    "first_signals": {
+      "DCGM_FI_DEV_GPU_TEMP:higher": 10,
+      "DCGM_FI_DEV_GPU_TEMP:lower": 8,
+      "DCGM_FI_DEV_POWER_USAGE:higher": 5,
+      "DCGM_FI_DEV_POWER_USAGE:lower": 4,
+      "DCGM_FI_DEV_MEMORY_TEMP:higher": 1
+    },
+    "temporal_rollbacks_same_windows": 34
+  },
+  "E4_M5": {
+    "null": {
+      "windows": 44,
+      "rollbacks": 32,
+      "rate": 0.7272727272727273,
+      "upper95": 0.8344596139984333,
+      "per_1000_ticks": 2.5252525252525255,
+      "ticks": 12672,
+      "verdict": "FAIL",
+      "first_signals": {
+        "DCGM_FI_DEV_GPU_TEMP:higher": 9,
+        "DCGM_FI_DEV_GPU_TEMP:lower": 8,
+        "DCGM_FI_DEV_POWER_USAGE:lower": 5,
+        "DCGM_FI_DEV_MEMORY_TEMP:higher": 3,
+        "DCGM_FI_DEV_POWER_USAGE:higher": 3,
+        "DCGM_FI_DEV_MEMORY_TEMP:lower": 2,
+        "DCGM_FI_DEV_SM_CLOCK:lower": 1,
+        "DCGM_FI_DEV_MEM_COPY_UTIL:higher": 1
+      },
+      "temporal_rollbacks_same_windows": 40
+    },
+    "detection": {
+      "windows": 40,
+      "rollbacks": 33,
+      "rate": 0.825,
+      "verdict": "PASS",
+      "lead_hours_vs_I_median": -17.833333333333332,
+      "early_fraction": 0.9393939393939394,
+      "fire_minus_xid_median": 24,
+      "with_disappearance": 0,
+      "fires_at_or_after_disappearance": 0,
+      "first_signals": {
+        "DCGM_FI_DEV_GPU_TEMP:higher": 11,
+        "DCGM_FI_DEV_GPU_TEMP:lower": 9,
+        "DCGM_FI_DEV_POWER_USAGE:lower": 4,
+        "DCGM_FI_DEV_POWER_USAGE:higher": 3,
+        "DCGM_FI_DEV_MEMORY_TEMP:higher": 3,
+        "DCGM_FI_DEV_MEMORY_TEMP:lower": 1,
+        "DCGM_FI_DEV_SM_CLOCK:lower": 1,
+        "DCGM_FI_DEV_MEM_COPY_UTIL:higher": 1
+      },
+      "temporal_rollbacks_same_windows": 34
+    }
+  }
+}

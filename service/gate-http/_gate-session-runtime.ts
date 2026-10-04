@@ -46,6 +46,7 @@ import { SessionStore } from '../session/session-store';
 import type { SessionRecord, VerdictHistoryEntry, BeginSessionInput } from '../session/types';
 import type { SessionStatus, DeploymentPhase } from '../session/types';
 import { resolveActiveCalibration } from '../session/active-calibration';
+import { readSelfCalibration, type SelfCalibrationSummary } from '../session/self-calibration';
 import type { ActiveCalibration } from '../session/active-calibration';
 import { SoakController } from './_gate-soak';
 import { TwinSessionRuntime, twinVerdictBlock } from './_gate-twin';
@@ -160,6 +161,9 @@ export interface TickResult {
   degraded?: boolean;
   error?: string;
   session_status: SessionStatus;
+  /** ADR 0002 — the temporal path's own measured false-alarm rate on this service's undeployed history
+   *  (`tools/self-calibrate`), or null when nobody has measured it. Read once per session, at begin. */
+  self_calibration?: SelfCalibrationSummary | null;
 }
 
 export interface VerdictResponse {
@@ -175,6 +179,8 @@ export interface VerdictResponse {
   error?: string;
   /** Plan B — present on a twin session: the advisory twin verdict. */
   twin?: { verdict: string; engine_verdict: string; authority: 'advisory'; tick: number };
+  /** ADR 0002 — see TickResult.self_calibration. */
+  self_calibration?: SelfCalibrationSummary | null;
 }
 
 interface SessionRuntimeState {
@@ -599,6 +605,7 @@ export class GateSessionRuntime {
       ...(degraded ? { degraded: true } : {}),
       ...(errorMsg !== undefined ? { error: errorMsg } : {}),
       session_status: finalRec.status,
+      self_calibration: this.selfCalibrationFor(session),
     };
   }
 
@@ -748,6 +755,18 @@ export class GateSessionRuntime {
       alpha_consumed: alphaConsumed,
       fires,
       ...extra,
+      self_calibration: this.selfCalibrationFor(session),
     };
+  }
+
+  /** ADR 0002: the stored self-calibration summary for this service, staleness judged against the session's
+   *  compiled config. A present-but-corrupt record is reported as null with the gate otherwise unaffected: the
+   *  field explains a fire, it never decides one. */
+  private selfCalibrationFor(session: SessionRecord): SelfCalibrationSummary | null {
+    try {
+      return readSelfCalibration(this.cfg.baselineHistoryDir, session.service_id ?? this.cfg.serviceId, { compiledConfigPath: session.compiled_config_path ?? null });
+    } catch {
+      return null;
+    }
   }
 }

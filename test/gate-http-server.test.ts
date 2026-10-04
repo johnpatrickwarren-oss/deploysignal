@@ -387,15 +387,16 @@ test('tick idempotency over HTTP: two identical POSTs -> identical bodies, secon
 // GET verdict spec shape.
 // ────────────────────────────────────────────────────────────────────
 
-test('GET /v1/verdict/{deploy_ref} returns exactly the seven spec keys', async () => {
+test('GET /v1/verdict/{deploy_ref} returns exactly the seven spec keys plus self_calibration (ADR 0002; null when unmeasured)', async () => {
   const s = await start();
   try {
     await req(s.baseUrl, 'POST', '/v1/sessions', { body: beginBody() });
     const r = await req(s.baseUrl, 'GET', '/v1/verdict/deploy-ref-1');
     assert.equal(r.status, 200);
     assert.deepEqual(Object.keys(r.json).sort(), [
-      'alpha_consumed', 'config_version', 'fires', 'tick', 'total_ticks', 'verdict', 'verdict_code',
+      'alpha_consumed', 'config_version', 'fires', 'self_calibration', 'tick', 'total_ticks', 'verdict', 'verdict_code',
     ]);
+    assert.equal(r.json.self_calibration, null);
   } finally { await stop(s); }
 });
 
