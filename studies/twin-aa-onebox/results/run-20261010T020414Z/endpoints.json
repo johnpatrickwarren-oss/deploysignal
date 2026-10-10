@@ -1,0 +1,336 @@
+{
+ "registered": {
+  "R": 100,
+  "B": 0.1062,
+  "max_rollbacks": 10,
+  "stop_after_rollbacks": 11,
+  "attempt_cap": 150,
+  "o3_max_halts": 2,
+  "margin": 0.1,
+  "v8_lo_s": 0.02,
+  "v8_hi_s": 0.4
+ },
+ "placement": {
+  "0": {
+   "stratum": "S",
+   "baseline": "us-east-1a",
+   "canary": "us-east-1a"
+  },
+  "1": {
+   "stratum": "S",
+   "baseline": "us-east-1b",
+   "canary": "us-east-1b"
+  },
+  "2": {
+   "stratum": "X",
+   "baseline": "us-east-1a",
+   "canary": "us-east-1b"
+  },
+  "3": {
+   "stratum": "X",
+   "baseline": "us-east-1b",
+   "canary": "us-east-1a"
+  }
+ },
+ "attempts": 200,
+ "deploy_failures": [],
+ "summaries": 200,
+ "O1": {
+  "stratum": "S",
+  "lanes": [
+   0,
+   1
+  ],
+  "attempts": 100,
+  "summaries": 100,
+  "executable": 100,
+  "void_runs": [],
+  "rollbacks": 0,
+  "rate": 0,
+  "stop_rule_tripped": false,
+  "verdict": "PASS",
+  "sensitivity_count": 0,
+  "sensitivity_verdict": "PASS",
+  "rollbacks_by_run": [],
+  "fired_by_detector": {},
+  "per_lane": [
+   {
+    "lane": 0,
+    "executable": 50,
+    "rollbacks": 0,
+    "w0_rollbacks": 0,
+    "median_p99_ratio": 1.0015840831079783
+   },
+   {
+    "lane": 1,
+    "executable": 50,
+    "rollbacks": 0,
+    "w0_rollbacks": 0,
+    "median_p99_ratio": 0.9993043264945283
+   }
+  ],
+  "w0_rollbacks": 0,
+  "descriptives": {
+   "unmargined_share": {
+    "min": 0.3333333333333333,
+    "median": 0.5,
+    "max": 0.6333333333333333
+   },
+   "margined_share": {
+    "min": 0,
+    "median": 0.05,
+    "max": 0.11666666666666667
+   },
+   "median_p99_ms": {
+    "canary": 76.40501630136892,
+    "control": 76.29949768169955
+   },
+   "p99_ratio": {
+    "min": 0.9771735010410669,
+    "median": 1.0008090195145949,
+    "max": 1.0244855983497527
+   }
+  },
+  "endpoint": "O1 same AZ"
+ },
+ "O2": {
+  "stratum": "X",
+  "lanes": [
+   2,
+   3
+  ],
+  "attempts": 100,
+  "summaries": 100,
+  "executable": 100,
+  "void_runs": [],
+  "rollbacks": 0,
+  "rate": 0,
+  "stop_rule_tripped": false,
+  "verdict": "PASS",
+  "sensitivity_count": 0,
+  "sensitivity_verdict": "PASS",
+  "rollbacks_by_run": [],
+  "fired_by_detector": {},
+  "per_lane": [
+   {
+    "lane": 2,
+    "executable": 50,
+    "rollbacks": 0,
+    "w0_rollbacks": 0,
+    "median_p99_ratio": 1.0028261576329074
+   },
+   {
+    "lane": 3,
+    "executable": 50,
+    "rollbacks": 0,
+    "w0_rollbacks": 0,
+    "median_p99_ratio": 0.9968122008324091
+   }
+  ],
+  "w0_rollbacks": 0,
+  "descriptives": {
+   "unmargined_share": {
+    "min": 0.3,
+    "median": 0.5,
+    "max": 0.65
+   },
+   "margined_share": {
+    "min": 0,
+    "median": 0.05,
+    "max": 0.11666666666666667
+   },
+   "median_p99_ms": {
+    "canary": 76.29586170891507,
+    "control": 76.37467992610537
+   },
+   "p99_ratio": {
+    "min": 0.9746536551153256,
+    "median": 1.0002383038393594,
+    "max": 1.0291692302777
+   }
+  },
+  "endpoint": "O2 across AZs"
+ },
+ "O3": {
+  "halts": 0,
+  "attempted": 200,
+  "verdict": "PASS"
+ },
+ "O4": {
+  "S": {
+   "count": 0,
+   "verdict": "PASS"
+  },
+  "X": {
+   "count": 0,
+   "verdict": "PASS"
+  }
+ },
+ "rate_detector_fires": 0,
+ "authority_violations": 0,
+ "v10_void_runs": [],
+ "v67": {
+  "evaluated_runs": 200,
+  "flagged_runs": [],
+  "unassigned_inside_runs": [
+   264,
+   265,
+   268,
+   269,
+   272,
+   273,
+   274,
+   276,
+   277,
+   278,
+   280,
+   284,
+   292,
+   296,
+   300,
+   301,
+   304,
+   305,
+   307,
+   308,
+   309,
+   312,
+   313,
+   316,
+   317,
+   320,
+   321,
+   324,
+   325,
+   326,
+   328,
+   330,
+   332,
+   333,
+   336,
+   340,
+   344,
+   345,
+   347,
+   348,
+   349,
+   352,
+   353,
+   354,
+   356,
+   357,
+   358,
+   360,
+   361,
+   362,
+   363,
+   364,
+   365,
+   366,
+   367,
+   368,
+   369,
+   370,
+   371,
+   372,
+   373,
+   374,
+   375,
+   376,
+   377,
+   378,
+   379,
+   380,
+   381,
+   382,
+   383,
+   384,
+   385,
+   386,
+   387,
+   388,
+   389,
+   390,
+   391,
+   392,
+   393,
+   394,
+   395,
+   396,
+   397,
+   398,
+   399,
+   400,
+   401,
+   402,
+   403,
+   404,
+   405,
+   406,
+   407,
+   408,
+   409,
+   410,
+   411,
+   412,
+   413,
+   414,
+   415,
+   416,
+   417,
+   418,
+   419,
+   420,
+   421,
+   422,
+   423,
+   424,
+   425,
+   426,
+   427,
+   428,
+   429,
+   430,
+   431,
+   432,
+   433,
+   434,
+   435,
+   436,
+   437,
+   438,
+   439,
+   440,
+   441,
+   442,
+   443,
+   444,
+   445,
+   446,
+   447,
+   448,
+   449,
+   450,
+   451,
+   452,
+   453,
+   454,
+   455,
+   456,
+   457,
+   458,
+   459,
+   460,
+   461
+  ]
+ },
+ "repo_shas": [
+  "aae042d7ac1b8034ebd146ecc8503fa8111b3853"
+ ],
+ "engines": [
+  {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  }
+ ]
+}
