@@ -4,15 +4,16 @@
 - **Status:** ACCEPTED 2026-10-03 (John, 2026-10-02: "let's accept all 5 after the fault study
   report"; the report is `studies/twin-fault-shapes/REPORT.md`, §5 below is filled from it). Decision
   only: `TWIN_ARM_AUTHORITY` stays `'advisory'` (`engine/guarantees.ts`) until the implementation PR
-  (§6) is merged with its own authorization, after the onebox study (§2, last row) closes.
+  (§6) is merged with its own authorization. D1 item 7 filled 2026-10-09 from the onebox study
+  (§2, last row), which closed with both strata passing.
 - **Author and conflict of interest:** written by the same session that designed, ran and
   analysed every study it cites, for the project's owner. No one outside that loop has reviewed
   the registrations, the runs or this text.
 - **Register:** knowledge `WORKLIST.md` C84 (the twin; "an authority ADR" is its open item), C87
   (the temporal path's authority); `DORMANCY.md` "Plan B — randomized twin"; engine ADRs 0036, 0037.
-- **Open at acceptance:** study `2026-10-twin-aa-onebox` (registered, pinned, not run): one task
-  per arm, same-AZ and cross-AZ strata. It sets D1's arm-size and placement clauses (§3, D1 item 6)
-  before implementation.
+- **Open at acceptance, closed 2026-10-09:** study `2026-10-twin-aa-onebox`, one task per arm,
+  same-AZ and cross-AZ strata, set D1's arm-size and placement clause (§3, D1 item 7):
+  `studies/twin-aa-onebox/REPORT.md`, merged in PR #172.
 
 ## 1. The question
 
@@ -36,20 +37,23 @@ generator, Fargate).
 | engine `2026-10-twin-sign-margin` | T1 + replay | the margin (ADR 0037) | ship rule met; false rollback 0.000–0.037 under offsets up to 0.9 of the margin |
 | `2026-10-twin-aa-real-2` AA | T3 | A/A, 76 ms service, 4 tasks per arm, 10% margin | **E1 PASS 0/100** (upper bound 0.030); E2, E3 PASS |
 | `2026-10-twin-fault-shapes` | T3 | latency +30%, 5xx ×1.5, resets without and with a `no_response` metric | F1 20/20 (tick 11); F2 20/20 (median tick 40); resets 0/20 unseen; with `no_response` 20/20 (tick 12) |
-| `2026-10-twin-aa-onebox` | T3 | A/A at one task per arm, same-AZ and cross-AZ strata, 100 runs each | registered, not run |
+| `2026-10-twin-aa-onebox` | T3 | A/A at one task per arm, 76 ms service, 10% margin; same-AZ and cross-AZ strata, 100 runs each | **O1 PASS 0/100 same AZ, O2 PASS 0/100 across AZs** (upper bound 0.030 each); 0 halts in 200; unmargined replay 0 and 1 |
 
-Pooled over both T3 A/A cells the `rate` kind on target 5xx has 0 false rollbacks in 144 runs
-(one-sided 95% upper bound 0.021; two configurations pooled). The sample-ratio guard has 0 halts in
-the 164 runs of the three cells.
+Pooled over the three T3 A/A studies the `rate` kind on target 5xx has 0 false rollbacks in 344
+runs (one-sided 95% upper bound 0.009; three configurations pooled). The sample-ratio guard has 0
+halts in the 364 runs of the four cells.
 
 Two things the evidence says that cut against a simple reading:
 
 - **The first A/A failed, and the second study's own replay says the margin is not what fixed
   it.** Replayed without the margin, the second study's 100 runs give 1 rollback
   (`studies/twin-aa-real-2/REPORT.md` §3). The arms became exchangeable in p99 because the service
-  was 70× slower and each arm had four tasks, not because of the margin. The margin is insurance
-  against offsets the first study proved can exist; how large an offset a real fleet carries is
-  unmeasured.
+  was 70× slower and each arm had four tasks, not because of the margin. At one task per arm the
+  same holds: replayed without the margin the onebox study's 200 runs give 1 rollback
+  (`studies/twin-aa-onebox/REPORT.md` §3). So at a 76 ms p99 the arm size made no measurable
+  difference between one and four tasks; the latency scale is what separated the first study from
+  the others. The margin is insurance against offsets the first study proved can exist; how large
+  an offset a real fleet carries is unmeasured.
 - **No bar here separates a false-rollback rate of 0.05 from 0.10.** "0 of 100" bounds the rate
   at 0.030 for one service; it does not establish α.
 
@@ -77,9 +81,16 @@ response; otherwise the session is refused, not silently downgraded:
    sums per target group (the `no_response` construction, 20 of 20 at tick 12) — or an equivalent
    client-side or mesh failure rate. That metric needs an A/A with it declared before a service's
    qualification counts it (none has run; §5).
-7. **Arm size and placement:** to be set from `2026-10-twin-aa-onebox` before the implementation PR.
-   Measured so far: two tasks per arm failed on a 1 ms service without a margin; four passed on a
-   76 ms service with one. One task per arm, in the same AZ and across AZs, is the open row.
+7. **Arm size and placement:** the canary and baseline arms run **the same number of tasks, one
+   or more**, in any AZs of one region. The session declares its tasks per arm, and the count is
+   part of the configuration D2 qualifies (a change expires the qualification). Placement is not
+   a condition: with both oneboxes in one AZ and with them in different AZs, 0 of 100 rolled back
+   each (`2026-10-twin-aa-onebox`, 76 ms service, 10% margin). Measured with the margin: one and
+   four tasks per arm, both passing. Not measured: two and three tasks with the margin, and any
+   arm size on a fast service; the one failure, two tasks per arm on a 1 ms service without a
+   margin, is the reason a service's own A/A (D2) runs at the arm size it will deploy with. A
+   onebox canary against the whole old fleet is an unequal split and stays ineligible under
+   item 1.
 
 For an eligible session: the record is `mode: 'enforce'`, `GET /v1/verdict` serves the rollback
 code, the tick response carries `"authority": "rollback"`, and the verdict enters the audit record
@@ -110,7 +121,7 @@ need no statistical validation. Families A–E and the structural rules still do
 twin.
 
 **D5. Surfaces.** Authority applies to the gate service's HTTP contract, which the T3 runner
-exercised in 164 real-service runs, two gate sessions each. The Argo `AnalysisTemplate` keeps its metric in
+exercised in 364 real-service runs, two gate sessions each. The Argo `AnalysisTemplate` keeps its metric in
 `dryRun` and the CodeDeploy hook stays advisory until each has been exercised end to end in a
 registered run; neither has.
 
