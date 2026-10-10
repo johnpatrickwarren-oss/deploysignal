@@ -1,0 +1,125 @@
+{
+ "study_id": "2026-10-twin-aa-onebox",
+ "cell": "AA",
+ "lane": 0,
+ "run": 293,
+ "deploy_ref": "t3-AA-l0-r293",
+ "registered": {
+  "studyId": "2026-10-twin-aa-onebox",
+  "tickMs": 60000,
+  "settleMs": 180000,
+  "warmupTicks": 15,
+  "scoredTicks": 60,
+  "fetchAttempts": 3,
+  "fetchRetryMs": 20000,
+  "callTimeoutMs": 30000,
+  "stallBoundMs": 300000,
+  "armReadyMaxLagMs": 300000,
+  "armReadyMaxLeadMs": 60000,
+  "minArmRequests": 500,
+  "minMean5xxPerTick": 2,
+  "cells": [
+   "AA"
+  ],
+  "lanes": 4
+ },
+ "twin_arm": {
+  "scored": {
+   "canary_weight": 0.5,
+   "alpha_rollback": 0.05,
+   "alpha_proceed": 1e-12,
+   "alpha_srm": 0.001,
+   "max_ticks": 60,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    },
+    {
+     "id": "p99_latency",
+     "kind": "sign",
+     "worse": "higher",
+     "tolerance": 0.15,
+     "margin": {
+      "relative": 0.1
+     }
+    }
+   ]
+  },
+  "w0": {
+   "canary_weight": 0.5,
+   "alpha_rollback": 0.05,
+   "alpha_proceed": 1e-12,
+   "alpha_srm": 0.001,
+   "max_ticks": 75,
+   "metrics": [
+    {
+     "id": "http_5xx",
+     "kind": "rate",
+     "worse": "higher",
+     "tolerance": 0.2
+    },
+    {
+     "id": "p99_latency",
+     "kind": "sign",
+     "worse": "higher",
+     "tolerance": 0.15,
+     "margin": {
+      "relative": 0.1
+     }
+    }
+   ]
+  }
+ },
+ "alb_idle_timeout_s": 60,
+ "arm_ready_ms": 1791030310000,
+ "started_at_ms": 1791030311300,
+ "first_window_start_ms": 1791030360000,
+ "gate_healthz": {
+  "ok": true,
+  "service_id": "default",
+  "mode": "enforce",
+  "fail_policy": "fail_closed"
+ },
+ "scored": {
+  "session_id": "sess-t3-AA-l0-r293-1791030311",
+  "verdict": "hold",
+  "ticks": 60,
+  "window": 74
+ },
+ "w0": {
+  "session_id": "sess-t3-AA-l0-r293-w0-1791030311",
+  "verdict": "hold",
+  "ticks": 75,
+  "window": 74
+ },
+ "complete": true,
+ "authority": {
+  "violation": false,
+  "stated": null,
+  "window": null
+ },
+ "ended_at_ms": 1791035040162,
+ "window_count": 75,
+ "manifest": {
+  "command": "node --config studies/twin-aa-onebox/lane0.json --cell AA --run 293 --arm-ready 2026-10-03T12:25:10Z",
+  "repo_sha": "aae042d7ac1b8034ebd146ecc8503fa8111b3853",
+  "tolerated_dirt": [
+   {
+    "path": "tools/calibrate/_calibrate-constants.js",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  ],
+  "node": "v24.21.0",
+  "platform": "linux x64",
+  "engine": {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  },
+  "config_sha256": "98f5d554ad69c405141a4ab44b1159f5b9423c5de6025a9e11e73bc1e38dc6e0"
+ },
+ "void_reasons": [],
+ "counts_for_e2": false
+}

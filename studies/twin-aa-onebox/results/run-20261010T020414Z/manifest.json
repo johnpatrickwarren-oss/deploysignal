@@ -1,0 +1,25 @@
+{
+ "study_id": "2026-10-twin-aa-onebox",
+ "generated_at": "2026-10-10T02:04:14.671Z",
+ "analysis_repo_head": "3a2de9c0cb132538b983811102bedd0cbcdc8636",
+ "analysis_tracked_changes": [],
+ "committed_before_run_0": true,
+ "inputs": {
+  "summaries": 200,
+  "driver_logs": 200,
+  "evidence": {
+   "count": 2641,
+   "start": "2026-10-03T02:30:00Z",
+   "end": "2026-10-06T00:30:00Z"
+  }
+ },
+ "runner_repo_shas": [
+  "aae042d7ac1b8034ebd146ecc8503fa8111b3853"
+ ],
+ "engines": [
+  {
+   "version": "0.13.0-pre",
+   "resolved": "git+ssh://git@github.com/johnpatrickwarren-oss/deploysignal-engine.git#de25786c0a6b15935aa9416b04359f6a3e309106"
+  }
+ ]
+}
