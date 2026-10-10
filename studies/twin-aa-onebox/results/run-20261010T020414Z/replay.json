@@ -1,0 +1,127 @@
+{
+ "registered_report_only": true,
+ "engine": "0.13.0-pre",
+ "runs": 200,
+ "margins": {
+  "0": {
+   "S": {
+    "rollbacks": 0,
+    "of": 100,
+    "rollback_runs": [],
+    "per_lane": [
+     {
+      "lane": 0,
+      "rollbacks": 0,
+      "of": 50
+     },
+     {
+      "lane": 1,
+      "rollbacks": 0,
+      "of": 50
+     }
+    ]
+   },
+   "X": {
+    "rollbacks": 1,
+    "of": 100,
+    "rollback_runs": [
+     {
+      "run": 348,
+      "lane": 2,
+      "stratum": "X",
+      "verdict": "rollback",
+      "tick": 27,
+      "fired": [
+       "p99_latency"
+      ]
+     }
+    ],
+    "per_lane": [
+     {
+      "lane": 2,
+      "rollbacks": 1,
+      "of": 50
+     },
+     {
+      "lane": 3,
+      "rollbacks": 0,
+      "of": 50
+     }
+    ]
+   }
+  },
+  "0.05": {
+   "S": {
+    "rollbacks": 0,
+    "of": 100,
+    "rollback_runs": [],
+    "per_lane": [
+     {
+      "lane": 0,
+      "rollbacks": 0,
+      "of": 50
+     },
+     {
+      "lane": 1,
+      "rollbacks": 0,
+      "of": 50
+     }
+    ]
+   },
+   "X": {
+    "rollbacks": 0,
+    "of": 100,
+    "rollback_runs": [],
+    "per_lane": [
+     {
+      "lane": 2,
+      "rollbacks": 0,
+      "of": 50
+     },
+     {
+      "lane": 3,
+      "rollbacks": 0,
+      "of": 50
+     }
+    ]
+   }
+  },
+  "0.1": {
+   "S": {
+    "rollbacks": 0,
+    "of": 100,
+    "rollback_runs": [],
+    "per_lane": [
+     {
+      "lane": 0,
+      "rollbacks": 0,
+      "of": 50
+     },
+     {
+      "lane": 1,
+      "rollbacks": 0,
+      "of": 50
+     }
+    ]
+   },
+   "X": {
+    "rollbacks": 0,
+    "of": 100,
+    "rollback_runs": [],
+    "per_lane": [
+     {
+      "lane": 2,
+      "rollbacks": 0,
+      "of": 50
+     },
+     {
+      "lane": 3,
+      "rollbacks": 0,
+      "of": 50
+     }
+    ]
+   }
+  }
+ },
+ "reproduces_as_run": true
+}
