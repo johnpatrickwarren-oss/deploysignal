@@ -1,0 +1,44 @@
+AA_START 2026-09-29T05:44:11Z HEAD 082682656fe57f6af0265cbfe42d6ecf4ab49be6
+lane0 driver pid 27716
+lane1 driver pid 27935
+lane2 driver pid 28230
+lane3 driver pid 28532
+AA_RESTART 2026-09-29T06:20:44Z HEAD e3b62b1801571b7a515925f913ada53470c9114e from_index 19
+lane0 driver pid 31551
+lane1 driver pid 31681
+lane2 driver pid 31838
+lane3 driver pid 32113
+STOP_RULE 2026-09-29T18:47:56Z drivers killed, index 63
+AB5XX_START 2026-09-29T23:05:10Z HEAD 6c1f3789b43068db3711e8a0c4096edc27662a24 from_index 63 canary_flag 0.0100
+lane0 AB-5xx driver pid 94817
+lane1 AB-5xx driver pid 94972
+lane2 AB-5xx driver pid 95219
+lane3 AB-5xx driver pid 95418
+AA2_START 2026-09-30T14:57:35Z HEAD ded4d271e5b6b0242e0dfc6154274ceb11c6bfa8 study 2026-10-twin-aa-real-2 from_index 83 tasks 4 runner studies/twin-aa-real-2/harness/run-real.mjs
+lane0 AA2 driver pid 134918
+lane1 AA2 driver pid 135076
+lane2 AA2 driver pid 135327
+lane3 AA2 driver pid 135606
+FS_LAT30_START 2026-10-02T01:33:36Z HEAD 163308f766f51d9d60b7313aa4c4b189f7d1341a study 2026-10-twin-fault-shapes cell AB-lat30 from_index 183 tasks 4
+lane0 AB-lat30 driver pid 275351
+lane1 AB-lat30 driver pid 275508
+lane2 AB-lat30 driver pid 275782
+lane3 AB-lat30 driver pid 275983
+FS_5XX15_START 2026-10-02T04:36:24Z HEAD 163308f766f51d9d60b7313aa4c4b189f7d1341a study 2026-10-twin-fault-shapes cell AB-5xx-1.5 from_index 203 tasks 4
+lane0 AB-5xx-1.5 driver pid 290958
+lane1 AB-5xx-1.5 driver pid 291115
+lane2 AB-5xx-1.5 driver pid 291366
+lane3 AB-5xx-1.5 driver pid 291625
+FS_RESET_START 2026-10-02T13:40:39Z HEAD 163308f766f51d9d60b7313aa4c4b189f7d1341a study 2026-10-twin-fault-shapes cell AB-reset from_index 223 tasks 4
+lane0 AB-reset driver pid 319139
+lane1 AB-reset driver pid 319296
+lane2 AB-reset driver pid 319611
+lane3 AB-reset driver pid 319952
+FS_RESET_NR_START 2026-10-02T20:38:39Z HEAD b1b1ac354aa2f8c8b381849c5084d1f7a675df81 study 2026-10-twin-fault-shapes cell AB-reset-nr from_index 243 tasks 4
+lane0 AB-reset-nr driver pid 346465
+lane1 AB-reset-nr driver pid 346621
+lane2 AB-reset-nr driver pid 346871
+lane3 AB-reset-nr driver pid 347114
+FS_RESET_NR_REPLACEMENT 2026-10-02T23:36:49Z HEAD b1b1ac354aa2f8c8b381849c5084d1f7a675df81 cell AB-reset-nr one run on lane 1 (run 260 void by the committed V6/V7 attribution; replaced by the next index)
+GATE_RESTART 2026-10-03T00:37:39Z host HEAD aae042d7ac1b8034ebd146ecc8503fa8111b3853 for twin-aa-onebox (Amendment 3 trees)
+ONEBOX_START 2026-10-03T02:47:49Z operator HEAD aae042d7ac1b8034ebd146ecc8503fa8111b3853 host HEAD aae042d cell AA tasks 1 runs 50/lane lanes 0-3 index from 264
