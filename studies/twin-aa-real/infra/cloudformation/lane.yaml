@@ -33,6 +33,10 @@ Parameters:
     Type: String
     Default: ""
     Description: leave empty except for a latency AB cell (2026-10-twin-fault-shapes AB-lat30 sets 39); the canary then runs its own task definition
+  ResetFraction:
+    Type: String
+    Default: "0"
+    Description: RESET_FRACTION in both arms and prod (2026-10-twin-aa-noresponse section 1.1 sets 0.005, the null's base rate of unanswered requests); "0" is every earlier study's service
   CanaryResetFraction:
     Type: String
     Default: ""
@@ -196,6 +200,7 @@ Resources:
             - { Name: FAULT_503_FRACTION, Value: !Ref Fault503Fraction }
             - { Name: LATENCY_MEDIAN_MS, Value: !Ref LatencyMedianMs }
             - { Name: LATENCY_SIGMA, Value: !Ref LatencySigma }
+            - { Name: RESET_FRACTION, Value: !Ref ResetFraction }
           LogConfiguration:
             LogDriver: awslogs
             Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: svc }
@@ -224,7 +229,7 @@ Resources:
             - { Name: FAULT_503_FRACTION, Value: !If [Canary503Set, !Ref CanaryFault503Fraction, !Ref Fault503Fraction] }
             - { Name: LATENCY_MEDIAN_MS, Value: !If [CanaryLatencySet, !Ref CanaryLatencyMedianMs, !Ref LatencyMedianMs] }
             - { Name: LATENCY_SIGMA, Value: !Ref LatencySigma }
-            - { Name: RESET_FRACTION, Value: !If [CanaryResetSet, !Ref CanaryResetFraction, "0"] }
+            - { Name: RESET_FRACTION, Value: !If [CanaryResetSet, !Ref CanaryResetFraction, !Ref ResetFraction] }
           LogConfiguration:
             LogDriver: awslogs
             Options: { awslogs-group: !Ref LogGroup, awslogs-region: !Ref "AWS::Region", awslogs-stream-prefix: canary-ab }

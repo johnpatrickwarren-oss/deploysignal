@@ -86,6 +86,8 @@ test('twin-fault-shapes: the lane template gives the canary its own definition f
   for (const p of ['CanaryFault503Fraction', 'CanaryLatencyMedianMs', 'CanaryResetFraction']) {
     assert.match(y, new RegExp(`  ${p}:\\n    Type: String\\n    Default: ""`), `${p} must default to empty`);
   }
-  assert.match(y, /RESET_FRACTION, Value: !If \[CanaryResetSet, !Ref CanaryResetFraction, "0"\]/);
+  // 2026-10-twin-aa-noresponse: the canary's fallback is the lane-wide ResetFraction, which defaults to "0"
+  assert.match(y, /RESET_FRACTION, Value: !If \[CanaryResetSet, !Ref CanaryResetFraction, !Ref ResetFraction\]/);
+  assert.match(y, /  ResetFraction:\n    Type: String\n    Default: "0"/);
   assert.match(y, /LATENCY_MEDIAN_MS, Value: !If \[CanaryLatencySet, !Ref CanaryLatencyMedianMs, !Ref LatencyMedianMs\]/);
 });
