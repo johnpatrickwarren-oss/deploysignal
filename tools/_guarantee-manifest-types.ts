@@ -44,7 +44,10 @@ export interface ManifestFamilySection {
 }
 
 export interface ManifestEffectiveValidity {
-  status: 'fully_ville_bounded' | 'mixed';
+  /** `no_alpha_participating_family` (C87): no family in this config spends α — A, C and D are
+   *  advisory (TEMPORAL_PATH_AUTHORITY), E since C25, B never did — so there is no participating
+   *  surface for the other two statuses to describe. */
+  status: 'fully_ville_bounded' | 'mixed' | 'no_alpha_participating_family';
   /** Share of the α-participating budget (A+C+D+E; Family B excluded —
    *  it never participates) attributable to a classical (non-Ville) path
    *  in THIS config. Cells with NO coverage at all (neither a classical

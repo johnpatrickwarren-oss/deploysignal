@@ -85,7 +85,7 @@ function buildDemo4() {
     // `max_deploy_window_days` suppression that would drop the portfolio
     // verdict back to proceed at tick 31 (§A0 would fail).
     bakeHours: 6,
-    description: 'Stylized reconstruction of the regression class Anthropic described in their September 2025 postmortem — joint-distribution shift in monitored infrastructure signals where individual metrics stay within daily noise bands but the joint pattern shifts. This demo uses three infrastructure signals (corpus_delta, collective_ops, mfu) drifting together in a coordinated direction below per-signal cascade thresholds. Portfolio catches via Family C (Hotelling T² on joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing at the onset tick. Cascade\'s threshold detectors miss the pattern entirely.',
+    description: 'Stylized reconstruction of the regression class Anthropic described in their September 2025 postmortem — joint-distribution shift in monitored infrastructure signals where individual metrics stay within daily noise bands but the joint pattern shifts. This demo uses three infrastructure signals (corpus_delta, collective_ops, mfu) drifting together in a coordinated direction below per-signal cascade thresholds. Portfolio detects via Family C (Hotelling T² on joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing at the onset tick. Cascade\'s threshold detectors miss the pattern entirely. Since 2026-10-02 (C87) these fires are advisory: they are recorded and reported, the gate does not roll back on them, and this deploy ends in proceed.',
     narrative: "Anthropic's September 2025 postmortem describes three simultaneous quality regressions their own evaluation suite missed for days to weeks — noting that 'the evaluations run simply didn\'t capture the degradation users were reporting.' The regression class: individual monitored signals stay within per-signal bounds; the joint distribution shifts in a coordinated direction. This stylization uses three infrastructure-layer signals — corpus_delta, collective_ops, mfu — drifting together. Each individual drift stays below cascade\'s per-signal threshold. The joint motion crosses Family C\'s Hotelling T² threshold and Family E\'s conformal Mahalanobis quantile, both firing at the same onset tick. Independent statistical tests agreeing — the corroboration pattern the architecture is designed for. Cascade\'s threshold-based detectors miss the joint motion entirely.",
     fidelity_caveat: "Signal trajectories are stylized to match the regression class Anthropic described (joint-distribution shift with individual signals within bounds), not a replay of Anthropic's internal traces (which weren\'t published). The engine\'s current signal coverage is infrastructure-layer (corpus_delta, collective_ops, mfu among others); post-runway extension adds quality-tier signals (eval_score, refusal_rate, tool_success_rate) to Family C/E\'s watch vectors. The claim demonstrated is 'this regression class is catchable on live traffic by Families C and E firing on their monitored joint vector' — not 'our engine would have caught each of Anthropic\'s three specific bugs.'",
     narrative_reference: 'https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues',
@@ -95,7 +95,17 @@ function buildDemo4() {
     cell_patch: null,  // attached below
     ticks: ticks,
     expected_outcome: {
-      verdict: 'rollback',
+      // C87 (2026-10-02): Families A, C and D are advisory (engine/guarantees.ts
+      // TEMPORAL_PATH_AUTHORITY), E since C25. The fires below are recorded and
+      // reported; no rollback follows, and the deploy's verdict is what the gate
+      // returns at the last tick.
+      verdict: 'proceed',
+      advisory: {
+        families: ['C', 'E'],
+        first_fire_tick: 11,
+        reason_code: 'advisory_temporal_path_no_valid_null',
+        verdict_before_c87: 'rollback',
+      },
       first_fire_tick: 11,           // calibrated (architect target: 10-12)
       first_families: ['C', 'E'],
       alpha_total_max: 5e-4,         // C=2e-4 + E=1e-4 + margin
@@ -166,7 +176,7 @@ function buildDemo5() {
     name: 'Demo 5 — Tokens-Per-Turn Slow Cost Regression',
     riskLevel: 'low',
     changeType: 'config',
-    description: "Slow cost regression — cost-per-request drifts slowly upward over 32 ticks simulating a prompt-template change or retrieval-returns-longer-contexts regression. No single tick's cost_req crosses cascade's 1.20 ratio threshold (cumulative drift reaches only ~9% by tick 31). Family A's Page-CUSUM with mixture prior accumulates evidence across ticks and fires at tick 16 (mSPRT_cost_req), catching the regression before it surfaces in monthly billing.",
+    description: "Slow cost regression — cost-per-request drifts slowly upward over 32 ticks simulating a prompt-template change or retrieval-returns-longer-contexts regression. No single tick's cost_req crosses cascade's 1.20 ratio threshold (cumulative drift reaches only ~9% by tick 31). Family A's Page-CUSUM with mixture prior accumulates evidence across ticks and fires at tick 16 (mSPRT_cost_req), detecting the regression before it surfaces in monthly billing. Since 2026-10-02 (C87) these fires are advisory: they are recorded and reported, the gate does not roll back on them, and this deploy ends in proceed.",
     narrative: "Cost regressions that accumulate below per-tick thresholds are the class of failure threshold-based gates miss — no single tick is alarming, but the cumulative bill is. Here a slow drift in cost-per-request simulates a prompt-template change or retrieval-layer regression: by tick 32 the cumulative drift is ~9%, still below cascade's 1.20 ratio threshold for cost_req. Family A's Page-CUSUM with mixture prior accumulates evidence across ticks and fires at tick 16 — catching the regression weeks before it would surface in monthly billing. Order-of-magnitude dollar framing: a 10% cost regression on 1B requests/month at $0.005/request is ~$500K/month of additional spend. Caught at week 1 (Page-CUSUM): roughly $125K exposure. Caught at month 3 (monthly-billing investigation): roughly $1.5M. Per regression. Across multiple regressions per year, the cumulative delta is meaningful platform spend. Numbers are defensible mid-range for foundation-model inference; actual values depend on customer scale and per-request cost — the load-bearing variable is the time-to-detection delta.",
     cadence_ms: 200,
     total_ticks: 32,
@@ -174,7 +184,17 @@ function buildDemo5() {
     cell_patch: null,
     ticks: ticks,
     expected_outcome: {
-      verdict: 'rollback',
+      // C87 (2026-10-02): Families A, C and D are advisory (engine/guarantees.ts
+      // TEMPORAL_PATH_AUTHORITY), E since C25. The fires below are recorded and
+      // reported; no rollback follows, and the deploy's verdict is what the gate
+      // returns at the last tick.
+      verdict: 'proceed',
+      advisory: {
+        families: ['A'],
+        first_fire_tick: 15,
+        reason_code: 'advisory_temporal_path_no_valid_null',
+        verdict_before_c87: 'rollback',
+      },
       first_fire_tick: 15,
       first_families: ['A'],
       first_fire_detector: 'mSPRT_cost_req',
@@ -256,7 +276,17 @@ function buildDemo6() {
     cell_patch: null,
     ticks: ticks,
     expected_outcome: {
-      verdict: 'rollback',
+      // C87 (2026-10-02): Families A, C and D are advisory (engine/guarantees.ts
+      // TEMPORAL_PATH_AUTHORITY), E since C25. The fires below are recorded and
+      // reported; no rollback follows, and the deploy's verdict is what the gate
+      // returns at the last tick.
+      verdict: 'proceed',
+      advisory: {
+        families: ['A'],
+        first_fire_tick: 26,
+        reason_code: 'advisory_temporal_path_no_valid_null',
+        verdict_before_c87: 'rollback',
+      },
       first_families: ['A'],
       first_fire_tick: 26,
       first_fire_detectors: ['mSPRT_p99_latency', 'mSPRT_cost_req'],

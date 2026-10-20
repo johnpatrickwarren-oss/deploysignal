@@ -10,6 +10,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import type { CompiledConfig } from '../dist/engine/types';
+import { advisoryIds, isDetection } from './_c87-detection';
 
 const engine = require('../shared');
 const { orchestrate, TrendBuffer, TOTAL_TICKS } = engine;
@@ -62,7 +63,8 @@ function precomputeTicks(sc: any): Record<string, number>[] {
   return ticks;
 }
 
-type FinalVerdict = 'rollback' | 'proceed' | 'extend';
+// 'advisory': the run stopped at its first advisory A/C/D fire (C87); the deploy did not roll back.
+type FinalVerdict = 'rollback' | 'advisory' | 'proceed' | 'extend';
 
 function runOne(sc: any, ticks: Record<string, number>[], cfg: CompiledConfig): { verdict: FinalVerdict; tick: number; famECaught: boolean; rollbackIds: string[] } {
   const tb = new TrendBuffer(10);
@@ -86,6 +88,8 @@ function runOne(sc: any, ticks: Record<string, number>[], cfg: CompiledConfig): 
       firstRollbackIds = (r.healthResult?.rollback ?? []).map((s: any) => s.id);
       return { verdict: 'rollback', tick: i, famECaught, rollbackIds: firstRollbackIds };
     }
+    const adv = advisoryIds(r);
+    if (adv.length > 0) return { verdict: 'advisory', tick: i, famECaught, rollbackIds: adv };
     if (r.verdict === 'proceed') return { verdict: 'proceed', tick: i, famECaught, rollbackIds: [] };
     if (i === TOTAL_TICKS - 1) {
       const fv: FinalVerdict = (r.healthResult && r.healthResult.extend.length > 0) ? 'extend' : 'proceed';
@@ -125,8 +129,9 @@ test('family-e-parity: ≥1 of 3 novelty scenarios catches (Family E fires or sc
   }
 
   const famECatches = outcomes.filter((o) => o.famECaught).length;
-  const anyRollback = outcomes.filter((o) => o.verdict === 'rollback').length;
-  console.log(`Family E direct catches: ${famECatches}/3; any-family rollback on E scenarios: ${anyRollback}/3`);
+  // C87: detection = the deploy rolled back, or an advisory A/C/D fire was recorded.
+  const anyRollback = outcomes.filter((o) => isDetection(o.verdict)).length;
+  console.log(`Family E direct catches: ${famECatches}/3; any-family detection (rollback or advisory fire) on E scenarios: ${anyRollback}/3`);
   // Acceptance per handoff §4.1.c: ≥1 of 3 novelty scenarios caught.
   // Direct Family E fire may be 0 by design — ARCHITECT-REPLY-11 Item 1:
   // Family E uses the SAME Mahalanobis metric as Family C. Family C's
@@ -136,5 +141,5 @@ test('family-e-parity: ≥1 of 3 novelty scenarios catches (Family E fires or sc
   // bar. "Caught by any family" is the acceptable operational bar per
   // the stub's proof-of-concept scope.
   assert.ok(anyRollback >= 1,
-    `expected ≥1 of 3 novelty scenarios to roll back; got ${anyRollback}`);
+    `expected ≥1 of 3 novelty scenarios to be detected (rollback or advisory A/C/D fire); got ${anyRollback}`);
 });

@@ -37,6 +37,9 @@ export function computeEffectiveValidity(
   }
 
   const share = totalWeight > 0 ? weightedClassical / totalWeight : 0;
+  if (totalWeight === 0) {
+    return { status: 'no_alpha_participating_family', classical_share_of_participating_alpha: 0, classical_paths: [] };
+  }
   return {
     status: share > 0 ? 'mixed' : 'fully_ville_bounded',
     classical_share_of_participating_alpha: share,

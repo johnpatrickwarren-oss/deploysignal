@@ -59,7 +59,8 @@ export function buildFamilyASection(cfg: CompiledConfig): ManifestFamilySection 
   });
   return {
     family: 'A',
-    alpha_participating: true,
+    // C87: follows the rows — false while TEMPORAL_PATH_AUTHORITY is 'advisory'.
+    alpha_participating: detectors.some((d) => d.alpha_participating),
     alpha_budget: cfg.alpha_budget?.per_family?.A ?? null,
     detectors,
     // Every Family A registry id is ville_anytime_valid at runtime today

@@ -30,7 +30,7 @@ const PLAYBOOKS_DIR = path.resolve(__dirname, '..', 'playbooks');
 function makeFusedVerdict(overrides: Partial<FusedVerdict> = {}): FusedVerdict {
   return {
     verdict: 'rollback',
-    firing_families: ['A'],
+    firing_families: ['A'], advisory_families: [],
     per_family_verdicts: { A: null, B: null, C: null, D: null, E: null },
     total_alpha_spent: 1e-4,
     fusion_topology: 'portfolio',

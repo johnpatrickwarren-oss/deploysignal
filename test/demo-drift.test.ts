@@ -11,6 +11,7 @@
 // orchestration is deterministic given identical inputs, so verdict
 // stream matches byte-for-byte across runs.
 
+import { detectedAt } from './_c87-detection';
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -55,7 +56,8 @@ interface CannedDemo {
     first_fire_tick?: number | null;
     first_fire_family?: string;
     portfolio_first_fire_tick?: number;
-    portfolio_first_rollback_tick?: number;
+    portfolio_first_rollback_tick?: number | null;
+    advisory?: { families: string[]; first_fire_tick: number; reason_code: string; verdict_before_c87: string };
     cascade_first_rollback_tick?: number;
     timing_delta_ticks?: number;
     first_families?: string[];
@@ -94,8 +96,14 @@ function applyCellPatch(src: CompiledConfig, patch?: CellPatch | null): Compiled
   return cfg;
 }
 
+// C87 (2026-10-02): Families A, C and D are advisory. `finalVerdict` is the gate's verdict at the
+// last tick (it was "rollback if any tick rolled back"); `firstDetectionTick` is the first tick
+// with a rollback or an advisory A/C/D fire; `advisoryFamilies` is the fused verdict's
+// advisory_families over the run.
 interface DemoRunResult {
   finalVerdict: string;
+  firstDetectionTick: number | null;
+  advisoryFamilies: string[];
   firstRollbackTick: number | null;
   firstFireByFamily: Record<string, number | null>;
   totalAlphaSpent: number;
@@ -106,6 +114,9 @@ function runDemo(d: CannedDemo, cfg: CompiledConfig, topology: 'cascade' | 'port
   const tb = new TrendBuffer(10);
   const firstFires: Record<string, number | null> = { A: null, B: null, C: null, D: null, E: null };
   let firstRollback: number | null = null;
+  let firstDetection: number | null = null;
+  let lastVerdict = 'baking';
+  const advFams = new Set<string>();
   let totalAlpha = 0;
   for (let t = 0; t < d.ticks.length; t++) {
     const live = d.ticks[t].metrics;
@@ -136,9 +147,14 @@ function runDemo(d: CannedDemo, cfg: CompiledConfig, topology: 'cascade' | 'port
       }
     }
     if (res.verdict === 'rollback' && firstRollback === null) firstRollback = t;
+    if (detectedAt(res) && firstDetection === null) firstDetection = t;
+    for (const fam of res.gateResults?.fusion?.advisory_families ?? []) advFams.add(fam);
+    lastVerdict = res.verdict;
   }
   return {
-    finalVerdict: firstRollback !== null ? 'rollback' : 'proceed',
+    finalVerdict: firstRollback !== null ? 'rollback' : lastVerdict,
+    firstDetectionTick: firstDetection,
+    advisoryFamilies: Array.from(advFams).sort(),
     firstRollbackTick: firstRollback,
     firstFireByFamily: firstFires,
     totalAlphaSpent: totalAlpha,
@@ -180,6 +196,11 @@ test('demo-drift: every canned demo produces its expected_outcome verdict', () =
     const out = runDemo(d, cfg, 'portfolio');
     assert.equal(out.finalVerdict, d.expected_outcome.verdict,
       `${d.id}: final verdict mismatch (got ${out.finalVerdict}, expected ${d.expected_outcome.verdict})`);
+    // C87: what the demo detects is stated under expected_outcome.advisory, and none of it rolls back.
+    assert.equal(out.firstRollbackTick, null, `${d.id}: rolled back at t=${out.firstRollbackTick}`);
+    const adv = d.expected_outcome.advisory;
+    assert.deepEqual(out.advisoryFamilies, adv ? adv.families : [], `${d.id}: advisory families`);
+    assert.equal(out.firstDetectionTick, adv ? adv.first_fire_tick : null, `${d.id}: first advisory fire tick`);
   }
 });
 
@@ -203,7 +224,8 @@ test('demo-drift: novelty demo — Family E first fire matches expected tick', (
   assert.ok(d, 'demo-novelty missing');
   const cfg = applyCellPatch(V4, d!.cell_patch);
   const out = runDemo(d!, cfg, 'portfolio');
-  assert.equal(out.finalVerdict, 'rollback');
+  assert.equal(out.finalVerdict, 'proceed');  // C87: the C and E fires are advisory
+  assert.deepEqual(out.advisoryFamilies, ['C', 'E']);
   assert.equal(out.firstFireByFamily.E, d!.expected_outcome.first_fire_tick,
     `demo-novelty: Family E first fire t=${out.firstFireByFamily.E}, expected t=${d!.expected_outcome.first_fire_tick}`);
   // Spec asserts E catches alone; assert no other family fires before E.
@@ -216,14 +238,17 @@ test('demo-drift: novelty demo — Family E first fire matches expected tick', (
   }
 });
 
-test('demo-drift: github-2020 demo — first fire family + portfolio rollback tick match', () => {
+test('demo-drift: github-2020 demo — first fire family + portfolio first-detection tick match; the portfolio path does not roll back (C87)', () => {
   const d = DEMOS.find((x) => x.id === 'demo-github-2020');
   assert.ok(d, 'demo-github-2020 missing');
   const cfg = applyCellPatch(V4, d!.cell_patch);
   const out = runDemo(d!, cfg, 'portfolio');
-  assert.equal(out.finalVerdict, 'rollback');
+  assert.equal(out.finalVerdict, 'proceed');
+  assert.equal(d!.expected_outcome.portfolio_first_rollback_tick, null);
   assert.equal(out.firstRollbackTick, d!.expected_outcome.portfolio_first_rollback_tick,
     `demo-github-2020: portfolio rollback t=${out.firstRollbackTick}, expected t=${d!.expected_outcome.portfolio_first_rollback_tick}`);
+  assert.equal(out.firstDetectionTick, d!.expected_outcome.portfolio_first_fire_tick,
+    `demo-github-2020: portfolio first detection t=${out.firstDetectionTick}, expected t=${d!.expected_outcome.portfolio_first_fire_tick}`);
   // Assert all expected families fire at some point (order may vary by 1 tick).
   const expectedFams = d!.expected_outcome.first_families || [];
   for (const f of expectedFams) {

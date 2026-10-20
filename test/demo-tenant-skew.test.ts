@@ -9,6 +9,7 @@
 //   • Cascade: no rollback; eval_score's per-tenant 5%-of-mean drop is
 //     below the cascade quality-drop 6% threshold.
 
+import { advisoryIds } from './_c87-detection';
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -80,6 +81,9 @@ function applyCellPatch(src: any, patch: any): any {
 interface TickFrame {
   tick: number;
   verdict: string;
+  /** C87: ids of the advisory A/C/D fires this tick, and the fused verdict's advisory_families. */
+  advisoryIds: string[];
+  advisoryFamilies: string[];
   families: Record<FamilyId, { verdict: string; detectors: any[]; alpha_spent: number }>;
 }
 const FAMS: FamilyId[] = ['A', 'B', 'C', 'D', 'E'];
@@ -94,6 +98,8 @@ const EMPTY_FAMS = (): TickFrame['families'] => ({
 interface TraceSummary {
   frames: TickFrame[];
   firstRollback: number | null;
+  /** C87: first tick with a rollback or an advisory A/C/D fire. */
+  firstDetection: number | null;
   firstFireByFam: Record<FamilyId, number | null>;
   firstFireDetectorsByFam: Record<FamilyId, string[] | null>;
   alphaAtDecision: number;
@@ -103,8 +109,10 @@ function summarize(frames: TickFrame[]): TraceSummary {
   const firstFireByFam: Record<FamilyId, number | null> = { A: null, B: null, C: null, D: null, E: null };
   const firstFireDetectorsByFam: Record<FamilyId, string[] | null> = { A: null, B: null, C: null, D: null, E: null };
   let firstRollback: number | null = null;
+  let firstDetection: number | null = null;
   for (const f of frames) {
     if (f.verdict === 'rollback' && firstRollback === null) firstRollback = f.tick;
+    if ((f.verdict === 'rollback' || f.advisoryIds.length > 0) && firstDetection === null) firstDetection = f.tick;
     for (const fam of FAMS) {
       const fa = f.families[fam];
       if (fa && fa.verdict === 'fire' && firstFireByFam[fam] === null) {
@@ -113,12 +121,13 @@ function summarize(frames: TickFrame[]): TraceSummary {
       }
     }
   }
-  const decT = firstRollback === null ? frames.length - 1 : firstRollback;
+  // C87: the decision tick for the α cap is the first detection (rollback or advisory fire).
+  const decT = firstDetection === null ? frames.length - 1 : firstDetection;
   let alphaAtDecision = 0;
   for (let t = 0; t <= decT; t++) {
     for (const fam of FAMS) alphaAtDecision += frames[t].families[fam]?.alpha_spent || 0;
   }
-  return { frames, firstRollback, firstFireByFam, firstFireDetectorsByFam, alphaAtDecision };
+  return { frames, firstRollback, firstDetection, firstFireByFam, firstFireDetectorsByFam, alphaAtDecision };
 }
 
 function runDemo(demo: any, mode: 'cascade' | 'portfolio', V4: CompiledConfig): TraceSummary {
@@ -143,6 +152,8 @@ function runDemo(demo: any, mode: 'cascade' | 'portfolio', V4: CompiledConfig): 
     frames.push({
       tick: t,
       verdict: res.verdict,
+      advisoryIds: advisoryIds(res),
+      advisoryFamilies: res.gateResults?.fusion?.advisory_families ?? [],
       families: (rec.families as any) || EMPTY_FAMS(),
     });
   }
@@ -161,21 +172,29 @@ before(() => {
   TRACE_CASC = runDemo(DEMO, 'cascade', V4);
 });
 
-test('demo-tenant-skew: portfolio catches via Family A on the large-tier cell', () => {
+// C87 (2026-10-02): Family A is advisory. The portfolio DETECTS tenant B's regression — an
+// advisory Family A fire on the large-tier cell inside the expected window — and does not roll
+// back; the run ends in the fixture's `verdict` (proceed). `t` below is the first detection tick.
+test('demo-tenant-skew: portfolio detects via an advisory Family A fire on the large-tier cell and does not roll back (C87)', () => {
   const exp = DEMO.expected_outcome;
-  assert.notEqual(TRACE_PORT.firstRollback, null,
-    `portfolio: expected rollback within [${exp.first_fire_tick_min}, ${exp.first_fire_tick_max}]; firstFire-by-fam=${JSON.stringify(TRACE_PORT.firstFireByFam)}`);
-  const t = TRACE_PORT.firstRollback as number;
-  assert.ok(t >= exp.first_fire_tick_min && t <= exp.first_fire_tick_max,
-    `portfolio rollback at t=${t} outside expected window [${exp.first_fire_tick_min}, ${exp.first_fire_tick_max}]`);
+  assert.equal(TRACE_PORT.firstRollback, null, `portfolio: unexpected rollback at t=${TRACE_PORT.firstRollback}`);
+  assert.equal(TRACE_PORT.frames[TRACE_PORT.frames.length - 1].verdict, exp.verdict);
+  assert.notEqual(TRACE_PORT.firstDetection, null,
+    `portfolio: expected an advisory fire within [${exp.advisory.first_fire_tick_min}, ${exp.advisory.first_fire_tick_max}]; firstFire-by-fam=${JSON.stringify(TRACE_PORT.firstFireByFam)}`);
+  const t = TRACE_PORT.firstDetection as number;
+  assert.ok(t >= exp.advisory.first_fire_tick_min && t <= exp.advisory.first_fire_tick_max,
+    `portfolio advisory fire at t=${t} outside expected window [${exp.advisory.first_fire_tick_min}, ${exp.advisory.first_fire_tick_max}]`);
+  const advisoryFams = Array.from(new Set(TRACE_PORT.frames.flatMap((f) => f.advisoryFamilies))).sort();
+  assert.deepEqual(advisoryFams, exp.advisory.families, 'the advisory families over the run are the fixture\'s');
+  assert.ok(TRACE_PORT.frames[t].advisoryIds.some((id) => id.startsWith('family_A_')), `t=${t}: ${TRACE_PORT.frames[t].advisoryIds}`);
   // Family A is the catcher (per D6).
   assert.equal(TRACE_PORT.firstFireByFam.A, t,
-    `portfolio: Family A expected to first-fire at the rollback tick (t=${t}); got A=${TRACE_PORT.firstFireByFam.A}`);
+    `portfolio: Family A expected to first-fire at the detection tick (t=${t}); got A=${TRACE_PORT.firstFireByFam.A}`);
   // No other family in the first-firing set at the rollback tick.
   for (const fam of ['B', 'C', 'D', 'E'] as FamilyId[]) {
     const ft = TRACE_PORT.firstFireByFam[fam];
     if (ft !== null) {
-      assert.ok(ft > t, `portfolio: family ${fam} fired at t=${ft}, expected to stay clean through rollback (t=${t})`);
+      assert.ok(ft > t, `portfolio: family ${fam} fired at t=${ft}, expected to stay clean through the detection tick (t=${t})`);
     }
   }
   // Detector id is the tenant-B regressing signal — page-cusum or betting-e-process.

@@ -555,7 +555,15 @@
     }
   ],
   "expected_outcome": {
-    "verdict": "rollback",
+    "verdict": "proceed",
+    "advisory": {
+      "families": [
+        "A"
+      ],
+      "first_fire_tick": 26,
+      "reason_code": "advisory_temporal_path_no_valid_null",
+      "verdict_before_c87": "rollback"
+    },
     "first_families": [
       "A"
     ],

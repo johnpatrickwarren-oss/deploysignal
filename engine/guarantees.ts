@@ -104,6 +104,11 @@ import { FAMILY_A_PRIMARY_SIGNALS } from '@johnpatrickwarren-oss/deploysignal-en
  *  scores (super-uniformity), and an epoch guard on the classical block. */
 export const FAMILY_E_ADVISORY = true;
 
+// C87 — TEMPORAL_PATH_AUTHORITY (Families A, C, D advisory) lives in ./_guarantees-temporal: this
+// file is at the arch-gate's file-size ceiling. Re-exported so `./guarantees` stays the one import.
+export * from './_guarantees-temporal';
+import { TEMPORAL_ALPHA_PARTICIPATING } from './_guarantees-temporal';
+
 /** C62 (b), engine ADR 0030 — the false-coverage level at which the fused verdict reports e-BY
  *  effect-size intervals for the Family A mixture signals that fired this tick. Each selected
  *  signal's interval is read at `E_BY_DELTA·|S|/K` (K = the mixture signals evaluated, S = the
@@ -151,14 +156,21 @@ export const FAMILY_A_PLUGIN_ADVISORY_REASON = 'advisory_valid_path_routed';
  *  The advisory fire's α is dropped, not reallocated: the Bonferroni split (bonferroni_factor,
  *  the sli_list length) still counts the unauthorized signal, so the authorized signals run at a
  *  smaller per-signal α than they would without it. That is conservative.
- *  Reversal: an engine envelope that admits the plug-ins under an estimated baseline. */
+ *  Reversal: an engine envelope that admits the plug-ins under an estimated baseline.
+ *  SUBORDINATE to TEMPORAL_PATH_AUTHORITY since C87 (2026-10-02): while that is 'advisory' no
+ *  Family A fire reaches rollback[] or firing_families, authorized or not. This rule then decides
+ *  only the kind of advisory fire: an authorized signal's fire is marked `advisory_reason`
+ *  TEMPORAL_PATH_ADVISORY_REASON with the rollback id it would have carried (a detection); an
+ *  unauthorized signal's keeps FAMILY_A_UNAUTHORIZED_ADVISORY_REASON and no such mark. */
 export const FAMILY_A_ROLLBACK_AUTHORITY: 'authorized_signals_only' | 'any_configured_signal' = 'authorized_signals_only';
 
 /** reason_code an advisory fire on an unauthorized signal carries (FAMILY_A_ROLLBACK_AUTHORITY). */
 export const FAMILY_A_UNAUTHORIZED_ADVISORY_REASON = 'advisory_signal_not_rollback_authorized';
 
 /** May a Family A plug-in fire on `signal` reach rollback[]? (i) a default signal, (ii) routed to
- *  the valid path this tick, or (iii) listed in the compiled `family_a_rollback_signals`. */
+ *  the valid path this tick, or (iii) listed in the compiled `family_a_rollback_signals`.
+ *  While TEMPORAL_PATH_AUTHORITY is 'advisory' (C87) the answer picks the fire's advisory kind;
+ *  nothing reaches rollback[]. */
 export function familyARollbackAuthorized(
   signal: string | undefined, routed: ReadonlySet<string> | undefined,
   operatorSignals: ReadonlyArray<string> | undefined,
@@ -197,7 +209,11 @@ export const TWIN_ARM_AUTHORITY = 'advisory' as const;
  *  B-only compiled config keep the rules' rollback effect, since nothing else there detects. On the
  *  131-scenario corpus under the v4 config (A–E) TP is 131/131 before and after; B's 6 first fires
  *  move to A (1), C (3), D (2) — test/w4-full-sweep.test.ts. Reversal: a registered
- *  study giving a rule a false-rollback rate under a declared null. */
+ *  study giving a rule a false-rollback rate under a declared null.
+ *  C87 (2026-10-02) did NOT change this rule: A, C and D are now advisory
+ *  (TEMPORAL_PATH_AUTHORITY), and Family B still only holds beside them, so on a compiled A–E
+ *  profile neither B nor the statistical families roll back; the policy gates and the
+ *  short-circuits do. "TP 131/131" above is detection (rollback or advisory fire) since C87. */
 export const FAMILY_B_AUTHORITY = 'hold_only' as const;
 /** Policy gates: deploy-time facts on `flags`, not detectors. They keep their rollback (security,
  *  artifact, provenance, contract) or extend (toolchain) effect whatever FAMILY_B_AUTHORITY says,
@@ -278,8 +294,8 @@ export interface DetectorGuarantee {
    *  the claim. */
   readonly null_assumptions: readonly string[];
   readonly repeated_look_policy: RepeatedLookPolicy;
-  /** False for Family B (hand-tuned structural thresholds; α reserved but
-   *  never spent per the R2 disposition) and true for every A/C/D/E id. */
+  /** Does a fire of this id spend α? False for Family B (hand-tuned thresholds), Family E (C25),
+   *  the contrast arm (C81) and, since C87, every A/C/D id (TEMPORAL_ALPHA_PARTICIPATING). */
   readonly alpha_participating: boolean;
   /** Set when this id is the classical/legacy path that a Ville-bounded
    *  sibling id falls back to (or is superseded by). Always a real
@@ -367,7 +383,7 @@ function familyAMixtureEntry(id: DetectorId): DetectorGuarantee {
     validity_class: 'ville_anytime_valid',
     null_assumptions: FAMILY_A_MIXTURE_ASSUMPTIONS,
     repeated_look_policy: VILLE_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     approximate_e_value: MIXTURE_APPROXIMATE_E_VALUE,
     citation: 'Howard, Ramdas, McAuliffe & Sekhon (2021), Annals of Statistics — '
       + 'time-uniform nonparametric confidence sequences (mixture supermartingale)',
@@ -393,7 +409,7 @@ function familyASafeTEntry(id: DetectorId): DetectorGuarantee {
     validity_class: 'e_value_terminal',
     null_assumptions: FAMILY_A_SAFE_T_ASSUMPTIONS,
     repeated_look_policy: EPOCH_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     approximate_e_value: SAFE_T_APPROXIMATE_E_VALUE,
     citation: 'Pérez-Ortiz, Lardy, de Heide & Grünwald (2024) GROW e-statistics for the '
       + 'location-scale model; engine ADR 0005 (safe-t e-value); Ramdas & Wang (2025) Prop. 4.4',
@@ -459,7 +475,7 @@ function familyABettingEntry(id: DetectorId): DetectorGuarantee {
       + 'not Ville\'s 1/α, so this row classifies the crossing-rate control DeploySignal actually runs.',
     null_assumptions: FAMILY_A_BETTING_ASSUMPTIONS,
     repeated_look_policy: BOOTSTRAP_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     approximate_e_value: BETTING_APPROXIMATE_E_VALUE,
     citation: 'Waudby-Smith & Ramdas (2024) GRAPA + Online Newton Step fallback betting e-process',
   };
@@ -639,7 +655,7 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     validity_class: 'classical_epoch_alpha',
     null_assumptions: HOTELLING_CHI_SQUARE_ASSUMPTIONS,
     repeated_look_policy: EPOCH_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     fallback_of: 'hotelling_t2_safe',
     citation: 'Hotelling (1931) T²; Wilson-Hilferty (1931) χ² approximation',
   },
@@ -652,7 +668,7 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
       + 'threshold is the bootstrap quantile (C64 c), a median 3.6×10⁷⁶ above 1/α; this row classifies that path.',
     null_assumptions: HOTELLING_SAFE_ASSUMPTIONS,
     repeated_look_policy: BOOTSTRAP_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     citation: 'Grünwald, de Heide & Koolen (2024), JASA — safe testing / GROW e-test',
   },
 
@@ -669,7 +685,7 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
       + 'stamp (C21), so no shipped cell reaches either; alpha_participating is the stamped allocation, not a live spend.',
     null_assumptions: MMD_ASSUMPTIONS_CANONICAL,
     repeated_look_policy: VILLE_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process',
     id_mapping_note: 'Dormant for live attribution as of the '
       + "sequential_mmd_betting_e_process registration: the Q67 v2 canonical "
@@ -688,7 +704,7 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     validity_class: 'ville_anytime_valid',
     null_assumptions: MMD_ASSUMPTIONS_OPTION_B,
     repeated_look_policy: VILLE_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     citation: 'Addition #20 Option-B simplification of Shekhar & Ramdas (2023) via '
       + 'REPLY-34 GRAPA/ONS betting primitives',
   },
@@ -705,7 +721,7 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     validity_class: 'ville_anytime_valid',
     null_assumptions: MMD_ASSUMPTIONS_CANONICAL,
     repeated_look_policy: VILLE_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     citation: 'Shekhar & Ramdas (2023) canonical ONS kernel-MMD betting e-process',
   },
 
@@ -716,7 +732,7 @@ export const DETECTOR_GUARANTEES: Record<DetectorId, DetectorGuarantee> = {
     validity_class: 'classical_epoch_alpha',
     null_assumptions: SPECTRAL_BOOTSTRAP_ASSUMPTIONS,
     repeated_look_policy: EPOCH_POLICY,
-    alpha_participating: true,
+    alpha_participating: TEMPORAL_ALPHA_PARTICIPATING,
     fallback_of: 'spectral_e_detector_kv_cache',
     citation: 'Box-Jenkins ACF peak detection over a compile-time bootstrap null',
   },

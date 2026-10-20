@@ -171,15 +171,19 @@ test('C25 fusion: the guard is keyed on the constant, not on α — an E fire st
   assert.equal(v.total_alpha_spent, 0);
 });
 
-test('C25 fusion: with Family A firing, rollback is attributed to A only and α_spent excludes E', () => {
+// C87 (2026-10-02): Family A is advisory too, so the rollback beside the E fire comes from a
+// Family B structural rule; A and E are both listed as advisory and neither books α.
+test('C25 fusion: beside a Family B rollback, A and E fires are advisory and α_spent excludes both', () => {
   const h = emptyHealth();
+  h.rollback = [{ id: 'slowbleed', label: 'Slow Bleed (Multi-Metric Drift)' }];
   h.family_A_shadow = [fireA()];
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 10, totalTicks: 32, deployRef: 't', familyE: fireE() });
   assert.equal(v.verdict, 'rollback');
-  assert.deepEqual(v.firing_families, ['A']);
-  assert.ok(Math.abs(v.total_alpha_spent - 6.67e-5) < 1e-18);
-  assert.match(v.verdict_rationale, /^Rollback triggered: Family A fired/);
-  assert.match(v.verdict_rationale, /Advisory only .*Family E fired/);
+  assert.deepEqual(v.firing_families, ['B']);
+  assert.deepEqual(v.advisory_families, ['A', 'E']);
+  assert.equal(v.total_alpha_spent, 0);
+  assert.match(v.verdict_rationale, /^Rollback triggered: Family B fired/);
+  assert.match(v.verdict_rationale, /Advisory only .*Family A fired.*Family E fired/);
 });
 
 // ── 2. Guard, site 2: health gate ────────────────────────────────────

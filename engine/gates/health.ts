@@ -115,6 +115,8 @@ export function evaluateHealth(
   };
   if (fires.holds.length > 0) result.family_B_holds = fires.holds;
 
+  // C87 (TEMPORAL_PATH_AUTHORITY, engine/guarantees.ts): Families A, C and D are ADVISORY. Their
+  // verdicts are recorded below and none of their fires reaches `rollbackFired`.
   // Family A Page-CUSUM (per ARCHITECT-REPLY-05.md). Primary detector for
   // the 6 primary SLIs when `compiledConfig.baseline_cells.*.family_A` is
   // populated. CUSUM state persists on the TrendBuffer for the deploy
@@ -133,17 +135,18 @@ export function evaluateHealth(
     runContrastArm(result, liveMetrics, tb, opts.compiledConfig, opts.contrastArm, opts.totalTicks);
   }
 
-  // Family C (Hotelling T²) — W3 addition. End of the cascade; any fire
-  // adds a `family_C` rollback entry. Stateless (per-tick test); error
-  // swallowing identical to Family A.
+  // Family C (Hotelling T²) — W3 addition. End of the cascade. Advisory since
+  // C87 (TEMPORAL_PATH_AUTHORITY): a fire is recorded on `family_C_verdict` /
+  // `family_C_mmd_verdict` and adds no rollback entry. Error swallowing
+  // identical to Family A.
   const familyCEnabled = !!opts?.compiledConfig?.baseline_cells?.cells.some((c) => c.family_C);
   if (familyCEnabled && opts) {
     runFamilyC(result, rollbackFired, sup, liveMetrics, tb, opts);
   }
 
   // Family D (ACF oscillation) — W4 addition. Per-signal; consumes the
-  // TrendBuffer's long view (default 30 samples). Fires push
-  // `family_D_${signal}` into rollback. Silent error swallow per Family A.
+  // TrendBuffer's long view (default 30 samples). Advisory since C87: a fire is
+  // recorded on `family_D_shadow` and pushes nothing. Silent error swallow per Family A.
   const familyDEnabled = !!opts?.compiledConfig?.baseline_cells?.aggregate_fallback.family_D;
   if (familyDEnabled && tb && opts) {
     runFamilyD(result, rollbackFired, sup, liveMetrics, tb, opts);

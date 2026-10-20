@@ -182,29 +182,35 @@ test('fuseVerdict: extend when Family B extend signal fires', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────
-// Outcome: rollback (Family A only)
-test('fuseVerdict: rollback on Family A fire alone', () => {
+// C87: a Family A fire alone is ADVISORY — no rollback, listed on advisory_families, no α.
+// (The hand-built rollback[] id is what a pre-C87 health gate emitted; fusion ignores it.)
+test('fuseVerdict: a Family A fire alone is advisory, not a rollback (C87)', () => {
   const h = emptyHealth();
   h.rollback = [{ id: 'family_A_p99_latency', label: 'Family A p99_latency' }];
   h.family_A_shadow = [fireA('p99_latency'), cleanA('ttft')];
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
-  assert.equal(v.verdict, 'rollback');
-  assert.deepEqual(v.firing_families, ['A']);
-  assert.ok(v.total_alpha_spent > 0);
+  assert.equal(v.verdict, 'baking');
+  assert.deepEqual(v.firing_families, []);
+  assert.deepEqual(v.advisory_families, ['A']);
+  assert.equal(v.total_alpha_spent, 0);
   // Family A synthetic ID must not leak into the Family B partition.
   assert.equal(v.per_family_verdicts.B, null);
 });
 
 // ────────────────────────────────────────────────────────────────────
-// Outcome: rollback (Family C only)
-test('fuseVerdict: rollback on Family C fire alone', () => {
+// C87: a Family C fire alone is ADVISORY; at the last tick the deploy proceeds.
+test('fuseVerdict: a Family C fire alone is advisory, not a rollback (C87)', () => {
   const h = emptyHealth();
   h.rollback = [{ id: 'family_C', label: 'Family C (multivariate)' }];
   h.family_C_verdict = fireC();
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
-  assert.equal(v.verdict, 'rollback');
-  assert.deepEqual(v.firing_families, ['C']);
-  assert.ok(v.total_alpha_spent > 0);
+  assert.equal(v.verdict, 'baking');
+  assert.deepEqual(v.firing_families, []);
+  assert.deepEqual(v.advisory_families, ['C']);
+  assert.equal(v.total_alpha_spent, 0);
+  const last = fuseVerdict(h, { topology: 'portfolio', tick: 31, totalTicks: 32, deployRef: 'test' });
+  assert.equal(last.verdict, 'proceed');
+  assert.deepEqual(last.advisory_families, ['C']);
   assert.equal(v.per_family_verdicts.B, null);
 });
 
@@ -216,13 +222,15 @@ test('fuseVerdict: rollback on Family B structural rule', () => {
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
   assert.equal(v.verdict, 'rollback');
   assert.deepEqual(v.firing_families, ['B']);
+  assert.deepEqual(v.advisory_families, []);
   // Family B doesn't spend Ville budget.
   assert.equal(v.total_alpha_spent, 0);
 });
 
 // ────────────────────────────────────────────────────────────────────
 // First-fire attribution when multiple families fire simultaneously.
-// Portfolio preserves family order A < B < C < D < E in `firing_families`.
+// Portfolio preserves family order A < B < C < D < E in `firing_families` and in
+// `advisory_families`. C87: A and C are advisory, so the rollback here is Family B's alone.
 test('fuseVerdict: multiple fires preserve A<B<C<D<E family order', () => {
   const h = emptyHealth();
   h.rollback = [
@@ -234,16 +242,17 @@ test('fuseVerdict: multiple fires preserve A<B<C<D<E family order', () => {
   h.family_C_verdict = fireC();
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
   assert.equal(v.verdict, 'rollback');
-  assert.deepEqual(v.firing_families, ['A', 'B', 'C']);
-  // α sum should equal Family A's single-signal α + Family C's α (B is 0).
-  const expected = 6.67e-5 + 2e-4;
-  assert.ok(Math.abs(v.total_alpha_spent - expected) < 1e-12,
-    `α_spent sum mismatch: got ${v.total_alpha_spent}, expected ${expected}`);
+  assert.deepEqual(v.firing_families, ['B']);
+  assert.deepEqual(v.advisory_families, ['A', 'C']);
+  // C87: advisory families book no α, whatever their verdicts carry (B is 0 as before).
+  assert.equal(v.total_alpha_spent, 0,
+    `α_spent: got ${v.total_alpha_spent}, expected 0`);
 });
 
 // ────────────────────────────────────────────────────────────────────
-// α_spent is the union bound across families: sums Family A + C (not B).
-test('fuseVerdict: α_spent union-bound accounting', () => {
+// α_spent is the union bound across the families that hold rollback authority. C87: A, C and D
+// hold none, so two Family A fires and a Family C fire sum to 0 (before C87: 2 × 6.67e-5 + 2e-4).
+test('fuseVerdict: α_spent union-bound accounting excludes the advisory temporal path (C87)', () => {
   const h = emptyHealth();
   h.family_A_shadow = [fireA('p99_latency', 6.67e-5), fireA('ttft', 6.67e-5)];
   h.family_C_verdict = fireC(2e-4);
@@ -253,9 +262,9 @@ test('fuseVerdict: α_spent union-bound accounting', () => {
     { id: 'family_C',             label: 'Family C (multivariate)' },
   ];
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
-  // Family A fires 2 signals × 6.67e-5 + Family C 2e-4.
-  const expected = 2 * 6.67e-5 + 2e-4;
-  assert.ok(Math.abs(v.total_alpha_spent - expected) < 1e-12);
+  assert.equal(v.total_alpha_spent, 0);
+  assert.deepEqual(v.advisory_families, ['A', 'C']);
+  assert.notEqual(v.verdict, 'rollback');
 });
 
 // ────────────────────────────────────────────────────────────────────
@@ -265,13 +274,14 @@ test('fuseVerdict: cascade topology also aggregates, with fusion_topology=cascad
   h.rollback = [{ id: 'family_A_p99_latency', label: 'Family A p99_latency' }];
   h.family_A_shadow = [fireA('p99_latency'), cleanA('ttft')];
   const v = fuseVerdict(h, { topology: 'cascade', tick: 15, totalTicks: 32, deployRef: 'test' });
-  assert.equal(v.verdict, 'rollback');
+  assert.equal(v.verdict, 'baking');  // C87: the Family A fire is advisory under either topology
+  assert.deepEqual(v.advisory_families, ['A']);
   assert.equal(v.fusion_topology, 'cascade');
 });
 
 // ────────────────────────────────────────────────────────────────────
 // Injected Family D/E are aggregated correctly when present.
-test('fuseVerdict: injected Family D fire drives rollback and alpha accounting', () => {
+test('fuseVerdict: injected Family D fire is advisory and books no alpha (C87)', () => {
   const h = emptyHealth();
   const familyD: DetectorVerdict = {
     verdict: 'fire', statistic: 0.9, threshold: 0.5,
@@ -279,9 +289,10 @@ test('fuseVerdict: injected Family D fire drives rollback and alpha accounting',
     reason_code: 'spectral_peak', family: 'D',
   };
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test', familyD });
-  assert.equal(v.verdict, 'rollback');
-  assert.deepEqual(v.firing_families, ['D']);
-  assert.equal(v.total_alpha_spent, 1e-4);
+  assert.equal(v.verdict, 'baking');
+  assert.deepEqual(v.firing_families, []);
+  assert.deepEqual(v.advisory_families, ['D']);
+  assert.equal(v.total_alpha_spent, 0);
 });
 
 test('fuseVerdict: injected Family E indeterminate drives extend', () => {
@@ -307,13 +318,14 @@ test('evidence_outlook: always emits exactly 5 entries in A<B<C<D<E order (6 whe
   assert.deepEqual(v.evidence_outlook.map((e) => e.family_id), ['A', 'B', 'C', 'D', 'E']);
 });
 
-test('verdict_rationale: rollback names the firing family and signal', () => {
+test('verdict_rationale: an advisory fire is named with its family and signal, as advisory (C87)', () => {
   const h = emptyHealth();
   h.rollback = [{ id: 'family_A_p99_latency', label: 'Family A p99_latency' }];
   h.family_A_shadow = [fireA('p99_latency'), cleanA('ttft')];
   const v = fuseVerdict(h, { topology: 'portfolio', tick: 15, totalTicks: 32, deployRef: 'test' });
-  assert.equal(v.verdict, 'rollback');
-  assert.match(v.verdict_rationale, /^Rollback triggered:/);
+  assert.equal(v.verdict, 'baking');
+  assert.match(v.verdict_rationale, /^Baking: no rollback signal so far/);
+  assert.match(v.verdict_rationale, /Advisory only \(no α spent, not a rollback trigger\): Family A fired on p99_latency/);
   assert.ok(v.verdict_rationale.includes('Family A fired on p99_latency'),
     `expected fired-signal clause; got: ${v.verdict_rationale}`);
   const famA = v.evidence_outlook.find((e) => e.family_id === 'A')!;

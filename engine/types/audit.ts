@@ -147,7 +147,10 @@ export interface DetectorTripV2 {
   threshold: number | null;
   alpha_spent: number;
   reason_code: string;
-  gate: 'health_rollback' | 'health_extend';
+  /** `health_advisory` (C87): the detector fired and the fire cannot drive the verdict — A, C, D
+   *  under TEMPORAL_PATH_AUTHORITY, E under FAMILY_E_ADVISORY, a C64 (b) routed plug-in. Such a
+   *  trip stays on `families.*.detectors` and is left out of the v1 `tripped[]` projection. */
+  gate: 'health_rollback' | 'health_extend' | 'health_advisory';
   label: string;
   provenance: Provenance;
   /** Family-A-only diagnostic: `S_n / threshold` normalized CUSUM progress.
@@ -185,10 +188,12 @@ export interface FamilyVerdictV2 {
     | 'ignore_threshold'
     | 'expected_failure_pattern'
     | null;
-  /** Family A only, present only when non-empty: the advisory plug-in fires this tick, each with
-   *  the reason it is advisory (`advisory_valid_path_routed`, C64 b; or
-   *  `advisory_signal_not_rollback_authorized`, FAMILY_A_ROLLBACK_AUTHORITY). None of them reached
-   *  rollback[]. A custom signal has no registry id, so this is the only place its fire appears. */
+  /** Present only when non-empty: the advisory fires this tick, each with the reason it is
+   *  advisory. Family A: `advisory_valid_path_routed` (C64 b),
+   *  `advisory_signal_not_rollback_authorized` (FAMILY_A_ROLLBACK_AUTHORITY). Families A, C and D:
+   *  `advisory_temporal_path_no_valid_null` (C87, TEMPORAL_PATH_AUTHORITY), where `signal` is the
+   *  detector's signal (Family C: its detector id). None of them reached rollback[]. A custom
+   *  signal has no registry id, so this is the only place its fire appears. */
   advisory_fires?: Array<{ signal: string; reason_code: string }>;
 }
 
