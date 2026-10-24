@@ -146,3 +146,65 @@ Unanswered requests from sources other than server-side resets (§0 (c)); a quie
 rate), where the metric takes no step; four or more tasks per arm with this metric; a fast service;
 power at one task per arm; regions; the proceed side; the product's own CloudWatch source, which
 does not yet compute `no_response` (the study's runner does, as the fault study's did).
+
+## Amendment 1 — 2026-10-23, before run 0 (the pins, §6)
+
+Written before any run, lane deploy or host change for this study, after PRs #176 (`d0ad1c5`) and
+#177 (`ec066e3`) merged. It changes no bar, endpoint, prediction or void rule.
+
+- **Engine.** `v0.13.0-pre`, resolved `de25786c0a6b15935aa9416b04359f6a3e309106`, unchanged from
+  every real-service study.
+- **The trees the runs execute from.** The runner host runs DeploySignal `main` at `ec066e3` or a
+  later `main` commit whose git tree hashes at every path below are identical; the report verifies
+  each against the run commit recorded in every run's manifest:
+
+  | Path | Tree at `ec066e3` | Same as the onebox pin (`aae042d`)? |
+  |---|---|---|
+  | `studies/twin-aa-noresponse/harness` | `f689868b2f23c38ab4c797548f1d78158ecf65b5` | new |
+  | `studies/twin-aa-noresponse/analysis` | `f32d337a4aef2d86eca4510ef8f45a94f6476fd4` | new |
+  | `service/gate-http` | `6ad69982b285dfd51ef4d340c53a2f783d4a8d84` | no (see below) |
+  | `service/sources` | `c10785a9612812b4c7b063c6f10d93b008918523` | yes |
+  | `engine/gates` | `7eb52c902cbde9c37fd982b5552533f8011042a2` | yes |
+  | `engine/guarantees.ts` | `c99401c57fa2a5a048e8598d9786a06d5e700e1f` | yes |
+  | `studies/twin-aa-real/infra/service` | `6f65c09e3cd4444fc47a470debf1372638d0b5c4` | yes |
+  | `studies/twin-aa-real/infra/cloudformation/lane.yaml` | `8ccaed0a4a9b3c5b1b0646f750513c66371cd5e7` | no (§1.1's `ResetFraction`) |
+
+  Disclosed: `service/gate-http` differs from the onebox pin by one commit, `73d2d92` (ADR 0002,
+  PR #167). It adds a `self_calibration` field to tick and verdict responses
+  (`service/gate-http/_gate-session-runtime.ts`, `selfCalibrationFor`), read from the baseline
+  history directory, null when absent, inside a catch that returns null; `_gate-twin.ts` and every
+  path that computes a twin verdict are unchanged. The runner does not read the field. The gate is
+  restarted from the run commit and its start time and `git rev-parse HEAD` recorded.
+- **Service image (R2).** `twin-aa-service:old-v3-20261001` =
+  `sha256:11b0f047493f6df41ad82612c6f111a7fa508a7392d18fe81a6150d41997ea30` (service tree
+  `6f65c09e…`, which implements `RESET_FRACTION`), every canary override empty: both arms and prod
+  on one task-definition revision per lane, `FAULT_503_FRACTION` 0.005, `LATENCY_MEDIAN_MS` 30,
+  `LATENCY_SIGMA` 0.4, **`RESET_FRACTION` 0.005**.
+- **Lane deploy (§1.1, §5).** One stack update per lane with the lane template at `ec066e3`, every
+  parameter as deployed for the onebox study (read 2026-10-23: `WeightPercent` 25, `ProdTasks` 2,
+  `TaskCpu` 256, `TaskMemory` 512, `EnableFaultInjection` false, `CanaryResetFraction`,
+  `CanaryFault503Fraction`, `CanaryLatencyMedianMs` empty) plus `ResetFraction=0.005`. Placement
+  unchanged from the onebox study:
+
+  | Lane | `BaselineSubnetIndex` | `CanarySubnetIndex` | Stratum |
+  |---|---|---|---|
+  | 0 | 0 (1a) | 0 (1a) | S |
+  | 1 | 1 (1b) | 1 (1b) | S |
+  | 2 | 0 (1a) | 1 (1b) | X |
+  | 3 | 1 (1b) | 0 (1a) | X |
+
+  Each lane's resulting shared task-definition revision is written to
+  `studies/twin-aa-noresponse/results/operator/cell-revisions.json` before run 0 (the file
+  `analysis/analyze.mjs` reads for V9); V9 voids a run on any other.
+- **Lane configs and drivers.** `studies/twin-aa-noresponse/lane<N>.json` = the onebox study's with
+  `study_id` `2026-10-twin-aa-noresponse` (`tasks_per_arm` 1).
+  `RUNNER=studies/twin-aa-noresponse/harness/run-real.mjs ALLOW_ONEBOX=1 drive-lane.sh --cell AA-nr
+  --tasks 1 --runs 25` per lane with disjoint global indices continuing after the onebox study's
+  last (463): lane 0 464–488, lane 1 489–513, lane 2 514–538, lane 3 539–563. A void run is replaced
+  by the next unused index from 564 on the lane it voided, until 100 are executable or 150 attempted.
+  The cell stop (11 executable rollbacks, §1.3) is applied by an operator watcher that stops all four
+  drivers; a run in flight at the stop finishes and is counted.
+- **Pre-flight.** After the lane deploy, one rotation at one task per arm on lane 0 (not a run, no
+  gate session) to read the task-definition revision and both tasks' AZs, and one CloudWatch window
+  of `RequestCount` and the status-class sums per arm, to confirm resets are reaching both arms
+  before run 0. The pre-flight reading is recorded; it decides nothing (N4 is computed on the runs).
