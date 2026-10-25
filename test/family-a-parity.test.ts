@@ -15,6 +15,12 @@
 //     rollback → rollback with different provenance is fine by design.
 //
 // Per-signal firing counts are logged but do not gate.
+//
+// C87 (2026-10-02): Family A is advisory. On the promoted path "TP" is DETECTION
+// (the deploy rolled back, or an advisory Family A fire was recorded: outcome
+// 'advisory', test/_c87-detection.ts), and a "flip" is a scenario the legacy path
+// rolls back that the promoted path does not detect. The promoted path rolls no
+// deploy back on a Family A fire; that is asserted below.
 
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,6 +28,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import type { CompiledConfig, DetectorVerdict } from '../dist/engine/types';
+import { advisoryIds, isDetection } from './_c87-detection';
 
 const engine = require('../shared');
 const { orchestrate, TrendBuffer, TOTAL_TICKS } = engine;
@@ -118,7 +125,8 @@ function precomputeTicks(sc: any): Record<string, number>[] {
   return ticks;
 }
 
-type FinalVerdict = 'rollback' | 'proceed' | 'extend';
+// 'advisory': the run stopped at its first advisory Family A fire (C87); the deploy did not roll back.
+type FinalVerdict = 'rollback' | 'advisory' | 'proceed' | 'extend';
 
 interface DualRun {
   scenarioId: string;
@@ -154,7 +162,12 @@ function runWithConfig(
     });
     const shadow = (r.healthResult?.family_A_shadow ?? []) as DetectorVerdict[];
     for (const v of shadow) if (v.verdict === 'fire' && v.signal) cusumFires[v.signal] = 1;
-    if (r.verdict === 'rollback') return { verdict: 'rollback', tick: i, cusumFires };
+    if (r.verdict === 'rollback') {
+      assert.ok(!(r.healthResult?.rollback ?? []).some((s: any) => String(s.id).startsWith('family_A_')),
+        `${sc.id}: a Family A id on rollback[] (C87: advisory)`);
+      return { verdict: 'rollback', tick: i, cusumFires };
+    }
+    if (advisoryIds(r).length > 0) return { verdict: 'advisory', tick: i, cusumFires };
     if (r.verdict === 'proceed')  return { verdict: 'proceed',  tick: i, cusumFires };
     if (i === TOTAL_TICKS - 1) {
       const fv: FinalVerdict = (r.healthResult && r.healthResult.extend.length > 0) ? 'extend' : 'proceed';
@@ -257,10 +270,10 @@ test('family-a-parity: TP ≥ 117/120 under simulated 2.1.g (Page-CUSUM + Family
   }
 
   const legacyTP   = runs.filter((r) => r.legacyVerdict === 'rollback').length;
-  const promotedTP = runs.filter((r) => r.promotedVerdict === 'rollback').length;
+  const promotedTP = runs.filter((r) => isDetection(r.promotedVerdict)).length;
   const rollbackToProceed = runs.filter((r) => r.legacyVerdict === 'rollback' && r.promotedVerdict === 'proceed');
   const rollbackToExtend  = runs.filter((r) => r.legacyVerdict === 'rollback' && r.promotedVerdict === 'extend');
-  const sameProvenance    = runs.filter((r) => r.legacyVerdict === 'rollback' && r.promotedVerdict === 'rollback');
+  const sameProvenance    = runs.filter((r) => r.legacyVerdict === 'rollback' && isDetection(r.promotedVerdict));
 
   // Per-signal CUSUM firing counts (informational diagnostic).
   const perSignal: Record<string, number> = {};
@@ -270,8 +283,9 @@ test('family-a-parity: TP ≥ 117/120 under simulated 2.1.g (Page-CUSUM + Family
 
   console.log('\n────── family-a-parity summary (per-scenario keystone) ──────');
   console.log(`legacy TP:   ${legacyTP}/120   (${(legacyTP / 120 * 100).toFixed(1)}%)`);
-  console.log(`promoted TP: ${promotedTP}/120 (${(promotedTP / 120 * 100).toFixed(1)}%)`);
-  console.log(`rollback → rollback (different provenance): ${sameProvenance.length}`);
+  console.log(`promoted TP (detected: rollback or advisory fire): ${promotedTP}/120 (${(promotedTP / 120 * 100).toFixed(1)}%)`);
+  console.log(`promoted path rolled the deploy back: ${runs.filter((r) => r.promotedVerdict === 'rollback').length}/120`);
+  console.log(`rollback → detected (different provenance): ${sameProvenance.length}`);
   console.log(`rollback → proceed (GATE FAILURES): ${rollbackToProceed.length}`);
   console.log(`rollback → extend (GATE FAILURES): ${rollbackToExtend.length}`);
   console.log('\nPer-signal Family A CUSUM fires (across 120 adversarial scenarios):');
@@ -294,11 +308,11 @@ test('family-a-parity: TP ≥ 117/120 under simulated 2.1.g (Page-CUSUM + Family
 
   // Gate: no rollback → proceed/extend flips; promoted TP ≥ 117/120.
   assert.equal(rollbackToProceed.length, 0,
-    `rollback→proceed flips forbidden per architect spec; got ${rollbackToProceed.length}`);
+    `legacy rollback → promoted undetected-proceed flips forbidden per architect spec; got ${rollbackToProceed.length}`);
   assert.equal(rollbackToExtend.length, 0,
-    `rollback→extend flips forbidden; got ${rollbackToExtend.length}`);
+    `legacy rollback → promoted undetected-extend flips forbidden; got ${rollbackToExtend.length}`);
   assert.ok(promotedTP >= 117,
-    `promoted TP must be ≥ 117/120 (97.5%); got ${promotedTP}`);
+    `promoted detection must be ≥ 117/120 (97.5%); got ${promotedTP}`);
 });
 
 // W4 §4.0 T5: reproducibility across (h, d). Run a subset of the adversarial
@@ -314,7 +328,7 @@ test('family-a-parity: promoted TP ≥ 97.5% reproduces at an alternate (h, d) c
   for (const sc of subset) {
     const ticks = precomputeTicks(sc);
     const promoted = runWithConfig(sc, ticks, CONFIG, ALT_HOUR, ALT_DAY);
-    if (promoted.verdict === 'rollback') tp++;
+    if (isDetection(promoted.verdict)) tp++;
   }
   const rate = tp / subset.length;
   assert.ok(rate >= 0.95,
@@ -335,8 +349,9 @@ test('family-a-parity: synthesized "clean" scenario fires under mixture-supermar
   const sc = cleanScenario();
   const ticks = precomputeCleanTicks(sc);
   const run = runOne(sc, ticks, CONFIG);
-  assert.equal(run.promotedVerdict, 'rollback',
+  // C87: the detection is an advisory Family A fire; the deploy itself does not roll back.
+  assert.equal(run.promotedVerdict, 'advisory',
     `mixture-supermartingale variant should detect "clean" scenario's small-effect drift; got ${run.promotedVerdict}`);
   assert.ok(run.promotedTick !== null && run.promotedTick > 0,
-    'rollback should fire at a non-trivial tick (post-bake-profile)');
+    'the advisory fire should land at a non-trivial tick (post-bake-profile)');
 });

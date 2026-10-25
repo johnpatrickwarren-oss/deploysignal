@@ -9,6 +9,7 @@
 // The live walkthrough is John's job (humans clicking through the browser);
 // this test catches drift in the artifacts the walkthrough depends on.
 
+import { detectedAt } from './_c87-detection';
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -76,6 +77,8 @@ interface PanelRenderData {
   divergenceCount: number;
   portfolioCatchesCount: number;
   cascadeCatchesCount: number;
+  /** C87: of those, the ticks before the portfolio path's first detection. */
+  cascadeCatchesUndetectedCount: number;
   configVersionsObserved: Set<string>;
   pauseBeatTicks: number[];
 }
@@ -95,6 +98,7 @@ function runDressRehearsal(d: any, V4: CompiledConfig): PanelRenderData {
     divergenceCount: 0,
     portfolioCatchesCount: 0,
     cascadeCatchesCount: 0,
+    cascadeCatchesUndetectedCount: 0,
     configVersionsObserved: new Set<string>(),
     pauseBeatTicks: [],
   };
@@ -150,7 +154,9 @@ function runDressRehearsal(d: any, V4: CompiledConfig): PanelRenderData {
     // Track first-rollback tick — α budget UI freezes at decision time
     // (Ville's inequality bounds the run-level FP probability at the
     // moment the gate decides; subsequent ticks are post-decision).
-    if (portRes.verdict === 'rollback' && data.decisionTick === null) {
+    // C87 (2026-10-02): the portfolio path no longer rolls back on A/C/D fires, so the decision
+    // tick for the α cap is the first DETECTION — a rollback or an advisory A/C/D fire.
+    if (detectedAt(portRes) && data.decisionTick === null) {
       data.decisionTick = t;
       data.totalAlphaSpentAtDecision = data.totalAlphaSpentEnd;
     }
@@ -160,6 +166,8 @@ function runDressRehearsal(d: any, V4: CompiledConfig): PanelRenderData {
       data.divergenceCount++;
       if (portRes.verdict === 'rollback' && cascRes.verdict !== 'rollback') data.portfolioCatchesCount++;
       if (cascRes.verdict === 'rollback' && portRes.verdict !== 'rollback') data.cascadeCatchesCount++;
+      // C87: ... of which, ticks before the portfolio path has detected anything at all.
+      if (cascRes.verdict === 'rollback' && portRes.verdict !== 'rollback' && data.decisionTick === null) data.cascadeCatchesUndetectedCount++;
     }
   }
   // If never rolled back, treat end-of-run as decision tick.
@@ -259,11 +267,18 @@ test('dress-rehearsal §3.2: divergence-category counts non-negative and consist
     // Per spec §3.2: at W5, expected count of cascade-catches-portfolio-misses = 0
     // across all canned demos by design (we don't ship demos that regress).
     // Exception, FAMILY_B_AUTHORITY (2026-09-27): on demo-github-2020 cascade (no compiled
-    // config) rolls back at t=5 on legacy Family B slowbleed; portfolio holds on it and rolls back
+    // config) rolls back at t=5 on legacy Family B slowbleed; portfolio holds on it and detects
     // at t=7 via Family A. Pending an architect decision on the demo and this invariant.
+    // C87 (2026-10-02): the Family A fire at t=7 is advisory, so the portfolio path never rolls
+    // back on this demo. "Portfolio missed" is therefore counted over the ticks before the
+    // portfolio's first DETECTION (rollback or advisory fire): still 1 here (t=5; the tick-6
+    // cascade verdict is extend). The ticks cascade rolls back and portfolio does not, over the
+    // whole run, are pinned beside it: 26 on this demo, 0 on every other.
     const allowed = CASCADE_CATCH_EXCEPTIONS[d.id] ?? 0;
-    assert.equal(r.cascadeCatchesCount, allowed,
-      `${d.id}: cascade caught ${r.cascadeCatchesCount} times portfolio missed (allowed ${allowed}) — pitch regression risk`);
+    assert.equal(r.cascadeCatchesUndetectedCount, allowed,
+      `${d.id}: cascade caught ${r.cascadeCatchesUndetectedCount} times before portfolio detected (allowed ${allowed}) — pitch regression risk`);
+    assert.equal(r.cascadeCatchesCount, d.id === 'demo-github-2020' ? 26 : 0,
+      `${d.id}: ticks cascade rolls back and portfolio does not`);
   }
 });
 

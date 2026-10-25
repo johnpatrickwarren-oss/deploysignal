@@ -19,6 +19,14 @@
 //   (b) the same signal listed in family_a_rollback_signals rolls back;
 //   (c) a default-six signal rolls back as before beside an advisory custom signal;
 //   (d) schema + loader validation of family_a_rollback_signals, and compile pass-through.
+//
+// C87 (2026-10-02): the whole temporal path is advisory (TEMPORAL_PATH_AUTHORITY), so NO Family A
+// fire reaches rollback[], authorized or not. The rule above still decides what KIND of advisory a
+// fire is, and that is what (b), (c) and (ii) now assert: an authorized signal's fire is a
+// temporal-path advisory fire (advisory_reason `advisory_temporal_path_no_valid_null`, marked with
+// the rollback id it would have carried, counted as a detection); an unauthorized signal's fire
+// keeps reason_code `advisory_signal_not_rollback_authorized` and carries no such mark. The rule
+// regains its rollback meaning if TEMPORAL_PATH_AUTHORITY is reversed for Family A.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -35,8 +43,9 @@ import { fuseVerdict } from '../dist/engine/verdict';
 import { buildAuditRecord } from '../dist/engine/audit';
 import {
   FAMILY_A_ROLLBACK_AUTHORITY, FAMILY_A_UNAUTHORIZED_ADVISORY_REASON, FAMILY_A_PLUGIN_ADVISORY_REASON,
-  familyARollbackAuthorized,
+  familyARollbackAuthorized, TEMPORAL_PATH_ADVISORY_REASON,
 } from '../dist/engine/guarantees';
+import { advisoryIds, detectedAt, detectionIds } from './_c87-detection';
 import { loadProfile, resolveEffectiveConfig, validateAgainstSchema } from '../tools/profile-loader';
 import { profileSchema } from '../tools/_profile-loader-schema';
 import { effectiveOrDefaults } from '../tools/calibrators/effective-config';
@@ -105,7 +114,9 @@ function emptyHealth(): HealthResult {
 function runA(cfg: CompiledConfig, live: Record<string, number[]>) {
   const tb = new TrendBuffer(10);
   const rollbackIds = new Set<string>();
-  const fires: Array<{ signal: string; reason_code: string; alpha_spent: number }> = [];
+  /** C87: ids of the fires that would have been rollback ids had the temporal path held authority. */
+  const advisoryFireIds = new Set<string>();
+  const fires: Array<{ signal: string; reason_code: string; alpha_spent: number; advisory_reason?: string }> = [];
   for (let i = 0; i < N; i++) {
     const result = emptyHealth();
     const rollback: FiredSignal[] = [];
@@ -113,11 +124,12 @@ function runA(cfg: CompiledConfig, live: Record<string, number[]>) {
       compiledConfig: cfg, currentHourOfDay: 20, currentDayOfWeek: 3, ticksSinceDeploy: i, deployAgeDays: 0,
     });
     for (const r of rollback) rollbackIds.add(r.id);
+    for (const id of advisoryIds(result)) advisoryFireIds.add(id);
     for (const v of result.family_A_shadow ?? []) {
-      if (v.verdict === 'fire') fires.push({ signal: v.signal!, reason_code: v.reason_code, alpha_spent: v.alpha_spent });
+      if (v.verdict === 'fire') fires.push({ signal: v.signal!, reason_code: v.reason_code, alpha_spent: v.alpha_spent, advisory_reason: (v as { advisory_reason?: string }).advisory_reason });
     }
   }
-  return { rollbackIds, fires };
+  return { rollbackIds, advisoryFireIds, fires };
 }
 
 const isCustomRollback = (id: string) => id === 'family_A_' + CUSTOM || id === 'family_A_betting_' + CUSTOM;
@@ -185,6 +197,8 @@ function driveOrchestrate(cfg: CompiledConfig, signals: string[], shifted: strin
   const tb = new TrendBuffer(10);
   const scenario = { id: 'authority', riskLevel: 'critical', bakeHours: 84, author: 'human', changeType: 'model_weights', timeWindow: 'ok', flags: FLAGS, baseline: scenarioBaseline(cfg) };
   let last: VerdictResult | null = null;
+  /** C87: the first tick with a rollback OR a temporal-path advisory fire, and its ids. */
+  let firstDetection: { tick: number; ids: string[] } | null = null;
   let firstRollback: { tick: number; ids: string[] } | null = null;
   let advisoryAudit: AuditRecordV2 | null = null;
   for (let i = 0; i < N; i++) {
@@ -197,10 +211,11 @@ function driveOrchestrate(cfg: CompiledConfig, signals: string[], shifted: strin
     };
     last = orchestrate(params) as VerdictResult;
     if (firstRollback === null && last.verdict === 'rollback') firstRollback = { tick: i, ids: last.healthResult!.rollback.map((s) => s.id) };
+    if (firstDetection === null && detectedAt(last)) firstDetection = { tick: i, ids: detectionIds(last) };
     const adv = (last.healthResult?.family_A_shadow ?? []).some((v) => v.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON);
     if (advisoryAudit === null && adv) advisoryAudit = buildAuditRecord(params as never, last, null) as AuditRecordV2;
   }
-  return { last: last!, firstRollback, advisoryAudit };
+  return { last: last!, firstRollback, firstDetection, advisoryAudit };
 }
 
 test('(a) orchestrate: a custom-signal step ends proceed with no rollback; the audit record says why the fire is advisory', () => {
@@ -251,32 +266,37 @@ test('(a) HTTP gate session runtime: a custom-signal step never rolls back or re
   }
 });
 
-// ── (b) operator-listed: rolls back ─────────────────────────────────
+// ── (b) operator-listed: authorized (C87: a temporal-path advisory fire, not a rollback) ──
 
-test('(b) runFamilyA: the same signal listed in family_a_rollback_signals reaches rollback[]', () => {
+test('(b) runFamilyA: the same signal listed in family_a_rollback_signals is authorized — its fire is a temporal-path advisory fire, not an unauthorized one, and reaches rollback[] no more than any Family A fire does (C87)', () => {
   const cfg = cfgFor([CUSTOM], [CUSTOM]);
-  const { rollbackIds, fires } = runA(cfg, liveFor(cfg, [CUSTOM], [CUSTOM], 11));
-  assert.ok([...rollbackIds].some(isCustomRollback), `saw ${[...rollbackIds].join(', ')}`);
+  const { rollbackIds, advisoryFireIds, fires } = runA(cfg, liveFor(cfg, [CUSTOM], [CUSTOM], 11));
+  assert.deepEqual([...rollbackIds], [], 'C87: no Family A id on rollback[]');
+  assert.ok([...advisoryFireIds].some(isCustomRollback), `saw ${[...advisoryFireIds].join(', ')}`);
   assert.ok(!fires.some((f) => f.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON));
-  assert.ok(fires.some((f) => f.alpha_spent > 0), 'an authorized fire books α');
+  assert.ok(fires.length > 0 && fires.every((f) => f.advisory_reason === TEMPORAL_PATH_ADVISORY_REASON));
+  assert.ok(fires.every((f) => f.alpha_spent === 0), 'C87: an advisory fire books no α');
 });
 
-test('(b) orchestrate: an operator-listed custom signal drives the deploy to rollback', () => {
+test('(b) orchestrate: an operator-listed custom signal\'s step is detected (advisory) and the deploy does not roll back (C87)', () => {
   const cfg = cfgFor([CUSTOM], [CUSTOM]);
-  const { firstRollback } = driveOrchestrate(cfg, [CUSTOM], [CUSTOM], 13);
-  assert.ok(firstRollback !== null, 'the step rolls the deploy back');
-  assert.ok(firstRollback!.ids.some(isCustomRollback), JSON.stringify(firstRollback));
+  const { last, firstRollback, firstDetection } = driveOrchestrate(cfg, [CUSTOM], [CUSTOM], 13);
+  assert.equal(firstRollback, null, 'C87: the step does not roll the deploy back');
+  assert.ok(firstDetection !== null, 'the step is detected');
+  assert.ok(firstDetection!.ids.some(isCustomRollback), JSON.stringify(firstDetection));
+  assert.equal(last.verdict, 'proceed');
 });
 
-// ── (c) default six: unchanged ──────────────────────────────────────
+// ── (c) default six: authorized as before ───────────────────────────
 
-test('(c) a default-six signal still reaches rollback[] beside an advisory custom signal', () => {
+test('(c) a default-six signal\'s fire is still authorized beside an advisory custom signal (C87: a temporal-path advisory fire; rollback[] stays empty)', () => {
   const signals = ['p99_latency', CUSTOM];
   const cfg = cfgFor(signals);
-  const { rollbackIds, fires } = runA(cfg, liveFor(cfg, signals, signals, 15));
-  assert.ok(rollbackIds.has('family_A_p99_latency') || rollbackIds.has('family_A_betting_p99_latency'),
-    `p99_latency rolls back; saw ${[...rollbackIds].join(', ')}`);
-  assert.ok(![...rollbackIds].some(isCustomRollback), 'the custom signal does not');
+  const { rollbackIds, advisoryFireIds, fires } = runA(cfg, liveFor(cfg, signals, signals, 15));
+  assert.deepEqual([...rollbackIds], [], 'C87: no Family A id on rollback[]');
+  assert.ok(advisoryFireIds.has('family_A_p99_latency') || advisoryFireIds.has('family_A_betting_p99_latency'),
+    `p99_latency is detected; saw ${[...advisoryFireIds].join(', ')}`);
+  assert.ok(![...advisoryFireIds].some(isCustomRollback), 'the custom signal is not');
   assert.ok(fires.some((f) => f.signal === CUSTOM && f.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON));
   assert.ok(!fires.some((f) => f.signal === 'p99_latency' && f.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON));
 });
@@ -285,14 +305,15 @@ test('(c) a config without family_a_signals (legacy, the six) produces no unauth
   const cfg = loadCfg();
   delete (cfg as { family_a_signals?: string[] }).family_a_signals;
   const law = lawOf(cfg, 'p99_latency');
-  const { rollbackIds, fires } = runA(cfg, { p99_latency: cellSeries(law, 16, N, 30, 4) });
-  assert.ok(rollbackIds.has('family_A_p99_latency') || rollbackIds.has('family_A_betting_p99_latency'));
+  const { rollbackIds, advisoryFireIds, fires } = runA(cfg, { p99_latency: cellSeries(law, 16, N, 30, 4) });
+  assert.deepEqual([...rollbackIds], [], 'C87: no Family A id on rollback[]');
+  assert.ok(advisoryFireIds.has('family_A_p99_latency') || advisoryFireIds.has('family_A_betting_p99_latency'));
   assert.ok(!fires.some((f) => f.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON));
 });
 
-// ── (ii) routed: the valid path decides, the plug-ins stay C64 (b) advisory ──
+// ── (ii) routed: the valid path detects, the plug-ins stay C64 (b) advisory ──
 
-test('(ii) a custom signal routed through the valid path: plug-ins C64 (b) advisory, safe-t rolls back at the terminal look', () => {
+test('(ii) a custom signal routed through the valid path: plug-ins C64 (b) advisory, safe-t detects at the terminal look (C87: as a temporal-path advisory fire)', () => {
   const cfg = cfgFor([CUSTOM]);
   const live = liveFor(cfg, [CUSTOM], [CUSTOM], 17);
   const cal = { [CUSTOM]: cellSeries(lawOf(cfg, CUSTOM), 7100, 500) };
@@ -307,9 +328,10 @@ test('(ii) a custom signal routed through the valid path: plug-ins C64 (b) advis
     });
     assert.ok(!(last.family_A_shadow ?? []).some((v) => v.reason_code === FAMILY_A_UNAUTHORIZED_ADVISORY_REASON),
       `tick ${i}: a routed signal is authorized`);
-    if (i < N - 1) assert.ok(!last.rollback.some((s) => s.id.startsWith('family_A_')), `tick ${i}: plug-ins advisory`);
+    assert.ok(!last.rollback.some((s) => s.id.startsWith('family_A_')), `tick ${i}: no Family A rollback id`);
+    if (i < N - 1) assert.deepEqual(advisoryIds(last).filter((id) => id.startsWith('family_A_')), [], `tick ${i}: plug-ins C64 (b) advisory, not detections`);
   }
-  assert.deepEqual(last!.rollback.filter((s) => s.id.startsWith('family_A_')).map((s) => s.id), ['family_A_safe_t_' + CUSTOM]);
+  assert.deepEqual(advisoryIds(last!).filter((id) => id.startsWith('family_A_')), ['family_A_safe_t_' + CUSTOM]);
 });
 
 // ── (d) schema + loader + compile pass-through ──────────────────────
@@ -403,7 +425,7 @@ test('dormancy: the DORMANCY.md entry is present, and while dormant the rule is 
   const status = body.match(/^-\s*status:\s*([A-Za-z_-]+)/m)?.[1];
   assert.equal(status, 'dormant');
   assert.match(body, /^-\s*activation_mechanism:\s*.*family_a_rollback_signals/m);
-  assert.match(body, /^-\s*last_reviewed_ts:\s*2026-09-27/m);
+  assert.match(body, /^-\s*last_reviewed_ts:\s*2026-10-02/m);  // C87: entry re-reviewed, now subordinate to the temporal-path entry
   if (status === 'dormant') assert.equal(FAMILY_A_ROLLBACK_AUTHORITY, 'authorized_signals_only');
 });
 

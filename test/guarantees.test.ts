@@ -72,12 +72,13 @@ test('Family B is heuristic_structural and non-α-participating for every id', (
   }
 });
 
-test('C64 (c): Family A betting-e-process ids are bootstrap_crossing_rate (the shipped threshold is the bootstrap quantile), α-participating', () => {
+test('C64 (c): Family A betting-e-process ids are bootstrap_crossing_rate (the shipped threshold is the bootstrap quantile); not α-participating since C87', () => {
   for (const id of DETECTOR_REGISTRY.A) {
     if (!id.startsWith('betting_e_process_')) continue;
     const g = DETECTOR_GUARANTEES[id];
     assert.equal(g.validity_class, 'bootstrap_crossing_rate');
-    assert.equal(g.alpha_participating, true);
+    // C87 (2026-10-02): the temporal path is advisory, a fire books no α, the row says so.
+    assert.equal(g.alpha_participating, false);
     assert.equal(g.repeated_look_policy, 'bootstrap_horizon_peeking');
     assert.ok(g.null_assumptions.some((a) => a.includes('betting_sliding_buffer_threshold')), 'names the shipped threshold field');
   }
@@ -100,18 +101,18 @@ test('Family A Page-CUSUM ids (mSPRT_* and page_cusum_*) are ville_anytime_valid
     if (id.startsWith('betting_e_process_') || id.startsWith('safe_t_e_value_') || id.startsWith('contrast_null_')) continue;
     const g = DETECTOR_GUARANTEES[id];
     assert.equal(g.validity_class, 'ville_anytime_valid', `${id} should be ville_anytime_valid`);
-    assert.equal(g.alpha_participating, true);
+    assert.equal(g.alpha_participating, false, 'C87: advisory, books no α');
   }
 });
 
-test('C64 (a): Family A safe_t_e_value_* ids are e_value_terminal, one look per canary, α-participating', () => {
+test('C64 (a): Family A safe_t_e_value_* ids are e_value_terminal, one look per canary; not α-participating since C87', () => {
   const ids = DETECTOR_REGISTRY.A.filter((id) => id.startsWith('safe_t_e_value_'));
   assert.equal(ids.length, 6, 'six Family A signals at engine v0.6.10-pre');
   for (const id of ids) {
     const g = DETECTOR_GUARANTEES[id];
     assert.equal(g.validity_class, 'e_value_terminal');
     assert.equal(g.repeated_look_policy, 'epoch_boundaries_only', 'a fixed-time e-value is read once');
-    assert.equal(g.alpha_participating, true);
+    assert.equal(g.alpha_participating, false, 'C87: advisory, books no α');
     assert.ok(g.id_mapping_note?.includes('family_A_safe_t_'), 'names the runtime rollback id');
   }
 });
@@ -360,4 +361,17 @@ test('Family E buildFamilyESection: a divergent per-cell family_E.kind is ignore
   assert.equal(entry.cell_counts?.['unweighted'], 1);
   assert.equal(entry.cell_counts?.['weighted_e_value'] ?? 0, 0);
   assert.equal(section.classical_alpha_fraction, 1);
+});
+
+test('C87: no row of Families A, C or D is α-participating while the temporal path is advisory; validity classes are untouched', () => {
+  const { TEMPORAL_PATH_AUTHORITY, TEMPORAL_ALPHA_PARTICIPATING } = require('../dist/engine/guarantees');
+  assert.equal(TEMPORAL_PATH_AUTHORITY, 'advisory');
+  assert.equal(TEMPORAL_ALPHA_PARTICIPATING, false);
+  for (const fam of ['A', 'C', 'D'] as const) {
+    for (const id of DETECTOR_REGISTRY[fam]) {
+      assert.equal(DETECTOR_GUARANTEES[id].alpha_participating, false, `${id}`);
+    }
+  }
+  assert.equal(DETECTOR_GUARANTEES.mSPRT_ttft.validity_class, 'ville_anytime_valid');
+  assert.equal(DETECTOR_GUARANTEES.hotelling_t2_safe.validity_class, 'bootstrap_crossing_rate');
 });

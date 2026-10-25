@@ -55,7 +55,9 @@ test('defect 2026-09-25: the valid path routes a configured non-LLM signal', () 
   const v = (result.family_A_shadow ?? []).filter((x) => x.signal === 'http_5xx_rate');
   assert.equal(v.length, 1, 'one terminal verdict for the configured signal');
   assert.equal(v[0].verdict, 'fire');
-  assert.ok(rollback.some((r) => r.id === VALID_PATH_ROLLBACK_PREFIX + 'http_5xx_rate'));
+  // C87 (2026-10-02): the fire is advisory; it carries the id it would have pushed and pushes nothing.
+  assert.equal((v[0] as { advisory_id?: string }).advisory_id, VALID_PATH_ROLLBACK_PREFIX + 'http_5xx_rate');
+  assert.deepEqual(rollback, []);
 });
 
 test('defect 2026-09-25: a calibrated LLM signal the config does not monitor is not routed', () => {

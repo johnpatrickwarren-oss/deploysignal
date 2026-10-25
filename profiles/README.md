@@ -56,6 +56,8 @@ profile's `δ_min` was also considered and not taken.
 
 ## Custom Family A signals and rollback authority
 
+**Since 2026-10-02 (C87) no Family A fire rolls a deploy back.** `TEMPORAL_PATH_AUTHORITY = 'advisory'` (`engine/guarantees.ts`) makes Families A, C and D advisory on every signal: on real telemetry the Family A gate rolled back 40 of 44 healthy GPU units (`studies/gwdg-gate/REPORT.md`) and 13 of 87 healthy request-stream windows (`studies/burstgpt-gate/REPORT.md`). While that holds, the rule below decides only how a fire is recorded: an authorized signal's fire carries `advisory_reason: advisory_temporal_path_no_valid_null` and counts as a detection; an unauthorized signal's keeps reason_code `advisory_signal_not_rollback_authorized`. The rest of this section describes the rule's rollback effect, which returns only if Family A regains authority (`DORMANCY.md`).
+
 `sli_list` may name any signal, and the engine (v0.12.1-pre on) runs Family A's two plug-ins, the mixture supermartingale and the betting e-process, on each one. Both are `validUnderEstimatedBaseline: false` (engine `detectors/validity-envelope.ts`): their false-rollback bound assumes a known baseline, and a compiled baseline is estimated. So a Family A fire rolls a deploy back only on an authorized signal:
 
 1. one of the six defaults (`p99_latency`, `ttft`, `eval_score`, `tool_success_rate`, `downstream_err`, `cost_req`). These are authorized by grandfathering, not on validity grounds: they carry the same plug-in envelope and keep the authority they had before v0.12.1-pre;

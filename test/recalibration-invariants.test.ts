@@ -19,6 +19,7 @@
 // zero firing counts for every substrate -> acceptance gates trivially
 // pass), per the q60 test pattern (test/q60-run-shadow-compare.test.ts).
 
+import { detectedAt } from './_c87-detection';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -161,6 +162,9 @@ interface CannedDemo {
   expected_outcome: { verdict: string; portfolio_first_rollback_tick?: number };
 }
 
+// C87 (2026-10-02): the "alarm" these invariants preserve is DETECTION — the deploy rolled back,
+// or an advisory A/C/D fire was recorded (test/_c87-detection.ts). `finalVerdict` is 'detected'
+// when either happened on some tick, and `firstRollbackTick` is the first such tick.
 interface PortfolioRunResult {
   finalVerdict: string;
   firstRollbackTick: number | null;
@@ -196,10 +200,10 @@ function runPortfolioDemo(d: CannedDemo, cfg: CompiledConfig): PortfolioRunResul
         if (rec.families[f]?.verdict === 'fire') anyFamilyFired = true;
       }
     }
-    if (res.verdict === 'rollback' && firstRollback === null) firstRollback = t;
+    if (detectedAt(res) && firstRollback === null) firstRollback = t;
   }
   return {
-    finalVerdict: firstRollback !== null ? 'rollback' : 'proceed',
+    finalVerdict: firstRollback !== null ? 'detected' : 'proceed',
     firstRollbackTick: firstRollback,
     anyFamilyFired,
   };
@@ -249,7 +253,7 @@ test('invariant #1: rejection preserves alarms — active baseline + its detecti
   // recalibration flow below runs, so the "still fires after" assertion
   // is a genuine before/after comparison, not a tautology.
   const beforeRun = runPortfolioDemo(demo, v4);
-  assert.equal(beforeRun.finalVerdict, 'rollback');
+  assert.equal(beforeRun.finalVerdict, 'detected');
   assert.ok(beforeRun.anyFamilyFired);
 
   const candidateConfig = degradedCandidateConfig(v4, 'v4-degraded-candidate@seed=99');
@@ -302,7 +306,7 @@ test('invariant #1: rejection preserves alarms — active baseline + its detecti
   const activeCfgPath = store.readActive()!.compiled_config_path;
   const activeCfg = JSON.parse(fs.readFileSync(activeCfgPath, 'utf8')) as CompiledConfig;
   const afterRun = runPortfolioDemo(demo, activeCfg);
-  assert.equal(afterRun.finalVerdict, 'rollback', 'old config must still roll back on the same degraded stream after rejection');
+  assert.equal(afterRun.finalVerdict, 'detected', 'old config must still detect the same degraded stream after rejection');
   assert.equal(afterRun.firstRollbackTick, beforeRun.firstRollbackTick, 'fire timing must be unchanged');
   assert.ok(afterRun.anyFamilyFired, 'old config must still fire on the same degraded stream after rejection');
 
@@ -381,7 +385,7 @@ test('invariant #2: timeout default-rejection preserves alarms (no operator acti
   const activeCfgPath = store.readActive()!.compiled_config_path;
   const activeCfg = JSON.parse(fs.readFileSync(activeCfgPath, 'utf8')) as CompiledConfig;
   const afterRun = runPortfolioDemo(demo, activeCfg);
-  assert.equal(afterRun.finalVerdict, 'rollback', 'old config must still roll back after a timeout default-rejection');
+  assert.equal(afterRun.finalVerdict, 'detected', 'old config must still detect after a timeout default-rejection');
   assert.ok(afterRun.anyFamilyFired);
 });
 

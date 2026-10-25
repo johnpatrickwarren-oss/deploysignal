@@ -11,6 +11,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import type { CompiledConfig } from '../dist/engine/types';
+import { advisoryIds, isDetection } from './_c87-detection';
 
 const engine = require('../shared');
 const { orchestrate, TrendBuffer, TOTAL_TICKS } = engine;
@@ -63,7 +64,8 @@ function precomputeTicks(sc: any): Record<string, number>[] {
   return ticks;
 }
 
-type FinalVerdict = 'rollback' | 'proceed' | 'extend';
+// 'advisory': the run stopped at its first advisory A/C/D fire (C87); the deploy did not roll back.
+type FinalVerdict = 'rollback' | 'advisory' | 'proceed' | 'extend';
 
 function runOne(sc: any, ticks: Record<string, number>[], cfg: CompiledConfig): { verdict: FinalVerdict; tick: number; famDFires: string[]; rollbackIds: string[] } {
   const tb = new TrendBuffer(10);
@@ -89,6 +91,8 @@ function runOne(sc: any, ticks: Record<string, number>[], cfg: CompiledConfig): 
       firstRollbackIds = (r.healthResult?.rollback ?? []).map((s: any) => s.id);
       return { verdict: 'rollback', tick: i, famDFires, rollbackIds: firstRollbackIds };
     }
+    const adv = advisoryIds(r);
+    if (adv.length > 0) return { verdict: 'advisory', tick: i, famDFires, rollbackIds: adv };
     if (r.verdict === 'proceed') return { verdict: 'proceed', tick: i, famDFires, rollbackIds: [] };
     if (i === TOTAL_TICKS - 1) {
       const fv: FinalVerdict = (r.healthResult && r.healthResult.extend.length > 0) ? 'extend' : 'proceed';
@@ -129,12 +133,13 @@ test('family-d-parity: ≥1 of 3 oscillation scenarios catches (Family D fires o
   }
 
   const famDCatches = outcomes.filter((o) => o.famDFires.length > 0).length;
-  const anyRollback = outcomes.filter((o) => o.verdict === 'rollback').length;
-  console.log(`Family D direct catches: ${famDCatches}/3; any-family rollback on D scenarios: ${anyRollback}/3`);
+  // C87: detection = the deploy rolled back, or an advisory A/C/D fire was recorded.
+  const anyRollback = outcomes.filter((o) => isDetection(o.verdict)).length;
+  console.log(`Family D direct catches: ${famDCatches}/3; any-family detection (rollback or advisory fire) on D scenarios: ${anyRollback}/3`);
   // Acceptance per handoff §4.1.d: ≥1 of 3 oscillation scenarios caught.
   // "Caught" = Family D fires on at least one signal OR the fused verdict
   // rolls back on the scenario (indirect catch via B/A/C picking up the
   // oscillation-driven deviation).
   assert.ok(anyRollback >= 1,
-    `expected ≥1 of 3 oscillation scenarios to roll back; got ${anyRollback}`);
+    `expected ≥1 of 3 oscillation scenarios to be detected (rollback or advisory A/C/D fire); got ${anyRollback}`);
 });

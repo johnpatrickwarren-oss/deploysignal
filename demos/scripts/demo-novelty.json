@@ -1,7 +1,7 @@
 {
   "id": "demo-novelty",
   "name": "Demo 2 — Novelty Catch (Family E)",
-  "description": "A joint-distribution shift designed to escape cascade's threshold detectors — individual signals stay within bounds; only the joint pattern shifts. Portfolio catches at the onset tick via Family C (Hotelling T² on the joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing simultaneously.",
+  "description": "A joint-distribution shift designed to escape cascade's threshold detectors — individual signals stay within bounds; only the joint pattern shifts. Portfolio detects at the onset tick via Family C (Hotelling T² on the joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing simultaneously. Since 2026-10-02 (C87) these fires are advisory: they are recorded and reported, the gate does not roll back on them, and this deploy ends in proceed.",
   "narrative": "Unknown-unknowns coverage. Cascade's threshold detectors miss this trajectory — every individual signal stays within its band; the joint distribution shifts. Portfolio catches with two orthogonal mechanisms firing at the same onset tick: Family C's Hotelling T² on the joint vector and Family E's conformal Mahalanobis scoring against the held-out healthy baseline. Independent statistical tests agreeing on the same onset is the corroboration pattern the architecture was designed for. Family E's conformal scoring contributes a calibrated p-value with formal FP control under exchangeability — defensible confidence, not an opaque ML score.",
   "baseline_ref": "baselines/llm-inference-streaming.json",
   "riskLevel": "high",
@@ -537,7 +537,16 @@
     }
   ],
   "expected_outcome": {
-    "verdict": "rollback",
+    "verdict": "proceed",
+    "advisory": {
+      "families": [
+        "C",
+        "E"
+      ],
+      "first_fire_tick": 10,
+      "reason_code": "advisory_temporal_path_no_valid_null",
+      "verdict_before_c87": "rollback"
+    },
     "first_fire_tick": 10,
     "first_fire_family": "E",
     "alpha_total_max": 0.0005,

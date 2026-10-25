@@ -20,6 +20,13 @@ function _countFiringFamilies(group: VerdictGroup): number {
   return set.size;
 }
 
+/** C87 — distinct advisory families across the group's verdicts. */
+function _countAdvisoryFamilies(group: VerdictGroup): number {
+  const set = new Set<string>();
+  for (const v of group.firing_verdicts) for (const f of v.advisory_families ?? []) set.add(f);
+  return set.size;
+}
+
 // Topology-enrichment leg of the fan-out. Emits verdict_group.topology_enriched
 // on success and folds an enrichment error into the aggregate shape. Resolves
 // to an empty partial when no enricher is wired.
@@ -140,6 +147,8 @@ export function maybeIngestAndFanOut(
     window_end_ts: closed.window_end_ts,
     verdict_count: closed.verdicts.length,
     firing_family_count: _countFiringFamilies(closed),
+    // C87: fires that held no rollback authority still close into the group; say so.
+    ...(closed.advisory ? { advisory: true, advisory_family_count: _countAdvisoryFamilies(closed) } : {}),
     root_cause_detector_id: closed.root_cause ? `tick_${closed.root_cause.tick}` : null,
     confidence: closed.confidence,
     closed_at_ts: closed.closed_at_ts,

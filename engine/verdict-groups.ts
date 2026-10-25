@@ -52,6 +52,17 @@ const DEFAULT_WINDOW_SECONDS = 300;
 const DEFAULT_GRACE_SECONDS = 300;
 const DEFAULT_CONFIDENCE_SATURATION = 3;
 
+/** C87 — the families with a fire on one fused verdict: those that drove it (`firing_families`)
+ *  and those that could not (`advisory_families`; absent on verdicts built before C87). Since A, C
+ *  and D are advisory, grouping on `firing_families` alone would leave every statistical fire out
+ *  of `firing_verdicts`, `root_cause` and `confidence`. */
+export function firedFamilies(v: FusedVerdict): string[] {
+  return [...v.firing_families, ...(v.advisory_families ?? [])];
+}
+function hasFire(v: FusedVerdict): boolean {
+  return firedFamilies(v).length > 0;
+}
+
 export class VerdictGrouper {
   private readonly windowSeconds: number;
   private readonly graceSeconds: number;
@@ -96,7 +107,7 @@ export class VerdictGrouper {
       if (lateTarget) {
         lateTarget.late_arrival_verdicts.push(verdict);
         lateTarget.verdicts.push(verdict);
-        if (verdict.firing_families.length > 0) lateTarget.firing_verdicts.push(verdict);
+        if (hasFire(verdict)) lateTarget.firing_verdicts.push(verdict);
         this.recomputeDerived(lateTarget);
         lateArrival = true;
         attributed = lateTarget;
@@ -137,7 +148,7 @@ export class VerdictGrouper {
   }
 
   private openGroup(deployId: string, verdict: FusedVerdict, ts: number): VerdictGroup {
-    const firing = verdict.firing_families.length > 0;
+    const firing = hasFire(verdict);
     const group: VerdictGroup = {
       group_id: this.groupId(deployId, ts),
       deploy_id: deployId,
@@ -147,6 +158,7 @@ export class VerdictGrouper {
       firing_verdicts: firing ? [verdict] : [],
       root_cause: null,
       confidence: 0,
+      advisory: false,
       late_arrival_verdicts: [],
       closed: false,
       closed_at_ts: null,
@@ -158,7 +170,7 @@ export class VerdictGrouper {
 
   private appendToOpen(group: VerdictGroup, verdict: FusedVerdict): void {
     group.verdicts.push(verdict);
-    if (verdict.firing_families.length > 0) group.firing_verdicts.push(verdict);
+    if (hasFire(verdict)) group.firing_verdicts.push(verdict);
     this.recomputeDerived(group);
   }
 
@@ -178,6 +190,10 @@ export class VerdictGrouper {
   }
 
   private recomputeDerived(group: VerdictGroup): void {
+    // C87: a group whose fires are all advisory (no verdict in it has a family on
+    // `firing_families`) still has a root cause and a confidence, and is marked advisory.
+    group.advisory = group.firing_verdicts.length > 0
+      && group.firing_verdicts.every((v) => v.firing_families.length === 0);
     if (group.firing_verdicts.length === 0) {
       group.root_cause = null;
       group.confidence = 0;
@@ -202,7 +218,7 @@ export class VerdictGrouper {
     // distinct firing families across ALL firing verdicts in the group.
     const families = new Set<string>();
     for (const fv of group.firing_verdicts) {
-      for (const f of fv.firing_families) families.add(f);
+      for (const f of firedFamilies(fv)) families.add(f);
     }
     group.confidence = Math.min(1, families.size / this.confidenceSaturation);
   }

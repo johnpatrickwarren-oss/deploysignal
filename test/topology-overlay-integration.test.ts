@@ -54,7 +54,7 @@ function tenantSkewTopology(): TopologySnapshot {
 
 function fusedVerdict(tick: number, firing: FusedVerdict['firing_families'] = []): FusedVerdict {
   return {
-    verdict: firing.length > 0 ? 'rollback' : 'proceed', firing_families: firing,
+    verdict: firing.length > 0 ? 'rollback' : 'proceed', firing_families: firing, advisory_families: [],
     per_family_verdicts: { A: null, B: null, C: null, D: null, E: null },
     total_alpha_spent: firing.length > 0 ? 1e-4 : 0,
     fusion_topology: 'portfolio', tick, deploy_ref: 'checkout',

@@ -14,6 +14,9 @@
 //      (its plug-ins are advisory under C64 b).
 // Fixture: every signal drawn from the compiled cell's own law (test/_c64-fixture.ts).
 
+import { advisoryIds, detectedAt, detectionIds } from './_c87-detection';
+import { temporalAdvisoryVerdict } from '../dist/engine/_verdict-advisory';
+import { TEMPORAL_PATH_ADVISORY_REASON } from '../dist/engine/guarantees';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -123,7 +126,10 @@ test('C64 (a): an estimated φ with calibration below the 100-sample floor is re
   assert.equal(known.verdict, 'fire');
 });
 
-test('C64 (a): a terminal fire pushes family_A_safe_t_{signal} into rollback and the series persists on the TrendBuffer', () => {
+// C87 (2026-10-02): the terminal safe-t path is advisory with the rest of the temporal path. Its
+// fire is recorded with the id it would have pushed (`advisory_id`), books no α at the gate, and
+// rollback[] stays empty.
+test('C64 (a): a terminal fire is recorded as advisory under family_A_safe_t_{signal}, pushes nothing into rollback (C87), and the series persists on the TrendBuffer', () => {
   const tb = new TrendBuffer(10);
   const result = emptyHealth();
   const rollback: FiredSignal[] = [];
@@ -135,7 +141,11 @@ test('C64 (a): a terminal fire pushes family_A_safe_t_{signal} into rollback and
   const last = shadow[shadow.length - 1];
   assert.equal(last.verdict, 'fire');
   assert.equal(last.signal, 'p99_latency');
-  assert.deepEqual(rollback.map((s) => s.id), [VALID_PATH_ROLLBACK_PREFIX + 'p99_latency']);
+  assert.deepEqual(rollback.map((s) => s.id), []);
+  assert.deepEqual(advisoryIds(result), [VALID_PATH_ROLLBACK_PREFIX + 'p99_latency']);
+  assert.equal((last as DetectorVerdict).advisory_reason, TEMPORAL_PATH_ADVISORY_REASON);
+  assert.equal(last.reason_code, VALID_PATH_REASON.fire, 'the detector\'s own reason code is kept');
+  assert.equal(last.alpha_spent, 0);
   const stored = (tb as unknown as { validPathSeries: Record<string, number[]> }).validPathSeries.p99_latency;
   assert.equal(stored.length, 100, 'the full canary, not the 10-tick rolling view');
 });
@@ -146,26 +156,31 @@ test('C64 (a): the audit record names a valid-path fire by safe_t_e_value_{signa
   const alpha = validPathAlpha(cfg);
   const v = terminalSafeTVerdict('p99_latency', CAL.p99_latency, cellSeries(LAW.p99_latency, 3, 100, 30, 3), alpha, 0);
   assert.equal(v.verdict, 'fire');
-  const hr: HealthResult = { ...emptyHealth(), family_A_shadow: [v], rollback: [{ id: VALID_PATH_ROLLBACK_PREFIX + 'p99_latency', label: 'Family A safe-t p99_latency' }] };
+  // the health gate's treatment of the fire (C87): no α, advisory marks, nothing on rollback[]
+  const hr: HealthResult = { ...emptyHealth(), family_A_shadow: [temporalAdvisoryVerdict(v, VALID_PATH_ROLLBACK_PREFIX + 'p99_latency')], rollback: [] };
   const params = {
     liveMetrics: metricsAt(cfg, canary(cfg, 6, 1, [], 0), 0), scenario: scenarioFor(cfg), hoursElapsed: 84, tick: 99, totalTicks: 100,
     fusionTopology: 'portfolio' as const, compiledConfig: cfg, currentHourOfDay: 20, currentDayOfWeek: 3,
   };
   const fused = fuseVerdict(hr, { topology: 'portfolio', tick: 99, totalTicks: 100, deployRef: 'c64a' });
-  assert.equal(fused.verdict, 'rollback');
-  assert.deepEqual(fused.firing_families, ['A']);
-  assert.equal(fused.total_alpha_spent, alpha);
+  assert.equal(fused.verdict, 'proceed');
+  assert.deepEqual(fused.firing_families, []);
+  assert.deepEqual(fused.advisory_families, ['A']);
+  assert.equal(fused.total_alpha_spent, 0);
   const rec = buildAuditRecord(params as unknown as Parameters<typeof buildAuditRecord>[0],
-    { verdict: 'rollback', reason: 'x', gateResults: { health: hr, fusion: fused }, healthResult: hr, shortCircuit: null } as unknown as VerdictResult, null) as AuditRecordV2;
+    { verdict: 'proceed', reason: 'x', gateResults: { health: hr, fusion: fused }, healthResult: hr, shortCircuit: null } as unknown as VerdictResult, null) as AuditRecordV2;
   const a = rec.families.A;
   assert.equal(a.verdict, 'fire');
   assert.deepEqual(a.detectors.map((d) => d.detector_id), ['safe_t_e_value_p99_latency']);
-  assert.equal(a.detectors[0].alpha_spent, alpha);
-  assert.equal(a.alpha_spent, alpha);
+  assert.equal(a.detectors[0].alpha_spent, 0);
+  assert.equal(a.alpha_spent, 0);
+  assert.deepEqual(a.advisory_fires, [{ signal: 'p99_latency', reason_code: TEMPORAL_PATH_ADVISORY_REASON }]);
 });
 
 // ── 6. end to end ───────────────────────────────────────────────────
 
+// `firstRollback` is the first DETECTION (C87): the deploy rolled back, or an advisory A/C/D fire
+// was recorded; `ids` are rollback[] ids followed by the advisory fires' ids.
 function driveOrchestrate(seed: number, shift: number): { last: VerdictResult; firstRollback: { tick: number; ids: string[] } | null } {
   const tb = new TrendBuffer(10);
   const traj = canary(cfg, seed, 100, shift > 0 ? ['p99_latency'] : [], shift);
@@ -179,7 +194,7 @@ function driveOrchestrate(seed: number, shift: number): { last: VerdictResult; f
       trendBuffer: tb, tick: i, totalTicks: 100, compiledConfig: cfg, fusionTopology: 'portfolio',
       currentHourOfDay: 20, currentDayOfWeek: 3, ...routedOpts,
     }) as VerdictResult;
-    if (firstRollback === null && last.verdict === 'rollback') firstRollback = { tick: i, ids: last.healthResult!.rollback.map((s) => s.id) };
+    if (firstRollback === null && detectedAt(last)) firstRollback = { tick: i, ids: detectionIds(last) };
   }
   return { last: last!, firstRollback };
 }
@@ -194,10 +209,11 @@ test('C64 (a) end to end: healthy data ends proceed with the routed path clean a
   assert.equal(st.reason_code, VALID_PATH_REASON.clean);
 });
 
-test('C64 (a) end to end: a 3σ step on the routed signal is a rollback at the terminal look, on the valid path (its plug-ins are advisory under C64 b)', () => {
+test('C64 (a) end to end: a 3σ step on the routed signal is detected at the terminal look, on the valid path, as an advisory fire; the deploy proceeds (C87)', () => {
   const { last, firstRollback } = driveOrchestrate(9, 3);
   assert.ok(firstRollback !== null, 'the step was detected');
-  assert.equal(firstRollback!.tick, 99, `first rollback tick ${firstRollback!.tick}: ${firstRollback!.ids}`);
-  assert.ok(firstRollback!.ids.includes(VALID_PATH_ROLLBACK_PREFIX + 'p99_latency'), `rollback ids: ${firstRollback!.ids}`);
-  assert.equal(last.verdict, 'rollback');
+  assert.equal(firstRollback!.tick, 99, `first detection tick ${firstRollback!.tick}: ${firstRollback!.ids}`);
+  assert.ok(firstRollback!.ids.includes(VALID_PATH_ROLLBACK_PREFIX + 'p99_latency'), `detection ids: ${firstRollback!.ids}`);
+  assert.deepEqual(last.healthResult!.rollback, [], 'nothing on rollback[]');
+  assert.equal(last.verdict, 'proceed');
 });

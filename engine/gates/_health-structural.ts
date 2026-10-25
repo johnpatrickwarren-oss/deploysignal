@@ -44,8 +44,10 @@ export interface RuleInputs {
   bypass: { [id: string]: boolean };
 }
 
-/** Does the config compile a family that can roll back with a stated error bound? E is advisory
- *  (FAMILY_E_ADVISORY) and does not count. */
+/** Does the config compile a statistical family (A, C or D) beside Family B? E is advisory
+ *  (FAMILY_E_ADVISORY) and does not count. Since C87 (TEMPORAL_PATH_AUTHORITY) A, C and D are
+ *  advisory as well: they detect and report and do not roll back. The hold-only rule is unchanged
+ *  by that, so on such a config Family B holds and nothing statistical rolls back. */
 function statisticalFamilyCompiled(cfg: CompiledConfig): boolean {
   const bc = cfg.baseline_cells;
   if (!bc) return false;

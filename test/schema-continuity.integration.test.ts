@@ -8,6 +8,7 @@
 // depend on continuous metric semantics); and the v2 audit record
 // carries the continuity class in `Provenance.schema_continuity`.
 
+import { detectedAt } from './_c87-detection';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -126,7 +127,9 @@ function runScenario(
     const result = orchestrate(params);
     lastRecord = buildAuditRecord(params, result, { service: 'sci-test' }) as AuditRecordV2;
     lastI = i;
-    if (result.verdict === 'rollback') {
+    // C87 (2026-10-02): `sawRollback` is DETECTION — the deploy rolled back, or an advisory
+    // A/C/D fire was recorded (test/_c87-detection.ts). The name is kept for the callers.
+    if (detectedAt(result)) {
       sawRollback = true;
       if (opts.breakOnRollback !== false) break;
     }
@@ -181,7 +184,7 @@ test('schema-continuity: continuous → families evaluate normally (no schema su
       `family ${fam} must not carry observability-stack suppression under 'continuous'`);
   }
   // Drifting input should drive at least one family to fire over 24 ticks.
-  assert.ok(out.sawRollback, 'continuous run must reach a rollback under drifting inputs');
+  assert.ok(out.sawRollback, 'continuous run must reach a detection (rollback or advisory A/C/D fire) under drifting inputs');
 });
 
 test('schema-continuity: provenance.schema_continuity threads through to every emitted trip', () => {

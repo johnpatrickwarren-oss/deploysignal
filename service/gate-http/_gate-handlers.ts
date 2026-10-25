@@ -176,6 +176,7 @@ export function handleTick(deps: HandlerDeps, sessionId: string, rawBody: string
       verdict_code: result.verdict_code,
       alpha_consumed: result.alpha_consumed,
       fires: result.fires,
+      advisory_fires: result.advisory_fires,
       replayed: result.replayed,
       ...(result.error !== undefined ? { error: result.error } : {}),
       ...(result.degraded ? { degraded: true } : {}),

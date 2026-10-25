@@ -110,7 +110,7 @@ function buildDemo2() {
   return Object.assign({}, COMMON_CTX, {
     id: 'demo-novelty',
     name: 'Demo 2 — Novelty Catch (Family E)',
-    description: 'A joint-distribution shift designed to escape cascade\'s threshold detectors — individual signals stay within bounds; only the joint pattern shifts. Portfolio catches at the onset tick via Family C (Hotelling T² on the joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing simultaneously.',
+    description: 'A joint-distribution shift designed to escape cascade\'s threshold detectors — individual signals stay within bounds; only the joint pattern shifts. Portfolio detects at the onset tick via Family C (Hotelling T² on the joint vector) and Family E (conformal Mahalanobis against held-out healthy baseline) co-firing simultaneously. Since 2026-10-02 (C87) these fires are advisory: they are recorded and reported, the gate does not roll back on them, and this deploy ends in proceed.',
     narrative: 'Unknown-unknowns coverage. Cascade\'s threshold detectors miss this trajectory — every individual signal stays within its band; the joint distribution shifts. Portfolio catches with two orthogonal mechanisms firing at the same onset tick: Family C\'s Hotelling T² on the joint vector and Family E\'s conformal Mahalanobis scoring against the held-out healthy baseline. Independent statistical tests agreeing on the same onset is the corroboration pattern the architecture was designed for. Family E\'s conformal scoring contributes a calibrated p-value with formal FP control under exchangeability — defensible confidence, not an opaque ML score.',
     cadence_ms: 200,
     total_ticks: 32,
@@ -118,7 +118,17 @@ function buildDemo2() {
     cell_patch: null,  // attached by attachPatch() below
     ticks: ticks,
     expected_outcome: {
-      verdict: 'rollback',
+      // C87 (2026-10-02): Families A, C and D are advisory (engine/guarantees.ts
+      // TEMPORAL_PATH_AUTHORITY), E since C25. The fires below are recorded and
+      // reported; no rollback follows, and the deploy's verdict is what the gate
+      // returns at the last tick.
+      verdict: 'proceed',
+      advisory: {
+        families: ['C', 'E'],
+        first_fire_tick: 10,
+        reason_code: 'advisory_temporal_path_no_valid_null',
+        verdict_before_c87: 'rollback',
+      },
       first_fire_tick: 10,
       first_fire_family: 'E',  // E + C fire concurrently at the onset tick
       // α_E reverts to v4 default 1e-4 (REPLY-16 Q2 flip — aggregate
@@ -211,10 +221,10 @@ function buildDemo3() {
   return Object.assign({}, COMMON_CTX, {
     id: 'demo-github-2020',
     name: 'Demo 3 — GitHub Jan 2020 Redis Cascade (reconstruction)',
-    description: "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. Both cascade and portfolio engines fire rollback at the onset tick. Portfolio provides multi-family corroboration: Families A, B, C, and E each fire independently within the first few ticks of the incident, giving the rollback decision four orthogonal statistical confirmations.",
+    description: "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. The cascade engine rolls back at the onset tick on a legacy structural rule. The portfolio engine holds on that rule and records advisory fires from Families A, C, D and E within the incident; since 2026-10-02 (C87) those fires do not roll the deploy back, and the portfolio run ends in proceed.",
     // W6 §REPLY-18 Item C — architect-authored narrative (verbatim). Rewritten 2026-09-28 at the
     // architect's request for FAMILY_B_AUTHORITY (Family B holds; portfolio rolls back at t=7).
-    narrative: "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. The cascade engine, which runs the legacy structural rules, rolls back at the onset tick (t=5) on the slow-bleed pattern: several metrics drifting together, each below its own threshold. The portfolio engine sees the same pattern and holds the canary, because that rule has no stated false-rollback rate. It rolls back two ticks later (t=7), when Family A's anytime-valid test crosses its threshold on downstream errors; Families C and E fire independently by t=8. The two ticks buy a rollback whose false-alarm rate is bounded: α spent 3.3×10⁻⁵ against a 10⁻³ budget. Fidelity note: signal trajectories are inferred from published postmortem detail; magnitudes within ±20% of reported values.",
+    narrative: "Reconstruction of GitHub's January 28, 2020 Redis cascade incident. The cascade engine, which runs the legacy structural rules, rolls back at the onset tick (t=5) on the slow-bleed pattern: several metrics drifting together, each below its own threshold. The portfolio engine sees the same pattern and holds the canary, because that rule has no stated false-rollback rate. Two ticks later (t=7) Family A's test crosses its threshold on downstream errors; Families C and E fire independently by t=8. Since 2026-10-02 (C87) those fires are advisory: on real telemetry the gate rolled back 0.91 to 0.95 of healthy units through these families, so they are recorded and reported, no α is spent, and the portfolio run ends in proceed. Fidelity note: signal trajectories are inferred from published postmortem detail; magnitudes within ±20% of reported values.",
     fidelity_caveat: 'This is a reconstruction based on GitHub\'s January 28, 2020 published postmortem. Signal trajectories are inferred from reported latency percentiles and worker saturation curves; magnitudes are within ±20% of GitHub\'s reported values. The detection behavior shown reflects what our engine would do against that trajectory. Whether the real-world trajectory was exactly this shape is a fidelity question bounded by the postmortem\'s level of detail.',
     cadence_ms: 250,
     total_ticks: 32,
@@ -223,11 +233,21 @@ function buildDemo3() {
     narrative_reference: 'https://github.blog/2020-01-29-update-on-january-28-incident/',
     ticks: ticks,
     expected_outcome: {
-      verdict: 'rollback',
+      // C87 (2026-10-02): Families A, C and D are advisory (engine/guarantees.ts
+      // TEMPORAL_PATH_AUTHORITY), E since C25. The fires below are recorded and
+      // reported; no rollback follows, and the deploy's verdict is what the gate
+      // returns at the last tick.
+      verdict: 'proceed',
+      advisory: {
+        families: ['A', 'C', 'D', 'E'],
+        first_fire_tick: 7,
+        reason_code: 'advisory_temporal_path_no_valid_null',
+        verdict_before_c87: 'rollback',
+      },
       portfolio_first_fire_tick: 7,
-      portfolio_first_rollback_tick: 7,
+      portfolio_first_rollback_tick: null,  // C87: the portfolio path does not roll back
       cascade_first_rollback_tick: 5,
-      timing_delta_ticks: 2,
+      timing_delta_ticks: 2,  // cascade rollback (t=5) to the portfolio's first advisory fire (t=7)
       first_families: ['A', 'C', 'E'],
       alpha_total_max: 1e-3,
       // Spec §6.3 predicted Family B kv_saturation @t=7 → A @t=8 → C @t=9
@@ -238,7 +258,7 @@ function buildDemo3() {
       // demonstrates 4-family multi-detection by t=8 (B, A, C, E all firing
       // simultaneously) which IS a defensible pitch beat — provenance shows
       // independent confirmation across statistical paradigms.
-      divergence_from_spec: 'FAMILY_B_AUTHORITY (2026-09-27): Family B holds on a compiled profile and never rolls back. Cascade (no compiled config) still rolls back at t=5 via Family B slowbleed; portfolio (v4) rolls back at t=7 on Family A downstream_err, with C and E firing by t=8 — a 2-tick delay against cascade. Provenance/α-budget pitch beats unaffected.',
+      divergence_from_spec: 'FAMILY_B_AUTHORITY (2026-09-27): Family B holds on a compiled profile and never rolls back. TEMPORAL_PATH_AUTHORITY (C87, 2026-10-02): Families A, C and D are advisory. Cascade (no compiled config) still rolls back at t=5 via Family B slowbleed; portfolio (v4) does not roll back: Family A fires on downstream_err at t=7, C and E by t=8, D at t=19, all advisory, and the run ends in proceed. No α is spent.',
       // D-54-5 (ARCHITECT-REPLY-54): per-variant fire-tick pinning.
       // Records empirical Family D spectral fire ticks per variant
       // (NS-ARCH Addition #21). Not asserted at runtime today —
